@@ -70,14 +70,14 @@ class StateNode(object):
     def new_muhat(self, time):
         t = time - self.times[-1]
         driftrate = self.rho
-        for i in range(len(self.va_pas)):
+        for i, va_pa in enumerate(self.va_pas):
             driftrate += self.phis[i] * self.va_pas[i].mus[-1]
         return self.mus[-1] + t * driftrate
 
     def new_nu(self, time):
         t = time - self.times[-1]
         logvol = self.omega
-        for i in range(len(self.vo_pas)):
+        for i, vo_pa in enumerate(self.vo_pas):
             logvol += self.kappas[i] * self.vo_pas[i].mus[-1]
         return t * np.exp(logvol)
 
@@ -96,7 +96,7 @@ class StateNode(object):
         va_pas = self.va_pas
         vo_pas = self.vo_pas
 
-        if len(va_pas + vo_pas) == 0:
+        if not va_pas and not vo_pas:
             return
 
         pihat = self.pihats[-1]
@@ -105,29 +105,29 @@ class StateNode(object):
         phis = self.phis
         vape = self.vape()
 
-        for i in range(len(va_pas)):
-            pihat_pa, nu_pa = va_pas[i].new_pihat_nu(time)
+        for i, va_pa in enumerate(va_pas):
+            pihat_pa, nu_pa = va_pa.new_pihat_nu(time)
             pi_pa = pihat_pa + phis[i]**2 * pihat
 
-            muhat_pa = va_pas[i].new_muhat
+            muhat_pa = va_pa.new_muhat
             mu_pa = muhat_pa + phis[i] * pihat / pi_pa * vape
 
-            va_pas[i].update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
+            va_pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
         # Update volatility parents
         nu = self.nus[-1]
         kappas = self.kappas
         vope = self.vope()
 
-        for i in range(len(vo_pas)):
-            pihat_pa, nu_pa = vo_pas[i].new_pihat_nu(time)
+        for i, vo_pa in enumerate(vo_pas):
+            pihat_pa, nu_pa = vo_pa.new_pihat_nu(time)
             pi_pa = pihat_pa + 0.5 * (kappas[i] * nu * pihat)**2 * \
                 (1 + (1 - 1 / (nu * self.pis[-2])) * vope)
 
-            muhat_pa = vo_pas[i].new_muhat(time)
+            muhat_pa = vo_pa.new_muhat(time)
             mu_pa = muhat_pa + 0.5 * kappas[i] * nu * pihat / pi_pa * vope
 
-            vo_pas[i].update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
+            vo_pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
     def update(self, time, pihat, pi, muhat, mu, nu):
         self.times.append(time)
