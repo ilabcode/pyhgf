@@ -4,16 +4,16 @@ import numpy as np
 # Parameters for HGF state nodes
 class StateNodeParameters(object):
     def __init__(self,
-                 priorMean=None,
-                 priorPrecision=None,
+                 prior_mu=None,
+                 prior_pi=None,
                  rho=0.0,
                  phis=[],
                  omega=0.0,
                  kappas=[]):
 
         # Collect arguments
-        self.priorMean = priorMean
-        self.priorPrecision = priorPrecision
+        self.prior_mu = prior_mu
+        self.prior_pi = prior_pi
         self.omega = omega
         self.kappas = kappas
         self.rho = rho
@@ -34,100 +34,100 @@ class InputNodeParameters(object):
 # HGF state nodes
 class StateNode(object):
     def __init__(self,
-                 parameters,
-                 valueParents=[],
-                 volatilityParents=[]):
+                 state_node_params,
+                 value_parents=[],
+                 volatility_parents=[]):
 
         # Sanity checks
-        if len(parameters.phis) != len(valueParents):
+        if len(state_node_params.phis) != len(value_parents):
             raise ValueError('hgf.StateNode: lengths of phis and ' +
-                             'valueParents must match.')
+                             'value_parents must match.')
 
-        if len(parameters.kappas) != len(volatilityParents):
+        if len(state_node_params.kappas) != len(volatility_parents):
             raise ValueError('hgf.StateNode: lengths of kappas and ' +
-                             'volatilityParents must match.')
+                             'volatility_parents must match.')
 
         # Collect parents
-        self.vApas = valueParents
-        self.vOpas = volatilityParents
+        self.va_pas = value_parents
+        self.vo_pas = volatility_parents
 
-        # Incorporate parameters
-        self.priorMean = parameters.priorMean
-        self.priorPrecision = parameters.priorPrecision
-        self.rho = parameters.rho
-        self.phis = parameters.phis
-        self.omega = parameters.omega
-        self.kappas = parameters.kappas
+        # Incorporate state_node_params
+        self.prior_mu = state_node_params.prior_mu
+        self.prior_pi = state_node_params.prior_pi
+        self.rho = state_node_params.rho
+        self.phis = state_node_params.phis
+        self.omega = state_node_params.omega
+        self.kappas = state_node_params.kappas
 
         # Initialize time series
         self.times = [0.0]
         self.pihats = [None]
-        self.pis = [self.priorPrecision]
+        self.pis = [self.prior_pi]
         self.muhats = [None]
-        self.mus = [self.priorMean]
+        self.mus = [self.prior_mu]
         self.nus = [None]
 
-    def newMuhat(self, time):
+    def new_muhat(self, time):
         t = time - self.times[-1]
         driftrate = self.rho
-        for i in range(len(self.vApas)):
-            driftrate += self.phis[i] * self.vApas[i].mus[-1]
+        for i in range(len(self.va_pas)):
+            driftrate += self.phis[i] * self.va_pas[i].mus[-1]
         return self.mus[-1] + t * driftrate
 
-    def newNu(self, time):
+    def new_nu(self, time):
         t = time - self.times[-1]
         logvol = self.omega
-        for i in range(len(self.vOpas)):
-            logvol += self.kappas[i] * self.vOpas[i].mus[-1]
+        for i in range(len(self.vo_pas)):
+            logvol += self.kappas[i] * self.vo_pas[i].mus[-1]
         return t * np.exp(logvol)
 
-    def newPihatNu(self, time):
-        newNu = self.newNu(time)
-        return [1 / (1 / self.pis[-1] + newNu), newNu]
+    def new_pihat_nu(self, time):
+        new_nu = self.new_nu(time)
+        return [1 / (1 / self.pis[-1] + new_nu), new_nu]
 
-    def vApe(self):
+    def vape(self):
         return self.mus[-1] - self.muhats[-1]
 
-    def vOpe(self):
-        return ((1 / self.pis[-1] + self.vApe()**2) *
+    def vope(self):
+        return ((1 / self.pis[-1] + self.vape()**2) *
                 self.pihats[-1] - 1)
 
-    def updateParents(self, time):
-        vApas = self.vApas
-        vOpas = self.vOpas
+    def update_parents(self, time):
+        va_pas = self.va_pas
+        vo_pas = self.vo_pas
 
-        if len(vApas + vOpas) == 0:
+        if len(va_pas + vo_pas) == 0:
             return
 
         pihat = self.pihats[-1]
 
         # Update value parents
         phis = self.phis
-        vApe = self.vApe()
+        vape = self.vape()
 
-        for i in range(len(vApas)):
-            pihatPa, nuPa = vApas[i].newPihatNu(time)
-            piPa = pihatPa + phis[i]**2 * pihat
+        for i in range(len(va_pas)):
+            pihat_pa, nu_pa = va_pas[i].new_pihat_nu(time)
+            pi_pa = pihat_pa + phis[i]**2 * pihat
 
-            muhatPa = vApas[i].newMuhat
-            muPa = muhatPa + phis[i] * pihat / piPa * vApe
+            muhat_pa = va_pas[i].new_muhat
+            mu_pa = muhat_pa + phis[i] * pihat / pi_pa * vape
 
-            vApas[i].update(time, pihatPa, piPa, muhatPa, muPa, nuPa)
+            va_pas[i].update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
         # Update volatility parents
         nu = self.nus[-1]
         kappas = self.kappas
-        vOpe = self.vOpe()
+        vope = self.vope()
 
-        for i in range(len(vOpas)):
-            pihatPa, nuPa = vOpas[i].newPihatNu(time)
-            piPa = pihatPa + 0.5 * (kappas[i] * nu * pihat)**2 * \
-                (1 + (1 - 1 / (nu * self.pis[-2])) * vOpe)
+        for i in range(len(vo_pas)):
+            pihat_pa, nu_pa = vo_pas[i].new_pihat_nu(time)
+            pi_pa = pihat_pa + 0.5 * (kappas[i] * nu * pihat)**2 * \
+                (1 + (1 - 1 / (nu * self.pis[-2])) * vope)
 
-            muhatPa = vOpas[i].newMuhat(time)
-            muPa = muhatPa + 0.5 * kappas[i] * nu * pihat / piPa * vOpe
+            muhat_pa = vo_pas[i].new_muhat(time)
+            mu_pa = muhat_pa + 0.5 * kappas[i] * nu * pihat / pi_pa * vope
 
-            vOpas[i].update(time, pihatPa, piPa, muhatPa, muPa, nuPa)
+            vo_pas[i].update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
     def update(self, time, pihat, pi, muhat, mu, nu):
         self.times.append(time)
@@ -137,25 +137,25 @@ class StateNode(object):
         self.mus.append(mu)
         self.nus.append(nu)
 
-        self.updateParents(time)
+        self.update_parents(time)
 
 
 # HGF input nodes
 class InputNode(object):
     def __init__(self,
                  parameters,
-                 valueParent,
-                 volatilityParent=None):
+                 value_parent,
+                 volatility_parent=None):
 
         # Sanity check
-        if ((parameters.kappa is None and volatilityParent is not None) or
-           (volatilityParent is None and parameters.kappa is not None)):
-            raise ValueError('hgf.InputNode: kappa and volatilityParent ' +
+        if ((parameters.kappa is None and volatility_parent is not None) or
+           (volatility_parent is None and parameters.kappa is not None)):
+            raise ValueError('hgf.InputNode: kappa and volatility_parent ' +
                              'must either be both None or both defined.')
 
         # Collect parents
-        self.vApa = valueParent
-        self.vOpa = volatilityParent
+        self.va_pa = value_parent
+        self.vo_pa = volatility_parent
 
         # Incorporate parameters
         self.omega = parameters.omega
@@ -165,39 +165,41 @@ class InputNode(object):
         self.times = [0.0]
         self.inputs = [None]
 
-    def updateParents(self, input, time):
-        vApa = self.vApa
-        vOpa = self.vOpa
+    def update_parents(self, input, time):
+        va_pa = self.va_pa
+        vo_pa = self.vo_pa
 
         lognoise = self.omega
         kappa = self.kappa
 
         if kappa is not None:
-            lognoise += kappa * vOpa.mu[-1]
+            lognoise += kappa * vo_pa.mu[-1]
 
         pihat = 1 / np.exp(lognoise)
 
         # Update value parent
-        pihatVApa, nuVApa = vApa.newPihatNu(time)
-        piVApa = pihatVApa + pihat
+        pihat_va_pa, nu_va_pa = va_pa.new_pihat_nu(time)
+        pi_va_pa = pihat_va_pa + pihat
 
-        muhatVApa = vApa.newMuhat(time)
-        vApe = input - muhatVApa
-        muVApa = muhatVApa + pihat / piVApa * vApe
+        muhat_va_pa = va_pa.new_muhat(time)
+        vape = input - muhat_va_pa
+        mu_va_pa = muhat_va_pa + pihat / pi_va_pa * vape
 
-        vApa.update(time, pihatVApa, piVApa, muhatVApa, muVApa, nuVApa)
+        va_pa.update(time, pihat_va_pa, pi_va_pa, muhat_va_pa,
+                     mu_va_pa, nu_va_pa)
 
         # Update volatility parent
-        if vOpa is not None:
-            vOpe = (1 / piVApa + (input - muVApa)**2) * pihat - 1
+        if vo_pa is not None:
+            vope = (1 / pi_va_pa + (input - mu_va_pa)**2) * pihat - 1
 
-            pihatVOpa, nuVOpa = vOpa.newPihatNu(time)
-            piVOpa = pihatVOpa + 0.5 * kappa**2 * (1 + vOpe)
+            pihat_vo_pa, nu_vo_pa = vo_pa.new_pihat_nu(time)
+            pi_vo_pa = pihat_vo_pa + 0.5 * kappa**2 * (1 + vope)
 
-            muhatVOpa = vOpa.newMuhat(time)
-            muVOpa = muhatVOpa + 0.5 * kappa / piVOpa * vOpe
+            muhat_vo_pa = vo_pa.new_muhat(time)
+            mu_vo_pa = muhat_vo_pa + 0.5 * kappa / pi_vo_pa * vope
 
-            vOpa.update(time, pihatVOpa, piVOpa, muhatVOpa, muVOpa, nuVOpa)
+            vo_pa.update(time, pihat_vo_pa, pi_vo_pa, muhat_vo_pa,
+                         mu_vo_pa, nu_vo_pa)
 
     def input(self, input, time=-1):
         if time == -1:
@@ -206,4 +208,4 @@ class InputNode(object):
         self.times.append(time)
         self.inputs.append(input)
 
-        self.updateParents(input, time)
+        self.update_parents(input, time)
