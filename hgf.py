@@ -1,8 +1,12 @@
+# hgf.py
+"""The HGF time series model."""
+
 import numpy as np
 
 
 # Parameters for HGF state nodes
 class StateNodeParameters(object):
+    """Parameter setting to be passed to hgf.StateNode object."""
     def __init__(self,
                  prior_mu=None,
                  prior_pi=None,
@@ -22,6 +26,7 @@ class StateNodeParameters(object):
 
 # Parameters for HGF state nodes
 class InputNodeParameters(object):
+    """Parameter setting to be passed to hgf.InputNode object."""
     def __init__(self,
                  omega=0.0,
                  kappa=None):
@@ -33,6 +38,7 @@ class InputNodeParameters(object):
 
 # HGF state nodes
 class StateNode(object):
+    """The basic unit of an HGF model."""
     def __init__(self,
                  state_node_params,
                  value_parents=[],
@@ -142,6 +148,7 @@ class StateNode(object):
 
 # HGF input nodes
 class InputNode(object):
+    """A node that receives input on a continuous scale."""
     def __init__(self,
                  parameters,
                  value_parent,
