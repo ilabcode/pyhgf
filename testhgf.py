@@ -2,12 +2,26 @@ import numpy as np
 import hgf
 
 
-p2 = hgf.StateNodeParameters(1, np.inf, 0.0, [], -2.0, [])
-p1 = hgf.StateNodeParameters(0, 1, 0.0, [], -12.0, [1])
-pU = hgf.InputNodeParameters(0.0, None)
+x2 = hgf.StateNode(prior_mu=1,
+                   prior_pi=np.inf,
+                   omega=-2.0)
+x1 = hgf.StateNode(prior_mu=1.04,
+                   prior_pi=np.inf,
+                   omega=-12.0)
+xU = hgf.InputNode(omega=0.0)
 
-x2 = hgf.StateNode(p2, [], [])
-x1 = hgf.StateNode(p1, [], [x2])
-xU = hgf.InputNode(pU, x1, None)
+x1.add_volatility_parent(parent=x2, kappa=1)
+xU.set_value_parent(parent=x1)
 
 xU.input(0.5)
+
+stdhgf = hgf.StandardHGF(prior_mu1=1.04,
+                         prior_pi1=np.inf,
+                         omega1=-12.0,
+                         kappa1=1,
+                         prior_mu2=1,
+                         prior_pi2=np.inf,
+                         omega2=-2,
+                         omega_input=0.0)
+
+stdhgf.input(0.5)

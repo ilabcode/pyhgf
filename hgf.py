@@ -4,66 +4,37 @@
 import numpy as np
 
 
-# Parameters for HGF state nodes
-class StateNodeParameters(object):
-    """Parameter setting to be passed to hgf.StateNode object."""
-    def __init__(self,
-                 prior_mu=None,
-                 prior_pi=None,
-                 rho=0.0,
-                 phis=[],
-                 omega=0.0,
-                 kappas=[]):
-
-        # Collect arguments
-        self.prior_mu = prior_mu
-        self.prior_pi = prior_pi
-        self.omega = omega
-        self.kappas = kappas
-        self.rho = rho
-        self.phis = phis
-
-
-# Parameters for HGF state nodes
-class InputNodeParameters(object):
-    """Parameter setting to be passed to hgf.InputNode object."""
-    def __init__(self,
-                 omega=0.0,
-                 kappa=None):
-
-        # Collect arguments
-        self.omega = omega
-        self.kappa = kappa
-
-
 # HGF state nodes
 class StateNode(object):
     """The basic unit of an HGF model."""
     def __init__(self,
-                 state_node_params,
-                 value_parents=[],
-                 volatility_parents=[]):
+                 *,
+                 prior_mu,
+                 prior_pi,
+                 rho=0.0,
+                 phi=0.0,
+                 m=0.0,
+                 omega=0.0):
 
-        # Sanity checks
-        if len(state_node_params.phis) != len(value_parents):
-            raise ValueError('hgf.StateNode: lengths of phis and ' +
-                             'value_parents must match.')
+        # Sanity check
+        if rho and phi:
+            raise ValueError('hgf.StateNode: rho (drift) and phi (AR(1) ' +
+                             'parameter) may not be non-zero at the ' +
+                             'same time.')
 
-        if len(state_node_params.kappas) != len(volatility_parents):
-            raise ValueError('hgf.StateNode: lengths of kappas and ' +
-                             'volatility_parents must match.')
+        # Initialize parameter attributes
+        self.prior_mu = prior_mu
+        self.prior_pi = prior_pi
+        self.rho = rho
+        self.phi = phi
+        self.m = m
+        self.omega = omega
+        self.psis = []
+        self.kappas = []
 
-        # Collect parents
-        self.va_pas = value_parents
-        self.vo_pas = volatility_parents
-
-        # Incorporate state_node_params
-        self.prior_mu = state_node_params.prior_mu
-        self.prior_pi = state_node_params.prior_pi
-        self.rho = state_node_params.rho
-        self.phis = state_node_params.phis
-        self.omega = state_node_params.omega
-        self.kappas = state_node_params.kappas
+        # Initialize parents
+        self.va_pas = []
+        self.vo_pas = []
 
         # Initialize time series
         self.times = [0.0]
@@ -73,11 +44,19 @@ class StateNode(object):
         self.mus = [self.prior_mu]
         self.nus = [None]
 
+    def add_value_parent(self, *, parent, psi):
+        self.va_pas.append(parent)
+        self.psis.append(psi)
+
+    def add_volatility_parent(self, *, parent, kappa):
+        self.vo_pas.append(parent)
+        self.kappas.append(kappa)
+
     def new_muhat(self, time):
         t = time - self.times[-1]
         driftrate = self.rho
         for i, va_pa in enumerate(self.va_pas):
-            driftrate += self.phis[i] * self.va_pas[i].mus[-1]
+            driftrate += self.psis[i] * self.va_pas[i].mus[-1]
         return self.mus[-1] + t * driftrate
 
     def new_nu(self, time):
@@ -108,15 +87,15 @@ class StateNode(object):
         pihat = self.pihats[-1]
 
         # Update value parents
-        phis = self.phis
+        psis = self.psis
         vape = self.vape()
 
         for i, va_pa in enumerate(va_pas):
             pihat_pa, nu_pa = va_pa.new_pihat_nu(time)
-            pi_pa = pihat_pa + phis[i]**2 * pihat
+            pi_pa = pihat_pa + psis[i]**2 * pihat
 
             muhat_pa = va_pa.new_muhat
-            mu_pa = muhat_pa + phis[i] * pihat / pi_pa * vape
+            mu_pa = muhat_pa + psis[i] * pihat / pi_pa * vape
 
             va_pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
@@ -149,28 +128,26 @@ class StateNode(object):
 # HGF input nodes
 class InputNode(object):
     """A node that receives input on a continuous scale."""
-    def __init__(self,
-                 parameters,
-                 value_parent,
-                 volatility_parent=None):
+    def __init__(self, *, omega):
 
-        # Sanity check
-        if ((parameters.kappa is None and volatility_parent is not None) or
-           (volatility_parent is None and parameters.kappa is not None)):
-            raise ValueError('hgf.InputNode: kappa and volatility_parent ' +
-                             'must either be both None or both defined.')
+        # Incorporate parameter attributes
+        self.omega = omega
+        self.kappa = None
 
-        # Collect parents
-        self.va_pa = value_parent
-        self.vo_pa = volatility_parent
-
-        # Incorporate parameters
-        self.omega = parameters.omega
-        self.kappa = parameters.kappa
+        # Initialize parents
+        self.va_pa = None
+        self.vo_pa = None
 
         # Initialize time series
         self.times = [0.0]
         self.inputs = [None]
+
+    def set_value_parent(self, *, parent):
+        self.va_pa = parent
+
+    def set_volatility_parent(self, *, parent, kappa):
+        self.vo_pa = parent
+        self.kappa = kappa
 
     def update_parents(self, input, time):
         va_pa = self.va_pa
@@ -216,3 +193,61 @@ class InputNode(object):
         self.inputs.append(input)
 
         self.update_parents(input, time)
+
+
+# Standard 3-level HGF for continuous inputs
+class StandardHGF(object):
+    """The standard 2-level HGF for continuous inputs"""
+    def __init__(self,
+                 *,
+                 prior_mu1,
+                 prior_pi1,
+                 prior_mu2,
+                 prior_pi2,
+                 omega1,
+                 kappa1,
+                 omega2,
+                 omega_input,
+                 rho1=0.0,
+                 rho2=0.0,
+                 phi1=0.0,
+                 m1=0.0,
+                 phi2=0.0,
+                 m2=0.0):
+
+        # Initialize parameter attributes
+        self.prior_mu1 = prior_mu1
+        self.prior_pi1 = prior_pi1
+        self.prior_mu2 = prior_mu2
+        self.prior_pi2 = prior_pi2
+        self.omega1 = omega1
+        self.kappa1 = kappa1
+        self.omega2 = omega2
+        self.omega_input = omega_input
+        self.rho1 = rho1
+        self.rho2 = rho2
+        self.phi1 = phi1
+        self.m1 = m1
+        self.phi2 = phi2
+        self.m2 = m2
+
+        # Set up nodes and their relationships
+        self.x2 = StateNode(prior_mu=prior_mu2,
+                            prior_pi=prior_pi2,
+                            omega=omega2,
+                            rho=rho2,
+                            phi=phi2,
+                            m=m2)
+        self.x1 = StateNode(prior_mu=prior_mu1,
+                            prior_pi=prior_pi1,
+                            omega=omega1,
+                            rho=rho1,
+                            phi=phi1,
+                            m=m1)
+        self.xU = InputNode(omega=omega_input)
+
+        self.x1.add_volatility_parent(parent=self.x2, kappa=kappa1)
+        self.xU.set_value_parent(parent=self.x1)
+
+    def input(self, input, time=-1):
+        self.xU.input(input, time)
