@@ -203,7 +203,7 @@ class InputNode(object):
         self.update_parents(input, time)
 
 
-# Standard 3-level HGF for continuous inputs
+# Standard 2-level HGF for continuous inputs
 class StandardHGF(object):
     """The standard 2-level HGF for continuous inputs"""
     def __init__(self,
