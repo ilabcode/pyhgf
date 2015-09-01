@@ -18,9 +18,9 @@ class StateNode(object):
 
         # Sanity check
         if rho and phi:
-            raise ValueError('hgf.StateNode: rho (drift) and phi (AR(1) ' +
-                             'parameter) may not be non-zero at the ' +
-                             'same time.')
+            raise NodeConfigurationError(
+                'hgf.StateNode: rho (drift) and phi (AR(1) parameter) may ' +
+                'not be non-zero at the same time.')
 
         # Initialize parameter attributes
         self.prior_mu = prior_mu
@@ -108,6 +108,10 @@ class StateNode(object):
             pihat_pa, nu_pa = vo_pa.new_pihat_nu(time)
             pi_pa = pihat_pa + 0.5 * (kappas[i] * nu * pihat)**2 * \
                 (1 + (1 - 1 / (nu * self.pis[-2])) * vope)
+            if pi_pa <= 0:
+                raise NegativePosteriorPrecisionError(
+                    'Parameters values are in region where model ' +
+                    'assumptions are violated.')
 
             muhat_pa = vo_pa.new_muhat(time)
             mu_pa = muhat_pa + 0.5 * kappas[i] * nu * pihat / pi_pa * vope
@@ -178,6 +182,10 @@ class InputNode(object):
 
             pihat_vo_pa, nu_vo_pa = vo_pa.new_pihat_nu(time)
             pi_vo_pa = pihat_vo_pa + 0.5 * kappa**2 * (1 + vope)
+            if pi_vo_pa <= 0:
+                raise NegativePosteriorPrecisionError(
+                    'Parameters values are in region where model ' +
+                    'assumptions are violated.')
 
             muhat_vo_pa = vo_pa.new_muhat(time)
             mu_vo_pa = muhat_vo_pa + 0.5 * kappa / pi_vo_pa * vope
@@ -251,3 +259,15 @@ class StandardHGF(object):
 
     def input(self, input, time=-1):
         self.xU.input(input, time)
+
+
+class HgfException(Exception):
+    """Base class for all exceptions raised by the hgf module."""
+
+
+class NodeConfigurationError(HgfException):
+    """Node configuration error."""
+
+
+class NegativePosteriorPrecisionError(HgfException):
+    """Negative posterior precision."""
