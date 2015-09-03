@@ -2,6 +2,11 @@
 """The HGF time series model."""
 
 import numpy as np
+import warnings
+
+
+# Turn warnings into exceptions
+warnings.simplefilter('error')
 
 
 # HGF state nodes
