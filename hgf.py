@@ -198,14 +198,25 @@ class InputNode(object):
             vo_pa.update(time, pihat_vo_pa, pi_vo_pa, muhat_vo_pa,
                          mu_vo_pa, nu_vo_pa)
 
-    def input(self, input, time=-1):
-        if time == -1:
-            time = self.times[-1] + 1
-
+    def _single_input(self, value, time):
         self.times.append(time)
-        self.inputs.append(input)
+        self.inputs.append(value)
+        self.update_parents(value, time)
 
-        self.update_parents(input, time)
+    def input(self, inputs):
+        try:
+            for input in inputs:
+                try:
+                    value = input[0]
+                    time = input[1]
+                except IndexError:
+                    value = input
+                    time = self.times[-1] + 1
+                    self._single_input(value, time)
+        except TypeError:
+            value = inputs
+            time = self.times[-1] + 1
+            self._single_input(value, time)
 
 
 # Standard 2-level HGF for continuous inputs
@@ -262,8 +273,8 @@ class StandardHGF(object):
         self.x1.add_volatility_parent(parent=self.x2, kappa=kappa1)
         self.xU.set_value_parent(parent=self.x1)
 
-    def input(self, input, time=-1):
-        self.xU.input(input, time)
+    def input(self, inputs):
+        self.xU.input(inputs)
 
 
 class HgfException(Exception):
