@@ -6,7 +6,7 @@ import hgf
 
 def test_node_setup():
     # Manually set up a simple HGF hierarchy
-    x2 = hgf.StateNode(prior_mu=1,
+    x2 = hgf.StateNode(prior_mu=1.0,
                        prior_pi=np.inf,
                        omega=-2.0)
     x1 = hgf.StateNode(prior_mu=1.04,
