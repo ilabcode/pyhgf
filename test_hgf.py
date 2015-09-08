@@ -80,3 +80,30 @@ def test_standard_hgf():
     assert stdhgf.x1.pis == benchmark.x1.pis
     assert stdhgf.x2.mus == benchmark.x2.mus
     assert stdhgf.x2.pis == benchmark.x2.pis
+
+
+def test_binary_standard_hgf():
+    # Set up standard 3-level HGF for binary inputs
+    binstdhgf = hgf.StandardBinaryHGF(prior_mu2=0.0,
+                                      prior_pi2=1.0,
+                                      omega2=-2.5,
+                                      kappa2=1.0,
+                                      prior_mu3=1.0,
+                                      prior_pi3=1.0,
+                                      omega3=-6.0)
+
+    # Read binary input from Iglesias et al. (2013)
+    binary = np.loadtxt('binary_input.dat')
+
+    # Feed input
+    binstdhgf.input(binary)
+
+    # Load benchmark
+    with open('binstdhgf.pickle', 'rb') as f:
+        benchmark = pickle.load(f)
+
+    # Compare to benchmark
+    assert binstdhgf.x2.mus == benchmark.x2.mus
+    assert binstdhgf.x2.pis == benchmark.x2.pis
+    assert binstdhgf.x3.mus == benchmark.x3.mus
+    assert binstdhgf.x3.pis == benchmark.x3.pis

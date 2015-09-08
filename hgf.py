@@ -400,6 +400,72 @@ class StandardHGF(object):
         self.xU.input(inputs)
 
 
+# Standard 3-level HGF for binary inputs
+class StandardBinaryHGF(object):
+    """The standard 3-level HGF for binary inputs"""
+    def __init__(self,
+                 *,
+                 prior_mu2,
+                 prior_pi2,
+                 prior_mu3,
+                 prior_pi3,
+                 omega2,
+                 kappa2,
+                 omega3,
+                 pihat_input=np.inf,
+                 eta0=0.0,
+                 eta1=1.0,
+                 rho2=0.0,
+                 rho3=0.0,
+                 phi2=0.0,
+                 m2=0.0,
+                 phi3=0.0,
+                 m3=0.0):
+
+        # Initialize parameter attributes
+        self.prior_mu2 = prior_mu2
+        self.prior_pi2 = prior_pi2
+        self.prior_mu3 = prior_mu3
+        self.prior_pi3 = prior_pi3
+        self.omega2 = omega2
+        self.kappa2 = kappa2
+        self.omega3 = omega3
+        self.pihat_input = pihat_input
+        self.eta0 = eta0
+        self.eta1 = eta1
+        self.rho2 = rho2
+        self.rho3 = rho3
+        self.phi2 = phi2
+        self.m2 = m2
+        self.phi3 = phi3
+        self.m3 = m3
+
+        # Set up nodes and their relationships
+        self.x3 = StateNode(prior_mu=prior_mu3,
+                            prior_pi=prior_pi3,
+                            omega=omega3,
+                            rho=rho3,
+                            phi=phi3,
+                            m=m3)
+        self.x2 = StateNode(prior_mu=prior_mu2,
+                            prior_pi=prior_pi2,
+                            omega=omega2,
+                            rho=rho2,
+                            phi=phi2,
+                            m=m2)
+        self.x1 = BinaryNode()
+        self.xU = BinaryInputNode(pihat=pihat_input,
+                                  eta0=eta0,
+                                  eta1=eta1)
+
+        self.x2.add_volatility_parent(parent=self.x3, kappa=kappa2)
+        self.x1.set_parent(parent=self.x2)
+        self.xU.set_parent(parent=self.x1)
+
+    def input(self, inputs):
+        self.xU.input(inputs)
+
+
 def sgm(x):
     """The logistic sigmoid function"""
     return 1 / (1 + np.exp(-x))
