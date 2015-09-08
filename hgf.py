@@ -158,7 +158,7 @@ class InputNode(object):
         self.vo_pa = parent
         self.kappa = kappa
 
-    def update_parents(self, input, time):
+    def update_parents(self, value, time):
         va_pa = self.va_pa
         vo_pa = self.vo_pa
 
@@ -175,7 +175,7 @@ class InputNode(object):
         pi_va_pa = pihat_va_pa + pihat
 
         muhat_va_pa = va_pa.new_muhat(time)
-        vape = input - muhat_va_pa
+        vape = value - muhat_va_pa
         mu_va_pa = muhat_va_pa + pihat / pi_va_pa * vape
 
         va_pa.update(time, pihat_va_pa, pi_va_pa, muhat_va_pa,
@@ -183,7 +183,7 @@ class InputNode(object):
 
         # Update volatility parent
         if vo_pa is not None:
-            vope = (1 / pi_va_pa + (input - mu_va_pa)**2) * pihat - 1
+            vope = (1 / pi_va_pa + (value - mu_va_pa)**2) * pihat - 1
 
             pihat_vo_pa, nu_vo_pa = vo_pa.new_pihat_nu(time)
             pi_vo_pa = pihat_vo_pa + 0.5 * kappa**2 * (1 + vope)
