@@ -30,6 +30,30 @@ def test_node_setup():
     assert x2.mus[1] == 0.99999925013985835
 
 
+def test_binary_node_setup():
+    # Manually set up a simple binary HGF hierarchy
+    x3 = hgf.StateNode(prior_mu=1.0,
+                       prior_pi=1.0,
+                       omega=-6.0)
+    x2 = hgf.StateNode(prior_mu=0.0,
+                       prior_pi=1.0,
+                       omega=-2.5)
+    x1 = hgf.BinaryNode()
+    xU = hgf.BinaryInputNode()
+
+    x2.add_volatility_parent(parent=x3, kappa=1)
+    x1.set_parent(parent=x2)
+    xU.set_parent(parent=x1)
+
+    # Give some inputs
+    for u in [1, 0, 1]:
+        xU.input(u)
+
+    # Has update worked?
+    assert x2.mus[3] == 0.37068231113996203
+    assert x3.mus[3] == 0.99713458886147199
+
+
 def test_standard_hgf():
     # Set up standard 2-level HGF for continuous inputs
     stdhgf = hgf.StandardHGF(prior_mu1=1.04,
