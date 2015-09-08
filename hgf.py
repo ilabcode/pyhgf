@@ -64,7 +64,7 @@ class StateNode(object):
             driftrate += self.psis[i] * self.va_pas[i].mus[-1]
         return self.mus[-1] + t * driftrate
 
-    def new_nu(self, time):
+    def _new_nu(self, time):
         t = time - self.times[-1]
         logvol = self.omega
         for i, vo_pa in enumerate(self.vo_pas):
@@ -72,7 +72,7 @@ class StateNode(object):
         return t * np.exp(logvol)
 
     def new_pihat_nu(self, time):
-        new_nu = self.new_nu(time)
+        new_nu = self._new_nu(time)
         return [1 / (1 / self.pis[-1] + new_nu), new_nu]
 
     def vape(self):
