@@ -9,9 +9,9 @@ import warnings
 warnings.simplefilter('error')
 
 
-# HGF state nodes
+# HGF continuous state node
 class StateNode(object):
-    """The basic unit of an HGF model."""
+    """HGF continuous state node"""
     def __init__(self,
                  *,
                  prior_mu,
@@ -134,9 +134,65 @@ class StateNode(object):
         self.update_parents(time)
 
 
-# HGF input nodes
+# HGF binary state node
+class BinaryNode(object):
+    """HGF binary state node"""
+    def __init__(self):
+
+        # Initialize parent
+        self.pa = None
+
+        # Initialize time series
+        self.times = [0.0]
+        self.pihats = [None]
+        self.pis = [None]
+        self.muhats = [None]
+        self.mus = [None]
+
+    def set_parent(self, *, parent):
+        self.pa = parent
+
+    def new_muhat_pihat(self, time):
+        muhat_pa = self.pa.new_muhat(time)
+        muhat = sgm(muhat_pa)
+        pihat = 1 / (muhat * (1 - muhat))
+        return [muhat, pihat]
+
+    def vape(self):
+        return self.mus[-1] - self.muhats[-1]
+
+    def update_parent(self, time):
+        pa = self.pa
+
+        if not pa:
+            return
+
+        pihat = self.pihats[-1]
+
+        # Update parent
+        vape = self.vape()
+
+        pihat_pa, nu_pa = pa.new_pihat_nu(time)
+        pi_pa = pihat_pa + 1 / pihat
+
+        muhat_pa = pa.new_muhat(time)
+        mu_pa = muhat_pa + vape / pi_pa
+
+        pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
+
+    def update(self, time, pihat, pi, muhat, mu):
+        self.times.append(time)
+        self.pihats.append(pihat)
+        self.pis.append(pi),
+        self.muhats.append(muhat)
+        self.mus.append(mu)
+
+        self.update_parent(time)
+
+
+# HGF continuous input nodes
 class InputNode(object):
-    """A node that receives input on a continuous scale."""
+    """An HGF node that receives input on a continuous scale"""
     def __init__(self, *, omega):
 
         # Incorporate parameter attributes
@@ -219,6 +275,73 @@ class InputNode(object):
             self._single_input(value, time)
 
 
+# HGF binary input nodes
+class BinaryInputNode(object):
+    """An HGF node that receives binary input"""
+    def __init__(self,
+                 *,
+                 pihat=np.inf,
+                 eta0=0.0,
+                 eta1=1.0):
+
+        # Incorporate parameter attributes
+        self.pihat = pihat
+        self.eta0 = eta0
+        self.eta1 = eta1
+
+        # Initialize parent
+        self.pa = None
+
+        # Initialize time series
+        self.times = [0.0]
+        self.inputs = [None]
+
+    def set_parent(self, *, parent):
+        self.pa = parent
+
+    def update_parent(self, value, time):
+        pa = self.pa
+
+        pihat = self.pihat
+
+        muhat_pa, pihat_pa = pa.new_muhat_pihat(time)
+
+        if pihat == np.inf:
+            # Just pass the value through in the absence of noise
+            mu_pa = value
+            pi_pa = np.inf
+        else:
+            # Unnormalized density under eta1
+            und1 = np.exp(-pihat / 2 * (value - self.eta1)**2)
+            # Unnormalized density under eta0
+            und0 = np.exp(-pihat / 2 * (value - self.eta0)**2)
+            # Eq. 39 in Mathys et al. (2014)
+            mu_pa = muhat_pa * und1 / (muhat_pa * und1 + (1 - muhat_pa) * und0)
+            pi_pa = 1 / (mu_pa * (1 - mupa))
+
+        pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa)
+
+    def _single_input(self, value, time):
+        self.times.append(time)
+        self.inputs.append(value)
+        self.update_parent(value, time)
+
+    def input(self, inputs):
+        try:
+            for input in inputs:
+                try:
+                    value = input[0]
+                    time = input[1]
+                except IndexError:
+                    value = input
+                    time = self.times[-1] + 1
+                    self._single_input(value, time)
+        except TypeError:
+            value = inputs
+            time = self.times[-1] + 1
+            self._single_input(value, time)
+
+
 # Standard 2-level HGF for continuous inputs
 class StandardHGF(object):
     """The standard 2-level HGF for continuous inputs"""
@@ -275,6 +398,11 @@ class StandardHGF(object):
 
     def input(self, inputs):
         self.xU.input(inputs)
+
+
+def sgm(x):
+    """The logistic sigmoid function"""
+    return 1 / (1 + np.exp(-x))
 
 
 class HgfException(Exception):
