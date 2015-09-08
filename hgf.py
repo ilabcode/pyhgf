@@ -99,7 +99,7 @@ class StateNode(object):
             pihat_pa, nu_pa = va_pa.new_pihat_nu(time)
             pi_pa = pihat_pa + psis[i]**2 * pihat
 
-            muhat_pa = va_pa.new_muhat
+            muhat_pa = va_pa.new_muhat(time)
             mu_pa = muhat_pa + psis[i] * pihat / pi_pa * vape
 
             va_pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
