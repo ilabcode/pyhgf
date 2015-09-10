@@ -42,6 +42,9 @@ class StateNode(object):
         self.vo_pas = []
 
         # Initialize time series
+        self.reset()
+
+    def reset(self):
         self.times = [0.0]
         self.pihats = [None]
         self.pis = [self.prior_pi]
@@ -143,6 +146,9 @@ class BinaryNode(object):
         self.pa = None
 
         # Initialize time series
+        self.reset()
+
+    def reset(self):
         self.times = [0.0]
         self.pihats = [None]
         self.pis = [None]
@@ -204,6 +210,9 @@ class InputNode(object):
         self.vo_pa = None
 
         # Initialize time series
+        self.reset()
+
+    def reset(self):
         self.times = [0.0]
         self.inputs = [None]
 
@@ -293,6 +302,9 @@ class BinaryInputNode(object):
         self.pa = None
 
         # Initialize time series
+        self.reset()
+
+    def reset(self):
         self.times = [0.0]
         self.inputs = [None]
 
@@ -396,6 +408,11 @@ class StandardHGF(object):
         self.x1.add_volatility_parent(parent=self.x2, kappa=kappa1)
         self.xU.set_value_parent(parent=self.x1)
 
+    def reset(self):
+        self.x2.reset()
+        self.x1.reset()
+        self.xU.reset()
+
     def input(self, inputs):
         self.xU.input(inputs)
 
@@ -461,6 +478,12 @@ class StandardBinaryHGF(object):
         self.x2.add_volatility_parent(parent=self.x3, kappa=kappa2)
         self.x1.set_parent(parent=self.x2)
         self.xU.set_parent(parent=self.x1)
+
+    def reset(self):
+        self.x3.reset()
+        self.x2.reset()
+        self.x1.reset()
+        self.xU.reset()
 
     def input(self, inputs):
         self.xU.input(inputs)

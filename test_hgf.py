@@ -81,6 +81,18 @@ def test_standard_hgf():
     assert stdhgf.x2.mus == benchmark.x2.mus
     assert stdhgf.x2.pis == benchmark.x2.pis
 
+    # Does resetting work?
+    stdhgf.reset()
+
+    assert len(stdhgf.xU.times) == 1
+    assert len(stdhgf.xU.inputs) == 1
+    assert len(stdhgf.x1.times) == 1
+    assert len(stdhgf.x1.mus) == 1
+    assert len(stdhgf.x1.pis) == 1
+    assert len(stdhgf.x2.times) == 1
+    assert len(stdhgf.x2.mus) == 1
+    assert len(stdhgf.x2.pis) == 1
+
 
 def test_binary_standard_hgf():
     # Set up standard 3-level HGF for binary inputs
@@ -107,3 +119,18 @@ def test_binary_standard_hgf():
     assert binstdhgf.x2.pis == benchmark.x2.pis
     assert binstdhgf.x3.mus == benchmark.x3.mus
     assert binstdhgf.x3.pis == benchmark.x3.pis
+
+    # Does resetting work?
+    binstdhgf.reset()
+
+    assert len(binstdhgf.xU.times) == 1
+    assert len(binstdhgf.xU.inputs) == 1
+    assert len(binstdhgf.x1.times) == 1
+    assert len(binstdhgf.x1.mus) == 1
+    assert len(binstdhgf.x1.pis) == 1
+    assert len(binstdhgf.x2.times) == 1
+    assert len(binstdhgf.x2.mus) == 1
+    assert len(binstdhgf.x2.pis) == 1
+    assert len(binstdhgf.x3.times) == 1
+    assert len(binstdhgf.x3.mus) == 1
+    assert len(binstdhgf.x3.pis) == 1
