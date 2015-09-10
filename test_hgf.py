@@ -4,7 +4,32 @@ import numpy as np
 import hgf
 
 
-def test_node_setup():
+@pytest.fixture
+def cont_hier():
+    # Manually set up a standard continuous HGF hierarchy
+    x2 = hgf.StateNode(prior_mu=1.0,
+                       prior_pi=np.inf,
+                       omega=-2.0)
+    x1 = hgf.StateNode(prior_mu=1.04,
+                       prior_pi=np.inf,
+                       omega=-12.0)
+    xU = hgf.InputNode(omega=0.0)
+
+    x1.add_volatility_parent(parent=x2, kappa=1)
+    xU.set_value_parent(parent=x1)
+
+    # Collect nodes
+    def h():
+        pass
+
+    h.xU = xU
+    h.x1 = x1
+    h.x2 = x2
+
+    return h
+
+
+def test_continuous_hierarchy_setup():
     # Manually set up a simple HGF hierarchy
     x2 = hgf.StateNode(prior_mu=1.0,
                        prior_pi=np.inf,
@@ -17,17 +42,33 @@ def test_node_setup():
     x1.add_volatility_parent(parent=x2, kappa=1)
     xU.set_value_parent(parent=x1)
 
+
+def test_node_configuration_error():
+    with pytest.raises(hgf.NodeConfigurationError):
+        x1 = hgf.StateNode(prior_mu=1.04,
+                           prior_pi=np.inf,
+                           omega=-12.0,
+                           rho=1,
+                           phi=1)
+
+        print(x1)
+
+
+def test_input_continuous(cont_hier):
+    # Get the hierarchy
+    h = cont_hier
+
     # Give some inputs
     for u in [0.5, 0.5, 0.5]:
-        xU.input(u)
+        h.xU.input(u)
 
     # Check if NegativePosteriorPrecisionError exception is correctly raised
     with pytest.raises(hgf.NegativePosteriorPrecisionError):
-        xU.input(1e5)
+        h.xU.input(1e5)
 
     # Has update worked?
-    assert x1.mus[1] == 1.0399909812322021
-    assert x2.mus[1] == 0.99999925013985835
+    assert h.x1.mus[1] == 1.0399909812322021
+    assert h.x2.mus[1] == 0.99999925013985835
 
 
 def test_binary_node_setup():
