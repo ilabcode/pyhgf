@@ -14,8 +14,8 @@ class StateNode(object):
     """HGF continuous state node"""
     def __init__(self,
                  *,
-                 prior_mu,
-                 prior_pi,
+                 initial_mu,
+                 initial_pi,
                  rho=0.0,
                  phi=0.0,
                  m=0.0,
@@ -28,8 +28,8 @@ class StateNode(object):
                 'not be non-zero at the same time.')
 
         # Initialize parameter attributes
-        self.prior_mu = prior_mu
-        self.prior_pi = prior_pi
+        self.initial_mu = initial_mu
+        self.initial_pi = initial_pi
         self.rho = rho
         self.phi = phi
         self.m = m
@@ -47,9 +47,9 @@ class StateNode(object):
     def reset(self):
         self.times = [0.0]
         self.pihats = [None]
-        self.pis = [self.prior_pi]
+        self.pis = [self.initial_pi]
         self.muhats = [None]
-        self.mus = [self.prior_mu]
+        self.mus = [self.initial_mu]
         self.nus = [None]
 
     def add_value_parent(self, *, parent, psi):
@@ -371,10 +371,10 @@ class StandardHGF(object):
     """The standard 2-level HGF for continuous inputs"""
     def __init__(self,
                  *,
-                 prior_mu1,
-                 prior_pi1,
-                 prior_mu2,
-                 prior_pi2,
+                 initial_mu1,
+                 initial_pi1,
+                 initial_mu2,
+                 initial_pi2,
                  omega1,
                  kappa1,
                  omega2,
@@ -387,14 +387,14 @@ class StandardHGF(object):
                  m2=0.0):
 
         # Set up nodes and their relationships
-        self.x2 = StateNode(prior_mu=prior_mu2,
-                            prior_pi=prior_pi2,
+        self.x2 = StateNode(initial_mu=initial_mu2,
+                            initial_pi=initial_pi2,
                             omega=omega2,
                             rho=rho2,
                             phi=phi2,
                             m=m2)
-        self.x1 = StateNode(prior_mu=prior_mu1,
-                            prior_pi=prior_pi1,
+        self.x1 = StateNode(initial_mu=initial_mu1,
+                            initial_pi=initial_pi1,
                             omega=omega1,
                             rho=rho1,
                             phi=phi1,
@@ -421,10 +421,10 @@ class StandardBinaryHGF(object):
     """The standard 3-level HGF for binary inputs"""
     def __init__(self,
                  *,
-                 prior_mu2,
-                 prior_pi2,
-                 prior_mu3,
-                 prior_pi3,
+                 initial_mu2,
+                 initial_pi2,
+                 initial_mu3,
+                 initial_pi3,
                  omega2,
                  kappa2,
                  omega3,
@@ -439,14 +439,14 @@ class StandardBinaryHGF(object):
                  m3=0.0):
 
         # Set up nodes and their relationships
-        self.x3 = StateNode(prior_mu=prior_mu3,
-                            prior_pi=prior_pi3,
+        self.x3 = StateNode(initial_mu=initial_mu3,
+                            initial_pi=initial_pi3,
                             omega=omega3,
                             rho=rho3,
                             phi=phi3,
                             m=m3)
-        self.x2 = StateNode(prior_mu=prior_mu2,
-                            prior_pi=prior_pi2,
+        self.x2 = StateNode(initial_mu=initial_mu2,
+                            initial_pi=initial_pi2,
                             omega=omega2,
                             rho=rho2,
                             phi=phi2,

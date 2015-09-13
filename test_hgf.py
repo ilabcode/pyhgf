@@ -7,11 +7,11 @@ import hgf
 @pytest.fixture
 def cont_hier():
     # Manually set up a standard continuous HGF hierarchy
-    x2 = hgf.StateNode(prior_mu=1.0,
-                       prior_pi=np.inf,
+    x2 = hgf.StateNode(initial_mu=1.0,
+                       initial_pi=np.inf,
                        omega=-2.0)
-    x1 = hgf.StateNode(prior_mu=1.04,
-                       prior_pi=np.inf,
+    x1 = hgf.StateNode(initial_mu=1.04,
+                       initial_pi=np.inf,
                        omega=-12.0)
     xU = hgf.InputNode(omega=0.0)
 
@@ -31,11 +31,11 @@ def cont_hier():
 
 def test_continuous_hierarchy_setup():
     # Manually set up a simple HGF hierarchy
-    x2 = hgf.StateNode(prior_mu=1.0,
-                       prior_pi=np.inf,
+    x2 = hgf.StateNode(initial_mu=1.0,
+                       initial_pi=np.inf,
                        omega=-2.0)
-    x1 = hgf.StateNode(prior_mu=1.04,
-                       prior_pi=np.inf,
+    x1 = hgf.StateNode(initial_mu=1.04,
+                       initial_pi=np.inf,
                        omega=-12.0)
     xU = hgf.InputNode(omega=0.0)
 
@@ -45,8 +45,8 @@ def test_continuous_hierarchy_setup():
 
 def test_node_configuration_error():
     with pytest.raises(hgf.NodeConfigurationError):
-        x1 = hgf.StateNode(prior_mu=1.04,
-                           prior_pi=np.inf,
+        x1 = hgf.StateNode(initial_mu=1.04,
+                           initial_pi=np.inf,
                            omega=-12.0,
                            rho=1,
                            phi=1)
@@ -73,11 +73,11 @@ def test_input_continuous(cont_hier):
 
 def test_binary_node_setup():
     # Manually set up a simple binary HGF hierarchy
-    x3 = hgf.StateNode(prior_mu=1.0,
-                       prior_pi=1.0,
+    x3 = hgf.StateNode(initial_mu=1.0,
+                       initial_pi=1.0,
                        omega=-6.0)
-    x2 = hgf.StateNode(prior_mu=0.0,
-                       prior_pi=1.0,
+    x2 = hgf.StateNode(initial_mu=0.0,
+                       initial_pi=1.0,
                        omega=-2.5)
     x1 = hgf.BinaryNode()
     xU = hgf.BinaryInputNode()
@@ -97,12 +97,12 @@ def test_binary_node_setup():
 
 def test_standard_hgf():
     # Set up standard 2-level HGF for continuous inputs
-    stdhgf = hgf.StandardHGF(prior_mu1=1.04,
-                             prior_pi1=1e4,
+    stdhgf = hgf.StandardHGF(initial_mu1=1.04,
+                             initial_pi1=1e4,
                              omega1=-13.0,
                              kappa1=1,
-                             prior_mu2=1,
-                             prior_pi2=1e1,
+                             initial_mu2=1,
+                             initial_pi2=1e1,
                              omega2=-2,
                              omega_input=np.log(1e-4))
 
@@ -137,12 +137,12 @@ def test_standard_hgf():
 
 def test_binary_standard_hgf():
     # Set up standard 3-level HGF for binary inputs
-    binstdhgf = hgf.StandardBinaryHGF(prior_mu2=0.0,
-                                      prior_pi2=1.0,
+    binstdhgf = hgf.StandardBinaryHGF(initial_mu2=0.0,
+                                      initial_pi2=1.0,
                                       omega2=-2.5,
                                       kappa2=1.0,
-                                      prior_mu3=1.0,
-                                      prior_pi3=1.0,
+                                      initial_mu3=1.0,
+                                      initial_pi3=1.0,
                                       omega3=-6.0)
 
     # Read binary input from Iglesias et al. (2013)
