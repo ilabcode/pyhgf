@@ -215,6 +215,7 @@ class InputNode(object):
     def reset(self):
         self.times = [0.0]
         self.inputs = [None]
+        self.surprises = [0.0]
 
     def set_value_parent(self, *, parent):
         self.va_pa = parent
@@ -223,6 +224,7 @@ class InputNode(object):
         self.vo_pa = parent
         self.kappa = kappa
 
+    # Update parents and return surprise
     def update_parents(self, value, time):
         va_pa = self.va_pa
         vo_pa = self.vo_pa
@@ -263,10 +265,12 @@ class InputNode(object):
             vo_pa.update(time, pihat_vo_pa, pi_vo_pa, muhat_vo_pa,
                          mu_vo_pa, nu_vo_pa)
 
+        return gaussian_surprise(value, muhat_va_pa, pihat)
+
     def _single_input(self, value, time):
         self.times.append(time)
         self.inputs.append(value)
-        self.update_parents(value, time)
+        self.surprises.append(self.update_parents(value, time))
 
     def input(self, inputs):
         try:
@@ -307,12 +311,14 @@ class BinaryInputNode(object):
     def reset(self):
         self.times = [0.0]
         self.inputs = [None]
+        self.surprises = [0.0]
 
     def set_parent(self, *, parent):
         self.pa = parent
 
     def update_parent(self, value, time):
         pa = self.pa
+        surprise = 0.0
 
         pihat = self.pihat
 
@@ -322,21 +328,27 @@ class BinaryInputNode(object):
             # Just pass the value through in the absence of noise
             mu_pa = value
             pi_pa = np.inf
+            surprise = binary_surprise(value, muhat_pa)
         else:
-            # Unnormalized density under eta1
+            # Likelihood under eta1
             und1 = np.exp(-pihat / 2 * (value - self.eta1)**2)
-            # Unnormalized density under eta0
+            # Likelihood under eta0
             und0 = np.exp(-pihat / 2 * (value - self.eta0)**2)
-            # Eq. 39 in Mathys et al. (2014)
+            # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
             mu_pa = muhat_pa * und1 / (muhat_pa * und1 + (1 - muhat_pa) * und0)
             pi_pa = 1 / (mu_pa * (1 - mupa))
+            # Surprise
+            surprise = -np.log(muhat_pa * gaussian(value, self.eta1, pihat) +
+                        (1 - muhat_pa) * gaussian(value, self.eta0, pihat))
 
         pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa)
+
+        return surprise
 
     def _single_input(self, value, time):
         self.times.append(time)
         self.inputs.append(value)
-        self.update_parent(value, time)
+        self.surprises.append(self.update_parent(value, time))
 
     def input(self, inputs):
         try:
@@ -416,6 +428,9 @@ class StandardHGF(object):
     def input(self, inputs):
         self.xU.input(inputs)
 
+    def surprise(self, inputs):
+        return sum(self.xU.surprises)
+
 
 # Standard 3-level HGF for binary inputs
 class StandardBinaryHGF(object):
@@ -488,10 +503,33 @@ class StandardBinaryHGF(object):
     def input(self, inputs):
         self.xU.input(inputs)
 
+    def surprise(self, inputs):
+        return sum(self.xU.surprises)
+
 
 def sgm(x):
     """The logistic sigmoid function"""
     return 1 / (1 + np.exp(-x))
+
+
+def gaussian(x, mu, pi):
+    """The Gaussian density as defined by mean and precision"""
+    return pi / np.sqrt(2 * np.pi) * np.exp(-pi / 2 * (x - mu)**2)
+
+
+def gaussian_surprise(x, muhat, pihat):
+    """Surprise at an outcome under a Gaussian prediction"""
+    return 0.5 * (np.log(2 * np.pi) - np.log(pihat) + pihat * (x - muhat)**2)
+
+
+def binary_surprise(x, muhat):
+    """Surprise at a binary outcome"""
+    if x == 1:
+        return -np.log(1 - muhat)
+    if x == 0:
+        return -np.log(muhat)
+    else:
+        raise OutcomeValueError('Outcome needs to be either 0 or 1.')
 
 
 class HgfException(Exception):
@@ -504,3 +542,7 @@ class NodeConfigurationError(HgfException):
 
 class NegativePosteriorPrecisionError(HgfException):
     """Negative posterior precision."""
+
+
+class OutcomeValueError(HgfException):
+    """Outcome value error."""
