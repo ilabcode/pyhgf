@@ -386,22 +386,6 @@ class StandardHGF(object):
                  phi2=0.0,
                  m2=0.0):
 
-        # Initialize parameter attributes
-        self.prior_mu1 = prior_mu1
-        self.prior_pi1 = prior_pi1
-        self.prior_mu2 = prior_mu2
-        self.prior_pi2 = prior_pi2
-        self.omega1 = omega1
-        self.kappa1 = kappa1
-        self.omega2 = omega2
-        self.omega_input = omega_input
-        self.rho1 = rho1
-        self.rho2 = rho2
-        self.phi1 = phi1
-        self.m1 = m1
-        self.phi2 = phi2
-        self.m2 = m2
-
         # Set up nodes and their relationships
         self.x2 = StateNode(prior_mu=prior_mu2,
                             prior_pi=prior_pi2,
@@ -453,24 +437,6 @@ class StandardBinaryHGF(object):
                  m2=0.0,
                  phi3=0.0,
                  m3=0.0):
-
-        # Initialize parameter attributes
-        self.prior_mu2 = prior_mu2
-        self.prior_pi2 = prior_pi2
-        self.prior_mu3 = prior_mu3
-        self.prior_pi3 = prior_pi3
-        self.omega2 = omega2
-        self.kappa2 = kappa2
-        self.omega3 = omega3
-        self.pihat_input = pihat_input
-        self.eta0 = eta0
-        self.eta1 = eta1
-        self.rho2 = rho2
-        self.rho3 = rho3
-        self.phi2 = phi2
-        self.m2 = m2
-        self.phi3 = phi3
-        self.m3 = m3
 
         # Set up nodes and their relationships
         self.x3 = StateNode(prior_mu=prior_mu3,
