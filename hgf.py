@@ -473,9 +473,242 @@ class StandardBinaryHGF(object):
         return sum(self.xU.surprises)
 
 
-def sgm(x):
+class Parameter(object):
+    def __init__(self,
+                 *,
+                 space='native',
+                 lower_bound=None,
+                 upper_bound=None,
+                 value=None,
+                 trans_value=None,
+                 prior_mean=None,
+                 trans_prior_mean=None,
+                 trans_prior_precision=None):
+
+        # Initialize attributes
+        self.space = space
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+
+        if value is not None and trans_value is not None:
+            raise ParameterConfigurationError(
+                'Only one of value and trans_value can be given.')
+        elif value is not None:
+            self.value = value
+        elif trans_value is not None:
+            self.trans_value = trans_value
+        else:
+            raise ParameterConfigurationError(
+                'One of value and trans_value must be given.')
+
+        if prior_mean is not None and trans_prior_mean is not None:
+            raise ParameterConfigurationError(
+                'Only one of prior_mean and trans_prior_mean can be given.')
+        elif prior_mean is not None:
+            self.prior_mean = prior_mean
+        else:
+            self.trans_prior_mean = trans_prior_mean
+
+        if (trans_prior_precision is None and
+            (prior_mean is not None or
+             trans_prior_mean is not None)):
+            raise ParameterConfigurationError(
+                'trans_prior_precision must be given if prior_mean ' +
+                'or trans_prior_mean is given')
+        else:
+            self.trans_prior_precision = trans_prior_precision
+
+    @property
+    def space(self):
+        return self._space
+
+    @space.setter
+    def space(self, space):
+        if space is 'native':
+            self._space = space
+            self._lower_bound = None
+            self._upper_bound = None
+        elif space is 'log':
+            self._space = space
+            self._lower_bound = 0
+            self._upper_bound = None
+        elif space is 'logit':
+            self._space = space
+            self._lower_bound = 0
+            self._upper_bound = 1
+        else:
+            raise ParameterConfigurationError(
+                "Space must be one of 'native, 'log', or 'logit'")
+
+    @property
+    def lower_bound(self):
+        return self._lower_bound
+
+    @lower_bound.setter
+    def lower_bound(self, lower_bound):
+        space = self.space
+        if lower_bound is not None and space is 'native':
+            raise ParameterConfigurationError(
+                "lower_bound must be None if space is 'native'.")
+        elif space is 'log':
+            self._lower_bound = lower_bound
+            self._upper_bound = None
+        else:
+            self._lower_bound = lower_bound
+
+    @property
+    def upper_bound(self):
+        return self._upper_bound
+
+    @upper_bound.setter
+    def upper_bound(self, upper_bound):
+        space = self.space
+        if upper_bound is not None and space is 'native':
+            raise ParameterConfigurationError(
+                "upper_bound must be None if space is 'native'.")
+        elif space is 'log':
+            self._lower_bound = None
+            self._upper_bound = upper_bound
+        else:
+            self._upper_bound = upper_bound
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+        space = self.space
+        if space is 'native':
+            self._trans_value = value
+        elif space is 'log':
+            self._trans_value = log(value,
+                                    lower_bound=self.lower_bound,
+                                    upper_bound=self.upper_bound)
+        elif space is 'logit':
+            self._trans_value = logit(value,
+                                      lower_bound=self.lower_bound,
+                                      upper_bound=self.upper_bound)
+
+    @property
+    def trans_value(self):
+        return self._trans_value
+
+    @trans_value.setter
+    def trans_value(self, trans_value):
+        self._trans_value = trans_value
+
+        space = self.space
+        if space is 'native':
+            self._value = trans_value
+        elif space is 'log':
+            self._value = exp(trans_value,
+                              lower_bound=self.lower_bound,
+                              upper_bound=self.upper_bound)
+        elif space is 'logit':
+            self._value = sgm(trans_value,
+                              lower_bound=self.lower_bound,
+                              upper_bound=self.upper_bound)
+
+    @property
+    def prior_mean(self):
+        return self._prior_mean
+
+    @prior_mean.setter
+    def prior_mean(self, prior_mean):
+        self._prior_mean = prior_mean
+
+        if prior_mean is not None:
+            space = self.space
+            if space is 'native':
+                self._trans_prior_mean = prior_mean
+            elif space is 'log':
+                self._trans_prior_mean = log(prior_mean,
+                                             lower_bound=self.lower_bound,
+                                             upper_bound=self.upper_bound)
+            elif space is 'logit':
+                self._trans_prior_mean = logit(prior_mean,
+                                               lower_bound=self.lower_bound,
+                                               upper_bound=self.upper_bound)
+        else:
+            self._trans_prior_mean = None
+            self._trans_prior_precision = None
+
+    @property
+    def trans_prior_mean(self):
+        return self._trans_prior_mean
+
+    @trans_prior_mean.setter
+    def trans_prior_mean(self, trans_prior_mean):
+        self._trans_prior_mean = trans_prior_mean
+
+        if trans_prior_mean is not None:
+            space = self.space
+            if space is 'native':
+                self._prior_mean = trans_prior_mean
+            elif space is 'log':
+                self._prior_mean = exp(trans_prior_mean,
+                                       lower_bound=self.lower_bound,
+                                       upper_bound=self.upper_bound)
+            elif space is 'logit':
+                self._prior_mean = sgm(trans_prior_mean,
+                                       lower_bound=self.lower_bound,
+                                       upper_bound=self.upper_bound)
+        else:
+            self._prior_mean = None
+            self._trans_prior_precision = None
+
+    @property
+    def trans_prior_precision(self):
+        return self._trans_prior_precision
+
+    @trans_prior_precision.setter
+    def trans_prior_precision(self, trans_prior_precision):
+        self._trans_prior_precision = trans_prior_precision
+
+        if trans_prior_precision is None:
+            self._prior_mean = None
+            self._trans_prior_mean = None
+
+
+def exp(x, *, lower_bound=0.0, upper_bound=None):
+    """The (shifted and mirrored) exponential function"""
+    if upper_bound is not None:
+        return -np.exp(x) + upper_bound
+    else:
+        return np.exp(x) + lower_bound
+
+
+def log(x, *, lower_bound=0.0, upper_bound=None):
+    """The (shifted and mirrored) natural logarithm"""
+    if upper_bound is not None:
+        return np.log(-x + upper_bound)
+    else:
+        return np.log(x - lower_bound)
+
+
+def sgm(x, *, lower_bound=0.0, upper_bound=1.0):
     """The logistic sigmoid function"""
-    return 1 / (1 + np.exp(-x))
+    return (upper_bound - lower_bound) / (1 + np.exp(-x)) + lower_bound
+
+
+def logit(x, *, lower_bound=0.0, upper_bound=1.0):
+    """The logistic function"""
+    if x < lower_bound:
+        raise LogitArgumentError('Logit argmument may not be less than ' +
+                                 'lower bound')
+    if x > upper_bound:
+        raise LogitArgumentError('Logit argmument may not be greater than ' +
+                                 'upper bound')
+
+    if x == lower_bound:
+        return -np.inf
+    elif x == upper_bound:
+        return np.inf
+    else:
+        return np.log((x - lower_bound) / (upper_bound - x))
 
 
 def gaussian(x, mu, pi):
@@ -506,9 +739,17 @@ class NodeConfigurationError(HgfException):
     """Node configuration error."""
 
 
+class ParameterConfigurationError(HgfException):
+    """Parameter configuration error."""
+
+
 class NegativePosteriorPrecisionError(HgfException):
     """Negative posterior precision."""
 
 
 class OutcomeValueError(HgfException):
     """Outcome value error."""
+
+
+class LogitArgumentError(HgfException):
+    """Logit argument out of bounds."""
