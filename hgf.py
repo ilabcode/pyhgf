@@ -338,8 +338,8 @@ class BinaryInputNode(object):
             mu_pa = muhat_pa * und1 / (muhat_pa * und1 + (1 - muhat_pa) * und0)
             pi_pa = 1 / (mu_pa * (1 - mupa))
             # Surprise
-            surprise = -np.log(muhat_pa * gaussian(value, self.eta1, pihat) +
-                        (1 - muhat_pa) * gaussian(value, self.eta0, pihat))
+            surprise = (-np.log(muhat_pa * gaussian(value, self.eta1, pihat) +
+                        (1 - muhat_pa) * gaussian(value, self.eta0, pihat)))
 
         pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa)
 
