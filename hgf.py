@@ -487,8 +487,12 @@ class Parameter(object):
 
         # Initialize attributes
         self.space = space
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
+
+        if lower_bound is not None:
+            self.lower_bound = lower_bound
+
+        if upper_bound is not None:
+            self.upper_bound = upper_bound
 
         if value is not None and trans_value is not None:
             raise ParameterConfigurationError(
