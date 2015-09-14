@@ -28,12 +28,12 @@ class StateNode(object):
                 'not be non-zero at the same time.')
 
         # Initialize parameter attributes
-        self.initial_mu = initial_mu
-        self.initial_pi = initial_pi
-        self.rho = rho
-        self.phi = phi
-        self.m = m
-        self.omega = omega
+        self.initial_mu = Parameter(value=initial_mu)
+        self.initial_pi = Parameter(value=initial_pi, space='log')
+        self.rho = Parameter(value=rho)
+        self.phi = Parameter(value=phi, space='logit')
+        self.m = Parameter(value=m)
+        self.omega = Parameter(value=omega)
         self.psis = []
         self.kappas = []
 
@@ -47,31 +47,31 @@ class StateNode(object):
     def reset(self):
         self.times = [0]
         self.pihats = [None]
-        self.pis = [self.initial_pi]
+        self.pis = [self.initial_pi.value]
         self.muhats = [None]
-        self.mus = [self.initial_mu]
+        self.mus = [self.initial_mu.value]
         self.nus = [None]
 
     def add_value_parent(self, *, parent, psi):
         self.va_pas.append(parent)
-        self.psis.append(psi)
+        self.psis.append(Parameter(value=psi))
 
     def add_volatility_parent(self, *, parent, kappa):
         self.vo_pas.append(parent)
-        self.kappas.append(kappa)
+        self.kappas.append(Parameter(value=kappa, space='log'))
 
     def new_muhat(self, time):
         t = time - self.times[-1]
-        driftrate = self.rho
+        driftrate = self.rho.value
         for i, va_pa in enumerate(self.va_pas):
-            driftrate += self.psis[i] * self.va_pas[i].mus[-1]
+            driftrate += self.psis[i].value * self.va_pas[i].mus[-1]
         return self.mus[-1] + t * driftrate
 
     def _new_nu(self, time):
         t = time - self.times[-1]
-        logvol = self.omega
+        logvol = self.omega.value
         for i, vo_pa in enumerate(self.vo_pas):
-            logvol += self.kappas[i] * self.vo_pas[i].mus[-1]
+            logvol += self.kappas[i].value * self.vo_pas[i].mus[-1]
         return t * np.exp(logvol)
 
     def new_pihat_nu(self, time):
@@ -100,10 +100,10 @@ class StateNode(object):
 
         for i, va_pa in enumerate(va_pas):
             pihat_pa, nu_pa = va_pa.new_pihat_nu(time)
-            pi_pa = pihat_pa + psis[i]**2 * pihat
+            pi_pa = pihat_pa + psis[i].value**2 * pihat
 
             muhat_pa = va_pa.new_muhat(time)
-            mu_pa = muhat_pa + psis[i] * pihat / pi_pa * vape
+            mu_pa = muhat_pa + psis[i].value * pihat / pi_pa * vape
 
             va_pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
@@ -114,7 +114,7 @@ class StateNode(object):
 
         for i, vo_pa in enumerate(vo_pas):
             pihat_pa, nu_pa = vo_pa.new_pihat_nu(time)
-            pi_pa = pihat_pa + 0.5 * (kappas[i] * nu * pihat)**2 * \
+            pi_pa = pihat_pa + 0.5 * (kappas[i].value * nu * pihat)**2 * \
                 (1 + (1 - 1 / (nu * self.pis[-2])) * vope)
             if pi_pa <= 0:
                 raise NegativePosteriorPrecisionError(
@@ -122,7 +122,8 @@ class StateNode(object):
                     'assumptions are violated.')
 
             muhat_pa = vo_pa.new_muhat(time)
-            mu_pa = muhat_pa + 0.5 * kappas[i] * nu * pihat / pi_pa * vope
+            mu_pa = (muhat_pa +
+                     0.5 * kappas[i].value * nu * pihat / pi_pa * vope)
 
             vo_pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
@@ -202,7 +203,7 @@ class InputNode(object):
     def __init__(self, *, omega):
 
         # Incorporate parameter attributes
-        self.omega = omega
+        self.omega = Parameter(value=omega)
         self.kappa = None
 
         # Initialize parents
@@ -222,15 +223,18 @@ class InputNode(object):
 
     def set_volatility_parent(self, *, parent, kappa):
         self.vo_pa = parent
-        self.kappa = kappa
+        self.kappa = Parameter(value=kappa, space='log')
 
     # Update parents and return surprise
     def update_parents(self, value, time):
         va_pa = self.va_pa
         vo_pa = self.vo_pa
 
-        lognoise = self.omega
-        kappa = self.kappa
+        lognoise = self.omega.value
+
+        kappa = None
+        if self.kappa is not None:
+            kappa = self.kappa.value
 
         if kappa is not None:
             lognoise += kappa * vo_pa.mu[-1]
@@ -298,9 +302,9 @@ class BinaryInputNode(object):
                  eta1=1):
 
         # Incorporate parameter attributes
-        self.pihat = pihat
-        self.eta0 = eta0
-        self.eta1 = eta1
+        self.pihat = Parameter(value=pihat, space='log')
+        self.eta0 = Parameter(value=eta0)
+        self.eta1 = Parameter(value=eta1)
 
         # Initialize parent
         self.pa = None
@@ -320,7 +324,7 @@ class BinaryInputNode(object):
         pa = self.pa
         surprise = 0
 
-        pihat = self.pihat
+        pihat = self.pihat.value
 
         muhat_pa, pihat_pa = pa.new_muhat_pihat(time)
 
@@ -330,16 +334,18 @@ class BinaryInputNode(object):
             pi_pa = np.inf
             surprise = binary_surprise(value, muhat_pa)
         else:
+            eta1 = self.eta1.value
+            eta0 = self.eta0.value
             # Likelihood under eta1
-            und1 = np.exp(-pihat / 2 * (value - self.eta1)**2)
+            und1 = np.exp(-pihat / 2 * (value - eta1)**2)
             # Likelihood under eta0
-            und0 = np.exp(-pihat / 2 * (value - self.eta0)**2)
+            und0 = np.exp(-pihat / 2 * (value - eta0)**2)
             # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
             mu_pa = muhat_pa * und1 / (muhat_pa * und1 + (1 - muhat_pa) * und0)
             pi_pa = 1 / (mu_pa * (1 - mupa))
             # Surprise
-            surprise = (-np.log(muhat_pa * gaussian(value, self.eta1, pihat) +
-                        (1 - muhat_pa) * gaussian(value, self.eta0, pihat)))
+            surprise = (-np.log(muhat_pa * gaussian(value, eta1, pihat) +
+                        (1 - muhat_pa) * gaussian(value, eta0, pihat)))
 
         pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa)
 
