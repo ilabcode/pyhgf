@@ -540,6 +540,17 @@ class Parameter(object):
             raise ParameterConfigurationError(
                 "Space must be one of 'native, 'log', or 'logit'")
 
+        # Recalculate trans_value
+        try:
+            self.value = self._value
+        except AttributeError:
+            pass
+        # Recalculate trans_prior_mean
+        try:
+            self.prior_mean = self._prior_mean
+        except AttributeError:
+            pass
+
     @property
     def lower_bound(self):
         return self._lower_bound
@@ -550,11 +561,25 @@ class Parameter(object):
         if lower_bound is not None and space is 'native':
             raise ParameterConfigurationError(
                 "lower_bound must be None if space is 'native'.")
+        elif lower_bound is not None and lower_bound > self.value:
+            raise ParameterConfigurationError(
+                'lower_bound may not be greater than current value')
         elif space is 'log':
             self._lower_bound = lower_bound
             self._upper_bound = None
         else:
             self._lower_bound = lower_bound
+
+        # Recalculate trans_value
+        try:
+            self.value = self._value
+        except AttributeError:
+            pass
+        # Recalculate trans_prior_mean
+        try:
+            self.prior_mean = self._prior_mean
+        except AttributeError:
+            pass
 
     @property
     def upper_bound(self):
@@ -566,11 +591,25 @@ class Parameter(object):
         if upper_bound is not None and space is 'native':
             raise ParameterConfigurationError(
                 "upper_bound must be None if space is 'native'.")
+        elif upper_bound is not None and upper_bound < self.value:
+            raise ParameterConfigurationError(
+                'upper_bound may not be less than current value')
         elif space is 'log':
             self._lower_bound = None
             self._upper_bound = upper_bound
         else:
             self._upper_bound = upper_bound
+
+        # Recalculate trans_value
+        try:
+            self.value = self._value
+        except AttributeError:
+            pass
+        # Recalculate trans_prior_mean
+        try:
+            self.prior_mean = self._prior_mean
+        except AttributeError:
+            pass
 
     @property
     def value(self):
@@ -578,7 +617,14 @@ class Parameter(object):
 
     @value.setter
     def value(self, value):
-        self._value = value
+        if self.lower_bound is not None and value < self.lower_bound:
+            raise ParameterConfigurationError(
+                'value may not be less than current lower_bound')
+        elif self.upper_bound is not None and value > self.upper_bound:
+            raise ParameterConfigurationError(
+                'value may not be greater than current upper_bound')
+        else:
+            self._value = value
 
         space = self.space
         if space is 'native':
@@ -684,9 +730,21 @@ def exp(x, *, lower_bound=0.0, upper_bound=None):
 def log(x, *, lower_bound=0.0, upper_bound=None):
     """The (shifted and mirrored) natural logarithm"""
     if upper_bound is not None:
-        return np.log(-x + upper_bound)
+        if x > upper_bound:
+            raise LogArgumentError('Log argument may not be greater than ' +
+                                   'upper bound.')
+        elif x == upper_bound:
+            return -np.inf
+        else:
+            return np.log(-x + upper_bound)
     else:
-        return np.log(x - lower_bound)
+        if x < lower_bound:
+            raise LogArgumentError('Log argument may not be less than ' +
+                                   'lower bound.')
+        elif x == lower_bound:
+            return -np.inf
+        else:
+            return np.log(x - lower_bound)
 
 
 def sgm(x, *, lower_bound=0.0, upper_bound=1.0):
@@ -698,12 +756,11 @@ def logit(x, *, lower_bound=0.0, upper_bound=1.0):
     """The logistic function"""
     if x < lower_bound:
         raise LogitArgumentError('Logit argmument may not be less than ' +
-                                 'lower bound')
-    if x > upper_bound:
+                                 'lower bound.')
+    elif x > upper_bound:
         raise LogitArgumentError('Logit argmument may not be greater than ' +
-                                 'upper bound')
-
-    if x == lower_bound:
+                                 'upper bound.')
+    elif x == lower_bound:
         return -np.inf
     elif x == upper_bound:
         return np.inf
@@ -749,6 +806,10 @@ class NegativePosteriorPrecisionError(HgfException):
 
 class OutcomeValueError(HgfException):
     """Outcome value error."""
+
+
+class LogArgumentError(HgfException):
+    """Log argument out of bounds."""
 
 
 class LogitArgumentError(HgfException):
