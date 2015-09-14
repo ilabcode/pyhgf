@@ -16,10 +16,10 @@ class StateNode(object):
                  *,
                  initial_mu,
                  initial_pi,
-                 rho=0.0,
-                 phi=0.0,
-                 m=0.0,
-                 omega=0.0):
+                 rho=0,
+                 phi=0,
+                 m=0,
+                 omega=0):
 
         # Sanity check
         if rho and phi:
@@ -45,7 +45,7 @@ class StateNode(object):
         self.reset()
 
     def reset(self):
-        self.times = [0.0]
+        self.times = [0]
         self.pihats = [None]
         self.pis = [self.initial_pi]
         self.muhats = [None]
@@ -149,7 +149,7 @@ class BinaryNode(object):
         self.reset()
 
     def reset(self):
-        self.times = [0.0]
+        self.times = [0]
         self.pihats = [None]
         self.pis = [None]
         self.muhats = [None]
@@ -213,9 +213,9 @@ class InputNode(object):
         self.reset()
 
     def reset(self):
-        self.times = [0.0]
+        self.times = [0]
         self.inputs = [None]
-        self.surprises = [0.0]
+        self.surprises = [0]
 
     def set_value_parent(self, *, parent):
         self.va_pa = parent
@@ -294,8 +294,8 @@ class BinaryInputNode(object):
     def __init__(self,
                  *,
                  pihat=np.inf,
-                 eta0=0.0,
-                 eta1=1.0):
+                 eta0=0,
+                 eta1=1):
 
         # Incorporate parameter attributes
         self.pihat = pihat
@@ -309,16 +309,16 @@ class BinaryInputNode(object):
         self.reset()
 
     def reset(self):
-        self.times = [0.0]
+        self.times = [0]
         self.inputs = [None]
-        self.surprises = [0.0]
+        self.surprises = [0]
 
     def set_parent(self, *, parent):
         self.pa = parent
 
     def update_parent(self, value, time):
         pa = self.pa
-        surprise = 0.0
+        surprise = 0
 
         pihat = self.pihat
 
@@ -379,12 +379,12 @@ class StandardHGF(object):
                  kappa1,
                  omega2,
                  omega_input,
-                 rho1=0.0,
-                 rho2=0.0,
-                 phi1=0.0,
-                 m1=0.0,
-                 phi2=0.0,
-                 m2=0.0):
+                 rho1=0,
+                 rho2=0,
+                 phi1=0,
+                 m1=0,
+                 phi2=0,
+                 m2=0):
 
         # Set up nodes and their relationships
         self.x2 = StateNode(initial_mu=initial_mu2,
@@ -429,14 +429,14 @@ class StandardBinaryHGF(object):
                  kappa2,
                  omega3,
                  pihat_input=np.inf,
-                 eta0=0.0,
-                 eta1=1.0,
-                 rho2=0.0,
-                 rho3=0.0,
-                 phi2=0.0,
-                 m2=0.0,
-                 phi3=0.0,
-                 m3=0.0):
+                 eta0=0,
+                 eta1=1,
+                 rho2=0,
+                 rho3=0,
+                 phi2=0,
+                 m2=0,
+                 phi3=0,
+                 m3=0):
 
         # Set up nodes and their relationships
         self.x3 = StateNode(initial_mu=initial_mu3,
@@ -719,7 +719,7 @@ class Parameter(object):
             self._trans_prior_mean = None
 
 
-def exp(x, *, lower_bound=0.0, upper_bound=None):
+def exp(x, *, lower_bound=0, upper_bound=None):
     """The (shifted and mirrored) exponential function"""
     if upper_bound is not None:
         return -np.exp(x) + upper_bound
@@ -727,7 +727,7 @@ def exp(x, *, lower_bound=0.0, upper_bound=None):
         return np.exp(x) + lower_bound
 
 
-def log(x, *, lower_bound=0.0, upper_bound=None):
+def log(x, *, lower_bound=0, upper_bound=None):
     """The (shifted and mirrored) natural logarithm"""
     if upper_bound is not None:
         if x > upper_bound:
@@ -747,12 +747,12 @@ def log(x, *, lower_bound=0.0, upper_bound=None):
             return np.log(x - lower_bound)
 
 
-def sgm(x, *, lower_bound=0.0, upper_bound=1.0):
+def sgm(x, *, lower_bound=0, upper_bound=1):
     """The logistic sigmoid function"""
     return (upper_bound - lower_bound) / (1 + np.exp(-x)) + lower_bound
 
 
-def logit(x, *, lower_bound=0.0, upper_bound=1.0):
+def logit(x, *, lower_bound=0, upper_bound=1):
     """The logistic function"""
     if x < lower_bound:
         raise LogitArgumentError('Logit argmument may not be less than ' +
