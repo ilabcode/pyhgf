@@ -44,6 +44,19 @@ class StateNode(object):
         # Initialize time series
         self.reset()
 
+    def params(self):
+        params = [self.initial_mu,
+                  self.initial_pi,
+                  self.rho,
+                  self.phi,
+                  self.m,
+                  self.omega]
+
+        params.extend(self.psis)
+        params.extend(self.kappas)
+
+        return params
+
     def reset(self):
         self.times = [0]
         self.pihats = [None]
@@ -149,6 +162,9 @@ class BinaryNode(object):
         # Initialize time series
         self.reset()
 
+    def params(self):
+        return []
+
     def reset(self):
         self.times = [0]
         self.pihats = [None]
@@ -212,6 +228,14 @@ class InputNode(object):
 
         # Initialize time series
         self.reset()
+
+    def params(self):
+        params = [self.omega]
+
+        if self.kappa is not None:
+            params.append(self.kappa)
+
+        return params
 
     def reset(self):
         self.times = [0]
@@ -311,6 +335,11 @@ class BinaryInputNode(object):
 
         # Initialize time series
         self.reset()
+
+    def params(self):
+        return [self.pihat,
+                self.eta0,
+                self.eta1]
 
     def reset(self):
         self.times = [0]
