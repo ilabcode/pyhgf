@@ -151,6 +151,7 @@ class StateNode(object):
         # Initialize time series
         self.reset()
 
+    @property
     def params(self):
         params = [self.initial_mu,
                   self.initial_pi,
@@ -163,6 +164,18 @@ class StateNode(object):
         params.extend(self.kappas)
 
         return params
+
+    @params.setter
+    def params(self, value):
+        raise NodeConfigurationError(
+            'List of Parameter objects cannot be changed ' +
+            'after initialization.')
+
+    @params.deleter
+    def params(self):
+        raise NodeConfigurationError(
+            'List of Parameter objects cannot be changed ' +
+            'after initialization.')
 
     def reset(self):
         self.times = [0]
@@ -269,8 +282,21 @@ class BinaryNode(object):
         # Initialize time series
         self.reset()
 
+    @property
     def params(self):
         return []
+
+    @params.setter
+    def params(self, value):
+        raise NodeConfigurationError(
+            'List of Parameter objects cannot be changed ' +
+            'after initialization.')
+
+    @params.deleter
+    def params(self):
+        raise NodeConfigurationError(
+            'List of Parameter objects cannot be changed ' +
+            'after initialization.')
 
     def reset(self):
         self.times = [0]
@@ -336,6 +362,7 @@ class InputNode(object):
         # Initialize time series
         self.reset()
 
+    @property
     def params(self):
         params = [self.omega]
 
@@ -343,6 +370,18 @@ class InputNode(object):
             params.append(self.kappa)
 
         return params
+
+    @params.setter
+    def params(setter, value):
+        raise NodeConfigurationError(
+            'List of Parameter objects cannot be changed ' +
+            'after initialization.')
+
+    @params.deleter
+    def params(self):
+        raise NodeConfigurationError(
+            'List of Parameter objects cannot be changed ' +
+            'after initialization.')
 
     def reset(self):
         self.times = [0]
@@ -443,10 +482,24 @@ class BinaryInputNode(object):
         # Initialize time series
         self.reset()
 
+    @property
     def params(self):
         return [self.pihat,
                 self.eta0,
                 self.eta1]
+
+    @params.setter
+    def params(self, value):
+        raise NodeConfigurationError(
+            'List of Parameter objects cannot be changed ' +
+            'after initialization.')
+
+    @params.deleter
+    def params(self):
+        raise NodeConfigurationError(
+            'List of Parameter objects cannot be changed ' +
+            'after initialization.')
+
 
     def reset(self):
         self.times = [0]
