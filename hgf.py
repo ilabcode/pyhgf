@@ -152,6 +152,13 @@ class StateNode(object):
         self.reset()
 
     @property
+    def parents(self):
+        parents = []
+        parents.extend(self.va_pas)
+        parents.extend(self.vo_pas)
+        return parents
+
+    @property
     def params(self):
         params = [self.initial_mu,
                   self.initial_pi,
@@ -164,18 +171,6 @@ class StateNode(object):
         params.extend(self.kappas)
 
         return params
-
-    @params.setter
-    def params(self, value):
-        raise NodeConfigurationError(
-            'List of Parameter objects cannot be changed ' +
-            'after initialization.')
-
-    @params.deleter
-    def params(self):
-        raise NodeConfigurationError(
-            'List of Parameter objects cannot be changed ' +
-            'after initialization.')
 
     def reset(self):
         self.times = [0]
@@ -283,20 +278,15 @@ class BinaryNode(object):
         self.reset()
 
     @property
+    def parents(self):
+        parents = []
+        if self.pa:
+            parents.append(self.pa)
+        return parents
+
+    @property
     def params(self):
         return []
-
-    @params.setter
-    def params(self, value):
-        raise NodeConfigurationError(
-            'List of Parameter objects cannot be changed ' +
-            'after initialization.')
-
-    @params.deleter
-    def params(self):
-        raise NodeConfigurationError(
-            'List of Parameter objects cannot be changed ' +
-            'after initialization.')
 
     def reset(self):
         self.times = [0]
@@ -363,6 +353,15 @@ class InputNode(object):
         self.reset()
 
     @property
+    def parents(self):
+        parents = []
+        if self.va_pa:
+            parents.append(self.va_pa)
+        if self.vo_pa:
+            parents.append(self.vo_pa)
+        return parents
+
+    @property
     def params(self):
         params = [self.omega]
 
@@ -370,18 +369,6 @@ class InputNode(object):
             params.append(self.kappa)
 
         return params
-
-    @params.setter
-    def params(setter, value):
-        raise NodeConfigurationError(
-            'List of Parameter objects cannot be changed ' +
-            'after initialization.')
-
-    @params.deleter
-    def params(self):
-        raise NodeConfigurationError(
-            'List of Parameter objects cannot be changed ' +
-            'after initialization.')
 
     def reset(self):
         self.times = [0]
@@ -483,23 +470,17 @@ class BinaryInputNode(object):
         self.reset()
 
     @property
+    def parents(self):
+        parents = []
+        if self.pa is not None:
+            parents.append(self.pa)
+        return parents
+
+    @property
     def params(self):
         return [self.pihat,
                 self.eta0,
                 self.eta1]
-
-    @params.setter
-    def params(self, value):
-        raise NodeConfigurationError(
-            'List of Parameter objects cannot be changed ' +
-            'after initialization.')
-
-    @params.deleter
-    def params(self):
-        raise NodeConfigurationError(
-            'List of Parameter objects cannot be changed ' +
-            'after initialization.')
-
 
     def reset(self):
         self.times = [0]
