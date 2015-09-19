@@ -50,7 +50,6 @@ class Model(object):
 
     @param_values.setter
     def param_values(self, values):
-        self.reset()
         for i, param in enumerate(self.params):
             param.value = values[i]
 
@@ -60,7 +59,6 @@ class Model(object):
 
     @var_param_values.setter
     def var_param_values(self, values):
-        self.reset()
         for i, var_param in enumerate(self.var_params):
             var_param.value = values[i]
 
@@ -70,7 +68,6 @@ class Model(object):
 
     @param_trans_values.setter
     def param_trans_values(self, trans_values):
-        self.reset()
         for i, param in enumerate(self.params):
             param.trans_value = trans_values[i]
 
@@ -80,7 +77,6 @@ class Model(object):
 
     @var_param_trans_values.setter
     def var_params_trans_values(self, trans_values):
-        self.reset()
         for i, var_param in enumerate(self.var_params):
             param.trans_value = trans_values[i]
 
