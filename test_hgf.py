@@ -5,8 +5,32 @@ import hgf
 
 
 @pytest.fixture
+def nodes():
+    # Set up a collection of binary HGF nodes
+    x3 = hgf.StateNode(initial_mu=1.0,
+                       initial_pi=1.0,
+                       omega=-6.0)
+    x2 = hgf.StateNode(initial_mu=0.0,
+                       initial_pi=1.0,
+                       omega=-2.5)
+    x1 = hgf.BinaryNode()
+    xU = hgf.BinaryInputNode()
+
+    # Collect nodes
+    def n():
+        pass
+
+    n.xU = xU
+    n.x1 = x1
+    n.x2 = x2
+    n.x3 = x3
+
+    return n
+
+
+@pytest.fixture
 def cont_hier():
-    # Manually set up a standard continuous HGF hierarchy
+    # Set up a standard continuous HGF hierarchy
     x2 = hgf.StateNode(initial_mu=1.0,
                        initial_pi=np.inf,
                        omega=-2.0)
@@ -29,8 +53,82 @@ def cont_hier():
     return h
 
 
+@pytest.fixture
+def bin_hier():
+    # Set up a simple binary HGF hierarchy
+    x3 = hgf.StateNode(initial_mu=1.0,
+                       initial_pi=1.0,
+                       omega=-6.0)
+    x2 = hgf.StateNode(initial_mu=0.0,
+                       initial_pi=1.0,
+                       omega=-2.5)
+    x1 = hgf.BinaryNode()
+    xU = hgf.BinaryInputNode()
+
+    x2.add_volatility_parent(parent=x3, kappa=1)
+    x1.set_parent(parent=x2)
+    xU.set_parent(parent=x1)
+
+    # Collect nodes
+    def h():
+        pass
+
+    h.xU = xU
+    h.x1 = x1
+    h.x2 = x2
+    h.x3 = x3
+
+    return h
+
+
+def test_model_config_error(bin_hier):
+    m = hgf.Model()
+
+    with pytest.raises(hgf.ModelConfigurationError):
+        m.add_node(bin_hier.xU)
+
+
+def test_model_setup(nodes):
+    # Get nodes
+    n = nodes
+    # Set up model
+    m = hgf.Model()
+
+    # Check basic model setup
+    assert m.nodes == []
+    assert m.params == []
+    assert m.var_params == []
+    assert m.param_values == []
+    assert m.param_trans_values == []
+    assert m.surprise() == 0
+
+    # Add nodes
+    m.add_node(n.xU)
+    m.add_node(n.x1)
+    m.add_node(n.x2)
+    m.add_node(n.x3)
+
+    # Set up hierarchy
+    n.x2.add_volatility_parent(parent=n.x3, kappa=1)
+    n.x1.set_parent(parent=n.x2)
+    n.xU.set_parent(parent=n.x1)
+
+    # Read binary input from Iglesias et al. (2013)
+    binary = np.loadtxt('binary_input.dat')
+
+    # Feed input
+    n.xU.input(binary)
+
+    # Recalculate and check result
+    mu3 = n.x3.mus
+    m.recalculate()
+    assert n.x3.mus == mu3
+
+    return m
+
+
 def test_continuous_hierarchy_setup():
-    # Manually set up a simple HGF hierarchy
+    # Set up a simple HGF hierarchy
     x2 = hgf.StateNode(initial_mu=1.0,
                        initial_pi=np.inf,
                        omega=-2.0)
@@ -43,15 +141,13 @@ def test_continuous_hierarchy_setup():
     xU.set_value_parent(parent=x1)
 
 
-def test_node_configuration_error():
+def test_node_config_error():
     with pytest.raises(hgf.NodeConfigurationError):
         x1 = hgf.StateNode(initial_mu=1.04,
                            initial_pi=np.inf,
                            omega=-12.0,
                            rho=1,
                            phi=1)
-
-        print(x1)
 
 
 def test_input_continuous(cont_hier):
@@ -72,7 +168,7 @@ def test_input_continuous(cont_hier):
 
 
 def test_binary_node_setup():
-    # Manually set up a simple binary HGF hierarchy
+    # Set up a simple binary HGF hierarchy
     x3 = hgf.StateNode(initial_mu=1.0,
                        initial_pi=1.0,
                        omega=-6.0)
