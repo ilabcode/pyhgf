@@ -9,113 +9,6 @@ import warnings
 warnings.simplefilter('error')
 
 
-# Standard 2-level HGF for continuous inputs
-class StandardHGF(object):
-    """The standard 2-level HGF for continuous inputs"""
-    def __init__(self,
-                 *,
-                 initial_mu1,
-                 initial_pi1,
-                 initial_mu2,
-                 initial_pi2,
-                 omega1,
-                 kappa1,
-                 omega2,
-                 omega_input,
-                 rho1=0,
-                 rho2=0,
-                 phi1=0,
-                 m1=0,
-                 phi2=0,
-                 m2=0):
-
-        # Set up nodes and their relationships
-        self.x2 = StateNode(initial_mu=initial_mu2,
-                            initial_pi=initial_pi2,
-                            omega=omega2,
-                            rho=rho2,
-                            phi=phi2,
-                            m=m2)
-        self.x1 = StateNode(initial_mu=initial_mu1,
-                            initial_pi=initial_pi1,
-                            omega=omega1,
-                            rho=rho1,
-                            phi=phi1,
-                            m=m1)
-        self.xU = InputNode(omega=omega_input)
-
-        self.x1.add_volatility_parent(parent=self.x2, kappa=kappa1)
-        self.xU.set_value_parent(parent=self.x1)
-
-    def reset(self):
-        self.x2.reset()
-        self.x1.reset()
-        self.xU.reset()
-
-    def input(self, inputs):
-        self.xU.input(inputs)
-
-    def surprise(self, inputs):
-        return sum(self.xU.surprises)
-
-
-# Standard 3-level HGF for binary inputs
-class StandardBinaryHGF(object):
-    """The standard 3-level HGF for binary inputs"""
-    def __init__(self,
-                 *,
-                 initial_mu2,
-                 initial_pi2,
-                 initial_mu3,
-                 initial_pi3,
-                 omega2,
-                 kappa2,
-                 omega3,
-                 pihat_input=np.inf,
-                 eta0=0,
-                 eta1=1,
-                 rho2=0,
-                 rho3=0,
-                 phi2=0,
-                 m2=0,
-                 phi3=0,
-                 m3=0):
-
-        # Set up nodes and their relationships
-        self.x3 = StateNode(initial_mu=initial_mu3,
-                            initial_pi=initial_pi3,
-                            omega=omega3,
-                            rho=rho3,
-                            phi=phi3,
-                            m=m3)
-        self.x2 = StateNode(initial_mu=initial_mu2,
-                            initial_pi=initial_pi2,
-                            omega=omega2,
-                            rho=rho2,
-                            phi=phi2,
-                            m=m2)
-        self.x1 = BinaryNode()
-        self.xU = BinaryInputNode(pihat=pihat_input,
-                                  eta0=eta0,
-                                  eta1=eta1)
-
-        self.x2.add_volatility_parent(parent=self.x3, kappa=kappa2)
-        self.x1.set_parent(parent=self.x2)
-        self.xU.set_parent(parent=self.x1)
-
-    def reset(self):
-        self.x3.reset()
-        self.x2.reset()
-        self.x1.reset()
-        self.xU.reset()
-
-    def input(self, inputs):
-        self.xU.input(inputs)
-
-    def surprise(self, inputs):
-        return sum(self.xU.surprises)
-
-
 # Generic HGF model
 class Model(object):
     """Generic HGF model"""
@@ -238,6 +131,104 @@ class Model(object):
         for input_node in self.input_nodes:
             surprise += sum(input_node.surprises)
         return surprise
+
+
+# Standard 2-level HGF for continuous inputs
+class StandardHGF(Model):
+    """The standard 2-level HGF for continuous inputs"""
+    def __init__(self,
+                 *,
+                 initial_mu1,
+                 initial_pi1,
+                 initial_mu2,
+                 initial_pi2,
+                 omega1,
+                 kappa1,
+                 omega2,
+                 omega_input,
+                 rho1=0,
+                 rho2=0,
+                 phi1=0,
+                 m1=0,
+                 phi2=0,
+                 m2=0):
+
+        # Superclass initialization
+        super().__init__()
+
+        # Set up nodes and their relationships
+        self.x2 = self.add_state_node(initial_mu=initial_mu2,
+                                      initial_pi=initial_pi2,
+                                      omega=omega2,
+                                      rho=rho2,
+                                      phi=phi2,
+                                      m=m2)
+        self.x1 = self.add_state_node(initial_mu=initial_mu1,
+                                      initial_pi=initial_pi1,
+                                      omega=omega1,
+                                      rho=rho1,
+                                      phi=phi1,
+                                      m=m1)
+        self.xU = self.add_input_node(omega=omega_input)
+
+        self.x1.add_volatility_parent(parent=self.x2, kappa=kappa1)
+        self.xU.set_value_parent(parent=self.x1)
+
+    # Input method
+    def input(self, inputs):
+        self.xU.input(inputs)
+
+
+# Standard 3-level HGF for binary inputs
+class StandardBinaryHGF(Model):
+    """The standard 3-level HGF for binary inputs"""
+    def __init__(self,
+                 *,
+                 initial_mu2,
+                 initial_pi2,
+                 initial_mu3,
+                 initial_pi3,
+                 omega2,
+                 kappa2,
+                 omega3,
+                 pihat_input=np.inf,
+                 eta0=0,
+                 eta1=1,
+                 rho2=0,
+                 rho3=0,
+                 phi2=0,
+                 m2=0,
+                 phi3=0,
+                 m3=0):
+
+        # Superclass initialization
+        super().__init__()
+
+        # Set up nodes and their relationships
+        self.x3 = self.add_state_node(initial_mu=initial_mu3,
+                                      initial_pi=initial_pi3,
+                                      omega=omega3,
+                                      rho=rho3,
+                                      phi=phi3,
+                                      m=m3)
+        self.x2 = self.add_state_node(initial_mu=initial_mu2,
+                                      initial_pi=initial_pi2,
+                                      omega=omega2,
+                                      rho=rho2,
+                                      phi=phi2,
+                                      m=m2)
+        self.x1 = self.add_binary_node()
+        self.xU = self.add_binary_input_node(pihat=pihat_input,
+                                         eta0=eta0,
+                                         eta1=eta1)
+
+        self.x2.add_volatility_parent(parent=self.x3, kappa=kappa2)
+        self.x1.set_parent(parent=self.x2)
+        self.xU.set_parent(parent=self.x1)
+
+    # Input method
+    def input(self, inputs):
+        self.xU.input(inputs)
 
 
 # HGF continuous state node
