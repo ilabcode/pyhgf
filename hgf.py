@@ -126,13 +126,6 @@ class Model(object):
     def nodes(self):
         return self._nodes
 
-    def add_node(self, node):
-        if not node.parents:
-            self._nodes.append(node)
-        else:
-            raise ModelConfigurationError(
-                'Only parentless Nodes can be added to a Model.')
-
     @property
     def input_nodes(self):
         input_nodes = []
@@ -197,6 +190,40 @@ class Model(object):
         self.reset()
         for i, var_param in enumerate(self.var_params):
             param.trans_value = trans_values[i]
+
+    def add_state_node(self,
+                       *,
+                       initial_mu,
+                       initial_pi,
+                       rho=0,
+                       phi=0,
+                       m=0,
+                       omega=0):
+
+        node = StateNode(initial_mu=initial_mu,
+                      initial_pi=initial_pi,
+                      rho=rho,
+                      phi=phi,
+                      m=m,
+                      omega=omega)
+
+        self._nodes.append(node)
+        return node
+
+    def add_binary_node(self):
+        node = BinaryNode()
+        self._nodes.append(node)
+        return node
+
+    def add_input_node(self, *, omega=0):
+        node = InputNode(omega=omega)
+        self._nodes.append(node)
+        return node
+
+    def add_binary_input_node(self, *, pihat=np.inf, eta0=0, eta1=1):
+        node = BinaryInputNode(pihat=pihat, eta0=eta0, eta1=eta1)
+        self._nodes.append(node)
+        return node
 
     def reset(self):
         for input_node in self.input_nodes:

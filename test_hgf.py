@@ -81,16 +81,7 @@ def bin_hier():
     return h
 
 
-def test_model_config_error(bin_hier):
-    m = hgf.Model()
-
-    with pytest.raises(hgf.ModelConfigurationError):
-        m.add_node(bin_hier.xU)
-
-
-def test_model_setup(nodes):
-    # Get nodes
-    n = nodes
+def test_model_setup():
     # Set up model
     m = hgf.Model()
 
@@ -103,26 +94,26 @@ def test_model_setup(nodes):
     assert m.surprise() == 0
 
     # Add nodes
-    m.add_node(n.xU)
-    m.add_node(n.x1)
-    m.add_node(n.x2)
-    m.add_node(n.x3)
+    xU = m.add_binary_input_node()
+    x1 = m.add_binary_node()
+    x2 = m.add_state_node(initial_mu=1, initial_pi=1, omega=-6)
+    x3 = m.add_state_node(initial_mu=0, initial_pi=1, omega=-2.5)
 
     # Set up hierarchy
-    n.x2.add_volatility_parent(parent=n.x3, kappa=1)
-    n.x1.set_parent(parent=n.x2)
-    n.xU.set_parent(parent=n.x1)
+    x2.add_volatility_parent(parent=x3, kappa=1)
+    x1.set_parent(parent=x2)
+    xU.set_parent(parent=x1)
 
     # Read binary input from Iglesias et al. (2013)
     binary = np.loadtxt('binary_input.dat')
 
     # Feed input
-    n.xU.input(binary)
+    xU.input(binary)
 
     # Recalculate and check result
-    mu3 = n.x3.mus
+    mu3 = x3.mus
     m.recalculate()
-    assert n.x3.mus == mu3
+    assert x3.mus == mu3
 
     return m
 
