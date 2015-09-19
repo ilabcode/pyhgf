@@ -277,6 +277,11 @@ class StateNode(object):
         self.mus = [self.initial_mu.value]
         self.nus = [None]
 
+    def reset_hierarchy(self):
+        self.reset()
+        for pa in self.parents:
+            pa.reset_hierarchy()
+
     def add_value_parent(self, *, parent, psi):
         self.va_pas.append(parent)
         self.psis.append(Parameter(value=psi))
@@ -392,6 +397,11 @@ class BinaryNode(object):
         self.muhats = [None]
         self.mus = [None]
 
+    def reset_hierarchy(self):
+        self.reset()
+        for pa in self.parents:
+            pa.reset_hierarchy()
+
     def set_parent(self, *, parent):
         self.pa = parent
 
@@ -470,7 +480,18 @@ class InputNode(object):
     def reset(self):
         self.times = [0]
         self.inputs = [None]
+        self.inputs_with_times = [(None, 0)]
         self.surprises = [0]
+
+    def reset_hierarchy(self):
+        self.reset()
+        for pa in self.parents:
+            pa.reset_hierarchy()
+
+    def recalculate(self):
+        iwt = list(self.inputs_with_times[1:])
+        self.reset_hierarchy()
+        self.input(iwt)
 
     def set_value_parent(self, *, parent):
         self.va_pa = parent
@@ -483,6 +504,9 @@ class InputNode(object):
     def update_parents(self, value, time):
         va_pa = self.va_pa
         vo_pa = self.vo_pa
+
+        if not vo_pa and not va_pa:
+            return
 
         lognoise = self.omega.value
 
@@ -528,6 +552,7 @@ class InputNode(object):
     def _single_input(self, value, time):
         self.times.append(time)
         self.inputs.append(value)
+        self.inputs_with_times.append((value, time))
         self.surprises.append(self.update_parents(value, time))
 
     def input(self, inputs):
@@ -582,13 +607,28 @@ class BinaryInputNode(object):
     def reset(self):
         self.times = [0]
         self.inputs = [None]
+        self.inputs_with_times = [(None, 0)]
         self.surprises = [0]
+
+    def reset_hierarchy(self):
+        self.reset()
+        for pa in self.parents:
+            pa.reset_hierarchy()
+
+    def recalculate(self):
+        iwt = []
+        iwt.extend(self.inputs_with_times[1:])
+        self.reset_hierarchy()
+        self.input(iwt)
 
     def set_parent(self, *, parent):
         self.pa = parent
 
     def update_parent(self, value, time):
         pa = self.pa
+        if not pa:
+            return
+
         surprise = 0
 
         pihat = self.pihat.value
@@ -621,6 +661,7 @@ class BinaryInputNode(object):
     def _single_input(self, value, time):
         self.times.append(time)
         self.inputs.append(value)
+        self.inputs_with_times.append((value, time))
         self.surprises.append(self.update_parent(value, time))
 
     def input(self, inputs):
@@ -632,6 +673,7 @@ class BinaryInputNode(object):
                 except IndexError:
                     value = input
                     time = self.times[-1] + 1
+                finally:
                     self._single_input(value, time)
         except TypeError:
             value = inputs
