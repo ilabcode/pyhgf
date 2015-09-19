@@ -116,6 +116,103 @@ class StandardBinaryHGF(object):
         return sum(self.xU.surprises)
 
 
+# Generic HGF model
+class Model(object):
+    """Generic HGF model"""
+    def __init__(self):
+        self._nodes = []
+
+    @property
+    def nodes(self):
+        return self._nodes
+
+    def add_node(self, node):
+        if not node.parents:
+            self._nodes.append(node)
+        else:
+            raise ModelConfigurationError(
+                'Only parentless Nodes can be added to a Model.')
+
+    @property
+    def input_nodes(self):
+        input_nodes = []
+        for node in self.nodes:
+            if (isinstance(node, InputNode) or
+                    isinstance(node, BinaryInputNode)):
+                input_nodes.append(node)
+        return input_nodes
+
+    @property
+    def params(self):
+        params = []
+        for node in self.nodes:
+            params.extend(node.params)
+        return params
+
+    @property
+    def var_params(self):
+        var_params = []
+        for param in self.params:
+            tpp = param.trans_prior_precision
+            if tpp is not None and tpp is not np.inf:
+                var_params.append(param)
+        return var_params
+
+    @property
+    def param_values(self):
+        return [param.value for param in self.params]
+
+    @param_values.setter
+    def param_values(self, values):
+        self.reset()
+        for i, param in enumerate(self.params):
+            param.value = values[i]
+
+    @property
+    def var_param_values(self):
+        return [var_param.value for var_param in self.var_params]
+
+    @var_param_values.setter
+    def var_param_values(self, values):
+        self.reset()
+        for i, var_param in enumerate(self.var_params):
+            var_param.value = values[i]
+
+    @property
+    def param_trans_values(self):
+        return [param.trans_value for param in self.params]
+
+    @param_trans_values.setter
+    def param_trans_values(self, trans_values):
+        self.reset()
+        for i, param in enumerate(self.params):
+            param.trans_value = trans_values[i]
+
+    @property
+    def var_param_trans_values(self):
+        return [var_param.trans_value for var_param in self.var_params]
+
+    @var_param_trans_values.setter
+    def var_params_trans_values(self, trans_values):
+        self.reset()
+        for i, var_param in enumerate(self.var_params):
+            param.trans_value = trans_values[i]
+
+    def reset(self):
+        for input_node in self.input_nodes:
+            input_node.reset_hierarchy()
+
+    def recalculate(self):
+        for input_node in self.input_nodes:
+            input_node.recalculate()
+
+    def surprise(self):
+        surprise = 0
+        for input_node in self.input_nodes:
+            surprise += sum(input_node.surprises)
+        return surprise
+
+
 # HGF continuous state node
 class StateNode(object):
     """HGF continuous state node"""
@@ -864,6 +961,10 @@ def binary_surprise(x, muhat):
 
 class HgfException(Exception):
     """Base class for all exceptions raised by the hgf module."""
+
+
+class ModelConfigurationError(HgfException):
+    """Model configuration error."""
 
 
 class NodeConfigurationError(HgfException):
