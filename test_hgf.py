@@ -221,6 +221,8 @@ def test_standard_hgf():
     assert len(stdhgf.x2.mus) == 1
     assert len(stdhgf.x2.pis) == 1
 
+    return stdhgf
+
 
 def test_binary_standard_hgf():
     # Set up standard 3-level HGF for binary inputs
@@ -262,3 +264,5 @@ def test_binary_standard_hgf():
     assert len(binstdhgf.x3.times) == 1
     assert len(binstdhgf.x3.mus) == 1
     assert len(binstdhgf.x3.pis) == 1
+
+    return binstdhgf
