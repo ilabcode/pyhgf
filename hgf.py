@@ -90,11 +90,11 @@ class Model(object):
                        omega=0):
 
         node = StateNode(initial_mu=initial_mu,
-                      initial_pi=initial_pi,
-                      rho=rho,
-                      phi=phi,
-                      m=m,
-                      omega=omega)
+                         initial_pi=initial_pi,
+                         rho=rho,
+                         phi=phi,
+                         m=m,
+                         omega=omega)
 
         self._nodes.append(node)
         return node
