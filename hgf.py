@@ -76,7 +76,7 @@ class Model(object):
         return [var_param.trans_value for var_param in self.var_params]
 
     @var_param_trans_values.setter
-    def var_params_trans_values(self, trans_values):
+    def var_param_trans_values(self, trans_values):
         for i, var_param in enumerate(self.var_params):
             param.trans_value = trans_values[i]
 
