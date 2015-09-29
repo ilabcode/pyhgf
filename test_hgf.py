@@ -99,6 +99,12 @@ def test_model_setup():
     x2 = m.add_state_node(initial_mu=1, initial_pi=1, omega=-6)
     x3 = m.add_state_node(initial_mu=0, initial_pi=1, omega=-2.5)
 
+    # Specify priors for non-fixed parameters
+    x2.omega.prior_mean = -6
+    x2.omega.trans_prior_precision = 4
+    x3.omega.prior_mean = -2.5
+    x3.omega.trans_prior_precision = 4
+
     # Set up hierarchy
     x2.add_volatility_parent(parent=x3, kappa=1)
     x1.set_parent(parent=x2)
