@@ -316,7 +316,13 @@ class StateNode(object):
         logvol = self.omega.value
         for i, vo_pa in enumerate(self.vo_pas):
             logvol += self.kappas[i].value * self.vo_pas[i].mus[-1]
-        return t * np.exp(logvol)
+        nu = t * np.exp(logvol)
+        if nu > 1e-128:
+            return nu
+        else:
+            raise HgfUpdateError(
+                'Nu is zero. Parameters values are in region where model\n' +
+                'assumptions are violated.')
 
     def new_pihat_nu(self, time):
         new_nu = self._new_nu(time)
@@ -361,9 +367,9 @@ class StateNode(object):
             pi_pa = pihat_pa + 0.5 * (kappas[i].value * nu * pihat)**2 * \
                 (1 + (1 - 1 / (nu * self.pis[-2])) * vope)
             if pi_pa <= 0:
-                raise NegativePosteriorPrecisionError(
-                    'Parameters values are in region where model ' +
-                    'assumptions are violated.')
+                raise HgfUpdateError(
+                    'Negative posterior precision. Parameters values are\n' +
+                    'in a region where model assumptions are violated.')
 
             muhat_pa = vo_pa.new_muhat(time)
             mu_pa = (muhat_pa +
@@ -551,9 +557,9 @@ class InputNode(object):
             pihat_vo_pa, nu_vo_pa = vo_pa.new_pihat_nu(time)
             pi_vo_pa = pihat_vo_pa + 0.5 * kappa**2 * (1 + vope)
             if pi_vo_pa <= 0:
-                raise NegativePosteriorPrecisionError(
-                    'Parameters values are in region where model ' +
-                    'assumptions are violated.')
+                raise HgfUpdateError(
+                    'Negative posterior precision. Parameters values are\n' +
+                    'in a region where model assumptions are violated.')
 
             muhat_vo_pa = vo_pa.new_muhat(time)
             mu_vo_pa = muhat_vo_pa + 0.5 * kappa / pi_vo_pa * vope
@@ -1031,8 +1037,8 @@ class ParameterConfigurationError(HgfException):
     """Parameter configuration error."""
 
 
-class NegativePosteriorPrecisionError(HgfException):
-    """Negative posterior precision."""
+class HgfUpdateError(HgfException):
+    """Error owing to a violation of the assumptions underlying HGF updates."""
 
 
 class OutcomeValueError(HgfException):
