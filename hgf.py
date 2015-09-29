@@ -118,6 +118,10 @@ class Model(object):
         for input_node in self.input_nodes:
             input_node.reset_hierarchy()
 
+    def undo_last_reset(self):
+        for input_node in self.input_nodes:
+            input_node.undo_last_reset_hierarchy()
+
     def recalculate(self):
         for input_node in self.input_nodes:
             input_node.recalculate()
@@ -127,6 +131,31 @@ class Model(object):
         for input_node in self.input_nodes:
             surprise += sum(input_node.surprises)
         return surprise
+
+    def log_prior(self):
+        if self.var_params:
+            log_prior = 0
+            for var_param in self.var_params:
+                log_prior += var_param.log_prior()
+            return log_prior
+        else:
+            raise ModelConfigurationError(
+                'No variable (i.e., non-fixed) parameters.')
+
+    def log_joint(self):
+        return -self.surprise() + self.log_prior()
+
+    def neg_log_joint_function(self):
+        def f(trans_values):
+            trans_values_backup = self.var_param_trans_values
+            self.var_param_trans_values = trans_values
+            try:
+                self.recalculate()
+                return -self.log_joint()
+            except HgfUpdateError as e:
+                self.var_param_trans_values = trans_values_backup
+                return np.inf
+        return f
 
 
 # Standard 2-level HGF for continuous inputs
@@ -260,7 +289,12 @@ class StateNode(object):
         self.vo_pas = []
 
         # Initialize time series
-        self.reset()
+        self.times = [0]
+        self.pihats = [None]
+        self.pis = [self.initial_pi.value]
+        self.muhats = [None]
+        self.mus = [self.initial_mu.value]
+        self.nus = [None]
 
     @property
     def parents(self):
@@ -284,17 +318,41 @@ class StateNode(object):
         return params
 
     def reset(self):
+        self._times_backup = self.times
         self.times = [0]
+
+        self._pihats_backup = self.pihats
         self.pihats = [None]
+
+        self._pis_backup = self.pis
         self.pis = [self.initial_pi.value]
+
+        self._muhats_backup = self.muhats
         self.muhats = [None]
+
+        self._mus_backup = self.mus
         self.mus = [self.initial_mu.value]
+
+        self._nus_backup = self.nus
         self.nus = [None]
+
+    def undo_last_reset(self):
+        self.times = self._times_backup
+        self.pihats = self._pihats_backup
+        self.pis = self._pis_backup
+        self.muhats = self._muhats_backup
+        self.mus = self._mus_backup
+        self.nus = self._nus_backup
 
     def reset_hierarchy(self):
         self.reset()
         for pa in self.parents:
             pa.reset_hierarchy()
+
+    def undo_last_reset_hierarchy(self):
+        self.undo_last_reset()
+        for pa in self.parents:
+            pa.undo_last_reset_hierarchy()
 
     def add_value_parent(self, *, parent, psi):
         self.va_pas.append(parent)
@@ -397,7 +455,11 @@ class BinaryNode(object):
         self.pa = None
 
         # Initialize time series
-        self.reset()
+        self.times = [0]
+        self.pihats = [None]
+        self.pis = [None]
+        self.muhats = [None]
+        self.mus = [None]
 
     @property
     def parents(self):
@@ -411,16 +473,37 @@ class BinaryNode(object):
         return []
 
     def reset(self):
+        self._times_backup = self.times
         self.times = [0]
+
+        self._pihats_backup = self.pihats
         self.pihats = [None]
+
+        self._pis_backup = self.pis
         self.pis = [None]
+
+        self._muhats_backup = self.muhats
         self.muhats = [None]
+
+        self._mus_backup = self.mus
         self.mus = [None]
+
+    def undo_last_reset(self):
+        self.times = self._times_backup
+        self.pihats = self._pihats_backup
+        self.pis = self._pis_backup
+        self.muhats = self._muhats_backup
+        self.mus = self._mus_backup
 
     def reset_hierarchy(self):
         self.reset()
         for pa in self.parents:
             pa.reset_hierarchy()
+
+    def undo_last_reset_hierarchy(self):
+        self.undo_last_reset()
+        for pa in self.parents:
+            pa.undo_last_reset_hierarchy()
 
     def set_parent(self, *, parent):
         self.pa = parent
@@ -477,7 +560,10 @@ class InputNode(object):
         self.vo_pa = None
 
         # Initialize time series
-        self.reset()
+        self.times = [0]
+        self.inputs = [None]
+        self.inputs_with_times = [(None, 0)]
+        self.surprises = [0]
 
     @property
     def parents(self):
@@ -498,20 +584,42 @@ class InputNode(object):
         return params
 
     def reset(self):
+        self._times_backup = self.times
         self.times = [0]
+
+        self._inputs_backup = self.inputs
         self.inputs = [None]
+
+        self._inputs_with_times_backup = self.inputs_with_times
         self.inputs_with_times = [(None, 0)]
+
+        self._surprises_backup = self.surprises
         self.surprises = [0]
+
+    def undo_last_reset(self):
+        self.times = self._times_backup
+        self.inputs = self._inputs_backup
+        self.inputs_with_times = self._inputs_with_times_backup
+        self.surprises = self._surprises_backup
 
     def reset_hierarchy(self):
         self.reset()
         for pa in self.parents:
             pa.reset_hierarchy()
 
+    def undo_last_reset_hierarchy(self):
+        self.undo_last_reset()
+        for pa in self.parents:
+            pa.undo_last_reset_hierarchy()
+
     def recalculate(self):
         iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
-        self.input(iwt)
+        try:
+            self.input(iwt)
+        except HgfUpdateError as e:
+            self.undo_last_reset_hierarchy()
+            raise e
 
     def set_value_parent(self, *, parent):
         self.va_pa = parent
@@ -609,7 +717,10 @@ class BinaryInputNode(object):
         self.pa = None
 
         # Initialize time series
-        self.reset()
+        self.times = [0]
+        self.inputs = [None]
+        self.inputs_with_times = [(None, 0)]
+        self.surprises = [0]
 
     @property
     def parents(self):
@@ -625,21 +736,42 @@ class BinaryInputNode(object):
                 self.eta1]
 
     def reset(self):
+        self._times_backup = self.times
         self.times = [0]
+
+        self._inputs_backup = self.inputs
         self.inputs = [None]
+
+        self._inputs_with_times_backup = self.inputs_with_times
         self.inputs_with_times = [(None, 0)]
+
+        self._surprises_backup = self.surprises
         self.surprises = [0]
+
+    def undo_last_reset(self):
+        self.times = self._times_backup
+        self.inputs = self._inputs_backup
+        self.inputs_with_times = self._inputs_with_times_backup
+        self.surprises = self._surprises_backup
 
     def reset_hierarchy(self):
         self.reset()
         for pa in self.parents:
             pa.reset_hierarchy()
 
+    def undo_last_reset_hierarchy(self):
+        self.undo_last_reset()
+        for pa in self.parents:
+            pa.undo_last_reset_hierarchy()
+
     def recalculate(self):
-        iwt = []
-        iwt.extend(self.inputs_with_times[1:])
+        iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
-        self.input(iwt)
+        try:
+            self.input(iwt)
+        except HgfUpdateError as e:
+            self.undo_last_reset_hierarchy()
+            raise e
 
     def set_parent(self, *, parent):
         self.pa = parent
@@ -950,6 +1082,17 @@ class Parameter(object):
         if trans_prior_precision is None:
             self._prior_mean = None
             self._trans_prior_mean = None
+
+    def log_prior(self):
+        try:
+            return -gaussian_surprise(self.trans_value,
+                                      self.trans_prior_mean,
+                                      self.trans_prior_precision)
+        except AttributeError as e:
+            raise ModelConfigurationError(
+                'trans_prior_mean and trans_prior_precision attributes ' +
+                'must\nbe specified for method log_prior to return ' +
+                'a value.') from e
 
 
 def exp(x, *, lower_bound=0, upper_bound=None):
