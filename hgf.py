@@ -215,8 +215,8 @@ class StandardBinaryHGF(Model):
                                       m=m2)
         self.x1 = self.add_binary_node()
         self.xU = self.add_binary_input_node(pihat=pihat_input,
-                                         eta0=eta0,
-                                         eta1=eta1)
+                                             eta0=eta0,
+                                             eta1=eta1)
 
         self.x2.add_volatility_parent(parent=self.x3, kappa=kappa2)
         self.x1.set_parent(parent=self.x2)
