@@ -801,7 +801,7 @@ class BinaryInputNode(object):
             und0 = np.exp(-pihat / 2 * (value - eta0)**2)
             # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
             mu_pa = muhat_pa * und1 / (muhat_pa * und1 + (1 - muhat_pa) * und0)
-            pi_pa = 1 / (mu_pa * (1 - mupa))
+            pi_pa = 1 / (mu_pa * (1 - mu_pa))
             # Surprise
             surprise = (-np.log(muhat_pa * gaussian(value, eta1, pihat) +
                         (1 - muhat_pa) * gaussian(value, eta0, pihat)))
