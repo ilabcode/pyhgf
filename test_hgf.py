@@ -156,7 +156,7 @@ def test_input_continuous(cont_hier):
         h.xU.input(u)
 
     # Check if NegativePosteriorPrecisionError exception is correctly raised
-    with pytest.raises(hgf.NegativePosteriorPrecisionError):
+    with pytest.raises(hgf.HgfUpdateError):
         h.xU.input(1e5)
 
     # Has update worked?
