@@ -149,11 +149,11 @@ def test_continuous_hierarchy_setup():
 
 def test_node_config_error():
     with pytest.raises(hgf.NodeConfigurationError):
-        x1 = hgf.StateNode(initial_mu=1.04,
-                           initial_pi=np.inf,
-                           omega=-12.0,
-                           rho=1,
-                           phi=1)
+        hgf.StateNode(initial_mu=1.04,
+                      initial_pi=np.inf,
+                      omega=-12.0,
+                      rho=1,
+                      phi=1)
 
 
 def test_input_continuous(cont_hier):
