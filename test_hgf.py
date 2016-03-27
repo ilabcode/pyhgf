@@ -1,3 +1,12 @@
+# test_hgf.py
+"""The test suite for the hgf.py module
+
+Run this by executing
+
+    python -m pytest -v test_hgf.py
+
+in a shell"""
+
 import pytest
 import pickle
 import numpy as np
