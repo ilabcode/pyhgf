@@ -236,6 +236,9 @@ def test_standard_hgf():
     assert len(stdhgf.x2.mus) == 1
     assert len(stdhgf.x2.pis) == 1
 
+    # Feed input again
+    stdhgf.input(usdchf)
+
     return stdhgf
 
 
@@ -279,5 +282,8 @@ def test_binary_standard_hgf():
     assert len(binstdhgf.x3.times) == 1
     assert len(binstdhgf.x3.mus) == 1
     assert len(binstdhgf.x3.pis) == 1
+
+    # Feed input again
+    binstdhgf.input(binary)
 
     return binstdhgf
