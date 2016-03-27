@@ -152,7 +152,7 @@ class Model(object):
             try:
                 self.recalculate()
                 return -self.log_joint()
-            except HgfUpdateError as e:
+            except HgfUpdateError:
                 self.var_param_trans_values = trans_values_backup
                 return np.inf
         return f
