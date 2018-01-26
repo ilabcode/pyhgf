@@ -263,10 +263,10 @@ def test_binary_standard_hgf():
         benchmark = pickle.load(f)
 
     # Compare to benchmark
-    assert binstdhgf.x2.mus == benchmark.x2.mus
-    assert binstdhgf.x2.pis == benchmark.x2.pis
-    assert binstdhgf.x3.mus == benchmark.x3.mus
-    assert binstdhgf.x3.pis == benchmark.x3.pis
+    assert binstdhgf.x2.mus == pytest.approx(benchmark.x2.mus)
+    assert binstdhgf.x2.pis == pytest.approx(benchmark.x2.pis)
+    assert binstdhgf.x3.mus == pytest.approx(benchmark.x3.mus)
+    assert binstdhgf.x3.pis == pytest.approx(benchmark.x3.pis)
 
     # Does resetting work?
     binstdhgf.reset()
