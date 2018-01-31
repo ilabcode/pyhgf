@@ -35,6 +35,7 @@ def nodes():
     n.x3 = x3
 
     return n
+    # This fixture is not used yet?
 
 
 @pytest.fixture
@@ -88,6 +89,7 @@ def bin_hier():
     h.x3 = x3
 
     return h
+    # This fixture is not used yet?
 
 
 def test_model_setup():
@@ -145,6 +147,7 @@ def test_continuous_hierarchy_setup():
 
     x1.add_volatility_parent(parent=x2, kappa=1)
     xU.set_value_parent(parent=x1)
+    # No assertion here?
 
 
 def test_node_config_error():
