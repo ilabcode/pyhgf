@@ -35,6 +35,7 @@ def nodes():
     n.x3 = x3
 
     return n
+    # This fixture is not used yet?
 
 
 @pytest.fixture
@@ -88,6 +89,7 @@ def bin_hier():
     h.x3 = x3
 
     return h
+    # This fixture is not used yet?
 
 
 def test_model_setup():
@@ -145,6 +147,7 @@ def test_continuous_hierarchy_setup():
 
     x1.add_volatility_parent(parent=x2, kappa=1)
     xU.set_value_parent(parent=x1)
+    # No assertion here?
 
 
 def test_node_config_error():
@@ -263,10 +266,10 @@ def test_binary_standard_hgf():
         benchmark = pickle.load(f)
 
     # Compare to benchmark
-    assert binstdhgf.x2.mus == benchmark.x2.mus
-    assert binstdhgf.x2.pis == benchmark.x2.pis
-    assert binstdhgf.x3.mus == benchmark.x3.mus
-    assert binstdhgf.x3.pis == benchmark.x3.pis
+    assert binstdhgf.x2.mus == pytest.approx(benchmark.x2.mus)
+    assert binstdhgf.x2.pis == pytest.approx(benchmark.x2.pis)
+    assert binstdhgf.x3.mus == pytest.approx(benchmark.x3.mus)
+    assert binstdhgf.x3.pis == pytest.approx(benchmark.x3.pis)
 
     # Does resetting work?
     binstdhgf.reset()
