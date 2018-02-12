@@ -1,0 +1,47 @@
+\section{Nodes in the HGF}
+In the HGF, each node has to perform several computations within an experimental trial, which can be ordered in time as shown in the box:
+\vspace{1cm}
+
+\noindent
+\fbox{
+  \begin{minipage}{0.7\textwidth}
+  	\linespread{2}
+  	\textsc{Node} \textit{i} \textsc{at trial} \textit{k}\\
+  	\vspace{0.2cm}\\
+    $\leftarrow$ \texttt{receive} $\mathrm{PE}^{(k)}_{i-1}$
+                from $\mathrm{node}_{i-1}$\\
+    %\vspace{2pt}\\
+    
+    \textsf{UPDATE step}\\
+    \hspace*{0.2cm} \texttt{compute} $\mathrm{posterior}^{(k)}_i$ \\
+    \hspace*{0.2cm} \textit{given:} $\mathrm{PE}^{(k)}_{i-1}$ and 
+    								$\mathrm{prediction}^{(k)}_i$
+	\vspace{4pt}\\
+    $\rightarrow$ \texttt{send} $\mathrm{posterior}^{(k)}_i$
+    						 to $\mathrm{node}_{i-1}$
+    \vspace{0.2cm}\\
+    
+    \textsf{PE step} \\
+    \hspace*{0.2cm} \texttt{compute} $\mathrm{PE}^{(k)}_i$ \\
+    \hspace*{0.2cm} \textit{given:} $\mathrm{prediction}^{(k)}_i$ and 
+    								$\mathrm{posterior}^{(k)}_i$
+	\vspace{4pt}\\
+    $\rightarrow$ \texttt{send} $\mathrm{PE}^{(k)}_i$
+    						 to $\mathrm{node}_{i+1}$\\
+    $\leftarrow$ \texttt{receive} $\mathrm{posterior}^{(k)}_{i+1}$
+    			from $\mathrm{node}_{i+1}$
+    \vspace{0.2cm}\\
+
+    \textsf{PREDICTION step} \\
+    \hspace*{0.2cm} \texttt{compute} $\mathrm{prediction}^{(k+1)}_i$ \\
+    \hspace*{0.2cm} \textit{given:} $\mathrm{posterior}^{(k)}_i$ and 
+    								$\mathrm{posterior}^{(k)}_{i+1}$
+	\vspace{4pt}\\
+  \end{minipage}
+}
+
+\vspace{1cm}
+\noindent
+The exact computations in each step depend on the nature of the coupling (\textsf{VAPE} vs. \textsf{VOPE}) with the parent and children nodes. Critically, it is not only the PEs that are sent upwards, but depending on the coupling also other quantities need to signalled.
+
+%\newpage

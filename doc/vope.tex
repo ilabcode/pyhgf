@@ -1,0 +1,132 @@
+\section{Computations for VOPE coupling}
+While the exact computations of the \textsf{UPDATE step} depend on the nature of the coupling with the child node(s), both the \textsf{PE step} and the \textsf{PREDICTION step} depend on the coupling with the parent node(s).
+
+\subsection{Update Step}
+If Node $i$ is the volatility parent of Node $i-1$, then the following update equations apply to Node $i$:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\pi_i^{(k)} &= \hat{\pi}_i^{(k)} 
+			+ \frac{1}{2}(\kappa_{i-1} \nu_{i-1}^{(k)} \hat{\pi}_{i-1}^{(k)})^2
+			* (1 + (1 - \frac{1}{\pi_{i-1}^{(k-1)} \nu_{i-1}^{(k)}}) 
+			\delta_{i-1}^{(k)})\\
+\mu_i^{(k)} &= \hat{\mu}_i^{(k)} 
+			+ \frac{1}{2}\kappa_{i-1} \nu_{i-1}^{(k)} 
+			\frac{\hat{\pi}_{i-1}^{(k)}}{\pi_{i}^{(k)}} \delta_{i-1}^{(k)}
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+Therefore, at the time of the update, Node $i$ needs to have access to the following quantities:
+
+\begin{description}
+\item[Its own predictions:]  	$\hat{\mu}_i^{(k)}$, $\hat{\pi}_i^{(k)}$
+\item[Coupling strength:] 		$\kappa_{i-1}$
+\item[From level below:]		$\delta_{i-1}^{(k)}$, $\hat{\pi}_{i-1}^{(k)}$, 
+								$\nu_i^{(k)}$
+\end{description}
+
+At first glance, it also needs access to the posterior precision from the level below: $\pi_{i-1}^{(k-1)}$. However, to facilitate implementation, we can replace this, using the following derivation:
+
+\begin{align*}
+\hat{\pi}_{i-1}^{(k)} 			  &= \frac{1}{ \frac{1}{\pi_{i-1}^{(k-1)}}
+								  + \nu_{i-1}^{(k)} }\\
+\Leftrightarrow \pi_{i-1}^{(k-1)} &= \frac{1}{ \frac{1}{\hat{\pi}_{i-1}^{(k)}}
+					  			  - \nu_{i-1}^{(k)} }
+\end{align*}
+
+Plugging this into Equation 1, we can rewrite the update equations for the volatility parent Node $i$, such that it only needs access to the aforementioned quantities:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\pi_i^{(k)} &= \hat{\pi}_i^{(k)} 
+			+ \frac{1}{2}(\kappa_{i-1} \nu_{i-1}^{(k)} \hat{\pi}_{i-1}^{(k)})^2
+			* (1 + (2 - \frac{1}{\hat{\pi}_{i-1}^{(k)} \nu_{i-1}^{(k)}}) 
+			\delta_{i-1}^{(k)})\\
+\mu_i^{(k)} &= \hat{\mu}_i^{(k)} 
+			+ \frac{1}{2}\kappa_{i-1} \nu_{i-1}^{(k)} 
+			\frac{\hat{\pi}_{i-1}^{(k)}}{\pi_{i}^{(k)}} \delta_{i-1}^{(k)}
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+
+\subsection{Prediction Error Step}
+The exact computation of the prediction error depends, like the computation of the new prediction, on the nature of the coupling with the parent nodes. We will therefore assume in the following, that Node $i$ is the volatility child of Node $i+1$. Then the following quantities have to be sent up to Node $i+1$ (cf. necessary information from level below in a volatility parent):
+
+\begin{description}
+\item[Volatility estimate:]  	$\nu_i^{(k)}$
+\item[Predicted precision:] 	$\hat{\pi}_{i}^{(k)}$
+\item[Prediction error:]		$\delta_{i}^{(k)}$
+\end{description}
+
+Node $i$ has already performed the \textsf{PREDICTION step} on the previous trial, so it has already computed the predicted precision of the current trial, $\hat{\pi}_{i}^{(k)}$, and the volatiliy estimate for the current trial, $\nu_i^{(k)}$. Hence, in the \textsf{PE step}, it needs to perform only the following calculation:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{equation}
+\delta_i^{(k)} 	= \frac{\frac{1}{\pi_i^{(k)}}
+				+ (\mu_i^{(k)} - \hat{\mu}_i^{(k)})^2}
+				{\frac{1}{\pi_i^{(k-1)}} + \nu_i^{(k)}} - 1
+\end{equation}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+For this computation however, the Node $i$ needs access to a quantity from the trial before: its own posterior precision ($\pi_i^{(k-1)}$). In other words, it needs to keep this quantity in (some form of) memory (otherwise, it has already been overwritten by the update on the current trial). This also touches the more general question of whether nodes generally have access to their own past (and if yes, how far they can look back).
+
+
+\subsection{Prediction Step}
+Still assuming that Node $i$ is the volatility child of Node $i+1$, the \textsf{PREDICTION step} consists of the following two simple computations:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)}\\
+\hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \nu_i^{(k+1)} }
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+with
+\begin{equation*}
+\nu_i^{(k+1)} = \exp(\kappa_i \mu_{i+1}^{(k)} + \omega_i)).
+\end{equation*}
+
+Thus, the prediction for trial $k+1$ depends only on receiving the posterior mean of Node $i+1$ on trial $k$, and knowing the Node's own posteriors.\\
+
+Note that if Node~$i$ additionally has a \textsf{VAPE} parent node, the prediction of the new mean, $\hat{\mu}_i^{k+1}$ would also depend on the posterior mean of that value parent (cf. \textsf{PREDICTION step} for \textsf{VAPE} coupling).\\
+
+In general, the prediction of the mean will depend only on whether Node~$i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node~$i$ has a volatility parent or not. \\
+
+The \textsf{PREDICTION step} could also be placed in the beginning of a trial. However, we usually think about the beginning of a trial as starting with receiving a new input, and of a prediction as being present before that input is received. It would probably make more sense to think of the prediction as happening (continuously) between trials. For implementational purposes, it is important to keep in mind that the posterior means of parent nodes have to be sent back to their children once they're computed, such that children nodes can prepare for the next input in time.
+
+%\newpage

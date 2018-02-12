@@ -1,0 +1,129 @@
+\section{Computations for VAPE coupling}
+As in the case of \textsf{VOPE} coupling, the exact computations of the \textsf{UPDATE step} depend on the nature of the coupling with the child node(s), while both the \textsf{PE step} and the \textsf{PREDICTION step} depend on the coupling with the parent node(s).
+
+\subsection{Update Step}
+If Node~$i$ is the value parent of Node $i-1$, then the following update equations apply to Node~$i$:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\pi_i^{(k)} &= \hat{\pi}_i^{(k)} 
+			+ \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}\\
+\mu_i^{(k)} &= \hat{\mu}_i^{(k)} 
+			+ \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}} {\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)} + \hat{\pi}_{i}^{(k)}} \delta_{i-1}^{(k)}
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+Therefore, at the time of the update, Node~$i$ needs to have access to the following quantities:
+
+\begin{description}
+\item[Its own predictions:]  	$\hat{\mu}_i^{(k)}$, $\hat{\pi}_i^{(k)}$
+\item[Coupling strength:] 		$\alpha_{i-1,i}$
+\item[From level below:]		$\delta_{i-1}^{(k)}$, $\hat{\pi}_{i-1}^{(k)}$
+\end{description}
+
+All of these are available at the time of the update. Node~$i$ therefore only needs to receive the PE and the predicted precision from the level below to perform its update.
+
+\subsection{Prediction Error Step}
+We will assume in the following, that Node~$i$ is the value child of Node $i+1$. Then the following quantities have to be sent up to Node $i+1$ (cf. necessary information from level below in a value parent):
+
+\begin{description}
+\item[Predicted precision:] 	$\hat{\pi}_{i}^{(k)}$
+\item[Prediction error:]		$\delta_{i}^{(k)}$
+\end{description}
+
+Node~$i$ has already performed the \textsf{PREDICTION step} on the previous trial, so it has already computed the predicted precision of the current trial,~$\hat{\pi}_{i}^{(k)}$. Hence, in the \textsf{PE step}, it needs to perform only the following calculation:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{equation}
+\delta_i^{(k)} 	= \mu_i^{(k)} - \hat{\mu}_i^{(k)}
+\end{equation}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+
+
+\subsection{Prediction Step}
+Still assuming that Node~$i$ is the value child of Node $i+1$, the \textsf{PREDICTION step} consists of the following computations:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k+1)}\\
+\hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \nu_i^{(k+1)} }
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+with
+\begin{equation*}
+\nu_i^{(k+1)} = \exp(\omega_i)).
+\end{equation*}
+
+Note that if Node~$i$ additionally has a \textsf{VOPE} parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. \textsf{PREDICTION step} for \textsf{VOPE} coupling).\\
+
+In general, the prediction of the mean will depend only on whether Node~$i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node~$i$ has a volatility parent or not. \\
+
+However, without a volatility parent node, the estimated volatility only depends on the node's own learning rate $\omega_i$, i.e., it is a constant. We can therefore simply write:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k+1)}\\
+\hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \exp(\omega_i) }
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+
+A different aspect is problematic in these computations. For determining the new prior, $\hat{\mu}_i^{(k+1)}$, Node~$i$ seems to have to have access to the posterior on the level above \textit{on the next trial}, $\mu_{i+1}^{(k+1)}$. I can currently not imagine how this could be possible and therefore take it as a typo (cf. section on Questions and Issues). In this case the correct prediction computations would be:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}\\
+\hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \exp(\omega_i) }
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+
+And the \textsf{PREDICTION step} would again only depend on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives. 
+%\newpage
