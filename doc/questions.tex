@@ -3,12 +3,6 @@
 \begin{itemize}
 \item Equations: The coupling parameters $\alpha$ and $\kappa$ must be available to both the connection between a node's \textsf{PE unit} and the parent's \textsf{UPDATE unit}, as well as the connection between a node's \textsf{PREDICTION unit} and the parent's \textsf{UPDATE unit}. How can it be ensured that the coupling strength is the same for both connections?
 
-\item Equations: As already mentioned in the \textsf{PREDICTION step} for nodes with \textsf{VAPE} parents, I cannot see how Node~$i$ could base its prediction for the next trial, $\hat{\mu}_i^{k+1}$, on the posterior mean of its parent Node~$i+1$ of this \textit{next} trial:
-\begin{equation}
-\hat{\mu}_i^{(k+1)} = \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k+1)}\\
-\end{equation}
-Therefore, I assume that this must be a typo and that it should be the posterior mean from the current trial, $\mu_{i+1}^{(k)}$.
-
 \item Equations: In the special case of a node that has both a \textsf{VAPE} and a \textsf{VOPE} parent, the PE that is sent to the \textsf{VOPE} parent also depends on the posterior(?) precision of the \textsf{VAPE} parent. This could be another typo, but if not, I cannot see how this could be imlemented.
 \begin{equation}
 \delta_i^{(k)} 	= \frac{\frac{1}{\pi_i^{(k)}}

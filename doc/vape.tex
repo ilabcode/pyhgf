@@ -68,7 +68,7 @@ Still assuming that Node~$i$ is the value child of Node $i+1$, the \textsf{PREDI
 \begin{minipage}{\textwidth}
 
 \begin{align}
-\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k+1)}\\
+\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}\\
 \hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \nu_i^{(k+1)} }
 \end{align}			
 \vspace{1pt}
@@ -95,25 +95,6 @@ However, without a volatility parent node, the estimated volatility only depends
 \begin{minipage}{\textwidth}
 
 \begin{align}
-\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k+1)}\\
-\hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \exp(\omega_i) }
-\end{align}			
-\vspace{1pt}
-
-\end{minipage}
-}%end:fbox
-\vspace{0.5cm}
-
-\noindent
-
-A different aspect is problematic in these computations. For determining the new prior, $\hat{\mu}_i^{(k+1)}$, Node~$i$ seems to have to have access to the posterior on the level above \textit{on the next trial}, $\mu_{i+1}^{(k+1)}$. I can currently not imagine how this could be possible and therefore take it as a typo (cf. section on Questions and Issues). In this case the correct prediction computations would be:
-\vspace{0.5cm}
-
-\noindent
-\fbox{
-\begin{minipage}{\textwidth}
-
-\begin{align}
 \hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}\\
 \hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \exp(\omega_i) }
 \end{align}			
@@ -125,5 +106,5 @@ A different aspect is problematic in these computations. For determining the new
 
 \noindent
 
-And the \textsf{PREDICTION step} would again only depend on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives. 
+Thus, the \textsf{PREDICTION step} again only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives. 
 %\newpage

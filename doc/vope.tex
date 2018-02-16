@@ -31,7 +31,7 @@ Therefore, at the time of the update, Node $i$ needs to have access to the follo
 \item[Its own predictions:]  	$\hat{\mu}_i^{(k)}$, $\hat{\pi}_i^{(k)}$
 \item[Coupling strength:] 		$\kappa_{i-1}$
 \item[From level below:]		$\delta_{i-1}^{(k)}$, $\hat{\pi}_{i-1}^{(k)}$, 
-								$\nu_i^{(k)}$
+								$\nu_{i-1}^{(k)}$
 \end{description}
 
 At first glance, it also needs access to the posterior precision from the level below: $\pi_{i-1}^{(k-1)}$. However, to facilitate implementation, we can replace this, using the following derivation:
@@ -118,7 +118,7 @@ Still assuming that Node $i$ is the volatility child of Node $i+1$, the \textsf{
 \noindent
 with
 \begin{equation*}
-\nu_i^{(k+1)} = \exp(\kappa_i \mu_{i+1}^{(k)} + \omega_i)).
+\nu_i^{(k+1)} = \exp(\kappa_i \mu_{i+1}^{(k)} + \omega_i).
 \end{equation*}
 
 Thus, the prediction for trial $k+1$ depends only on receiving the posterior mean of Node $i+1$ on trial $k$, and knowing the Node's own posteriors.\\
