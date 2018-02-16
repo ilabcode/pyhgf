@@ -94,8 +94,31 @@ Node $i$ has already performed the \textsf{PREDICTION step} on the previous tria
 \vspace{0.5cm}
 
 \noindent
-For this computation however, the Node $i$ needs access to a quantity from the trial before: its own posterior precision ($\pi_i^{(k-1)}$). In other words, it needs to keep this quantity in (some form of) memory (otherwise, it has already been overwritten by the update on the current trial). This also touches the more general question of whether nodes generally have access to their own past (and if yes, how far they can look back).
+Again, at first glance, the Node $i$ needs access to a quantity from the trial before: its own posterior precision ($\pi_i^{(k-1)}$). We note however that, using the same trick as before (from Equation 1 to 3), the whole denominator equals to the inverse of the predicted precision on the current trial: 
 
+\begin{align*}
+\hat{\pi}_{i}^{(k)} 			  &= \frac{1}{ \frac{1}{\pi_{i}^{(k-1)}}
+								  + \nu_{i}^{(k)} }\\
+\end{align*}
+
+Plugging this into Equation 5, we can rewrite the prediction error of Node $i$ for its volatility parent, such that it only needs access to the aforementioned quantities:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{equation}
+\delta_i^{(k)} 	= \hat{\pi}_{i}^{(k)}(\frac{1}{\pi_i^{(k)}}
+				+ (\mu_i^{(k)} - \hat{\mu}_i^{(k)})^2) - 1
+\end{equation}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
 
 \subsection{Prediction Step}
 Still assuming that Node $i$ is the volatility child of Node $i+1$, the \textsf{PREDICTION step} consists of the following two simple computations:
