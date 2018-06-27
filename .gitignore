@@ -6,5 +6,8 @@ __pycache__/
 doc/*.aux
 doc/*.log
 doc/*.out
-doc/doc.pdf
-doc/figures/
+doc/*.bbl
+doc/*.blg
+doc/*.dvi
+doc/*.ps
+doc/figures/*/*.eps
