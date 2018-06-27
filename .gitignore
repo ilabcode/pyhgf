@@ -11,3 +11,7 @@ doc/*.blg
 doc/*.dvi
 doc/*.ps
 doc/figures/*/*.eps
+doc/figures/*/*.bak
+doc/figures/*/*.dvi
+doc/figures/*/*.aux
+doc/figures/*/*.log
