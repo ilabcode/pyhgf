@@ -1,5 +1,5 @@
 \section{Computations for VAPE coupling}
-As in the case of \textsf{VOPE} coupling, the exact computations of the \textsf{UPDATE step} depend on the nature of the coupling with the child node(s), while both the \textsf{PE step} and the \textsf{PREDICTION step} depend on the coupling with the parent node(s).
+The exact computations of the \textsf{UPDATE step} depend on the nature of the coupling with the child node(s), while both the \textsf{PE step} and the \textsf{PREDICTION step} depend on the coupling with the parent node(s).
 
 \subsection{Update Step}
 If Node~$i$ is the value parent of Node $i-1$, then the following update equations apply to Node~$i$:
@@ -22,7 +22,27 @@ If Node~$i$ is the value parent of Node $i-1$, then the following update equatio
 \vspace{0.5cm}
 
 \noindent
-Therefore, at the time of the update, Node~$i$ needs to have access to the following quantities:
+We note here that we can let the update of the precision happen first, and therefore use it for the update of the mean:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\pi_i^{(k)} &= \hat{\pi}_i^{(k)} 
+			+ \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}\\
+\mu_i^{(k)} &= \hat{\mu}_i^{(k)} 
+			+ \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}} {\pi_i^{(k)}} \delta_{i-1}^{(k)}
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+In sum, at the time of the update, Node~$i$ needs to have access to the following quantities:
 
 \begin{description}
 \item[Its own predictions:]  	$\hat{\mu}_i^{(k)}$, $\hat{\pi}_i^{(k)}$
@@ -106,5 +126,10 @@ However, without a volatility parent node, the estimated volatility only depends
 
 \noindent
 
-Thus, the \textsf{PREDICTION step} again only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives. 
+Thus, the \textsf{PREDICTION step} only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives. \\
+
+In general, the prediction of the mean will depend only on whether Node~$i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node~$i$ has a volatility parent or not. \\
+
+The \textsf{PREDICTION step} could also be placed in the beginning of a trial. However, we usually think about the beginning of a trial as starting with receiving a new input, and of a prediction as being present before that input is received. It would probably make more sense to think of the prediction as happening (continuously) between trials. For implementational purposes, it is important to keep in mind that the posterior means of parent nodes have to be sent back to their children once they're computed, such that children nodes can prepare for the next input in time.
+
 %\newpage

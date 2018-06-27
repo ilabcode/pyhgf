@@ -1,5 +1,5 @@
 \section{Computations for VOPE coupling}
-While the exact computations of the \textsf{UPDATE step} depend on the nature of the coupling with the child node(s), both the \textsf{PE step} and the \textsf{PREDICTION step} depend on the coupling with the parent node(s).
+As in the case of \textsf{VAPE} coupling, the exact computations of the \textsf{UPDATE step} depend on the nature of the coupling with the child node(s), while both the \textsf{PE step} and the \textsf{PREDICTION step} depend on the coupling with the parent node(s).
 
 \subsection{Update Step}
 If Node $i$ is the volatility parent of Node $i-1$, then the following update equations apply to Node $i$:
@@ -144,12 +144,7 @@ with
 \nu_i^{(k+1)} = \exp(\kappa_i \mu_{i+1}^{(k)} + \omega_i).
 \end{equation*}
 
-Thus, the prediction for trial $k+1$ depends only on receiving the posterior mean of Node $i+1$ on trial $k$, and knowing the Node's own posteriors.\\
+Thus, the prediction for trial $k+1$ depends again only on receiving the posterior mean of Node $i+1$ on trial $k$, and knowing the Node's own posteriors.\\
 
-Note that if Node~$i$ additionally has a \textsf{VAPE} parent node, the prediction of the new mean, $\hat{\mu}_i^{k+1}$ would also depend on the posterior mean of that value parent (cf. \textsf{PREDICTION step} for \textsf{VAPE} coupling).\\
-
-In general, the prediction of the mean will depend only on whether Node~$i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node~$i$ has a volatility parent or not. \\
-
-The \textsf{PREDICTION step} could also be placed in the beginning of a trial. However, we usually think about the beginning of a trial as starting with receiving a new input, and of a prediction as being present before that input is received. It would probably make more sense to think of the prediction as happening (continuously) between trials. For implementational purposes, it is important to keep in mind that the posterior means of parent nodes have to be sent back to their children once they're computed, such that children nodes can prepare for the next input in time.
-
+Note that if Node~$i$ additionally has a \textsf{VAPE} parent node, the prediction of the new mean, $\hat{\mu}_i^{k+1}$ would also depend on the posterior mean of that value parent (cf. \textsf{PREDICTION step} for \textsf{VAPE} coupling).
 %\newpage

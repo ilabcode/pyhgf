@@ -1,0 +1,158 @@
+\section{Within-trial time dynamics}
+
+In this section, we derive differential equations which lay out the within-trial update dynamics entailed by the HGF. To this end, we consider the posterior values of all our nodes (quantities) as given by the HGF update equations as the equilibrium point towards which all dynamics must converge. \\
+
+We will note that these equations imply a slightly different coupling between nodes compared to the previous section, which in most cases simplifies the implementation.
+
+\subsection{VAPE coupling}
+
+For the \textsf{PE} node, we want to reach the following posterior:
+
+\begin{equation}
+	\delta_i^{(k)} = \mu_i^{(k)} - \hat{\mu}_i^{(k)}.
+\end{equation}
+
+This can be easily achieved by a node with these dynamics:
+
+\begin{equation}
+	\dot{\delta}_i^{(k)} = \mu_i^{(k)} - \hat{\mu}_i^{(k)} - \delta_i^{(k)}.
+\end{equation}
+
+From this it follows that we require an additional inhibitory self-connection for the \textsf{PE} node.\\
+
+In the \textsf{Update} step, the posterior estimate of the mean is given by:
+
+\begin{equation}
+	\mu_i^{(k)} = \hat{\mu}_i^{(k)} + \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}}{\pi_i^{(k)}} \delta_{i-1}^{(k)}.
+\end{equation}
+
+Here, we propose the following temporal evolution:
+
+\begin{equation}
+	\dot{\mu}_i^{(k)} = \hat{\mu}_i^{(k)} + \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}}{\pi_i^{(k)}} \delta_{i-1}^{(k)} - \mu_i^{(k)}
+\end{equation}
+
+Clearly, a node with this dynamic converges to the required posterior value, which can be seen by setting $\dot{\mu}_i$ to zero. Now we note that
+
+\begin{equation}
+	\dot{\mu}_i^{(k)} = \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}}{\pi_i^{(k)}} \delta_{i-1}^{(k)} - \mu_i^{(k)} + \hat{\mu}_i^{(k)}
+\end{equation}
+
+can be summarized as 
+
+\begin{equation}
+	\dot{\mu}_i^{(k)} = \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}}{\pi_i^{(k)}} \delta_{i-1}^{(k)} - \delta_i^{(k)}.
+\end{equation}
+
+We will therefore consider a connection between $\delta_i$ and $\mu_i$, instead of connecting the prediction node $\hat{\mu}_i$ with the mean $\mu_i$. This also resolves one difference to classical PC proposals, as already outlined in the previous section.\\
+
+For the posterior precision, we have
+
+\begin{equation}
+	\pi_i^{(k)} = \hat{\pi}_i^{(k)} + \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}.
+\end{equation}
+
+Here, we stick with the same approach as for the \textsf{PE} node, and simply add a self-inhibitory connection to implement the dynamics:
+
+\begin{equation}
+	\dot{\pi}_i^{(k)} = \hat{\pi}_i^{(k)} + \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)} - \pi_i^{(k)}.
+\end{equation}
+
+Finally, in the \textsf{Prediction} step, we want to reach the following prediction of the mean:
+
+\begin{equation}
+	\hat{\mu}_i^{(k+1)} = \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}.
+\end{equation}
+
+Rewriting this as a differential equation
+
+\begin{equation}
+	\dot{\hat{\mu}}_i^{(k+1)} = \alpha_{i,i+1} \mu_{i+1}^{(k)} + \mu_i^{(k)} - \hat{\mu}_i^{(k+1)}, 
+\end{equation}
+
+we again see the \textsf{PE} node appear:
+
+\begin{equation}
+	\dot{\hat{\mu}}_i^{(k+1)} = \alpha_{i,i+1} \mu_{i+1}^{(k)} + \delta_i^{(k)}. 
+\end{equation}
+
+Note that $\delta_i^{(k)}$ is actually defined in terms of $\hat{\mu}_i^{(k)}$, and not $\hat{\mu}_i^{(k+1)}$, but given that we are in continuous time now, we suspect that this is equivalent here.\\
+
+The precision of this prediction should converge to:
+
+\begin{equation}
+	\hat{\pi}_i^{(k+1)} = \frac{1}{\frac{1}{\pi_i^{(k)}} + \exp(\omega_i)}.
+\end{equation}
+
+We can write the dynamics as:
+
+\begin{equation}
+	\begin{split}
+		\dot{\hat{\pi}}_i^{(k+1)} &= 1 - (\frac{1}{\pi_i^{(k)}} + \exp(\omega_i)) \hat{\pi}_i^{(k+1)}\\
+		&= 1 - \frac{\hat{\pi}_i^{(k+1)}}{\pi_i^{(k)}} + \hat{\pi}_i^{(k+1)} \exp(\omega_i).\\
+	\end{split}
+\end{equation}
+
+To simplify the implementation, we introduce an additional node $p_i$:
+
+\begin{equation}
+	p_i = \frac{\hat{\pi}_i^{(k+1)}}{\pi_i^{(k)}}.
+\end{equation}
+
+For simplicity, and because we are working in continuous time, we will skip the trial indices from now on. \\
+
+The new node 	
+\begin{equation}
+	p_i = \frac{\hat{\pi}_i}{\pi_i}
+\end{equation}
+
+can have the following dynamcis:
+\begin{equation}
+	\dot{p}_i = \hat{\pi}_i - \pi_i p_i, 
+\end{equation}
+
+and the dynamics for the precision of the prediction $\hat{\pi}_i$ become
+
+\begin{equation}
+	\dot{\hat{\pi}}_i = 1 - p_i + \hat{\pi}_i \exp(\omega_i).
+\end{equation}
+
+We now consider an alternative implementation for the \textsf{PE} computation, which will turn out to be very useful.\\
+
+Instead of considering the unweighted $\delta_i$, we can also directly model a node which corresponds to the precision-weighted prediction error $\varepsilon_i$:
+
+\begin{equation}
+	\varepsilon_i = \frac{\alpha^2 \hat{\pi}_i}{\pi_{i+1}} (\mu_i - \hat{\mu}_i) = \frac{\alpha^2 \hat{\pi}_i}{\pi_{i+1}} \delta_i.
+\end{equation}
+
+This node would evolve according to
+\begin{equation}
+	\dot{\varepsilon}_i = \mu_i - \hat{\mu}_i -  \frac{\pi_{i+1}}{\alpha^2 \hat{\pi}_i} \varepsilon_i.
+\end{equation}
+
+We can then re-introduce the unweighted \textsf{PE} $\delta_i$:
+
+\begin{equation}
+	\begin{split}
+		\delta_i &= \frac{\pi_{i+1}}{\alpha^2 \hat{\pi}_i} \varepsilon_i \\
+		&= \frac{\pi_{i+1} (\mu_i - \hat{\mu}_i) \alpha^2 \hat{\pi}_i}{\alpha^2 \hat{\pi}_i \pi_{i+1}}\\
+		&= \mu_i - \hat{\mu}_i,\\
+	\end{split}
+\end{equation}
+
+such that
+
+\begin{equation}
+	\dot{\varepsilon}_i = \mu_i - \hat{\mu}_i - \delta_i
+\end{equation}
+
+and
+
+\begin{equation}
+	\dot{\delta}_i = \frac{\pi_{i+1}}{\alpha^2} \varepsilon_i - \hat{\pi}_i \delta_i.
+\end{equation}
+
+This has the advantage that the weighted \textsf{PE} $\epsilon_i$ can travel up the hierarchy to update higher levels, while the unweighted \textsf{PE} $\delta_i$ can be used to feedback to the mean on the same level. 
+
+
+\subsection{VOPE coupling}

@@ -1,0 +1,52 @@
+\documentclass[a4paper,11pt]{article}
+
+% main
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{verbatim}
+
+\usepackage[html]{xcolor}
+
+% tools
+\usepackage{lineno}
+\usepackage{hyperref}
+%\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{amssymb}
+%\usepackage{algpseudocode}
+\usepackage{psfrag}
+\usepackage{setspace}
+\usepackage{wasysym}
+\usepackage[numbers]{natbib}
+
+% style
+\usepackage{graphicx}
+\definecolor{darkblue}{rgb}{0,0,0.5} 
+\usepackage{transparent}
+
+% document settings
+\newcommand{\loadfigure}[2][fig:nolabel]{
+  \graphicspath{{#2/}}
+  \def\figlabel{#1}
+  \input{#2/figure.tex}
+}
+\title{Message Passing in the Hierarchical Gaussian Filter}
+
+\begin{document}
+
+\maketitle
+
+\input{chapters/node.tex}
+\input{chapters/vape.tex}
+\input{chapters/vope.tex}
+\input{chapters/implementation.tex}
+\input{chapters/predictivecoding.tex}
+\input{chapters/continuoustime.tex}
+\input{chapters/questions.tex}
+
+\clearpage
+
+\bibliographystyle{apalike}
+\bibliography{hgf}
+
+\end{document}
