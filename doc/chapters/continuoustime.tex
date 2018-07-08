@@ -2,9 +2,11 @@
 
 In this section, we derive differential equations which lay out the within-trial update dynamics entailed by the HGF. To this end, we consider the posterior values of all our nodes (quantities) as given by the HGF update equations as the equilibrium point towards which all dynamics must converge. \\
 
-We will note that these equations imply a slightly different coupling between nodes compared to the previous section, which in most cases simplifies the implementation.
+We will note that these equations imply a slightly different coupling between nodes compared to the previous section. On first glance, this complicates the picture, as we're introducing more and more nodes. On the other hand, we increase biological plausibility by making the computations of a single node or connection simpler and simpler.\\
 
-\subsection{VAPE coupling}
+We divide the equations into \textsf{value} estimation and \textsf{volatility} estimation, noting that \textsf{VAPE} and \textsf{VOPE} coupling are not useful divisions anymore (the mean of the value estimation of a level $i$, $\mu_i$, will be \textsf{VAPE}-coupled to its parent $\mu_{i+1}$, while the precision $\pi_i$ of the value estimation will be \textsf{VOPE}-coupled to the volatility parent $\check{\mu}_i$ on level $i$ itself; on the other hand, the mean of the volatility estimation, $\check{\mu}_i$, can again have a \textsf{VAPE} coupling to a higher level, e.g. $\mu_{i+2}$, and the precision of volatility, $\check{\pi}_i$, will, in the current framework, not be coupled to any parent, i.e., its prediction will depend only on the parameter $\check{\omega_i}$).
+
+\subsection{Value estimation}
 
 For the \textsf{PE} node, we want to reach the following posterior:
 
@@ -19,6 +21,43 @@ This can be easily achieved by a node with these dynamics:
 \end{equation}
 
 From this it follows that we require an additional inhibitory self-connection for the \textsf{PE} node.\\
+
+We now consider an alternative implementation for the \textsf{PE} computation, which will turn out to be very useful.\\
+
+Instead of considering the unweighted $\delta_i$, we can also directly model a node which corresponds to the precision-weighted prediction error $\varepsilon_i$:
+
+\begin{equation}
+	\varepsilon_i = \frac{\alpha^2 \hat{\pi}_i}{\pi_{i+1}} (\mu_i - \hat{\mu}_i) = \frac{\alpha^2 \hat{\pi}_i}{\pi_{i+1}} \delta_i.
+\end{equation}
+
+This node would evolve according to
+\begin{equation}
+	\dot{\varepsilon}_i = \mu_i - \hat{\mu}_i -  \frac{\pi_{i+1}}{\alpha^2 \hat{\pi}_i} \varepsilon_i.
+\end{equation}
+
+We can then re-introduce the unweighted \textsf{PE} $\delta_i$:
+
+\begin{equation}
+	\begin{split}
+		\delta_i &= \frac{\pi_{i+1}}{\alpha^2 \hat{\pi}_i} \varepsilon_i \\
+		&= \frac{\pi_{i+1} (\mu_i - \hat{\mu}_i) \alpha^2 \hat{\pi}_i}{\alpha^2 \hat{\pi}_i \pi_{i+1}}\\
+		&= \mu_i - \hat{\mu}_i,\\
+	\end{split}
+\end{equation}
+
+such that
+
+\begin{equation}
+	\dot{\varepsilon}_i = \mu_i - \hat{\mu}_i - \delta_i
+\end{equation}
+
+and
+
+\begin{equation}
+	\dot{\delta}_i = \frac{\pi_{i+1}}{\alpha^2} \varepsilon_i - \hat{\pi}_i \delta_i.
+\end{equation}
+
+This has the advantage that the weighted \textsf{PE} $\epsilon_i$ can travel up the hierarchy to update higher levels, while the unweighted \textsf{PE} $\delta_i$ can be used to feedback to the mean on the same level, an element that will be introduced next.\\ 
 
 In the \textsf{Update} step, the posterior estimate of the mean is given by:
 
@@ -76,39 +115,32 @@ we again see the \textsf{PE} node appear:
 	\dot{\hat{\mu}}_i^{(k+1)} = \alpha_{i,i+1} \mu_{i+1}^{(k)} + \delta_i^{(k)}. 
 \end{equation}
 
-Note that $\delta_i^{(k)}$ is actually defined in terms of $\hat{\mu}_i^{(k)}$, and not $\hat{\mu}_i^{(k+1)}$, but given that we are in continuous time now, we suspect that this is equivalent here.\\
+Note that $\delta_i^{(k)}$ is actually defined in terms of $\hat{\mu}_i^{(k)}$, and not $\hat{\mu}_i^{(k+1)}$, but given that we are in continuous time now, we suspect that this is equivalent here. For simplicity, we will therefore skip the trial indices from now on. \\
 
 The precision of this prediction should converge to:
 
 \begin{equation}
-	\hat{\pi}_i^{(k+1)} = \frac{1}{\frac{1}{\pi_i^{(k)}} + \exp(\omega_i)}.
+	\hat{\pi}_i = \frac{1}{\frac{1}{\pi_i} + \exp(\omega_i)}.
 \end{equation}
 
 We can write the dynamics as:
 
 \begin{equation}
 	\begin{split}
-		\dot{\hat{\pi}}_i^{(k+1)} &= 1 - (\frac{1}{\pi_i^{(k)}} + \exp(\omega_i)) \hat{\pi}_i^{(k+1)}\\
-		&= 1 - \frac{\hat{\pi}_i^{(k+1)}}{\pi_i^{(k)}} + \hat{\pi}_i^{(k+1)} \exp(\omega_i).\\
+		\dot{\hat{\pi}}_i &= 1 - (\frac{1}{\pi_i} + \exp(\omega_i)) \hat{\pi}_i\\
+		&= 1 - \frac{\hat{\pi}_i}{\pi_i} + \hat{\pi}_i \exp(\omega_i).\\
 	\end{split}
 \end{equation}
 
-To simplify the implementation, we introduce an additional node $p_i$:
+To simplify the implementation, we introduce an additional node $p_i^1$:
 
 \begin{equation}
-	p_i = \frac{\hat{\pi}_i^{(k+1)}}{\pi_i^{(k)}}.
+	p_i^1 = \frac{\hat{\pi}_i}{\pi_i}.
 \end{equation}
 
-For simplicity, and because we are working in continuous time, we will skip the trial indices from now on. \\
-
-The new node 	
+This new node can have the following dynamcis:
 \begin{equation}
-	p_i = \frac{\hat{\pi}_i}{\pi_i}
-\end{equation}
-
-can have the following dynamcis:
-\begin{equation}
-	\dot{p}_i = \hat{\pi}_i - \pi_i p_i, 
+	\dot{p}_i^1 = \hat{\pi}_i - \pi_i p_i^1, 
 \end{equation}
 
 and the dynamics for the precision of the prediction $\hat{\pi}_i$ become
@@ -117,42 +149,25 @@ and the dynamics for the precision of the prediction $\hat{\pi}_i$ become
 	\dot{\hat{\pi}}_i = 1 - p_i + \hat{\pi}_i \exp(\omega_i).
 \end{equation}
 
-We now consider an alternative implementation for the \textsf{PE} computation, which will turn out to be very useful.\\
-
-Instead of considering the unweighted $\delta_i$, we can also directly model a node which corresponds to the precision-weighted prediction error $\varepsilon_i$:
+Here we note that any cortical level $i$ will implement its own volatility estimation, along with the value estimation, according to our proposal above. Therefore, the precision of the prediction, $\hat{\pi}_i$, will also depend on the value of the volatility parent $\check{\mu}_i$:
 
 \begin{equation}
-	\varepsilon_i = \frac{\alpha^2 \hat{\pi}_i}{\pi_{i+1}} (\mu_i - \hat{\mu}_i) = \frac{\alpha^2 \hat{\pi}_i}{\pi_{i+1}} \delta_i.
+	\hat{\pi}_i = \frac{1}{\frac{1}{\pi_i} + \exp(\kappa_i \check{\mu}_i + \omega_i)}.
 \end{equation}
 
-This node would evolve according to
-\begin{equation}
-	\dot{\varepsilon}_i = \mu_i - \hat{\mu}_i -  \frac{\pi_{i+1}}{\alpha^2 \hat{\pi}_i} \varepsilon_i.
-\end{equation}
-
-We can then re-introduce the unweighted \textsf{PE} $\delta_i$:
+We therefore introduce another node $p_i^2$:
 
 \begin{equation}
-	\begin{split}
-		\delta_i &= \frac{\pi_{i+1}}{\alpha^2 \hat{\pi}_i} \varepsilon_i \\
-		&= \frac{\pi_{i+1} (\mu_i - \hat{\mu}_i) \alpha^2 \hat{\pi}_i}{\alpha^2 \hat{\pi}_i \pi_{i+1}}\\
-		&= \mu_i - \hat{\mu}_i,\\
-	\end{split}
+	p_i^2 = \exp(\kappa_i \check{\mu}_i) \exp(\omega_i) \hat{\pi}_i
 \end{equation}
 
-such that
+with the dynamics
 
 \begin{equation}
-	\dot{\varepsilon}_i = \mu_i - \hat{\mu}_i - \delta_i
+	\dot{p}_i^2 = \exp(\kappa_i \check{\mu}_i) \hat{\pi}_i - \frac{1}{\exp(\omega_i) p_i^2},
 \end{equation}
 
-and
-
-\begin{equation}
-	\dot{\delta}_i = \frac{\pi_{i+1}}{\alpha^2} \varepsilon_i - \hat{\pi}_i \delta_i.
-\end{equation}
-
-This has the advantage that the weighted \textsf{PE} $\epsilon_i$ can travel up the hierarchy to update higher levels, while the unweighted \textsf{PE} $\delta_i$ can be used to feedback to the mean on the same level. 
+separating the tonic volatility $\omega_i$ from the phasic volatility $\check{\mu}_i$.
 
 
-\subsection{VOPE coupling}
+\subsection{Volatility estimation}
