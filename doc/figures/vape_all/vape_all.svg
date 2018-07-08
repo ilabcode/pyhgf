@@ -572,13 +572,13 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="192.56145"
-     inkscape:cy="371.81468"
+     inkscape:cx="634.99556"
+     inkscape:cy="367.81468"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer7"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1022"
+     inkscape:window-height="995"
      inkscape:window-x="0"
      inkscape:window-y="30"
      inkscape:window-maximized="1" />
@@ -1342,13 +1342,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:27.5px;line-height:125%;font-family:MathJax_Math;-inkscape-font-specification:MathJax_Math;text-align:center;letter-spacing:0px;word-spacing:0px;baseline-shift:baseline;text-anchor:middle;display:inline;fill:#9f0087;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="230.73511"
+       x="270.73511"
        y="103.36903"
        id="text4167-7-2-5-5-3-5-5-2-7"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4169-3-5-9-4-67-3-6-9-0"
-         x="230.73511"
+         x="270.73511"
          y="103.36903"
          style="font-size:12.5px;text-align:start;text-anchor:start;fill:#9f0087;fill-opacity:1">$\alpha_{i-1,i}^2$</tspan></text>
   </g>
@@ -1449,13 +1449,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:27.5px;line-height:125%;font-family:MathJax_Math;-inkscape-font-specification:MathJax_Math;text-align:center;letter-spacing:0px;word-spacing:0px;baseline-shift:baseline;text-anchor:middle;display:inline;fill:#9f0087;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="380.77576"
+       x="422.77576"
        y="213.36902"
        id="text4167-7-2-5-5-3-5-5-2"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4169-3-5-9-4-67-3-6-9"
-         x="380.77576"
+         x="422.77576"
          y="213.36902"
          style="font-size:12.5px;text-align:start;text-anchor:start;fill:#9f0087;fill-opacity:1">$\alpha_{i-1,i}^2$</tspan></text>
   </g>

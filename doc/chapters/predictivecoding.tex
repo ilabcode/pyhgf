@@ -88,10 +88,15 @@ Due to this proposal, we slightly change the notation from here on. Level $i$ fr
 We also introduce a new character for the \textsf{VOPE}, $\Delta_i$, which we write as a function of the \textsf{VAPE}, $\delta_i$, of level $i$. This PE is what communicates between a level's nodes and a level's volatility parent's nodes (see below for equations and visualizations). 
 
 \loadfigure[fig:voall]{figures/vope_all}
+\loadfigure[fig:withvol]{figures/zoom_vape_with_vope}
 
-Figure \ref{fig:voall} displays one proposal for this setup, where the volatility related nodes live within the superficial layers of each level. 
+Figure \ref{fig:voall} displays one proposal for this setup, where we've zoomed in to a level $i$ of the cortical hierarchy (and a value parent $i+1$) and added its volatility parent to the superficial layers. An alternative implementation of this idea is displayed in figure \ref{fig:withvol}. Here, only the precision-related computations of the volatility parent are placed in the superficial layers, while the corresponding prediction errors, $\Delta_i$ and $\check{\delta}_i$ as well as the actual volatility estimate $\check{\mu}_i$ live in middle layers, and the prediction of the volatility estimate, $\hat{\check{\mu}}_i$, lives in layer 6. This setup stresses the structural similarities to the message passing entailed by mean coupling. Moreover, using this setup, we can now depict how a higher cortical level $i+1$ would serve as a value parent to the volatility estimate in level $i$ - instead of predicting the mean - by simply exchanging the arrows between the levels as shown in figure \ref{fig:volparent}. 
 
-The volatility prediction error (\textsf{VOPE}) can be written as a function of the value prediction error (\textsf{VAPE}), where we now use $\delta_i$ only for \textsf{VAPE}s:
+\loadfigure[fig:volparent]{figures/zoom_vope}
+
+Note that in principle, both the mean $\mu_i$ as well as the volatility estimate $\check{\mu}_i$ of a given level could have (one or more) value parents in higher cortical areas. This allows for both separate and combined higher-level prediction of both the precision and the mean of level $i$.
+
+We now turn to the equations for the within-level volatility node. The volatility prediction error (\textsf{VOPE}) can be written as a function of the value prediction error (\textsf{VAPE}), where we now use $\delta_i$ only for \textsf{VAPE}s:
 
 \begin{equation}
 	\delta_i^{(k)} \equiv \delta_i^{(k, VAPE)} = \mu_i^{(k)} - \hat{\mu}_i^{(k)},
