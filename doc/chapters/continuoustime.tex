@@ -8,7 +8,7 @@ We divide the equations into \textsf{value} estimation and \textsf{volatility} e
 
 \subsection{Value estimation}
 
-For the \textsf{PE} node, we want to reach the following posterior:
+For the \textsf{PE} about the mean, we want to reach the following posterior:
 
 \begin{equation}
 	\delta_i^{(k)} = \mu_i^{(k)} - \hat{\mu}_i^{(k)}.
@@ -30,12 +30,12 @@ Instead of considering the unweighted $\delta_i$, we can also directly model a n
 	\varepsilon_i = \frac{\alpha^2 \hat{\pi}_i}{\pi_{i+1}} (\mu_i - \hat{\mu}_i) = \frac{\alpha^2 \hat{\pi}_i}{\pi_{i+1}} \delta_i.
 \end{equation}
 
-This node would evolve according to
+This node could evolve according to
 \begin{equation}
-	\dot{\varepsilon}_i = \mu_i - \hat{\mu}_i -  \frac{\pi_{i+1}}{\alpha^2 \hat{\pi}_i} \varepsilon_i.
+	\dot{\varepsilon}_i = \mu_i - \hat{\mu}_i -  \frac{\pi_{i+1}}{\alpha^2 \hat{\pi}_i} \varepsilon_i,
 \end{equation}
 
-We can then re-introduce the unweighted \textsf{PE} $\delta_i$:
+which allows us to re-introduce the unweighted \textsf{PE} $\delta_i$:
 
 \begin{equation}
 	\begin{split}
@@ -83,7 +83,7 @@ can be summarized as
 	\dot{\mu}_i^{(k)} = \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}}{\pi_i^{(k)}} \delta_{i-1}^{(k)} - \delta_i^{(k)}.
 \end{equation}
 
-We will therefore consider a connection between $\delta_i$ and $\mu_i$, instead of connecting the prediction node $\hat{\mu}_i$ with the mean $\mu_i$. This also resolves one difference to classical PC proposals, as already outlined in the previous section.\\
+We will therefore consider a connection between $\delta_i$ and $\mu_i$, instead of connecting the prediction node $\hat{\mu}_i$ with the mean $\mu_i$. As already outlined in the previous section, this also resolves one of the apparent differences between our message passing scheme and classical PC proposals.\\
 
 For the posterior precision, we have
 
@@ -115,7 +115,7 @@ we again see the \textsf{PE} node appear:
 	\dot{\hat{\mu}}_i^{(k+1)} = \alpha_{i,i+1} \mu_{i+1}^{(k)} + \delta_i^{(k)}. 
 \end{equation}
 
-Note that $\delta_i^{(k)}$ is actually defined in terms of $\hat{\mu}_i^{(k)}$, and not $\hat{\mu}_i^{(k+1)}$, but given that we are in continuous time now, we suspect that this is equivalent here. For simplicity, we will therefore skip the trial indices from now on. \\
+Note that $\delta_i^{(k)}$ is actually defined in terms of $\hat{\mu}_i^{(k)}$, and not $\hat{\mu}_i^{(k+1)}$, but given that we are in continuous time now, we suspect that this is probably equivalent here or can be resolved by introducing a delay between the computation of the prediction and the prediction error. For simplicity, we will skip the trial indices from now on. \\
 
 The precision of this prediction should converge to:
 
@@ -132,21 +132,21 @@ We can write the dynamics as:
 	\end{split}
 \end{equation}
 
-To simplify the implementation, we introduce an additional node $p_i^1$:
+To simplify the implementation, we introduce an additional node $p_{i1}$:
 
 \begin{equation}
-	p_i^1 = \frac{\hat{\pi}_i}{\pi_i}.
+	p_{i1} = \frac{\hat{\pi}_i}{\pi_i}.
 \end{equation}
 
 This new node can have the following dynamcis:
 \begin{equation}
-	\dot{p}_i^1 = \hat{\pi}_i - \pi_i p_i^1, 
+	\dot{p}_{i1} = \hat{\pi}_i - \pi_i p_{i1}, 
 \end{equation}
 
 and the dynamics for the precision of the prediction $\hat{\pi}_i$ become
 
 \begin{equation}
-	\dot{\hat{\pi}}_i = 1 - p_i + \hat{\pi}_i \exp(\omega_i).
+	\dot{\hat{\pi}}_i = 1 - p_{i1} + \hat{\pi}_i \exp(\omega_i).
 \end{equation}
 
 Here we note that any cortical level $i$ will implement its own volatility estimation, along with the value estimation, according to our proposal above. Therefore, the precision of the prediction, $\hat{\pi}_i$, will also depend on the value of the volatility parent $\check{\mu}_i$:
@@ -155,19 +155,145 @@ Here we note that any cortical level $i$ will implement its own volatility estim
 	\hat{\pi}_i = \frac{1}{\frac{1}{\pi_i} + \exp(\kappa_i \check{\mu}_i + \omega_i)}.
 \end{equation}
 
-We therefore introduce another node $p_i^2$:
+We therefore introduce another node $p_{i2}$:
 
 \begin{equation}
-	p_i^2 = \exp(\kappa_i \check{\mu}_i) \exp(\omega_i) \hat{\pi}_i
+	p_{i2} = \exp(\kappa_i \check{\mu}_i) \exp(\omega_i) \hat{\pi}_i
 \end{equation}
 
 with the dynamics
 
 \begin{equation}
-	\dot{p}_i^2 = \exp(\kappa_i \check{\mu}_i) \hat{\pi}_i - \frac{1}{\exp(\omega_i) p_i^2},
+	\dot{p}_{i2} = \exp(\kappa_i \check{\mu}_i) \hat{\pi}_i - \frac{1}{\exp(\omega_i) p_{i2}},
 \end{equation}
 
 separating the tonic volatility $\omega_i$ from the phasic volatility $\check{\mu}_i$.
 
+Moreover, in order to react to top-down predictions from its volatility parent, the auxiliary prediction nodes $\gamma_i$ and $\nu_i$ need to be computed:
+
+\begin{equation}
+  \gamma_i = \kappa_{i+1,i} \nu_i \hat{\check{\pi}}_i
+\end{equation}
+
+with, for example, 
+
+\begin{equation}
+  \dot{\gamma}_i = \kappa_{i+1,i} \nu_i \hat{\check{\pi}}_i - \gamma_i,
+\end{equation}
+
+and 
+
+\begin{equation}
+  \nu_i = \exp(\kappa_{i,i+1} \mu_{i+1} + \omega_i),
+\end{equation}
+
+where we propose
+
+\begin{equation}
+  \dot{\nu}_i = \exp(\kappa_{i,i+1} \mu_{i+1}) \exp(\omega_i) - \nu_i.
+\end{equation}
+
 
 \subsection{Volatility estimation}
+
+For the \textsf{PE} about the level of volatility $\Delta_i$, we have previously seen that we want to reach the following posterior:
+
+\begin{equation}
+	\Delta_i^{(k)} = \frac{\hat{\pi}_i^{(k)}}{\pi_{i}^{(k)}} + \hat{\pi}_i^{(k)} (\delta_i^{(k)})^2 - 1.
+\end{equation}
+
+This corresponds to the unweighted volatility prediction error. Again, we start by considering a node which in turn reflects the precision-weighted (VO)PE, which we will call $E_i$:
+
+\begin{equation}
+	E_i^{(k)} = \frac{1}{2} \frac{\gamma_i^{(k)}}{\check{\pi}_i^{(k)}} \Delta_i^{(k)}.
+\end{equation}
+
+This could evolve according to 
+
+\begin{equation}
+	\dot{E}_i^{(k)} = \Delta_i^{(k)} - \frac{2 \check{\pi}_i^{(k)}}{\gamma_i^{(k)}} E_i^{(k)},
+\end{equation}
+
+which can also be written as 
+
+\begin{equation}
+	\dot{E}_i^{(k)} = \frac{\hat{\pi}_i^{(k)}}{\pi_{i}^{(k)}} + \hat{\pi}_i^{(k)} (\delta_i^{(k)})^2 - 1 - \Delta_i^{(k)},
+\end{equation}
+
+with the unweighted PE node $\Delta_i$
+
+\begin{equation}
+	\Delta_i^{(k)} = \frac{2 \check{\pi}_i^{(k)}}{\gamma_i^{(k)}} E_i^{(k)}
+\end{equation}
+
+evolving as 
+
+\begin{equation}
+	\dot{\Delta}_i^{(k)} = 2 \check{\pi}_i^{(k)} E_i^{(k)} - \gamma_i^{(k)} \Delta_i^{(k)}.
+\end{equation}
+
+This leads us to the same setup as for the value prediction error nodes, where we considered both an $\varepsilon_i$ node and an unweighted PE node $\delta_i$. In the case of volatility estimation, this again turns out to be useful: As before, the precision-weighted PE node $E_i$ can be passed on to \textsf{Update} the volatility parent node $\check{\mu}_i$:
+
+\begin{equation}
+	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\gamma_i^{(k)}}{\check{\pi}_i^{(k)}} \Delta_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + E_i^{(k)}
+\end{equation}
+
+with 
+
+\begin{equation}
+	\dot{\check{\mu}}_i^{(k)} = E_i^{(k)} - (\check{\mu}_i^{(k)} - \hat{\check{\mu}}_i^{(k)}) = E_i^{(k)} - \check{\delta}_i.
+\end{equation}
+
+There are three things worth mentioning here. First, in contrast to the previous section, we now use $\gamma_i$ and $\Delta_i$ in the update equations (instead of $\gamma_{i-1}$ and $\Delta_{i-1}$). This is simply due to the fact that we have put the volatility parent $\check{\mu}_i$ into the same cortical level $i$ as the node $\mu_i$ itself. Instead of moving from level $i$ to level $i+1$ for the volatility estimation, we now denote value-related nodes as $\mu$ and volatility-related nodes as $\check{\mu}$.
+
+Second, the (unweighted) PE node $\check{\delta_i}$, which is used to feedback to the update of $\check{\mu}_i$, is again a value PE, but now about the mean of the volatility estimate. This \textsf{VAPE} can again be used (in its precision-weighted form $\check{\varepsilon}_i$) to communicate with higher cortical levels $\mu_{i+1}$, completely parallel to the precision-weighted value prediction about the mean, $\varepsilon_i$.
+
+Third, we note that in volatility estimation, we have to distinguish between the (weighted and unweighted) prediciton errors that are used to \textit{update} the volatility estimate, $E$ and $\Delta$, and the (weighted and unweighted) prediciton errors \textit{about} the volatility estimate, $\check{\varepsilon}_i$ and $\check{\delta}_i$, which will be used to update any higher cortical level $i+1$ predicting this volatility estimate. 
+
+Finally, although the unweighted volatility PE $\Delta_i$ is not needed for a feedback to $\mu_i$ or $\check{\mu}$, it is still very useful as it is used in the update of the precision of the volatility estimation $\check{\pi}_i$:
+
+\begin{equation}
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_i^{(k)})^2 + (\gamma_i^{(k)})^2 \Delta_i^{(k)} - \frac{1}{2} \gamma_i^{(k)} \Delta_i^{(k)}, 
+\end{equation}
+
+which can be summarized as 
+
+\begin{equation}
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_i^{(k)})^2 + ((\gamma_i^{(k)})^2 - \frac{1}{2} \gamma_i^{(k)}) \Delta_i^{(k)}.
+\end{equation}
+
+This could have the temporal evolution
+
+\begin{equation}
+	\dot{\check{\pi}}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_i^{(k)})^2 + ((\gamma_i^{(k)})^2 - \frac{1}{2} \gamma_i^{(k)}) \Delta_i^{(k)} - \check{\pi}_i^{(k)}.
+\end{equation}
+
+Finally, turning towards the \textsf{Prediction} step in the volatility estimation, this is again very simple, as we only consider value parents for volatility nodes. For the prediction of the mean, we have
+
+\begin{equation}
+	\hat{\check{\mu}}_i^{(k+1)} = \check{\mu}_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}, 
+\end{equation}
+
+which could evolve as 
+
+\begin{equation}
+	\dot{\hat{\check{\mu}}}_i^{(k+1)} = \check{\mu}_i^{(k)} - \hat{\check{\mu}}_i^{(k+1)} + \alpha_{i,i+1} \mu_{i+1}^{(k)} = \check{\delta}_i + \alpha_{i,i+1} \mu_{i+1}^{(k)}, 
+\end{equation}
+
+and for the precision of that prediction, we get
+
+\begin{equation}
+  \hat{\check{\pi}}_i^{(k+1)} = \frac{1}{\frac{1}{\check{\pi}_i^{(k)}} + \exp(\check{\omega}_i)}, 
+\end{equation}
+
+which could evolve as shown above in the value estimation (using the auxiliary node $\check{p}_{i1}$):
+
+\begin{equation}
+	\dot{\hat{\check{\pi}}}_i = 1 - \check{p}_{i1} + \hat{\check{\pi}}_i \exp(\check{\omega}_i)
+\end{equation}
+
+with
+
+\begin{equation}
+	\dot{\check{p}}_{i1} = \hat{\check{\pi}}_i - \check{\pi}_i \check{p}_{i1}. 
+\end{equation}
