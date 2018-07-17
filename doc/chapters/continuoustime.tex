@@ -80,7 +80,7 @@ Clearly, a node with this dynamic converges to the required posterior value, whi
 can be summarized as 
 
 \begin{equation}
-	\dot{\mu}_i^{(k)} = \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}}{\pi_i^{(k)}} \delta_{i-1}^{(k)} - \delta_i^{(k)}.
+	\dot{\mu}_i^{(k)} = \varepsilon_{i-1}^{(k)} - \delta_i^{(k)}.
 \end{equation}
 
 We will therefore consider a connection between $\delta_i$ and $\mu_i$, instead of connecting the prediction node $\hat{\mu}_i$ with the mean $\mu_i$. As already outlined in the previous section, this also resolves one of the apparent differences between our message passing scheme and classical PC proposals.\\
@@ -128,7 +128,7 @@ We can write the dynamics as:
 \begin{equation}
 	\begin{split}
 		\dot{\hat{\pi}}_i &= 1 - (\frac{1}{\pi_i} + \exp(\omega_i)) \hat{\pi}_i\\
-		&= 1 - \frac{\hat{\pi}_i}{\pi_i} + \hat{\pi}_i \exp(\omega_i).\\
+		&= 1 - \frac{\hat{\pi}_i}{\pi_i} - \exp(\omega_i) \hat{\pi}_i.\\
 	\end{split}
 \end{equation}
 
@@ -146,55 +146,83 @@ This new node can have the following dynamcis:
 and the dynamics for the precision of the prediction $\hat{\pi}_i$ become
 
 \begin{equation}
-	\dot{\hat{\pi}}_i = 1 - p_{i1} + \hat{\pi}_i \exp(\omega_i).
+	\dot{\hat{\pi}}_i = 1 - p_{i1} - \exp(\omega_i) \hat{\pi}_i,
 \end{equation}
 
-Here we note that any cortical level $i$ will implement its own volatility estimation, along with the value estimation, according to our proposal above. Therefore, the precision of the prediction, $\hat{\pi}_i$, will also depend on the value of the volatility parent $\check{\mu}_i$:
+where the last term can be implemented as a self-inhibition with a connection weight of $\exp(\omega_i)$. However, to facilitate the implementation of the influence of a volatility parent on the precision estimate, we introduce another additional node, $p_{i2}$, here and also already consider a node that estimates volatility, $\nu_i$. The latter will only depend on the parameter value $\omega_i$, i.e., the tonic volatility.
+
+The dynamics of $\hat{\pi}_i$ then become:
+\begin{equation}
+	\dot{\hat{\pi}}_i = 1 - p_{i1} - p_{i2},
+\end{equation}
+
+with the node $p_{i2}$ defined as 
+
+\begin{equation}
+	p_{i2} = \hat{\pi}_i \exp(\omega_i),
+\end{equation}
+
+with dynamics described by
+
+\begin{equation}
+	\dot{p}_{i2} = \exp(\omega_i) \hat{\pi}_i - p_{i2}
+\end{equation}
+
+in the absence of a volatility parent (see below for the extension to volatility estimation). We introduce the volatility estimate $\nu_i$ as
+
+\begin{equation}
+	\nu_i = \exp(\omega_i),
+\end{equation}
+ 
+ evolving as
+
+\begin{equation}
+	\dot{\nu}_i = \exp(\omega_i) - \nu_i,
+\end{equation}
+
+leading to 
+
+\begin{equation}
+	\dot{p}_{i2} = \nu_i \hat{\pi}_i - p_{i2}.
+\end{equation}
+
+\loadfigure[fig:vapediff]{figures/diffeq_vape}
+
+Note that the dynamics of $\nu_i$ can be implemented by a self-inhibition and a positive influence from a tonicly active neuron (with activity 1) with a connection weight of $\exp(\omega_i)$. The advantage of this description is that if we add a volatility parent, we simply have to let this tonicly active neuron be driven by the volatility estimate $\check{\mu}_i$, weighted by the coupling parameter $\kappa_i$, to arrive at 
+
+\begin{equation}
+	\nu_i = \exp(\kappa_i \check{\mu}_i) \exp(\omega_i).
+\end{equation}
+
+Here we note that according to our proposal above, any cortical level $i$ will implement its own volatility estimation, along with the value estimation. Therefore, the precision of the prediction, $\hat{\pi}_i$, will always depend on the value of the volatility parent $\check{\mu}_i$:
 
 \begin{equation}
 	\hat{\pi}_i = \frac{1}{\frac{1}{\pi_i} + \exp(\kappa_i \check{\mu}_i + \omega_i)}.
 \end{equation}
 
-We therefore introduce another node $p_{i2}$:
+Therefore, we now turn to the computations entailed by volatility estimation, including the modified dynamics for $\hat{\pi}_i$ and $\nu_i$. A visualization of the network entailed by the differential equations so far - in the absence of volatility estimation - is depicted in figure \ref{fig:vapediff}.
+
+\subsection{Volatility estimation}
+
+Here we start by considering the changes in the dynamics of the precision prediction in node $i$, i.e. the dynamics of $\hat{\pi}_i$ and $\nu_i$, which are the consequence of adding an estimate of phasic volatility $\check{\mu}_i$.
+
+We simply have to add a (multiplicative) term in the dynamics of the predicted volatility $\nu_i$, which will, through the dependence of $p_{i2}$ on $\nu_i$ and $\hat{\pi}_i$ on $p_{i2}$, lead to the desired influence:
 
 \begin{equation}
-	p_{i2} = \exp(\kappa_i \check{\mu}_i) \exp(\omega_i) \hat{\pi}_i
+	\dot{\nu}_i = \exp(\kappa_i \check{\mu}_i) \exp(\omega_i) - \nu_i.
 \end{equation}
 
-with the dynamics
+Additionally, to simplify the precision weighting of the volatility prediction error, we use the auxiliary expected precision node $\gamma_i$ as introduced in the previous section:
 
 \begin{equation}
-	\dot{p}_{i2} = \exp(\kappa_i \check{\mu}_i) \hat{\pi}_i - \frac{1}{\exp(\omega_i) p_{i2}},
-\end{equation}
-
-separating the tonic volatility $\omega_i$ from the phasic volatility $\check{\mu}_i$.
-
-Moreover, in order to react to top-down predictions from its volatility parent, the auxiliary prediction nodes $\gamma_i$ and $\nu_i$ need to be computed:
-
-\begin{equation}
-  \gamma_i = \kappa_{i+1,i} \nu_i \hat{\check{\pi}}_i
+  \gamma_i = \kappa_i \nu_i \hat{\pi}_i
 \end{equation}
 
 with, for example, 
 
 \begin{equation}
-  \dot{\gamma}_i = \kappa_{i+1,i} \nu_i \hat{\check{\pi}}_i - \gamma_i,
+  \dot{\gamma}_i = \kappa_i \nu_i \hat{\pi}_i - \gamma_i.
 \end{equation}
-
-and 
-
-\begin{equation}
-  \nu_i = \exp(\kappa_{i,i+1} \mu_{i+1} + \omega_i),
-\end{equation}
-
-where we propose
-
-\begin{equation}
-  \dot{\nu}_i = \exp(\kappa_{i,i+1} \mu_{i+1}) \exp(\omega_i) - \nu_i.
-\end{equation}
-
-
-\subsection{Volatility estimation}
 
 For the \textsf{PE} about the level of volatility $\Delta_i$, we have previously seen that we want to reach the following posterior:
 
@@ -286,10 +314,10 @@ and for the precision of that prediction, we get
   \hat{\check{\pi}}_i^{(k+1)} = \frac{1}{\frac{1}{\check{\pi}_i^{(k)}} + \exp(\check{\omega}_i)}, 
 \end{equation}
 
-which could evolve as shown above in the value estimation (using the auxiliary node $\check{p}_{i1}$):
+which could evolve as shown above in the value estimation (using the auxiliary nodes $\check{p}_{i1}$):
 
 \begin{equation}
-	\dot{\hat{\check{\pi}}}_i = 1 - \check{p}_{i1} + \hat{\check{\pi}}_i \exp(\check{\omega}_i)
+	\dot{\hat{\check{\pi}}}_i = 1 - \check{p}_{i1} - \hat{\check{\pi}}_i \exp(\check{\omega}_i)
 \end{equation}
 
 with
@@ -297,3 +325,5 @@ with
 \begin{equation}
 	\dot{\check{p}}_{i1} = \hat{\check{\pi}}_i - \check{\pi}_i \check{p}_{i1}. 
 \end{equation}
+
+Note that we do not bother to introduce $\check{p}_{i2}$ or $\check{\nu}_i$ here, as we exclude the possibility of a volatility parent $\check{\mu}_i$ having a volatility parent.
