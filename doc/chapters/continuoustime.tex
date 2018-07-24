@@ -54,7 +54,7 @@ such that
 and
 
 \begin{equation}
-	\dot{\delta}_i = \frac{\pi_{i+1}}{\alpha^2} \varepsilon_i - \hat{\pi}_i \delta_i.
+	\dot{\delta}_i = \varepsilon_i - \alpha^2 \frac{\hat{\pi}_i}{\pi_{i+1}} \delta_i.
 \end{equation}
 
 This has the advantage that the weighted \textsf{PE} $\epsilon_i$ can travel up the hierarchy to update higher levels, while the unweighted \textsf{PE} $\delta_i$ can be used to feedback to the mean on the same level, an element that will be introduced next.\\ 
@@ -257,7 +257,7 @@ with the unweighted PE node $\Delta_i$
 evolving as 
 
 \begin{equation}
-	\dot{\Delta}_i^{(k)} = 2 \check{\pi}_i^{(k)} E_i^{(k)} - \gamma_i^{(k)} \Delta_i^{(k)}.
+	\dot{\Delta}_i^{(k)} = E_i^{(k)} - \frac{\gamma_i^{(k)}}{2 \check{\pi}_i^{(k)}} \Delta_i^{(k)}.
 \end{equation}
 
 This leads us to the same setup as for the value prediction error nodes, where we considered both an $\varepsilon_i$ node and an unweighted PE node $\delta_i$. In the case of volatility estimation, this again turns out to be useful: As before, the precision-weighted PE node $E_i$ can be passed on to \textsf{Update} the volatility parent node $\check{\mu}_i$:

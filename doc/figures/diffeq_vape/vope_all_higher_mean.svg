@@ -248,7 +248,7 @@
        inkscape:stockid="DotL">
       <path
          transform="matrix(0.8,0,0,0.8,5.92,0.8)"
-         style="fill:#cd8506;fill-opacity:1;fill-rule:evenodd;stroke:#cd8506;stroke-width:1pt;stroke-opacity:1"
+         style="fill:#007b9d;fill-opacity:1;fill-rule:evenodd;stroke:#007b9d;stroke-width:1pt;stroke-opacity:1"
          d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
          id="path17719"
          inkscape:connector-curvature="0" />
@@ -1249,10 +1249,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2"
-     inkscape:cx="667.31344"
-     inkscape:cy="134.44796"
+     inkscape:cx="556.57884"
+     inkscape:cy="416.98702"
      inkscape:document-units="px"
-     inkscape:current-layer="layer11"
+     inkscape:current-layer="layer8"
      showgrid="false"
      inkscape:window-width="1920"
      inkscape:window-height="1022"
@@ -2036,8 +2036,8 @@
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="caac" />
     <path
-       style="display:inline;fill:none;fill-rule:evenodd;stroke:#007b9d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker43121)"
-       d="m 818.35974,193.47873 c 0,0 -113.48673,-2.47758 -157.48707,21.48714 -98.73584,53.77633 -144.43119,165.08308 -250.67652,171.14255"
+       style="display:inline;fill:none;fill-rule:evenodd;stroke:#007b9d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker17717)"
+       d="m 818.35974,193.47873 c 0,0 -113.48673,-2.47758 -157.48707,21.48714 -98.73584,53.77633 -171.83158,66.79524 -278.07691,72.85471"
        id="path4901-2"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="csc" />
