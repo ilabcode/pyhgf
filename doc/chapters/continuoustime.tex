@@ -186,7 +186,9 @@ leading to
 	\dot{p}_{i2} = \nu_i \hat{\pi}_i - p_{i2}.
 \end{equation}
 
-\loadfigure[fig:vapediff]{figures/diffeq_vape}
+\loadfigure[fig:vapediffnonu]{figures/diffeq_vape_without_nu}
+
+A visualization of the network entailed by the differential equations so far - in the absence of volatility estimation - is depicted in figure \ref{fig:vapediffnonu}.
 
 Note that the dynamics of $\nu_i$ can be implemented by a self-inhibition and a positive influence from a tonicly active neuron (with activity 1) with a connection weight of $\exp(\omega_i)$. The advantage of this description is that if we add a volatility parent, we simply have to let this tonicly active neuron be driven by the volatility estimate $\check{\mu}_i$, weighted by the coupling parameter $\kappa_i$, to arrive at 
 
@@ -200,7 +202,11 @@ Here we note that according to our proposal above, any cortical level $i$ will i
 	\hat{\pi}_i = \frac{1}{\frac{1}{\pi_i} + \exp(\kappa_i \check{\mu}_i + \omega_i)}.
 \end{equation}
 
-Therefore, we now turn to the computations entailed by volatility estimation, including the modified dynamics for $\hat{\pi}_i$ and $\nu_i$. A visualization of the network entailed by the differential equations so far - in the absence of volatility estimation - is depicted in figure \ref{fig:vapediff}.
+\loadfigure[fig:vapediff]{figures/diffeq_vape}
+
+This variant of the \textsf{VAPE} implementation, which is representing volatility estimation explicitely even in the absence of a \textsf{VOPE} parent, is depicted in figure \ref{fig:vapediff}.
+
+We now turn to the computations entailed by phasic volatility estimation, including the modified dynamics for $\hat{\pi}_i$ and $\nu_i$. 
 
 \subsection{Volatility estimation}
 
@@ -260,7 +266,9 @@ evolving as
 	\dot{\Delta}_i^{(k)} = E_i^{(k)} - \frac{\gamma_i^{(k)}}{2 \check{\pi}_i^{(k)}} \Delta_i^{(k)}.
 \end{equation}
 
-This leads us to the same setup as for the value prediction error nodes, where we considered both an $\varepsilon_i$ node and an unweighted PE node $\delta_i$. In the case of volatility estimation, this again turns out to be useful: As before, the precision-weighted PE node $E_i$ can be passed on to \textsf{Update} the volatility parent node $\check{\mu}_i$:
+\loadfigure[fig:vopediff]{figures/diffeq_vope}
+
+This leads us to the same setup as for the value prediction error nodes, where we considered both an $\varepsilon_i$ node and an unweighted PE node $\delta_i$, as depicted in figure \ref{fig:vopediff}. In the case of volatility estimation, this again turns out to be useful: As before, the precision-weighted PE node $E_i$ can be passed on to \textsf{Update} the volatility parent node $\check{\mu}_i$:
 
 \begin{equation}
 	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\gamma_i^{(k)}}{\check{\pi}_i^{(k)}} \Delta_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + E_i^{(k)}

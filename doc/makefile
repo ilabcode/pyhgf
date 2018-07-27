@@ -1,7 +1,7 @@
 
 TEXFLAGS ?= -file-line-error -halt-on-error -interaction=nonstopmode
 
-FIGS = figures/vape_all figures/vape_pe figures/vape_update figures/vape_prediction figures/vope_all figures/zoom_vape_with_vope figures/zoom_vope figures/diffeq_vape
+FIGS = figures/vape_all figures/vape_pe figures/vape_update figures/vape_prediction figures/vope_all figures/zoom_vape_with_vope figures/zoom_vope figures/diffeq_vape_without_nu figures/diffeq_vape figures/diffeq_vope 
 
 BIBFILE = main.bib
 MAIN = main

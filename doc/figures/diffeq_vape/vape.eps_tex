@@ -1,12 +1,3 @@
-\begin{figure}
-  \centering
-
-  \small
-
-  \newcommand{\w}[1]{\textcolor{white}{#1}}
-  \def\svgwidth{0.9\textwidth}
-
-  % INKSCAPE
 %% Creator: Inkscape inkscape 0.91, www.inkscape.org
 %% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
 %% Accompanies image file 'vape.eps' (pdf, eps, ps)
@@ -94,7 +85,3 @@
     \put(0.11825105,0.06851314){\color[rgb]{0,0,0}\makebox(0,0)[b]{\smash{$\mu_i$}}}%
   \end{picture}%
 \endgroup%
-
-  \caption{The coupling between a hierarchical level $i$ with its parent $i+1$ in the case of \textsf{VAPE} coupling, using within-trial dynamics: introducing $\nu$ as the (tonic) volatility estimation.}
-  \label{\figlabel}
-\end{figure}
