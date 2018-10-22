@@ -57,7 +57,7 @@ and
 	\dot{\delta}_i = \varepsilon_i - \alpha^2 \frac{\hat{\pi}_i}{\pi_{i+1}} \delta_i.
 \end{equation}
 
-This has the advantage that the weighted \textsf{PE} $\epsilon_i$ can travel up the hierarchy to update higher levels, while the unweighted \textsf{PE} $\delta_i$ can be used to feedback to the mean on the same level, an element that will be introduced next.\\ 
+This has the advantage that the weighted \textsf{PE} $\varepsilon_i$ can travel up the hierarchy to update higher levels, while the unweighted \textsf{PE} $\delta_i$ can be used to feedback to the mean on the same level, an element that will be introduced next.\\ 
 
 In the \textsf{Update} step, the posterior estimate of the mean is given by:
 
@@ -149,7 +149,7 @@ and the dynamics for the precision of the prediction $\hat{\pi}_i$ become
 	\dot{\hat{\pi}}_i = 1 - p_{i1} - \exp(\omega_i) \hat{\pi}_i,
 \end{equation}
 
-where the last term can be implemented as a self-inhibition with a connection weight of $\exp(\omega_i)$. However, to facilitate the implementation of the influence of a volatility parent on the precision estimate, we introduce another additional node, $p_{i2}$, here and also already consider a node that estimates volatility, $\nu_i$. The latter will only depend on the parameter value $\omega_i$, i.e., the tonic volatility.
+where the last term can be implemented as a self-inhibition with a connection weight of $\exp(\omega_i)$. However, to facilitate the implementation of the influence of a volatility parent on the precision estimate, we introduce another additional node, $p_{i2}$, here and also already consider a node that estimates volatility, $\nu_i$. In the case of value estimation without a volatility node, this estimate will only depend on the parameter value $\omega_i$, i.e., the tonic volatility.
 
 The dynamics of $\hat{\pi}_i$ then become:
 \begin{equation}
