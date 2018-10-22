@@ -3,23 +3,13 @@ The exact computations of the \textsf{UPDATE step} depend on the nature of the c
 
 \subsection{Update Step}
 If Node~$i$ is the value parent of Node $i-1$, then the following update equations apply to Node~$i$:
-\vspace{0.5cm}
 
-\noindent
-\fbox{
-\begin{minipage}{\textwidth}
-
-\begin{align}
+\begin{align*}
 \pi_i^{(k)} &= \hat{\pi}_i^{(k)} 
 			+ \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}\\
 \mu_i^{(k)} &= \hat{\mu}_i^{(k)} 
 			+ \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}} {\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)} + \hat{\pi}_{i}^{(k)}} \delta_{i-1}^{(k)}
-\end{align}			
-\vspace{1pt}
-
-\end{minipage}
-}%end:fbox
-\vspace{0.5cm}
+\end{align*}			
 
 \noindent
 We note here that we can let the update of the precision happen first, and therefore use it for the update of the mean:
@@ -99,32 +89,13 @@ Still assuming that Node~$i$ is the value child of Node $i+1$, the \textsf{PREDI
 
 \noindent
 with
-\begin{equation*}
+\begin{equation}
 \nu_i^{(k+1)} = \exp(\omega_i).
-\end{equation*}
+\end{equation}
 
 Note that if Node~$i$ additionally has a \textsf{VOPE} parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. \textsf{PREDICTION step} for \textsf{VOPE} coupling).\\
 
 In general, the prediction of the mean will depend only on whether Node~$i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node~$i$ has a volatility parent or not. \\
-
-However, without a volatility parent node, the estimated volatility only depends on the node's own learning rate $\omega_i$, i.e., it is a constant. We can therefore simply write:
-\vspace{0.5cm}
-
-\noindent
-\fbox{
-\begin{minipage}{\textwidth}
-
-\begin{align}
-\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}\\
-\hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \exp(\omega_i) }
-\end{align}			
-\vspace{1pt}
-
-\end{minipage}
-}%end:fbox
-\vspace{0.5cm}
-
-\noindent
 
 Thus, the \textsf{PREDICTION step} only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
 %\newpage
