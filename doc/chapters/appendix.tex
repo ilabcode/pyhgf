@@ -1,0 +1,61 @@
+\section{Appendix}
+
+\subsection{Computations in VOPE coupling}
+
+In the following, we present the computations of volatility nodes according to the proposal that each cortical level of a hierarchy implements its own volatility estimation.\\
+
+The \textsf{Update} steps in volatility coupling are:
+
+\begin{equation}
+	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\gamma_{i}^{(k)}}{\check{\pi}_i^{(k)}} \Delta_{i}^{(k)}
+\end{equation}
+
+\begin{equation}
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_{i}^{(k)})^2 + (\gamma_{i}^{(k)})^2 \Delta_{i}^{(k)} - \frac{1}{2} \gamma_{i}^{(k)} \Delta_{i}^{(k)}
+\end{equation}
+
+In the \textsf{PE} step, the node computes:
+
+\begin{equation}
+  \Delta_i^{(k)} = \frac{\hat{\pi}_i^{(k)}}{\pi_{i}^{(k)}} + \hat{\pi}_i^{(k)} (\delta_i^{(k)})^2 - 1. 
+\end{equation}
+
+Finally, In the \textsf{Prediction} step, we now need to compute four nodes: \\
+the predicted (volatility) mean
+
+\begin{equation}
+	\hat{\check{\mu}}_i^{(k+1)} = \check{\mu}_i^{(k)},
+\end{equation}
+
+the precision of that prediction
+
+\begin{equation}
+  \hat{\check{\pi}}_i^{(k+1)} = \frac{1}{\frac{1}{\check{\pi}_i^{(k)}} + \nu_i^{(k+1)}}, 
+\end{equation}
+
+the predicted environmental uncertainty (as a function of the next higher level in the hierarchy, $\mu_{i+1}$)
+
+\begin{equation}
+  \nu_i^{(k+1)} = \exp(\kappa_{i,i+1} \mu_{i+1}^{(k)} + \omega_i),
+\end{equation}
+
+and the new (auxiliary) expected precision
+
+\begin{equation}
+  \gamma_i^{(k+1)} = \kappa_{i+1,i} \nu_i^{(k+1)} \hat{\pi}_i^{(k+1)}.
+\end{equation}
+
+The last node is only defined for convenience in terms of simplifying the equations and the corresponding message passing.
+
+
+\subsection{Possible PC-like implementation of VOPE coupling}
+
+\loadfigure[fig:voall]{figures/vope_all}
+\loadfigure[fig:withvol]{figures/zoom_vape_with_vope}
+
+Figure \ref{fig:voall} displays one proposal for within-column volatility estimation, where we've zoomed in to a level $i$ of the cortical hierarchy (and a value parent $i+1$) and added its volatility parent to the superficial layers. \\
+
+An alternative implementation of this idea is displayed in figure \ref{fig:withvol}. Here, only the precision-related computations of the volatility parent are placed in the superficial layers, while the corresponding prediction errors, $\Delta_i$ and $\check{\delta}_i$ as well as the actual volatility estimate $\check{\mu}_i$ live in middle layers, and the prediction of the volatility estimate, $\hat{\check{\mu}}_i$, lives in layer 6. This setup stresses the structural similarities to the message passing entailed by mean coupling. Moreover, using this setup, we can now easily depict how a higher cortical level $i+1$ would serve as a value parent to the volatility estimate in level $i$ - instead of predicting the mean - by simply exchanging the arrows between the levels as shown in figure \ref{fig:volparent}. 
+
+\loadfigure[fig:volparent]{figures/zoom_vope}
+
