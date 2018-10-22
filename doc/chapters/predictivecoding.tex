@@ -81,11 +81,19 @@ This again seems unproblematic, although the arrow from $\mu_i$ to $\hat{\mu}_i$
 \subsection{VOPE coupling}
 For volatility parents, we propose the following: Each level of a cortical hierarchy implements its own volatility parent in superficial layers. Coupling across layers is exclusively value-related. This means that having a volatility parent is nothing more but a more sophisticated way of predicting and updating a level's precision estimates. \\
 
-This setup excludes volatility parents of volatility parents. However, it allows a cortical hierarchy where higher levels predict either the mean, or the volatility, of lower levels, both via value coupling. In other words, any given level receives top-down predictions not only about its mean, but also about its volatility, which is implemented as the mean of its volatility parent.\\
+This setup excludes volatility parents of volatility parents. However, it allows for a cortical hierarchy where higher levels predict either the mean, or the volatility, of lower levels, both via value coupling. In other words, any given level receives top-down predictions not only about its mean, but also about its volatility, which is implemented as the mean of its volatility parent.\\
 
-Due to this proposal, we slightly change the notation from here on. Level $i$ from now on refers to hierarchical level within a cortical hierarchy. Nodes on this level comprise the 'original' nodes $\mu_i$, $\pi_i$, $\hat{\mu}_i$, $\hat{\pi}_i$, and $\delta_i$, but also all the nodes belonging to a volatility parent of these nodes, which we now denote as $\check{\mu}_i$, $\check{\pi}_i$, $\hat{\check{\mu}}_i$, $\hat{\check{\pi}}_i$, and $\check{\delta}_i$. Here, $\check{\delta}_i$ refers to the value prediction error about the mean of the volatility, $\check{\mu}_i$. \\
+Note that this setup also allows for a centralized or global volatility estimation. For example, a cortical or subcortical region which monitors the overall environmental volatility could be coupled to all local volatility units via value coupling. Our proposal is more flexible than previous ones \cite{Kanai2015} though, in that it also enables differential volatility estimation, e.g. within different sensory channels. \\
 
-We also introduce a new character for the \textsf{VOPE}, $\Delta_i$, which we write as a function of the \textsf{VAPE}, $\delta_i$, of level $i$. This PE is what communicates between a level's nodes and a level's volatility parent's nodes (see below for equations and visualizations). 
+Moreover, in principle, both the mean $\mu_i$ as well as the volatility estimate $\check{\mu}_i$ of a given level could have (one or more) value parents in higher cortical areas. This allows for both separate and combined higher-level prediction of both the precision and the mean of level $i$.\\
+
+Due to our proposal, we slightly change the notation for volatility coupling from here on. Level $i$ from now on refers to hierarchical level within a cortical hierarchy. Nodes on this level comprise the 'original' nodes $\mu_i$, $\pi_i$, $\hat{\mu}_i$, $\hat{\pi}_i$, and $\delta_i$, which are concerned with value estimation, but also all the nodes belonging to a volatility parent of these nodes, which we now denote as $\check{\mu}_i$, $\check{\pi}_i$, $\hat{\check{\mu}}_i$, $\hat{\check{\pi}}_i$, and $\check{\delta}_i$. Here, $\check{\delta}_i$ refers to the value prediction error about the mean of the volatility, $\check{\mu}_i$. \\
+
+The \textsf{VOPE} $\Delta_i$, which we have written as a function of the \textsf{VAPE} $\delta_i$, of level $i$, is what communicates between a level's nodes and a level's volatility parent's nodes. Value estimation and volatility estimation both happen within on cortical level or column. For the ensuing equations (simple reformulations of the computations in \textsf{VOPE} coupling as presented before) and visualizations of this proposal, please refer to the appendix. \\
+
+Discuss similiraties with and differences to \cite{Kanai2015} here!\\
+
+From here on until end of chapter: Appendix
 
 \loadfigure[fig:voall]{figures/vope_all}
 \loadfigure[fig:withvol]{figures/zoom_vape_with_vope}
@@ -94,35 +102,20 @@ Figure \ref{fig:voall} displays one proposal for this setup, where we've zoomed 
 
 \loadfigure[fig:volparent]{figures/zoom_vope}
 
-Note that in principle, both the mean $\mu_i$ as well as the volatility estimate $\check{\mu}_i$ of a given level could have (one or more) value parents in higher cortical areas. This allows for both separate and combined higher-level prediction of both the precision and the mean of level $i$.
-
-We now turn to the equations for the within-level volatility node. The volatility prediction error (\textsf{VOPE}) can be written as a function of the value prediction error (\textsf{VAPE}), where we now use $\delta_i$ only for \textsf{VAPE}s:
+The \textsf{Update} steps in volatility coupling are:
 
 \begin{equation}
-	\delta_i^{(k)} \equiv \delta_i^{(k, VAPE)} = \mu_i^{(k)} - \hat{\mu}_i^{(k)},
-\end{equation}
-
-We define the \textsf{VOPE} as 
-
-\begin{equation}
-  \begin{split}
-    \Delta_i^{(k)} \equiv \delta_i^{(k, VOPE)} &= \frac{ \frac{1}{\pi_{i}^{(k)}} + (\mu_i^{(k)} - \hat{\mu}_i^{(k)})^2 }{ \frac{1}{\pi_{i}^{(k-1)}} + \nu_{i}^{(k)} } - 1 \\
-    &= \hat{\pi}_i^{(k)} \left( \frac{1}{\pi_{i}^{(k)}} + (\mu_i^{(k)} - \hat{\mu}_i^{(k)})^2 \right) - 1 \\
-    &= \hat{\pi}_i^{(k)} \left( \frac{1}{\pi_{i}^{(k)}} + (\delta_i^{(k)})^2 \right) - 1 \\
-    &=  \frac{\hat{\pi}_i^{(k)}}{\pi_{i}^{(k)}} + \hat{\pi}_i^{(k)} (\delta_i^{(k)})^2 - 1. \\
-  \end{split} 
-\end{equation}
-
-That means we are introducing a second prediction error unit $\Delta_i$ which is concerned with deviations from predicted uncertainty and is informed by value prediction errors and other estimates of uncertainty. It is this prediction error - a function of the unweighted (squared) value prediction error with a new precision weight - which communicates between a level's nodes and a level's volatility parent's nodes.\\
-
-With the definition of $\Delta_i$ as given in the \textsf{PE} step and a new term of \textit{expected precision} $\gamma_i$ (defined for convenience in the \textsf{Prediction} step), the \textsf{Update} steps in volatility coupling become:
-
-\begin{equation}
-	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\gamma_{i-1}^{(k)}}{\check{\pi}_i^{(k)}} \Delta_{i-1}^{(k)}
+	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\gamma_{i}^{(k)}}{\check{\pi}_i^{(k)}} \Delta_{i}^{(k)}
 \end{equation}
 
 \begin{equation}
-	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_{i-1}^{(k)})^2 + (\gamma_{i-1}^{(k)})^2 \Delta_{i-1}^{(k)} - \frac{1}{2} \gamma_{i-1}^{(k)} \Delta_{i-1}^{(k)}
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_{i}^{(k)})^2 + (\gamma_{i}^{(k)})^2 \Delta_{i}^{(k)} - \frac{1}{2} \gamma_{i}^{(k)} \Delta_{i}^{(k)}
+\end{equation}
+
+In the \textsf{PE} step, the node computes:
+
+\begin{equation}
+  \Delta_i^{(k)} = \frac{\hat{\pi}_i^{(k)}}{\pi_{i}^{(k)}} + \hat{\pi}_i^{(k)} (\delta_i^{(k)})^2 - 1. 
 \end{equation}
 
 Finally, In the \textsf{Prediction} step, we now need to compute four nodes: \\
