@@ -1,10 +1,10 @@
 \section{Within-trial time dynamics}
 
-In this section, we derive differential equations which lay out the within-trial update dynamics entailed by the HGF. To this end, we consider the posterior values of all our nodes (quantities) as given by the HGF update equations as the equilibrium point towards which all dynamics must converge. \\
+In this section, we propose differential equations which lay out postential within-trial update dynamics entailed by the HGF. To this end, we consider the posterior values of all our nodes (quantities) as given by the HGF update equations as the equilibrium point towards which all dynamics must converge. \\
 
-We will note that these equations imply a slightly different coupling between nodes compared to the previous section. On first glance, this complicates the picture, as we're introducing more and more nodes. On the other hand, we increase biological plausibility by making the computations of a single node or connection simpler and simpler.\\
+We will note that these equations imply a slightly different coupling between nodes compared to the previous section and we will introduce several new 'auxiliary' nodes of no interest, which help to simplify the implementation and thus increase the biological plausibility of our proposal.\\
 
-We divide the equations into \textsf{value} estimation and \textsf{volatility} estimation, noting that \textsf{VAPE} and \textsf{VOPE} coupling are not useful divisions anymore (the mean of the value estimation of a level $i$, $\mu_i$, will be \textsf{VAPE}-coupled to its parent $\mu_{i+1}$, while the precision $\pi_i$ of the value estimation will be \textsf{VOPE}-coupled to the volatility parent $\check{\mu}_i$ on level $i$ itself; on the other hand, the mean of the volatility estimation, $\check{\mu}_i$, can again have a \textsf{VAPE} coupling to a higher level, e.g. $\mu_{i+2}$, and the precision of volatility, $\check{\pi}_i$, will, in the current framework, not be coupled to any parent, i.e., its prediction will depend only on the parameter $\check{\omega_i}$).
+We divide the equations into \textsf{value} estimation and \textsf{volatility} estimation, noting that \textsf{VAPE} and \textsf{VOPE} coupling are not useful divisions anymore (the mean of the value estimation of a level $i$, $\mu_i$, will be \textsf{VAPE}-coupled to its parent $\mu_{i+1}$, while the precision $\pi_i$ of the value estimation will be \textsf{VOPE}-coupled to the volatility parent $\check{\mu}_i$ on level $i$ itself; on the other hand, the mean of the volatility estimation, $\check{\mu}_i$, can again have a \textsf{VAPE} coupling to a higher level, e.g. $\mu_{i+2}$, and the precision of volatility, $\check{\pi}_i$, will, in the current framework, not be coupled to any parent).
 
 \subsection{Value estimation}
 
@@ -221,13 +221,13 @@ We simply have to add a (multiplicative) term in the dynamics of the predicted v
 Additionally, to simplify the precision weighting of the volatility prediction error, we use the auxiliary expected precision node $\gamma_i$ as introduced in the previous section:
 
 \begin{equation}
-  \gamma_i = \kappa_i \nu_i \hat{\pi}_i
+  \gamma_i = \nu_i \hat{\pi}_i
 \end{equation}
 
 with, for example, 
 
 \begin{equation}
-  \dot{\gamma}_i = \kappa_i \nu_i \hat{\pi}_i - \gamma_i.
+  \dot{\gamma}_i = \nu_i \hat{\pi}_i - \gamma_i.
 \end{equation}
 
 For the \textsf{PE} about the level of volatility $\Delta_i$, we have previously seen that we want to reach the following posterior:
@@ -239,13 +239,13 @@ For the \textsf{PE} about the level of volatility $\Delta_i$, we have previously
 This corresponds to the unweighted volatility prediction error. Again, we start by considering a node which in turn reflects the precision-weighted (VO)PE, which we will call $E_i$:
 
 \begin{equation}
-	E_i^{(k)} = \frac{1}{2} \frac{\gamma_i^{(k)}}{\check{\pi}_i^{(k)}} \Delta_i^{(k)}.
+	E_i^{(k)} = \frac{1}{2} \frac{\kappa_i \gamma_i^{(k)}}{\check{\pi}_i^{(k)}} \Delta_i^{(k)}.
 \end{equation}
 
 This could evolve according to 
 
 \begin{equation}
-	\dot{E}_i^{(k)} = \Delta_i^{(k)} - \frac{2 \check{\pi}_i^{(k)}}{\gamma_i^{(k)}} E_i^{(k)},
+	\dot{E}_i^{(k)} = \Delta_i^{(k)} - \frac{2 \check{\pi}_i^{(k)}}{\kappa_i \gamma_i^{(k)}} E_i^{(k)},
 \end{equation}
 
 which can also be written as 
@@ -257,13 +257,13 @@ which can also be written as
 with the unweighted PE node $\Delta_i$
 
 \begin{equation}
-	\Delta_i^{(k)} = \frac{2 \check{\pi}_i^{(k)}}{\gamma_i^{(k)}} E_i^{(k)}
+	\Delta_i^{(k)} = \frac{2 \check{\pi}_i^{(k)}}{\kappa_i \gamma_i^{(k)}} E_i^{(k)}
 \end{equation}
 
 evolving as 
 
 \begin{equation}
-	\dot{\Delta}_i^{(k)} = E_i^{(k)} - \frac{\gamma_i^{(k)}}{2 \check{\pi}_i^{(k)}} \Delta_i^{(k)}.
+	\dot{\Delta}_i^{(k)} = E_i^{(k)} - \frac{\kappa_i \gamma_i^{(k)}}{2 \check{\pi}_i^{(k)}} \Delta_i^{(k)}.
 \end{equation}
 
 \loadfigure[fig:vopediff]{figures/diffeq_vope}
@@ -271,7 +271,7 @@ evolving as
 This leads us to the same setup as for the value prediction error nodes, where we considered both an $\varepsilon_i$ node and an unweighted PE node $\delta_i$, as depicted in figure \ref{fig:vopediff}. In the case of volatility estimation, this again turns out to be useful: As before, the precision-weighted PE node $E_i$ can be passed on to \textsf{Update} the volatility parent node $\check{\mu}_i$:
 
 \begin{equation}
-	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\gamma_i^{(k)}}{\check{\pi}_i^{(k)}} \Delta_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + E_i^{(k)}
+	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\kappa_i \gamma_i^{(k)}}{\check{\pi}_i^{(k)}} \Delta_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + E_i^{(k)}
 \end{equation}
 
 with 
@@ -289,19 +289,19 @@ Third, we note that in volatility estimation, we have to distinguish between the
 Finally, although the unweighted volatility PE $\Delta_i$ is not needed for a feedback to $\mu_i$ or $\check{\mu}$, it is still very useful as it is used in the update of the precision of the volatility estimation $\check{\pi}_i$:
 
 \begin{equation}
-	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_i^{(k)})^2 + (\gamma_i^{(k)})^2 \Delta_i^{(k)} - \frac{1}{2} \gamma_i^{(k)} \Delta_i^{(k)}, 
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + (\kappa_i \gamma_i^{(k)})^2 \Delta_i^{(k)} - \frac{1}{2} \kappa_i \gamma_i^{(k)} \Delta_i^{(k)}, 
 \end{equation}
 
 which can be summarized as 
 
 \begin{equation}
-	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_i^{(k)})^2 + ((\gamma_i^{(k)})^2 - \frac{1}{2} \gamma_i^{(k)}) \Delta_i^{(k)}.
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + ((\kappa_i \gamma_i^{(k)})^2 - \frac{1}{2} \kappa_i \gamma_i^{(k)}) \Delta_i^{(k)}.
 \end{equation}
 
 This could have the temporal evolution
 
 \begin{equation}
-	\dot{\check{\pi}}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_i^{(k)})^2 + ((\gamma_i^{(k)})^2 - \frac{1}{2} \gamma_i^{(k)}) \Delta_i^{(k)} - \check{\pi}_i^{(k)}.
+	\dot{\check{\pi}}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + ((\kappa_i \gamma_i^{(k)})^2 - \frac{1}{2} \kappa_i \gamma_i^{(k)}) \Delta_i^{(k)} - \check{\pi}_i^{(k)}.
 \end{equation}
 
 Finally, turning towards the \textsf{Prediction} step in the volatility estimation, this is again very simple, as we only consider value parents for volatility nodes. For the prediction of the mean, we have
@@ -334,4 +334,13 @@ with
 	\dot{\check{p}}_{i1} = \hat{\check{\pi}}_i - \check{\pi}_i \check{p}_{i1}. 
 \end{equation}
 
-Note that we do not bother to introduce $\check{p}_{i2}$ or $\check{\nu}_i$ here, as we exclude the possibility of a volatility parent $\check{\mu}_i$ having a volatility parent.
+Note that we do not bother to introduce $\check{p}_{i2}$ or $\check{\nu}_i$ here, as we exclude the possibility of a volatility parent $\check{\mu}_i$ having a volatility parent.\\
+
+As can be seen from figure \ref{fig:vopediff}, the value coupling of the volatility mean with a higher-level region is now completely parallel to the value coupling seen in figure \ref{fig:vapediff}, where the higher-level region was concerned with predicting the lower-level mean. Thus the predictions about extrinsic connections - those connecting different levels of a cortical hierarchy - in volatility estimation are equivalent to those in mean or state estimation.
+
+
+\subsection{Conclusion}
+
+We have proposed a set of differential equations describing potential within-trial dynamics of network nodes that implement the discrete update equations of the HGF as the endpoint of their evolution in each trial. These equations, together with the introduction of a few additional nodes such as the precision-weighted prediction errors, imply a simple implementation scheme that bears a strong resemblance to current proposals of layer-specific implementations of \textsf{PC} schemes. \\
+
+Moreover, these differential equations can be used to simulate within-trial responses of all nodes, which allows both for examining the stability of the proposed network, and for predicting layer-specific neural dynamics which could for example be compared with electrophysiological data. 
