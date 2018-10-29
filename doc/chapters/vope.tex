@@ -89,8 +89,7 @@ Therefore, at the time of the update, Node $i$ needs to have access to the follo
 \begin{description}
 \item[Its own predictions:]  	$\hat{\mu}_i^{(k)}$, $\hat{\pi}_i^{(k)}$
 \item[Coupling strength:] 		$\kappa_{i,i-1}$
-\item[From level below:]		$\Delta_{i-1}^{(k)}$, $\hat{\pi}_{i-1}^{(k)}$, 
-								$\nu_{i-1}^{(k)}$, $\gamma_{i-1}^{(k)}$
+\item[From level below:]		$\Delta_{i-1}^{(k)}$, $\gamma_{i-1}^{(k)}$
 \end{description}
 
 
@@ -98,13 +97,11 @@ Therefore, at the time of the update, Node $i$ needs to have access to the follo
 The exact computation of the prediction error depends, like the computation of the new prediction, on the nature of the coupling with the parent nodes. We will therefore assume in the following, that Node $i$ is the volatility child of Node $i+1$. Then the following quantities have to be sent up to Node $i+1$ (see also necessary information from level below in a volatility parent):
 
 \begin{description}
-\item[Volatility estimate:]  	$\nu_i^{(k)}$
-\item[Predicted precision:] 	$\hat{\pi}_{i}^{(k)}$
 \item[Expected precision:] 		$\gamma_{i}^{(k)}$
 \item[Prediction error:]		$\Delta_{i}^{(k)}$
 \end{description}
 
-Node $i$ has already performed the \textsf{PREDICTION step} on the previous trial, so it has already computed the predicted precision, $\hat{\pi}_{i}^{(k)}$, the expected precision, $\gamma_{i}^{(k)}$, and the volatiliy estimate, $\nu_i^{(k)}$, for the current trial. Hence, in the \textsf{PE step}, it needs to perform only the following calculations:
+Node $i$ has already performed the \textsf{PREDICTION step} on the previous trial, so it has already computed the predicted precision, $\hat{\pi}_{i}^{(k)}$, and the volatiliy estimate, $\nu_i^{(k)}$, and out of these the expected precision, $\gamma_{i}^{(k)}$, for the current trial. Hence, in the \textsf{PE step}, it needs to perform only the following calculations:
 \vspace{0.5cm}
 
 \noindent
