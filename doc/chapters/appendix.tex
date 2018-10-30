@@ -52,10 +52,135 @@ The last node is only defined for convenience in terms of simplifying the equati
 
 \loadfigure[fig:voall]{figures/vope_all}
 \loadfigure[fig:withvol]{figures/zoom_vape_with_vope}
+\loadfigure[fig:volparent]{figures/zoom_vope}
 
 Figure \ref{fig:voall} displays one proposal for within-column volatility estimation, where we've zoomed in to a level $i$ of the cortical hierarchy (and a value parent $i+1$) and added its volatility parent to the superficial layers. \\
 
 An alternative implementation of this idea is displayed in figure \ref{fig:withvol}. Here, only the precision-related computations of the volatility parent are placed in the superficial layers, while the corresponding prediction errors, $\Delta_i$ and $\check{\delta}_i$ as well as the actual volatility estimate $\check{\mu}_i$ live in middle layers, and the prediction of the volatility estimate, $\hat{\check{\mu}}_i$, lives in layer 6. This setup stresses the structural similarities to the message passing entailed by mean coupling. Moreover, using this setup, we can now easily depict how a higher cortical level $i+1$ would serve as a value parent to the volatility estimate in level $i$ - instead of predicting the mean - by simply exchanging the arrows between the levels as shown in figure \ref{fig:volparent}. 
 
-\loadfigure[fig:volparent]{figures/zoom_vope}
+
+\subsection{Computations of input nodes}
+The main steps that need to happen within an input node on a given trial are:
+\begin{itemize}
+	\item receive a new input and store it
+	\item either receive as a second input the exact time of the input, or infer the time as 'plus 1' (next trial)
+	\item compute prediction errors and whatever else needs to be signalled bottom-up to the first actual HGF node
+	\item send bottom-up: usually input or PE, some estimate of precision, and time
+	\item receive top-down: usually $\hat{\mu}$ from the parent
+	\item compute surprise, given input and prediction
+\end{itemize}
+The quantities being signalled bottom-up, and the computation of surprise, depend on the nature of the input node (continuous or binary) and on the nature of the coupling with the parent.
+
+Because the input nodes are not full HGF nodes, but rather serve as a relay station for the input and for computing surprise, the message passing (and the within-node computations) differs from the previously discussed scheme.
+
+\subsubsection{Continuous input nodes}
+A continuous input node can compute two prediction errors: \textsf{VAPE}s and \textsf{VOPE}s. We will first deal with the computations related to \textsf{VAPE} coupling of the continuous input node with a parent HGF node. Note that an input node will always have a \textsf{VAPE} or value parent, while having a volatility parent is optional.\\
+
+\textbf{Value parents of continuous input nodes}\\
+In the \textsf{PE step}, the \textsf{VAPE} will be computed as the difference the prediction and the posterior, where the current prediction $\hat{\mu}_{vapa}$ of the value parent $vapa$ is used as the prediction, and the value of the input itself, $u$, is used as the posterior:
+
+\begin{equation}
+	\delta_{inp}^{(k)} = \mu_{inp}^{(k)} - \hat{\mu}_{inp}^{(k)} = u^{(k)} - \hat{\mu}_{vapa}^{(k)}
+\end{equation}
+
+This means that prior to the update of the input node, it needs to receive the current prediction $\hat{\mu}_{vapa}^{(k)}$ of its parent node. \\
+
+If one wanted to construct an \textsf{UPDATE step} for the input node, the posterior mean simply amounts to the input itself, while the posterior precision will be determined by the value parent's precision:
+\begin{align}
+	\mu_{inp}^{(k)} &= u^{(k)}\\
+	\pi_{inp}^{(k)} &= \pi_{vapa}^{(k)}
+\end{align}
+
+The update of the value parent node will look like the regular \textsf{VAPE} updates from previous chapters:
+\begin{align}
+	\pi_{vapa}^{(k)} &= \hat{\pi}_{vapa}^{(k)} + \hat{\pi}_{inp}^{(k)}\\
+	\mu_{vapa}^{(k)} &= \hat{\mu}_{vapa}^{(k)} + \frac{\hat{\pi}_{inp}^{(k)}}{\pi_{vapa}^{(k)}} \delta_{inp}^{(k)}
+\end{align}
+
+That means that the input node needs to signal bottom-up to its value parent:
+\begin{description}
+	\item[Predicted precision:] 		$\hat{\pi}_{inp}^{(k)}$
+	\item[Prediction error:]			$\delta_{inp}^{(k)}$.
+\end{description}
+
+Note that the connection between a continuous input node and its value parent would always have a connection weight of $\alpha = 1$.\\
+
+In the \textsf{PREDICTION step}, the input node would have to compute the predicted mean $\hat{\mu}_{inp}^{(k+1)}$ and the predicted precision $\hat{\pi}_{inp}^{(k+1)}$ for the next trial. However, as described above, the predicted mean will be received from the value parent: 
+\begin{equation}
+	\hat{\mu}_{inp}^{(k+1)} = \hat{\mu}_{vapa}^{(k+1)}
+\end{equation}
+Given that the value parent might operate under a drift parameter, the current prediction can only be computed given the time of the next input, i.e., at the beginning of the next trial, when the new input (and its time information) comes in. Then it needs to be signalled top-down immediately.\\
+
+The predicted precision of the input node is a function of the input node's $\omega$ parameter, i.e., a constant, in the absence of a volatility parent:
+\begin{equation}
+	\hat{\pi}_{inp}^{(k+1)} = \frac{1}{\exp(\omega_{inp})}
+\end{equation}
+
+However, in the presence of a volatility parent, this will additionally depend on the posterior $\mu_{vopa}^{(k)}$ of that parent and the coupling parameter $\kappa_{vopa,inp}$ of the input node with its volatility parent $vopa$:
+\begin{equation}
+	\hat{\pi}_{inp}^{(k+1)} = \frac{1}{\exp(\kappa_{vopa,inp} \mu_{vopa}^{(k)} + \omega_{inp})}.
+\end{equation}
+
+Finally, to compute the surprise associated with the current input, the node needs to compute the negative log of the probability of input $u^{(k)}$ under a Gaussian prediction with $\hat{\mu}_{vapa}^{(k)}$ as mean and $\hat{\pi}_{inp}^{(k)}$ as the precision:
+\begin{equation}
+	-\log(p(u^{(k)})) = \frac{1}{2} (\log(2\pi) - \log(\hat{\pi}_{inp}^{(k)}) + \hat{\pi}_{inp}^{(k)} (u^{(k)} - \hat{\mu}_{vapa}^{(k)})^2).
+\end{equation}
+
+\textbf{Volatility parents of continuous input nodes}\\
+Having a volatility parent for a continuous input node means that a \textsf{VOPE} will be computed and signalled bottom-up during the \textsf{PE step}. Importantly, the definition of the \textsf{VOPE} differs from previous definitions in that both the posterior precision as well as the posterior mean are taken from the value parent $vapa$:
+
+\begin{equation}
+  \Delta_{inp}^{(k)} = \frac{\hat{\pi}_{inp}^{(k)}}{\pi_{vapa}^{(k)}} + \hat{\pi}_i^{(k)} (u^{(k)} - \mu_{vapa}^{(k)})^2 - 1. 
+\end{equation}
+
+This means that the \textsf{VOPE} is not a direct function of the \textsf{VAPE} anymore, which was instead defined in terms of the difference between the input $u^{(k)}$ (as the posterior) and the predicted mean of the value parent $\hat{\mu}_{vapa}^{(k)}$ as the prediction. This in turn requires that the update of the value parents happens before the computation of the \textsf{VOPE}, and the posterior of the value parent is already available to the input node.\\
+
+The \textsf{UPDATE step} for the volatility parent is also unusual in that the expected precision term $\gamma_{inp}$ is fixed to 1 in the update of the mean:
+\begin{align}
+	\mu_{vopa}^{(k)} &= \hat{\mu}_{vopa}^{(k)} 
+			+ \frac{1}{2} \frac{\kappa_{vopa,inp} \gamma_{inp}^{(k)}}{\pi_{vopa}^{(k)}} \Delta_{inp}^{(k)}\\
+			&= \hat{\mu}_{vopa}^{(k)} 
+			+ \frac{1}{2} \frac{\kappa_{vopa,inp}}{\pi_{vopa}^{(k)}} \Delta_{inp}^{(k)}.
+\end{align}
+
+This would simply mean that along with the modified \textsf{VOPE}, the input node needs to signal a value of $1$ as the expected precision on every trial. However, the update of the precision of the volatility parent seems to be modified even further. While setting $\gamma_{inp}$ to $1$ would lead to:
+
+\begin{align}
+	\pi_{vopa}^{(k)} &= \hat{\pi}_{vopa}^{(k)} 
+			+ \frac{1}{2} (\kappa_{vopa,inp} \gamma_{inp}^{(k)})^2 
+			+ (\kappa_{vopa,inp} \gamma_{inp}^{(k)})^2 \Delta_{inp}^{(k)} 
+			- \frac{1}{2} \kappa_{vopa,inp} \gamma_{inp}^{(k)} \Delta_{inp}^{(k)}\\
+			&= \hat{\pi}_{vopa}^{(k)} 
+			+ \frac{1}{2} (\kappa_{vopa,inp})^2 
+			+ (\kappa_{vopa,inp})^2 \Delta_{i-1}^{(k)} 
+			- \frac{1}{2} \kappa_{vopa,inp} \Delta_{i-1}^{(k)}, 
+\end{align}
+
+the current implementation of the precision update in volatility parents of continuous input nodes (l. 666 of current \textsf{hgf.py} file) seems to imply the following update rule instead:
+
+\begin{equation}
+	\pi_{vopa}^{(k)} = \hat{\pi}_{vopa}^{(k)} 
+			+ \frac{1}{2} (\kappa_{vopa,inp})^2 
+			+ \frac{1}{2} (\kappa_{vopa,inp})^2 \Delta_{i-1}^{(k)}.
+\end{equation}
+
+This would only be equivalent to the previous definition in the case of $\kappa = 1$.\\
+\noindent
+!! Check this with Christoph !! \\
+
+Finally, the \textsf{PREDICTION step} of a continuous input node will be modified by the presence of a volatility parent in that the predicted precision now also depends on the posterior mean of the volatility parent:
+
+\begin{equation}
+	\hat{\pi}_{inp}^{(k+1)} = \frac{1}{\exp(\kappa_{inp} \mu_{vopa}^{(k)} + \omega_{inp})}.
+\end{equation}
+
+
+\subsubsection{Binary input nodes}
+Binary input nodes only have value parents. These value parents in turn are binary HGF nodes, which are special cases of HGF nodes, which themselves only have value parents.\\
+
+For binary input nodes, the precision of the input prediction $\hat{\pi}_{inp}$ is constant, i.e. we can treat it as a parameter. We distinguish two cases: Either the precision is infinite, i.e., $\hat{\pi}_{inp} = \inf$, or in other words, there is no sensory noise, or the precision has a finite value.
+
+\textbf{Infinite precision}\\
+\noindent
+
 
