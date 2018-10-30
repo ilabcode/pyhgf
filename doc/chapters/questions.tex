@@ -3,7 +3,6 @@
 \begin{itemize}
 	\item To Do: 
 	\begin{itemize}
-		\item Add an initial chapter on VAPEs and VOPEs with reference to the generative model.
 		\item Decide on the most useful visualizations for the paper: 
 		\begin{itemize}
 			\item move figure \ref{fig:vapediffnonu} to the appendix or discard it?
@@ -15,7 +14,6 @@
 		\item more elaborate description of VOPE figures in the appendix
 		\item Implement the new network setup in the python code.
 		\item Additionally implement the differential equations, examine the stability of the network and present exemplary simulations. 
-		\item Examine the computations for input nodes and their coupling (this is probably not needed for the theoretical treatment of \textsf{VAPE}s and \textsf{VOPE}s, but relevant for the python implementation).
 		\end{itemize}
 	
 	\item Equations: The coupling parameters $\alpha$ and $\kappa$ must be available to both the connection between a node's \textsf{PE unit} and the parent's \textsf{UPDATE unit}, as well as the connection between a node's \textsf{PREDICTION unit} and the parent's \textsf{UPDATE unit}. How can it be ensured that the coupling strength is the same for both connections? For this question we would actually have to consider the learning or update equations for the parameters of the model (see for example the approach in \cite{Bogacz2017}). However, even without writing them down, we could assume that under 'healthy' conditions, the weights of these different connections automatically converge to the same (or at least very similar) values. This opens up new possibilities of modeling abnormal inference: Using the simulations presented above, we could find out how an agent's inference would be altered if these values were not the same, and what range of difference would actually lead to observable changes in the inference. 
