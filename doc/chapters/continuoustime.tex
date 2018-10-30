@@ -289,19 +289,19 @@ Third, we note that in volatility estimation, we have to distinguish between the
 Finally, although the unweighted volatility PE $\Delta_i$ is not needed for a feedback to $\mu_i$ or $\check{\mu}$, it is still very useful as it is used in the update of the precision of the volatility estimation $\check{\pi}_i$:
 
 \begin{equation}
-	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + (\kappa_i \gamma_i^{(k)})^2 \Delta_i^{(k)} - \frac{1}{2} \kappa_i \gamma_i^{(k)} \Delta_i^{(k)}, 
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + (\kappa_i \gamma_i^{(k)})^2 \Delta_i^{(k)} - \frac{1}{2} \kappa_i^2 \gamma_i^{(k)} \Delta_i^{(k)}, 
 \end{equation}
 
 which can be summarized as 
 
 \begin{equation}
-	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + ((\kappa_i \gamma_i^{(k)})^2 - \frac{1}{2} \kappa_i \gamma_i^{(k)}) \Delta_i^{(k)}.
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + ((\kappa_i \gamma_i^{(k)})^2 - \frac{1}{2} \kappa_i^2 \gamma_i^{(k)}) \Delta_i^{(k)}.
 \end{equation}
 
 This could have the temporal evolution
 
 \begin{equation}
-	\dot{\check{\pi}}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + ((\kappa_i \gamma_i^{(k)})^2 - \frac{1}{2} \kappa_i \gamma_i^{(k)}) \Delta_i^{(k)} - \check{\pi}_i^{(k)}.
+	\dot{\check{\pi}}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_i^{(k)})^2 + ((\kappa_i \gamma_i^{(k)})^2 - \frac{1}{2} \kappa_i^2 \gamma_i^{(k)}) \Delta_i^{(k)} - \check{\pi}_i^{(k)}.
 \end{equation}
 
 Finally, turning towards the \textsf{Prediction} step in the volatility estimation, this is again very simple, as we only consider value parents for volatility nodes. For the prediction of the mean, we have

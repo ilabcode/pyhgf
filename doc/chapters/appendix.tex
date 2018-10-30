@@ -7,11 +7,11 @@ In the following, we present the computations of volatility nodes according to t
 The \textsf{Update} steps in volatility coupling are:
 
 \begin{equation}
-	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\gamma_{i}^{(k)}}{\check{\pi}_i^{(k)}} \Delta_{i}^{(k)}
+	\check{\mu}_i^{(k)} = \hat{\check{\mu}}_i^{(k)} + \frac{1}{2} \frac{\kappa_i \gamma_{i}^{(k)}}{\check{\pi}_i^{(k)}} \Delta_{i}^{(k)}
 \end{equation}
 
 \begin{equation}
-	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\gamma_{i}^{(k)})^2 + (\gamma_{i}^{(k)})^2 \Delta_{i}^{(k)} - \frac{1}{2} \gamma_{i}^{(k)} \Delta_{i}^{(k)}
+	\check{\pi}_i^{(k)} = \hat{\check{\pi}}_i^{(k)} + \frac{1}{2} (\kappa_i \gamma_{i}^{(k)})^2 + (\kappa_i \gamma_{i}^{(k)})^2 \Delta_{i}^{(k)} - \frac{1}{2} \kappa_i^2 \gamma_{i}^{(k)} \Delta_{i}^{(k)}
 \end{equation}
 
 In the \textsf{PE} step, the node computes:
@@ -42,7 +42,7 @@ the predicted environmental uncertainty (as a function of the next higher level 
 and the new (auxiliary) expected precision
 
 \begin{equation}
-  \gamma_i^{(k+1)} = \kappa_{i+1,i} \nu_i^{(k+1)} \hat{\pi}_i^{(k+1)}.
+  \gamma_i^{(k+1)} = \nu_i^{(k+1)} \hat{\pi}_i^{(k+1)}.
 \end{equation}
 
 The last node is only defined for convenience in terms of simplifying the equations and the corresponding message passing.
@@ -135,7 +135,7 @@ Having a volatility parent for a continuous input node means that a \textsf{VOPE
 
 This means that the \textsf{VOPE} is not a direct function of the \textsf{VAPE} anymore, which was instead defined in terms of the difference between the input $u^{(k)}$ (as the posterior) and the predicted mean of the value parent $\hat{\mu}_{vapa}^{(k)}$ as the prediction. This in turn requires that the update of the value parents happens before the computation of the \textsf{VOPE}, and the posterior of the value parent is already available to the input node.\\
 
-The \textsf{UPDATE step} for the volatility parent is also unusual in that the expected precision term $\gamma_{inp}$ is fixed to 1 in the update of the mean:
+The \textsf{UPDATE step} for the volatility parent is also unusual in that the expected precision term $\gamma_{inp}$ is fixed to 1. Hence the update of the mean reads:
 \begin{align}
 	\mu_{vopa}^{(k)} &= \hat{\mu}_{vopa}^{(k)} 
 			+ \frac{1}{2} \frac{\kappa_{vopa,inp} \gamma_{inp}^{(k)}}{\pi_{vopa}^{(k)}} \Delta_{inp}^{(k)}\\
@@ -143,30 +143,23 @@ The \textsf{UPDATE step} for the volatility parent is also unusual in that the e
 			+ \frac{1}{2} \frac{\kappa_{vopa,inp}}{\pi_{vopa}^{(k)}} \Delta_{inp}^{(k)}.
 \end{align}
 
-This would simply mean that along with the modified \textsf{VOPE}, the input node needs to signal a value of $1$ as the expected precision on every trial. However, the update of the precision of the volatility parent seems to be modified even further. While setting $\gamma_{inp}$ to $1$ would lead to:
+This simply means that along with the modified \textsf{VOPE}, the input node needs to signal a value of $1$ as the expected precision on every trial. Setting $\gamma_{inp}$ to $1$ in the update of the precision of the volatility parent leads to:
 
 \begin{align}
 	\pi_{vopa}^{(k)} &= \hat{\pi}_{vopa}^{(k)} 
 			+ \frac{1}{2} (\kappa_{vopa,inp} \gamma_{inp}^{(k)})^2 
 			+ (\kappa_{vopa,inp} \gamma_{inp}^{(k)})^2 \Delta_{inp}^{(k)} 
-			- \frac{1}{2} \kappa_{vopa,inp} \gamma_{inp}^{(k)} \Delta_{inp}^{(k)}\\
+			- \frac{1}{2} \kappa_{vopa,inp}^2 \gamma_{inp}^{(k)} \Delta_{inp}^{(k)}\\
 			&= \hat{\pi}_{vopa}^{(k)} 
 			+ \frac{1}{2} (\kappa_{vopa,inp})^2 
 			+ (\kappa_{vopa,inp})^2 \Delta_{i-1}^{(k)} 
-			- \frac{1}{2} \kappa_{vopa,inp} \Delta_{i-1}^{(k)}, 
-\end{align}
-
-the current implementation of the precision update in volatility parents of continuous input nodes (l. 666 of current \textsf{hgf.py} file) seems to imply the following update rule instead:
-
-\begin{equation}
-	\pi_{vopa}^{(k)} = \hat{\pi}_{vopa}^{(k)} 
+			- \frac{1}{2} \kappa_{vopa,inp}^2 \Delta_{i-1}^{(k)}\\
+			&= \hat{\pi}_{vopa}^{(k)} 
 			+ \frac{1}{2} (\kappa_{vopa,inp})^2 
-			+ \frac{1}{2} (\kappa_{vopa,inp})^2 \Delta_{i-1}^{(k)}.
-\end{equation}
-
-This would only be equivalent to the previous definition in the case of $\kappa = 1$.\\
-\noindent
-!! Check this with Christoph !! \\
+			+ \frac{1}{2} (\kappa_{vopa,inp})^2 \Delta_{i-1}^{(k)}\\
+			&= \hat{\pi}_{vopa}^{(k)} 
+			+ \frac{1}{2} (\kappa_{vopa,inp})^2 (1 + \Delta_{i-1}^{(k)}).
+\end{align}
 
 Finally, the \textsf{PREDICTION step} of a continuous input node will be modified by the presence of a volatility parent in that the predicted precision now also depends on the posterior mean of the volatility parent:
 
