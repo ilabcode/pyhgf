@@ -1,5 +1,5 @@
-\section{Computations of Nodes in the HGF}
-In the HGF, each node has to perform several computations within an experimental trial, which can be ordered in time as shown in the box:
+\section{Belief updates in the HGF: Computations of nodes}
+In the approximate inversion of the generative model presented above, \cite{Mathys2011} derived a set of simple, one-step update equations that represent changes in beliefs about the hidden states specified in the generative model. For each state, a belief is held (and updated for every new input) by the agent and described as a Gaussian distribution, fully characterized by its mean $\mu_i^{(k)}$ and its inverse variance, or precision, $\pi_i^{(k)}$ on a given trial $k$. We conceptualize each belief as a node in a network, where belief updates involve computations within nodes as well as message passing between nodes. The computations of any node within an experimental trial can be ordered in time as shown in the box:
 \vspace{1cm}
 
 \noindent
