@@ -167,11 +167,59 @@ Finally, the \textsf{PREDICTION step} of a continuous input node will be modifie
 	\hat{\pi}_{inp}^{(k+1)} = \frac{1}{\exp(\kappa_{inp} \mu_{vopa}^{(k)} + \omega_{inp})}.
 \end{equation}
 
+\textbf{Peculiarities of continuous input nodes and consequences for their parents}\\
+First, due to the dependence of the \textsf{VOPE} on the posterior beliefs of the value parent, the continuous input node needs to communicate with its value parent first and wait for the posteriors to be computed there and sent top-down in order to elicit a new update in its volatility parent.\\
 
-\subsubsection{Binary input nodes}
+Second, the value parent needs to send top-down not only the posterior mean, but also the posterior precision, for the same reason.\\
+
+Third, the connection weight for value connections will always be $\alpha = 1$.\\
+
+Fourth, for issuing a new prediction $\hat{\mu}_{inp}$, the node needs to receive the predicted mean of its value parent at the beginning of a new trial. This means it must be possible to elicit a new prediction in continuous HGF nodes without actually sending a prediction error, instead by only sending a new time point. The HGF node needs to react to this by sending top-down the new predicted mean, such that the input node can compute the \textsf{PE} and signal it back bottom-up for a new update.\\
+
+Thus, the steps for a continuous input node are:
+\begin{itemize}
+    \item receive input $u$
+    \item determine time of input
+    \item send bottom-up to value parent: time of input (to elicit a prediction)
+    \item receive top-down: predicted mean $\hat{\mu}_{vapa}$
+    \item compute prediction $\hat{mu}_{inp}$ and retrieve $\hat{\pi}_{inp}$
+    \item compute surprise using $u$, $\hat{mu}_{inp}$ and $\hat{\pi}_{inp}$
+    \item compute \textsf{VAPE} using $u$ and $\hat{mu}_{inp}$
+    \item send bottom-up to value parent: \textsf{VAPE}, $\hat{\pi}_{inp}$, and time
+    \item receive top-down: posteriors $\mu_{vapa}$ and $\pi_{vapa}$
+    \item compute \textsf{VOPE} using $u$, $\hat{\pi}_{inp}$, $\mu_{vapa}$ and $\pi_{vapa}$
+    \item send bottom-up to volatility parent: \textsf{VOPE}, $\gamma_{inp} = 1$, and time
+    \item receive top-down: posterior $\mu_{vopa}$
+    \item compute new prediction for precision $\hat{\pi}_{inp}^{(k+1)}$ using $\mu_{vopa}^{(k)}$,
+\end{itemize}
+
+and the value parent of a continuous input node needs to 
+\begin{enumerate}
+    \item be able to elicit new predictions based on time input
+    \item send new predictions top-down immediately in the case of a continuous input node child
+    \item send down not only its posterior mean, but also the precision after each update.
+\end{enumerate}
+
+\subsubsection{Binary input nodes and binary HGF nodes}
 Binary input nodes only have value parents. These value parents in turn are binary HGF nodes, which are special cases of HGF nodes, which themselves only have value parents.\\
 
-For binary input nodes, the precision of the input prediction $\hat{\pi}_{inp}$ is constant, i.e. we can treat it as a parameter. We distinguish two cases: Either the precision is infinite, i.e., $\hat{\pi}_{inp} = \inf$, or in other words, there is no sensory noise, or the precision has a finite value.
+For binary input nodes, the precision of the input prediction $\hat{\pi}_{inp}$ is constant, i.e. we can treat it as a parameter. We distinguish two cases: Either the precision is infinite, i.e., $\hat{\pi}_{inp} = \inf$, or in other words, there is no sensory noise, or the precision has a finite value. However, this distinction will be made within its parent node, i.e., the binary HGF node.\\
+
+The steps for a binary input node are very simple and it functions more or less only like a relay for incoming input. It needs to:
+\begin{itemize}
+    \item receive input $u$
+    \item determine time of input
+    \item send bottom-up: $u$ and time
+    \item receive top-down: prediction of parent $\hat{\mu}_{pa}$
+    \item compute surprise based on message from parent.
+\end{itemize}
+
+The last point actually depends on the distinction between infinite and finite precision. However, because binary HGF nodes are special cases, too and to make things easier, only the binary HGF node will make that distinction and will thus send down the required quantity, such that the input node only needs to perform:
+\begin{equation}
+    surprise^{(k)} = - \log{message_{pa}^{(k)}}.
+\end{equation}
+
+
 
 \textbf{Infinite precision}\\
 \noindent
