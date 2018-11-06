@@ -200,28 +200,123 @@ and the value parent of a continuous input node needs to
     \item send down not only its posterior mean, but also the precision after each update.
 \end{enumerate}
 
-\subsubsection{Binary input nodes and binary HGF nodes}
+\subsubsection{Binary input nodes}
 Binary input nodes only have value parents. These value parents in turn are binary HGF nodes, which are special cases of HGF nodes, which themselves only have value parents.\\
 
-For binary input nodes, the precision of the input prediction $\hat{\pi}_{inp}$ is constant, i.e. we can treat it as a parameter. We distinguish two cases: Either the precision is infinite, i.e., $\hat{\pi}_{inp} = \inf$, or in other words, there is no sensory noise, or the precision has a finite value. However, this distinction will be made within its parent node, i.e., the binary HGF node.\\
+For binary input nodes, the precision of the input prediction $\hat{\pi}_{inp}$ is constant, i.e. we can treat it as a parameter. We distinguish two cases: Either the precision is infinite, i.e., $\hat{\pi}_{inp} = \inf$, or in other words, there is no sensory noise, or the precision has a finite value.\\
 
-The steps for a binary input node are very simple and it functions more or less only like a relay for incoming input. It needs to:
+In general, the steps for a binary input node are:
 \begin{itemize}
     \item receive input $u$
     \item determine time of input
-    \item send bottom-up: $u$ and time
+    \item compute prediction errors, if necessary
+    \item send bottom-up: $u$ or two prediction errors, input precision, and time
     \item receive top-down: prediction of parent $\hat{\mu}_{pa}$
     \item compute surprise based on message from parent.
 \end{itemize}
 
-The last point actually depends on the distinction between infinite and finite precision. However, because binary HGF nodes are special cases, too and to make things easier, only the binary HGF node will make that distinction and will thus send down the required quantity, such that the input node only needs to perform:
+The bottom-up messages and the surprise computation depend on the distinction between infinite and finite precision. We will now lay these out for the two cases.\\
+
+\noindent
+\textbf{Infinite precision}\\
+\noindent
+This case is very simple. If $\hat{\pi}_{inp}$ is infinite, then the bottom-messages are simply $\hat{\pi}_{inp}$ itself, and $u$. The surprise computation is also very simple:
 \begin{equation}
-    surprise^{(k)} = - \log{message_{pa}^{(k)}}.
+    surprise^{(k)} = \left.
+    \begin{cases}
+        -\log(1-\hat{\mu}_{pa}^{(k)}), & \text{for } u^{(k)} = 1\\
+        -\log(\hat{\mu}_{pa}^{(k)}), & \text{for } u^{(k)} = 0.
+    \end{cases}
+    \right.
 \end{equation}
 
 
-
-\textbf{Infinite precision}\\
 \noindent
+\textbf{Finite precision}\\
+\noindent
+Here, the input $u$ is actually not binary, but a real number whose distribution is a mixture of Gaussians. If $x_1 = 1$, the probability of $u$ is normally distributed with constant precision $\hat{\pi}_{inp}$ around a constant value $\eta_0$, corresponding to the most likely sensation if $x_1 = 1$. If, however, $x_1 = 0$, the most likely sensation is $\eta_0$ with the probability of $u$ normally distributed with the same precision.\\
 
+The messages to be sent bottom-up will in this case again be the precision $\hat{\pi}_{inp}$, along with two prediction errors, namely the deviations of the input $u$ from both possible values $\eta_a$ and $\eta_b$:
+\begin{align}
+    \delta_{inp, 1}^{(k)} &= u^{(k)} - \eta_1\\
+    \delta_{inp, 0}^{(k)} &= u^{(k)} - \eta_0.
+\end{align}
+
+Additionally, as always, the nodes need to send up the information about the time of the input. \\
+
+For suprise computation, the node depends again on receiving the prediction of the parent node $\hat{\mu}_{pa}^{(k)}$, and the two $\delta$ values:
+\begin{equation}
+    surprise^{(k)} = -\log(\hat{\mu}_{pa}^{(k)} * \mathcal{N}(u^{(k)}; \eta_1, \hat{\pi}_{inp}) + (1-\hat{\mu}_{pa}^{(k)}) * \mathcal{N}(u^{(k)}; \eta_0, \hat{\pi}_{inp}))
+\end{equation}
+
+The special cases that follow for the update of the parent node are restricted to binary HGF nodes, which therefore represent their own special case of HGF nodes. 
+
+\subsubsection{Binary HGF nodes}
+Binary nodes are parents of binary input nodes. Their cycle thus starts with receiving a bottom-up message from their child node, which, depending on the precision of the child binary input node, can be comprised of 3 ($\hat{\pi}_{inp}$, $u^{(k)}$, and the time of the input), or 4 quantities ($\hat{\pi}_{inp}$, $\delta_{inp,1}^{(k)}$, $\delta_{inp,0}^{(k)}$, and the time of the input). This message elicits the \textsf{UPDATE step}, where the two cases are reflected as follows:
+\begin{align}
+    \mu_i^{(k)} &= u^{(k)}\\
+    \pi_i^{(k)} &= \hat{\pi}_{inp}
+\end{align}
+if 
+\begin{equation}
+    \hat{\pi}_{inp} = \inf,
+\end{equation}
+and
+\begin{align}
+    \mu_i^{(k)} &= \frac{ \hat{\mu}_i^{(k)} * \exp(-\frac{1}{2} \hat{\pi}_{inp} (\delta_{inp, 1})^{2}) }{ \hat{\mu}_i^{(k)} * \exp(-\frac{1}{2} \hat{\pi}_{inp} (\delta_{inp, 1})^{2}) + (1-\hat{\mu}_i^{(k)}) * \exp(-\frac{1}{2} \hat{\pi}_{inp} (\delta_{inp, 0})^{2})  } \\
+    \pi_i^{(k)} &= \frac{1}{\hat{\mu}_i^{(k)} * (1-\hat{\mu}_i^{(k)})}
+\end{align}
+if 
+\begin{equation}
+    \hat{\pi}_{inp} \neq \inf.
+\end{equation}
+
+In the \textsf{PE step}, the binary node computes a \textsf{VAPE} for its parent node (which is always a value parent):
+\begin{equation}
+    \delta_i^{(k)} = \mu_i^{(k)} - \hat{\mu}_i^{(k)}.
+\end{equation}
+
+The parent node will perform a value update, but with two differences compared to the normal value update in HGF nodes. First of all, the predicted precision of the binary HGF node will enter the precision update in an unusual way:
+\begin{equation}
+    \pi_{pa}^{(k)} = \hat{\pi}_{pa}^{(k)} + \frac{1}{\hat{\pi}_i^{(k)}}.
+\end{equation}
+
+Second, the \textsf{VAPE} will not be precision-weighted by the low-level precision:
+\begin{equation}
+    \mu_{pa}^{(k)} = \hat{\mu}_{pa}^{(k)} + \frac{1}{\pi_{pa}^{(k)}} \delta_i^{(k)}.
+\end{equation}
+
+For the implementation, this means that we can either give the HGF node knowledge about who its child is and let the exact update depend on that, or we can let this be solved by the value connection, in which case this connection would need to signal the precision weight that is used for the mean update separately from the term that is used for the precision update.\\
+
+In any case, the information which needs to be sent bottom-up by a binary HGF node is:
+\begin{description}
+    \item[Prediction error:] $\delta_i^{(k)}$
+    \item[Predicted precision:] $\hat{\pi}_i^{(k)}$
+\end{description}
+
+In case the parent does not have knowledge about its child, the information would have to be sent in the following form:
+\begin{description}
+    \item[Prediction error:] $\delta_i^{(k)}$
+    \item[Precision weight for mean update:] $1$
+    \item[Precision term for precision update:] $\frac{1}{\hat{\pi}_i^{(k)}}$
+\end{description}
+
+Finally, in the \textsf{PREDICTION step}, the binary HGF node would compute its predictions based on its parents' predictions:
+\begin{align}
+    \hat{\mu}_i^{(k)} &= \frac{1}{1 + \exp(-\hat{\mu}_{pa}^{(k)})}\\
+    \hat{\pi}_i^{(k)} &= \frac{1}{\hat{\mu}_i^{(k)} * (1- \hat{\mu}_i^{(k)})}.
+\end{align}
+
+Thus, we need to introduce a new top-down signalling step at the beginning of each trial, where the parent nodes send down its current prediction of the mean, given the time of a new input. We anyway need to do this for the communication with continuous input nodes. \\
+
+\subsubsection{Summary: Implementational consequences}
+Due to the special cases of continuous input nodes and binary HGF nodes, which both can be potential children of regular HGF nodes, we need to introduce a few changes to the update and connection logic of regular HGF nodes:
+\begin{itemize}
+    \item HGF nodes need to elicit new predictions if prompted for by receiving information about the time of the new input, and send this prediction top-down. This is needed both for the computation of surprise in the continuous input nodes, but also for the computation of prediction error in continuous input nodes, and for the computation of predictions in binary HGF nodes.
+    \item For the case of value parents of continuous input nodes, HGF nodes need to signal top-down not only their posterior mean, but also their posterior precision, even though this is never needed except in the mentioned case.
+    \item Value connections need to separately bottom-up signal the precision weight of the upcoming prediction error, and the precision term needed to update the parent's precision.
+    \item Implementing volatility connections in the same way allows for an implementation where regular HGF nodes are completely unaware about which kind of node their child is. The computation necessary for the precision update, which is more elaborate in volatility coupling, will be part of the connection logic. An argument for this could be that the exact wiring of the connections will lead to the excitatory input needed in the level above to perform the precision update.
+\end{itemize}
+
+Everything else that is unusual about the computations within binary input nodes, continuous input nodes, and binary HGF nodes will be implemented within these nodes and not affect the regular HGF node.
 
