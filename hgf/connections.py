@@ -94,11 +94,11 @@ class BinaryInputToBinaryConnection(Connection):
         child = self.child
 
         if child.pihat == np.inf:
-            message = [child.pihat, 
+            message = [child.pihat.value, 
                        child.inputs[-1], 
                        child.times[-1]]
         else:
-            message = [child.pihat, 
+            message = [child.pihat.value, 
                        child.delta1s[-1], 
                        child.delta0s[-1], 
                        child.times[-1]]
