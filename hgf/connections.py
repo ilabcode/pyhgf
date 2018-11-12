@@ -121,6 +121,11 @@ class BinaryToStateConnection(Connection):
     # Initialize attributes
         super().__init__(child, parent)
 
+    def send_time_bottom_up(self, time):
+        parent = self.parent
+        message = parent.generate_new_prediction(time)
+        self.send_prediction_top_down()
+
     def send_bottom_up(self):
         child = self.child
         message = [child.vapes[-1], 
