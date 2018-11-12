@@ -312,6 +312,8 @@ class BinaryNode(object):
             self.update(message)
         elif flag == 'top-down-value':
             return message
+        elif flag == 'top-down-post':
+            self.send_prediction_top_down()
 
     def prompt_parent_prediction(self, time):
         message = self.bocon.send_time_bottom_up(time)
@@ -350,7 +352,6 @@ class BinaryNode(object):
 
         self.muhats.append(muhat)
         self.pihats.append(pihat)
-        self.send_prediction_top_down()
 
     def prediction_error(self):
         vape = self.vape

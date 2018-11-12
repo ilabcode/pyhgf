@@ -139,6 +139,11 @@ class BinaryToStateConnection(Connection):
         message = [parent.muhats[-1]]
         return super().send_top_down(self, message, flag)
 
+    def send_posterior_top_down(self):
+        flag = 'top-down-post'
+        message = None
+        super().send_top_down(self, message, flag)
+
 
 class StateToStateVolatilityConnection(object):
     """Connections for VOPE coupling between nodes"""
