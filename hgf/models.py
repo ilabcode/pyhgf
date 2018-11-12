@@ -1,5 +1,6 @@
 import numpy as np
 from hgf.nodes import *
+from hgf.connections import *
 from hgf.exceptions import ModelConfigurationError, HgfUpdateError
 
 # Generic HGF model
