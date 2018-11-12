@@ -30,10 +30,7 @@ class StateNode(object):
         self.m = Parameter(value=m)
         self.omega = Parameter(value=omega)
 
-        # Initialize child node
-        self.child = [];
-
-        # Initialize parent connections
+        # Initialize connections
         self.td_cons = []
         self.bo_cons = []
 
@@ -234,7 +231,8 @@ class BinaryNode(object):
     """HGF binary state node"""
     def __init__(self):
 
-        # Initialize parent connection
+        # Initialize connections
+        self.td_con = None
         self.bo_con = None
 
         # Initialize time series
@@ -248,6 +246,8 @@ class BinaryNode(object):
     @property
     def connections(self):
         connections = []
+        if self.td_con:
+            connections.append(self.td_con)
         if self.bo_con:
             connections.append(self.bo_con)
         return connections
