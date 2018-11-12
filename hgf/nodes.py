@@ -359,5 +359,162 @@ class BinaryNode(object):
     def vape(self):
         return self.mus[-1] - self.muhats[-1]
 
+nary input nodes
+class BinaryInputNode(object):
+    """An HGF node that receives binary input"""
+    def __init__(self,
+                 *,
+                 pihat=np.inf,
+                 eta0=0,
+                 eta1=1):
 
-                                      
+        # Incorporate parameter attributes
+        self.pihat = Parameter(value=pihat, space='log')
+        self.eta0 = Parameter(value=eta0)
+        self.eta1 = Parameter(value=eta1)
+
+        # Initialize connections
+        self.bo_con = None
+
+        # Initialize time series
+        self.times = [0]
+        self.inputs = [None]
+        self.inputs_with_times = [(None, 0)]
+        self.delta1s = [None]
+        self.delta0s = [None]
+        self.surprises = [0]
+
+    @property
+    def connections(self):
+        connections = []
+        if self.bocon is not None:
+            connections.append(self.bocon)
+        return connections
+
+    @property
+    def params(self):
+        return [self.pihat,
+                self.eta0,
+                self.eta1]
+
+    def reset(self):
+        self._times_backup = self.times
+        self.times = [0]
+
+        self._inputs_backup = self.inputs
+        self.inputs = [None]
+
+        self._inputs_with_times_backup = self.inputs_with_times
+        self.inputs_with_times = [(None, 0)]
+
+        self._delta1s_backup = self.delta1s
+        self.delta1s = [None]
+
+        self._delta0s_backup = self.delta0s
+        self.delta0s = [None]
+
+        self._surprises_backup = self.surprises
+        self.surprises = [0]
+
+    def undo_last_reset(self):
+        self.times = self._times_backup
+        self.inputs = self._inputs_backup
+        self.inputs_with_times = self._inputs_with_times_backup
+        self.delta1s = self._delta1s_backup
+        self.delta0s = self._delta0s_backup
+        self.surprises = self._surprises_backup
+
+    #TODO
+    #def reset_hierarchy(self):
+    #    self.reset()
+    #    for pa in self.parents:
+    #        pa.reset_hierarchy()
+
+    #def undo_last_reset_hierarchy(self):
+    #    self.undo_last_reset()
+    #    for pa in self.parents:
+    #        pa.undo_last_reset_hierarchy()
+
+    #def recalculate(self):
+    #    iwt = list(self.inputs_with_times[1:])
+    #    self.reset_hierarchy()
+    #    try:
+    #        self.input(iwt)
+    #    except HgfUpdateError as e:
+    #        self.undo_last_reset_hierarchy()
+    #        raise e
+
+    def set_bottom_up_connection(self, bocon):
+        self.bo_con = bocon
+
+    def send_bottom_up(self):
+        self.bo_con.send_bottom_up()
+
+    def receive_single_input(self, value, time):
+        self.times.append(time)
+        self.inputs.append(value)
+        self.inputs_with_times.append((value, time))
+
+        if self.pihat != np.inf:
+            self.prediction_error()
+
+        self.send_bottom_up()
+
+'''
+    def update_parent(self, value, time):
+        pa = self.pa
+        if not pa:
+            return
+
+        surprise = 0
+
+        pihat = self.pihat.value
+
+        muhat_pa, pihat_pa = pa.new_muhat_pihat(time)
+
+        if pihat == np.inf:
+            # Just pass the value through in the absence of noise
+            mu_pa = value
+            pi_pa = np.inf
+            surprise = binary_surprise(value, muhat_pa)
+        else:
+            eta1 = self.eta1.value
+            eta0 = self.eta0.value
+            # Likelihood under eta1
+            und1 = np.exp(-pihat / 2 * (value - eta1)**2)
+            # Likelihood under eta0
+            und0 = np.exp(-pihat / 2 * (value - eta0)**2)
+            # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
+            mu_pa = muhat_pa * und1 / (muhat_pa * und1 + (1 - muhat_pa) * und0)
+            pi_pa = 1 / (mu_pa * (1 - mu_pa))
+            # Surprise
+            surprise = (-np.log(muhat_pa * gaussian(value, eta1, pihat) +
+                        (1 - muhat_pa) * gaussian(value, eta0, pihat)))
+
+        pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa)
+
+        return surprise
+
+    def _single_input(self, value, time):
+        self.times.append(time)
+        self.inputs.append(value)
+        self.inputs_with_times.append((value, time))
+        self.surprises.append(self.update_parent(value, time))
+
+    def input(self, inputs):
+        try:
+            for input in inputs:
+                try:
+                    value = input[0]
+                    time = input[1]
+                except IndexError:
+                    value = input
+                    time = self.times[-1] + 1
+                finally:
+                    self._single_input(value, time)
+        except TypeError:
+            value = inputs
+            time = self.times[-1] + 1
+            self._single_input(value, time)
+   '''
+                                   
