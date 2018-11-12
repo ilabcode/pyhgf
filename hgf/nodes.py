@@ -450,6 +450,26 @@ class BinaryInputNode(object):
     def send_bottom_up(self):
         self.bo_con.send_bottom_up()
 
+    def receive(self, message, flag):
+        if flag == 'top-down-value':
+            self.compute_surprise(message)
+
+    def input(self, inputs):
+        try:
+            for input in inputs:
+                try:
+                    value = input[0]
+                    time = input[1]
+                except IndexError:
+                    value = input[0]
+                    time = self.times[-1] + 1
+                finally:
+                    self.receive_single_input(value, time)
+        except TypeError:
+            value = inputs
+            time = self.times[-1] + 1
+            self.receive_single_input(value, time)
+
     def receive_single_input(self, value, time):
         self.times.append(time)
         self.inputs.append(value)
@@ -460,61 +480,23 @@ class BinaryInputNode(object):
 
         self.send_bottom_up()
 
-'''
-    def update_parent(self, value, time):
-        pa = self.pa
-        if not pa:
-            return
+    def prediction_error(self):
+        delta1 = self.inputs[-1] - self.eta1.value
+        delta0 = self.inputs[-1] - self.eta0.value
 
-        surprise = 0
+        self.delta1s.append(delta1)
+        self.delta0s.append(delta0)
 
+    def compute_surprise(self, muhat_pa):
         pihat = self.pihat.value
-
-        muhat_pa, pihat_pa = pa.new_muhat_pihat(time)
-
+        value = self.inputs[-1]
         if pihat == np.inf:
-            # Just pass the value through in the absence of noise
-            mu_pa = value
-            pi_pa = np.inf
             surprise = binary_surprise(value, muhat_pa)
         else:
             eta1 = self.eta1.value
             eta0 = self.eta0.value
-            # Likelihood under eta1
-            und1 = np.exp(-pihat / 2 * (value - eta1)**2)
-            # Likelihood under eta0
-            und0 = np.exp(-pihat / 2 * (value - eta0)**2)
-            # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
-            mu_pa = muhat_pa * und1 / (muhat_pa * und1 + (1 - muhat_pa) * und0)
-            pi_pa = 1 / (mu_pa * (1 - mu_pa))
-            # Surprise
             surprise = (-np.log(muhat_pa * gaussian(value, eta1, pihat) +
                         (1 - muhat_pa) * gaussian(value, eta0, pihat)))
-
-        pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa)
-
-        return surprise
-
-    def _single_input(self, value, time):
-        self.times.append(time)
-        self.inputs.append(value)
-        self.inputs_with_times.append((value, time))
-        self.surprises.append(self.update_parent(value, time))
-
-    def input(self, inputs):
-        try:
-            for input in inputs:
-                try:
-                    value = input[0]
-                    time = input[1]
-                except IndexError:
-                    value = input
-                    time = self.times[-1] + 1
-                finally:
-                    self._single_input(value, time)
-        except TypeError:
-            value = inputs
-            time = self.times[-1] + 1
-            self._single_input(value, time)
-   '''
-                                   
+        self.surprises.append(surprise)
+        
+                            
