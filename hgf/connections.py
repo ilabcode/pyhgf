@@ -42,13 +42,13 @@ class StateToStateValueConnection(Connection):
         message = [self.psi**2 * child.pihats[-1] * child.vapes[-1], 
                    self.psi**2 * child.pihats[-1], 
                    child.times[-1]]
-        super().send_bottom_up(self, message)
+        super().send_bottom_up(message)
 
     def send_posterior_top_down(self):
         flag = 'top-down-value'
         parent = self.parent
         message = [self.psi * parent.mus[-1]]
-        super().send_top_down(self, message, flag)
+        super().send_top_down(message, flag)
 
 
 class InputToStateValueConnection(Connection):
@@ -65,20 +65,20 @@ class InputToStateValueConnection(Connection):
         message = [child.pihats[-1] * child.vapes[-1], 
                    child.pihats[-1], 
                    child.times[-1]]
-        super().send_bottom_up(self, message)
+        super().send_bottom_up(message)
 
     def send_posterior_top_down(self):
         flag = 'top-down-value'
         parent = self.parent
         message = [parent.mus[-1], 
                    parent.pis[-1]]
-        super().send_top_down(self, message, flag)
+        super().send_top_down(message, flag)
 
     def send_prediction_top_down(self):
         flag = 'top-down-value'
         parent = self.parent
         message = [parent.muhats[-1]]
-        super().send_top_down(self, message, flag)
+        super().send_top_down(message, flag)
 
 
 class BinaryInputToBinaryConnection(Connection):
@@ -103,13 +103,13 @@ class BinaryInputToBinaryConnection(Connection):
                        child.delta0s[-1], 
                        child.times[-1]]
 
-        super().send_bottom_up(self, message)
+        super().send_bottom_up(message)
 
     def send_prediction_top_down(self):
         flag = 'top-down-value'
         parent = self.parent
         message = [parent.muhats[-1]]
-        super().send_top_down(self, message, flag)
+        super().send_top_down(message, flag)
 
 
 class BinaryToStateConnection(Connection):
@@ -131,18 +131,18 @@ class BinaryToStateConnection(Connection):
         message = [child.vapes[-1], 
                    1 / child.pihats[-1], 
                    child.times[-1]]
-        super().send_bottom_up(self, message)
+        super().send_bottom_up(message)
 
     def send_prediction_top_down(self):
         flag = 'top-down-value'
         parent = self.parent
         message = [parent.muhats[-1]]
-        return super().send_top_down(self, message, flag)
+        return super().send_top_down(message, flag)
 
     def send_posterior_top_down(self):
         flag = 'top-down-post'
         message = None
-        super().send_top_down(self, message, flag)
+        super().send_top_down(message, flag)
 
 
 class StateToStateVolatilityConnection(object):
@@ -163,13 +163,13 @@ class StateToStateVolatilityConnection(object):
                    1 / 2 * self.kappa**2 * child.gammas[-1]**2 *\
                    (1 + 2 * child.vopes[-1] - child.vopes[-1] / child.gammas[-1]),
                    child.times[-1]]
-        super().send_bottom_up(self, message)
+        super().send_bottom_up(message)
 
     def send_posterior_top_down(self):
         flag = 'top-down-volatility'
         parent = self.parent
         message = [self.kappa * parent.mus[-1]]
-        super().send_top_down(self, message, flag)
+        super().send_top_down(message, flag)
 
 
 # We could also drop this and use the regular state to state connection
@@ -187,11 +187,11 @@ class InputToStateVolatilityConnection(Connection):
         message = [1 / 2 * self.kappa * child.vopes[-1],
                    1 / 2 * self.kappa **2 * (1 + child.vopes[-1]),
                    child.times[-1]]
-        super().send_bottom_up(self, message)
+        super().send_bottom_up(message)
 
     def send_posterior_top_down(self):
         flag = 'top-down-volatility'
         parent = self.parent
         message = [self.kappa * parent.mus[-1]]
-        super().send_top_down(self, message, flag)
+        super().send_top_down(message, flag)
 
