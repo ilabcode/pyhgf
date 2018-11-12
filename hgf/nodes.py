@@ -86,6 +86,15 @@ class StateNode(object):
         self._nus_backup = self.nus
         self.nus = [None]
 
+        self._gammas_backup = self.gammas
+        self.gammas = [None]
+
+        self._vapes_backup = self.vapes
+        self.vapes = [None]
+
+        self._vopes_backup = self.vopes
+        self.vopes = [None]
+
         self._driftrate_backup = self.driftrate
         self.driftrate = self.rho.value
 
@@ -100,6 +109,9 @@ class StateNode(object):
         self.muhats = self._muhats_backup
         self.mus = self._mus_backup
         self.nus = self._nus_backup
+        self.gammas = self._gammas_backup
+        self.vapes = self._vapes_backup
+        self.vopes = self._vopes_backup
         self.driftrate = self._driftrate_backup
         self.logvol = self._logvol_backup
 
@@ -231,6 +243,7 @@ class BinaryNode(object):
         self.pis = [None]
         self.muhats = [None]
         self.mus = [None]
+        self.vapes = [None]
 
     @property
     def connections(self):
@@ -259,12 +272,16 @@ class BinaryNode(object):
         self._mus_backup = self.mus
         self.mus = [None]
 
+        self._vapes_backup = self.vapes
+        self.vapes = [None]
+
     def undo_last_reset(self):
         self.times = self._times_backup
         self.pihats = self._pihats_backup
         self.pis = self._pis_backup
         self.muhats = self._muhats_backup
         self.mus = self._mus_backup
+        self.vapes = self._vapes_backup
 
     #TODO
     #def reset_hierarchy(self):
