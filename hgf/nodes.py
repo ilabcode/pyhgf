@@ -1,6 +1,7 @@
 import numpy as np
 from hgf.connections import *
 from hgf.parameters import *
+from hgf.utils import *
 from hgf.exceptions import NodeConfigurationError, HgfUpdateError
 
 
