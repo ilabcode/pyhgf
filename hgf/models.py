@@ -1,3 +1,7 @@
+import numpy as np
+from hgf.nodes import *
+from hgf.exceptions import ModelConfigurationError, HgfUpdateError
+
 # Generic HGF model
 class Model(object):
     """Generic HGF model"""

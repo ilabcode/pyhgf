@@ -1,3 +1,8 @@
+import numpy as np
+from hgf.parameters import *
+from hgf.exceptions import NodeConfigurationError, HgfUpdateError
+
+
 # HGF continuous state node
 class StateNode(object):
     """HGF continuous state node"""

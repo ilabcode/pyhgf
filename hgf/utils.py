@@ -1,3 +1,6 @@
+import numpy as np
+from hgf.exceptions import OutcomeValueError, LogArgumentError, LogitArgumentError
+
 def exp(x, *, lower_bound=0, upper_bound=None):
     """The (shifted and mirrored) exponential function"""
     if upper_bound is not None:
@@ -65,5 +68,6 @@ def binary_surprise(x, muhat):
         return -np.log(muhat)
     else:
         raise OutcomeValueError('Outcome needs to be either 0 or 1.')
+
 
 
