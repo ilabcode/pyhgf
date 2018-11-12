@@ -99,8 +99,8 @@ class BinaryInputToBinaryConnection(Connection):
                        child.times[-1]]
         else:
             message = [child.pihat, 
-                       child.vapes1[-1], 
-                       child.vapes0[-1], 
+                       child.delta1s[-1], 
+                       child.delta0s[-1], 
                        child.times[-1]]
 
         super().send_bottom_up(self, message)
