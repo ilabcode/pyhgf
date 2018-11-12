@@ -16,7 +16,7 @@ class Connection(object):
 
     def send_top_down(self, message, flag):
         child = self.child
-        child.receive(message, flag)
+        return child.receive(message, flag)
 
     def send_posterior_top_down(self):
         pass
@@ -124,7 +124,7 @@ class BinaryToStateConnection(Connection):
     def send_time_bottom_up(self, time):
         parent = self.parent
         message = parent.generate_new_prediction(time)
-        self.send_prediction_top_down()
+        return self.send_prediction_top_down()
 
     def send_bottom_up(self):
         child = self.child
@@ -137,7 +137,7 @@ class BinaryToStateConnection(Connection):
         flag = 'top-down-value'
         parent = self.parent
         message = [parent.muhats[-1]]
-        super().send_top_down(self, message, flag)
+        return super().send_top_down(self, message, flag)
 
 
 class StateToStateVolatilityConnection(object):
