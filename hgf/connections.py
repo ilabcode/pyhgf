@@ -124,7 +124,7 @@ class BinaryToStateConnection(Connection):
     def send_time_bottom_up(self, time):
         parent = self.parent
         message = parent.generate_new_prediction(time)
-        return self.send_prediction_top_down()
+        return self.send_prediction_top_down(message)
 
     def send_bottom_up(self):
         child = self.child
@@ -133,10 +133,8 @@ class BinaryToStateConnection(Connection):
                    child.times[-1]]
         super().send_bottom_up(message)
 
-    def send_prediction_top_down(self):
+    def send_prediction_top_down(self, message):
         flag = 'top-down-value'
-        parent = self.parent
-        message = [parent.muhats[-1]]
         return super().send_top_down(message, flag)
 
     def send_posterior_top_down(self):
