@@ -226,6 +226,13 @@ class StateNode(object):
     def vope(self, vape):
         return self.pihats[-1] * (1 / self.pis[-1] + vape**2) -1
 
+    # this is only needed for communication with binary nodes, which can 
+    # prompt state nodes to compute new predictions of their mean, given 
+    # current time
+    def generate_new_prediction(self, time):
+        t = time - self.times[-1]
+        muhat = self.new_muhat(t)
+        return muhat
 
 # HGF binary state node
 class BinaryNode(object):
@@ -361,7 +368,7 @@ class BinaryNode(object):
     def vape(self):
         return self.mus[-1] - self.muhats[-1]
 
-nary input nodes
+# HGF binary input nodes
 class BinaryInputNode(object):
     """An HGF node that receives binary input"""
     def __init__(self,
