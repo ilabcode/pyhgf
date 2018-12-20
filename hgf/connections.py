@@ -60,12 +60,18 @@ class InputToStateValueConnection(Connection):
     # Initialize attributes
         super().__init__(child, parent)
 
-    def send_bottom_up(self):
-        child = self.child
-        message = [child.pihats[-1] * child.vapes[-1], 
-                   child.pihats[-1], 
-                   child.times[-1]]
-        super().send_bottom_up(message)
+    def send_time_bottom_up(self, time):
+        parent = self.parent
+        message = parent.generate_new_prediction(time)
+        return self.send_prediction_top_down(message)
+
+    def send_bottom_up(self, flag):
+        if flag == 'vape':
+            child = self.child
+            message = [child.pihats[-1] * child.vapes[-1],
+                       child.pihats[-1],
+                       child.times[-1]]
+            super().send_bottom_up(message)
 
     def send_posterior_top_down(self):
         flag = 'top-down-value'
@@ -74,11 +80,9 @@ class InputToStateValueConnection(Connection):
                    parent.pis[-1]]
         super().send_top_down(message, flag)
 
-    def send_prediction_top_down(self):
-        flag = 'top-down-value'
-        parent = self.parent
-        message = [parent.muhats[-1]]
-        super().send_top_down(message, flag)
+    def send_prediction_top_down(self, message):
+        flag = 'top-down-prediction'
+        return super().send_top_down(message, flag)
 
 
 class BinaryInputToBinaryConnection(Connection):
