@@ -32,7 +32,7 @@ class StateNode(object):
         self.omega = Parameter(value=omega)
 
         # Initialize connections
-        self.td_cons = []
+        self.td_con = []
         self.bo_cons = []
 
         # Initialize time series
@@ -50,7 +50,7 @@ class StateNode(object):
     @property
     def connections(self):
         connections = []
-        connections.extend(self.td_cons)
+        connections.extend(self.td_con)
         connections.extend(self.bo_cons)
         return connections
 
@@ -124,15 +124,15 @@ class StateNode(object):
     #    for pa in self.parents:
     #        pa.undo_last_reset_hierarchy()
 
-    def add_top_down_connection(self, tdcon):
-        self.td_cons.append(tdcon)
+    def set_top_down_connection(self, tdcon):
+        self.td_con.append(tdcon)
 
     def add_bottom_up_connection(self, bocon):
         self.bo_cons.append(bocon)
 
     def send_bottom_up(self):
         for i, bocon in self.bo_cons:
-            self.bo_con[i].send_bottom_up()
+            self.bo_cons[i].send_bottom_up()
 
     def send_posterior_top_down(self):
         self.td_con.send_posterior_top_down()
@@ -396,8 +396,8 @@ class BinaryInputNode(object):
     @property
     def connections(self):
         connections = []
-        if self.bocon is not None:
-            connections.append(self.bocon)
+        if self.bo_con is not None:
+            connections.append(self.bo_con)
         return connections
 
     @property
