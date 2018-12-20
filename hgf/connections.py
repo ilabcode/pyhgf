@@ -184,12 +184,13 @@ class InputToStateVolatilityConnection(Connection):
     # Initialize attributes
         super().__init__(child, parent)
 
-    def send_bottom_up(self):
-        child = self.child
-        message = [1 / 2 * self.kappa * child.vopes[-1],
-                   1 / 2 * self.kappa **2 * (1 + child.vopes[-1]),
-                   child.times[-1]]
-        super().send_bottom_up(message)
+    def send_bottom_up(self, flag):
+        if flag == 'vope':
+            child = self.child
+            message = [1 / 2 * self.kappa * child.vopes[-1],
+                       1 / 2 * self.kappa **2 * (1 + child.vopes[-1]),
+                       child.times[-1]]
+            super().send_bottom_up(message)
 
     def send_posterior_top_down(self):
         flag = 'top-down-volatility'
