@@ -158,6 +158,10 @@ class StateNode(object):
         muhat = self.muhats[-1]
 
         pi = pihat + message[1]
+        if pi <= 0:
+            raise HgfUpdateError(
+                'Negative posterior precision. Parameters values are\n' +
+                'in a region where model assumptions are violated.')
         mu = muhat + (message[0] / pi)
 
         self.pis.append(pi)
