@@ -512,4 +512,232 @@ class BinaryInputNode(object):
                         (1 - muhat_pa) * gaussian(value, eta0, pihat)))
         self.surprises.append(surprise)
         
-                            
+                 
+
+# HGF input node    
+class InputNode(object):
+    """An HGF node that receives input on a continuous scale"""
+    def __init__(self, *, omega):
+
+        # Incorporate parameter attributes
+        self.omega = Parameter(value=omega)
+        
+        # Initialize connections
+        self.bo_cons = None
+
+        # Initialize time series
+        self.times = [0]
+        self.inputs = [None]
+        self.inputs_with_times = [(None, 0)]
+        self.surprises = [0]
+
+        self.pihats = [None]
+        self.pis = [None]
+        self.muhats = [None]
+        self.mus = [None]
+        self.vapes = [None]
+        self.vopes = [None]
+        self.lognoise = self.omega.value
+
+    @property
+    def connections(self):
+        connections = []
+        connections.extend(self.bo_cons)
+        return connections
+
+    @property
+    def params(self):
+        params = [self.omega]
+
+        if self.kappa is not None:
+            params.append(self.kappa)
+
+        return params
+
+    def reset(self):
+        self._times_backup = self.times
+        self.times = [0]
+
+        self._inputs_backup = self.inputs
+        self.inputs = [None]
+
+        self._inputs_with_times_backup = self.inputs_with_times
+        self.inputs_with_times = [(None, 0)]
+
+        self._surprises_backup = self.surprises
+        self.surprises = [0]
+
+        self._pihats_backup = self.pihats
+        self.pihats = [None]
+
+        self._pis_backup = self.pis
+        self.pis = [None]
+
+        self._muhats_backup = self.muhats
+        self.muhats = [None]
+
+        self._mus_backup = self.mus
+        self.mus = [None]
+
+        self._nus_backup = self.nus
+        self.nus = [None]
+
+        self._vapes_backup = self.vapes
+        self.vapes = [None]
+
+        self._vopes_backup = self.vopes
+        self.vopes = [None]
+
+        self._lognoise_backup = self.lognoise
+        self.lognoise = self.omega.value
+
+    def undo_last_reset(self):
+        self.times = self._times_backup
+        self.inputs = self._inputs_backup
+        self.inputs_with_times = self._inputs_with_times_backup
+        self.surprises = self._surprises_backup
+        self.pihats = self._pihats_backup
+        self.pis = self._pis_backup
+        self.muhats = self._muhats_backup
+        self.mus = self._mus_backup
+        self.nus = self._nus_backup
+        self.vapes = self._vapes_backup
+        self.vopes = self._vopes_backup
+        self.lognoise = self._lognoise_backup
+
+#    def reset_hierarchy(self):
+#        self.reset()
+#        for pa in self.parents:
+#            pa.reset_hierarchy()
+
+#    def undo_last_reset_hierarchy(self):
+#        self.undo_last_reset()
+#        for pa in self.parents:
+#            pa.undo_last_reset_hierarchy()
+
+#    def recalculate(self):
+#        iwt = list(self.inputs_with_times[1:])
+#        self.reset_hierarchy()
+#        try:
+#            self.input(iwt)
+#        except HgfUpdateError as e:
+#            self.undo_last_reset_hierarchy()
+#            raise e
+
+    def add_bottom_up_connection(self, bocon):
+        self.bo_cons.append(bocon)
+       
+    def send_bottom_up(self, flag):
+        for i, bocon in self.bo_cons:
+        self.bo_cons[i].send_bottom_up(flag)
+
+    def receive(self, message, flag):
+        if flag == 'top-down-value':
+            self.update_precision(message)
+        elif flag == 'top-down-volatility':
+            self.lognoise += message[0]
+        elif flag == 'top-down-prediction':
+            return message
+
+    def input(self, inputs):
+        try:
+            for input in inputs:
+                try:
+                    value = input[0]
+                    time = input[1]
+                except IndexError:
+                    value = input
+                    time = self.times[-1] + 1
+                    self._single_input(value, time)
+        except TypeError:
+            value = inputs
+            time = self.times[-1] + 1
+            self.receive_single_input(value, time)
+
+    def receive_single_input(self, value, time):
+        self.times.append(time)
+        self.inputs.append(value)
+        self.inputs_with_times.append((value, time))
+
+        self.compute_prediction(time)
+        self.update_mean()
+
+        surprise = self.compute_surprise()
+        self.surprises.append(surprise)
+
+   def compute_prediction(self, time):
+        muhat_pa = prompt_parent_prediction(time)
+        muhat = muhat_pa
+        nu = self.new_nu(t)
+        pihat = self.new_pihat(nu)
+        
+        self.muhats.append(muhat)
+        self.pihats.append(pihat)
+
+    def prompt_parent_prediction(self, time):
+        message = self.bocon.send_time_bottom_up(time)
+        return message
+
+    def new_nu(self):
+        nu = np.exp(self.lognoise)
+        if nu > 1e-128:
+            return nu
+        else:
+            raise HgfUpdateError(
+                'Nu is zero. Parameters values are in region where model\n' +
+                'assumptions are violated.')
+
+    def new_pihat(self, nu):
+        return 1 / nu
+
+   def update_mean(self):        
+        mu = self.inputs[-1]
+        self.mus.append(mu)
+        
+        # reset lognoise
+        self.lognoise = self.omega.value
+
+        self.vape()
+
+    def vape(self):
+        vape = self.mus[-1] - self.muhats[-1]
+        self.vapes.append(vape)
+        self.send_bottom_up('vape')
+
+    def update_precision(self, message)
+        pi_vapa = message[0]
+        pi = pi_vapa
+        self.pis.append(pi)
+
+        mu_vapa = message[1]
+        self.vope(mu_vapa)
+
+    def vope(self, mu_vapa)
+        pe = self.inputs[-1] - mu_vapa
+        vope = self.pihats[-1] * (1 / self.pis[-1] + pe**2) -1
+        self.vopes.append(vope)
+        self.send_bottom_up('vope')
+ 
+    def compute_surprise(self):
+        value = self.inputs[-1]
+        muhat = self.muhats[-1]
+        pihat = self.pihats[-1]
+        return gaussian_surprise(value, muhat, pihat)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+           
