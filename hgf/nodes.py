@@ -113,17 +113,6 @@ class StateNode(object):
         self.driftrate = self._driftrate_backup
         self.logvol = self._logvol_backup
 
-    # TODO
-    #def reset_hierarchy(self):
-    #    self.reset()
-    #    for pa in self.parents:
-    #        pa.reset_hierarchy()
-
-    #def undo_last_reset_hierarchy(self):
-    #    self.undo_last_reset()
-    #    for pa in self.parents:
-    #        pa.undo_last_reset_hierarchy()
-
     def set_top_down_connection(self, tdcon):
         self.td_con.append(tdcon)
 
@@ -295,17 +284,6 @@ class BinaryNode(object):
         self.mus = self._mus_backup
         self.vapes = self._vapes_backup
 
-    #TODO
-    #def reset_hierarchy(self):
-    #    self.reset()
-    #    for pa in self.parents:
-    #        pa.reset_hierarchy()
-
-    #def undo_last_reset_hierarchy(self):
-    #    self.undo_last_reset()
-    #    for pa in self.parents:
-    #        pa.undo_last_reset_hierarchy()
-
     def set_bottom_up_connection(self, bocon):
         self.bo_con = bocon
 
@@ -437,26 +415,6 @@ class BinaryInputNode(object):
         self.delta0s = self._delta0s_backup
         self.surprises = self._surprises_backup
 
-    #TODO
-    #def reset_hierarchy(self):
-    #    self.reset()
-    #    for pa in self.parents:
-    #        pa.reset_hierarchy()
-
-    #def undo_last_reset_hierarchy(self):
-    #    self.undo_last_reset()
-    #    for pa in self.parents:
-    #        pa.undo_last_reset_hierarchy()
-
-    #def recalculate(self):
-    #    iwt = list(self.inputs_with_times[1:])
-    #    self.reset_hierarchy()
-    #    try:
-    #        self.input(iwt)
-    #    except HgfUpdateError as e:
-    #        self.undo_last_reset_hierarchy()
-    #        raise e
-
     def set_bottom_up_connection(self, bocon):
         self.bo_con = bocon
 
@@ -548,10 +506,6 @@ class InputNode(object):
     @property
     def params(self):
         params = [self.omega]
-
-        if self.kappa is not None:
-            params.append(self.kappa)
-
         return params
 
     def reset(self):
@@ -605,31 +559,12 @@ class InputNode(object):
         self.vopes = self._vopes_backup
         self.lognoise = self._lognoise_backup
 
-#    def reset_hierarchy(self):
-#        self.reset()
-#        for pa in self.parents:
-#            pa.reset_hierarchy()
-
-#    def undo_last_reset_hierarchy(self):
-#        self.undo_last_reset()
-#        for pa in self.parents:
-#            pa.undo_last_reset_hierarchy()
-
-#    def recalculate(self):
-#        iwt = list(self.inputs_with_times[1:])
-#        self.reset_hierarchy()
-#        try:
-#            self.input(iwt)
-#        except HgfUpdateError as e:
-#            self.undo_last_reset_hierarchy()
-#            raise e
-
     def add_bottom_up_connection(self, bocon):
         self.bo_cons.append(bocon)
        
     def send_bottom_up(self, flag):
         for i, bocon in self.bo_cons:
-        self.bo_cons[i].send_bottom_up(flag)
+            self.bo_cons[i].send_bottom_up(flag)
 
     def receive(self, message, flag):
         if flag == 'top-down-value':
@@ -665,7 +600,7 @@ class InputNode(object):
         surprise = self.compute_surprise()
         self.surprises.append(surprise)
 
-   def compute_prediction(self, time):
+    def compute_prediction(self, time):
         muhat_pa = prompt_parent_prediction(time)
         muhat = muhat_pa
         nu = self.new_nu(t)
@@ -690,7 +625,7 @@ class InputNode(object):
     def new_pihat(self, nu):
         return 1 / nu
 
-   def update_mean(self):        
+    def update_mean(self):        
         mu = self.inputs[-1]
         self.mus.append(mu)
         
@@ -704,7 +639,7 @@ class InputNode(object):
         self.vapes.append(vape)
         self.send_bottom_up('vape')
 
-    def update_precision(self, message)
+    def update_precision(self, message):
         pi_vapa = message[0]
         pi = pi_vapa
         self.pis.append(pi)
@@ -712,7 +647,7 @@ class InputNode(object):
         mu_vapa = message[1]
         self.vope(mu_vapa)
 
-    def vope(self, mu_vapa)
+    def vope(self, mu_vapa):
         pe = self.inputs[-1] - mu_vapa
         vope = self.pihats[-1] * (1 / self.pis[-1] + pe**2) -1
         self.vopes.append(vope)
@@ -724,20 +659,3 @@ class InputNode(object):
         pihat = self.pihats[-1]
         return gaussian_surprise(value, muhat, pihat)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-           
