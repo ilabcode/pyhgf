@@ -152,16 +152,26 @@ class Model(object):
         self._connections.append(c)
 
     def reset(self):
-        for input_node in self.input_nodes:
-            input_node.reset_hierarchy()
+        for node in self.nodes:
+            node.reset()
 
     def undo_last_reset(self):
-        for input_node in self.input_nodes:
-            input_node.undo_last_reset_hierarchy()
+        for node in self.nodes:
+            node.undo_last_reset()
 
+    # TODO: make this work for multiple input nodes
     def recalculate(self):
         for input_node in self.input_nodes:
-            input_node.recalculate()
+            iwt = list(input_node.inputs_with_times[1:])
+        for node in self.nodes:
+            node.reset()
+        for input_node in self.input_nodes:
+            try:
+                input_node.input(iwt)
+            except HgfUpdateError as e:
+                for node in self.nodes:
+                    node.undo_last_reset()
+                raise e
 
     def surprise(self):
         surprise = 0
