@@ -119,17 +119,17 @@ class Model(object):
         if isinstance(parent, StateNode):
             if isinstance(child, StateNode):
                 c = StateToStateValueConnection(child, parent, psi)
-           elif isinstance(child, InputNode):
+            elif isinstance(child, InputNode):
                 c = InputToStateValueConnection(child, parent)
-           elif isinstance(child, BinaryNode):
+            elif isinstance(child, BinaryNode):
                 c = BinaryToStateConnection(child, parent)
-           else:
+            else:
                 raise ModelConfigurationError(
                 'State nodes can only be value parents to state nodes, binary nodes, and continuous input nodes.')
         elif isinstance(parent, BinaryNode):
             if isinstance(child, BinaryInputNode):
                 c = BinaryInputToBinaryConnection(child, parent)
-           else: 
+            else: 
                 raise ModelConfigurationError(
                 'Binary nodes can only be parents to binary input nodes.')
         else:
@@ -141,9 +141,9 @@ class Model(object):
         if isinstance(parent, StateNode):
             if isinstance(child, StateNode):
                 c = StateToStateVolatilityConnection(child, parent, kappa)
-           elif isinstance(child, InputNode):
+            elif isinstance(child, InputNode):
                 c = InputToStateVolatilityConnection(child, parent, kappa)
-           else:
+            else:
                 raise ModelConfigurationError(
                 'State nodes can only be volatility parents to continuous input nodes and state nodes.')
         else:
