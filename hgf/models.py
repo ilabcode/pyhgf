@@ -8,10 +8,15 @@ class Model(object):
     """Generic HGF model"""
     def __init__(self):
         self._nodes = []
+        self._connections = []
 
     @property
     def nodes(self):
         return self._nodes
+
+    @property
+    def connections(self):
+        return self._connections
 
     @property
     def input_nodes(self):
@@ -27,6 +32,8 @@ class Model(object):
         params = []
         for node in self.nodes:
             params.extend(node.params)
+        for connection in self.connections:
+            params.extend(connection.params)
         return params
 
     @property
