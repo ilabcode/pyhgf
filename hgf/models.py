@@ -115,6 +115,42 @@ class Model(object):
         self._nodes.append(node)
         return node
 
+    def add_value_connection(self, child, parent, psi=1):
+        if isinstance(parent, StateNode):
+            if isinstance(child, StateNode):
+                c = StateToStateValueConnection(child, parent, psi)
+           elif isinstance(child, InputNode):
+                c = InputToStateValueConnection(child, parent)
+           elif isinstance(child, BinaryNode):
+                c = BinaryToStateConnection(child, parent)
+           else:
+                raise ModelConfigurationError(
+                'State nodes can only be value parents to state nodes, binary nodes, and continuous input nodes.')
+        elif isinstance(parent, BinaryNode):
+            if isinstance(child, BinaryInputNode):
+                c = BinaryInputToBinaryConnection(child, parent)
+           else: 
+                raise ModelConfigurationError(
+                'Binary nodes can only be parents to binary input nodes.')
+        else:
+            raise ModelConfigurationError(
+            'Only state nodes and binary nodes can be value parents.')
+        self._connections.append(c)
+
+    def add_volatility_connection(self, child, parent, kappa=1):
+        if isinstance(parent, StateNode):
+            if isinstance(child, StateNode):
+                c = StateToStateVolatilityConnection(child, parent, kappa)
+           elif isinstance(child, InputNode):
+                c = InputToStateVolatilityConnection(child, parent, kappa)
+           else:
+                raise ModelConfigurationError(
+                'State nodes can only be volatility parents to continuous input nodes and state nodes.')
+        else:
+            raise ModelConfigurationError(
+            'Only state nodes can be volatility parents to other nodes.')
+        self._connections.append(c)
+
     def reset(self):
         for input_node in self.input_nodes:
             input_node.reset_hierarchy()
