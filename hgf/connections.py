@@ -1,4 +1,5 @@
 import numpy as np
+from hgf.parameters import *
 
 class Connection(object):
     """Connections between HGF nodes"""
@@ -9,6 +10,11 @@ class Connection(object):
     # Initialize attributes
         self.child = child
         self.parent = parent
+
+    @property
+    def params(self):
+        params = []
+        return params
 
     def send_bottom_up(self, message):
         parent = self.parent
@@ -35,19 +41,26 @@ class StateToStateValueConnection(Connection):
 
     # Initialize attributes
         super().__init__(child, parent)
-        self.psi = psi
+        self.psi = Parameter(value=psi)
+        child.add_bo_con(self)
+        parent.set_td_con(self)
+
+    @property
+    def params(self):
+        params = [self.psi]
+        return params
 
     def send_bottom_up(self):
         child = self.child
-        message = [self.psi**2 * child.pihats[-1] * child.vapes[-1], 
-                   self.psi**2 * child.pihats[-1], 
+        message = [self.psi.value**2 * child.pihats[-1] * child.vapes[-1], 
+                   self.psi.value**2 * child.pihats[-1], 
                    child.times[-1]]
         super().send_bottom_up(message)
 
     def send_posterior_top_down(self):
         flag = 'top-down-value'
         parent = self.parent
-        message = [self.psi * parent.mus[-1]]
+        message = [self.psi.value * parent.mus[-1]]
         super().send_top_down(message, flag)
 
 
@@ -59,6 +72,8 @@ class InputToStateValueConnection(Connection):
 
     # Initialize attributes
         super().__init__(child, parent)
+        child.add_bo_con(self)
+        parent.set_td_con(self)
 
     def send_time_bottom_up(self, time):
         parent = self.parent
@@ -93,6 +108,8 @@ class BinaryInputToBinaryConnection(Connection):
 
     # Initialize attributes
         super().__init__(child, parent)
+        child.set_bo_con(self)
+        parent.set_td_con(self)
 
     def send_bottom_up(self):
         child = self.child
@@ -124,6 +141,8 @@ class BinaryToStateConnection(Connection):
 
     # Initialize attributes
         super().__init__(child, parent)
+        child.set_bo_con(self)
+        parent.set_td_con(self)
 
     def send_time_bottom_up(self, time):
         parent = self.parent
@@ -156,13 +175,18 @@ class StateToStateVolatilityConnection(object):
 
     # Initialize attributes
         super().__init__(child, parent)
-        self.kappa = kappa
+        self.kappa = Parameter(value=kappa, space='log')
         self.type = 'volatility'
+
+    @property
+    def params(self):
+        params = [self.kappa]
+        return params
 
     def send_bottom_up(self):
         child = self.child
-        message = [self.kappa * child.gammas[-1] * child.vopes[-1], 
-                   1 / 2 * self.kappa**2 * child.gammas[-1]**2 *\
+        message = [self.kappa.value * child.gammas[-1] * child.vopes[-1], 
+                   1 / 2 * self.kappa.value**2 * child.gammas[-1]**2 *\
                    (1 + 2 * child.vopes[-1] - child.vopes[-1] / child.gammas[-1]),
                    child.times[-1]]
         super().send_bottom_up(message)
@@ -170,7 +194,7 @@ class StateToStateVolatilityConnection(object):
     def send_posterior_top_down(self):
         flag = 'top-down-volatility'
         parent = self.parent
-        message = [self.kappa * parent.mus[-1]]
+        message = [self.kappa.value * parent.mus[-1]]
         super().send_top_down(message, flag)
 
 
@@ -179,22 +203,31 @@ class InputToStateVolatilityConnection(Connection):
     """Connections for VOPE coupling between input nodes and state nodes"""
     def __init__(self,
                  child,
-                 parent):
+                 parent,
+                 kappa=1):
 
     # Initialize attributes
         super().__init__(child, parent)
+        self.kappa = Parameter(value=kappa, space='log')
+        child.add_bo_con(self)
+        parent.set_td_con(self)
+
+    @property
+    def params(self):
+        params = [self.kappa]
+        return params
 
     def send_bottom_up(self, flag):
         if flag == 'vope':
             child = self.child
-            message = [1 / 2 * self.kappa * child.vopes[-1],
-                       1 / 2 * self.kappa **2 * (1 + child.vopes[-1]),
+            message = [1 / 2 * self.kappa.value * child.vopes[-1],
+                       1 / 2 * self.kappa.value **2 * (1 + child.vopes[-1]),
                        child.times[-1]]
             super().send_bottom_up(message)
 
     def send_posterior_top_down(self):
         flag = 'top-down-volatility'
         parent = self.parent
-        message = [self.kappa * parent.mus[-1]]
+        message = [self.kappa.value * parent.mus[-1]]
         super().send_top_down(message, flag)
 
