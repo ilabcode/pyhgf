@@ -243,8 +243,8 @@ class StandardHGF(Model):
                                       m=m1)
         self.xU = self.add_input_node(omega=omega_input)
 
-        self.x1.add_volatility_parent(parent=self.x2, kappa=kappa1)
-        self.xU.set_value_parent(parent=self.x1)
+        self.add_volatility_connection(child=self.x1, parent=self.x2, kappa=kappa1)
+        self.add_value_connection(child=self.xU, parent=self.x1)
 
     # Input method
     def input(self, inputs):
@@ -294,9 +294,9 @@ class StandardBinaryHGF(Model):
                                              eta0=eta0,
                                              eta1=eta1)
 
-        self.x2.add_volatility_parent(parent=self.x3, kappa=kappa2)
-        self.x1.set_parent(parent=self.x2)
-        self.xU.set_parent(parent=self.x1)
+        self.add_volatility_connection(child=self.x2, parent=self.x3, kappa=kappa2)
+        self.add_value_connection(child=self.x1, parent=self.x2)
+        self.add_value_connection(child=self.xU, parent=self.x1)
 
     # Input method
     def input(self, inputs):
