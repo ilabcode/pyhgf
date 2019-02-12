@@ -52,7 +52,7 @@ class StateToStateValueConnection(Connection):
 
     def send_bottom_up(self):
         child = self.child
-        message = [self.psi.value**2 * child.pihats[-1] * child.vapes[-1], 
+        message = [self.psi.value * child.pihats[-1] * child.vapes[-1], 
                    self.psi.value**2 * child.pihats[-1], 
                    child.times[-1]]
         super().send_bottom_up(message)
