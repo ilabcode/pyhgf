@@ -1,6 +1,6 @@
 """The HGF time series model."""
 
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 
@@ -150,50 +150,104 @@ class Model(object):
 
 # Standard 2-level HGF for continuous inputs
 class StandardHGF(Model):
-    """The standard 2-level HGF for continuous inputs"""
+    """The standard n-level HGF for continuous inputs.
+
+    n_levels is the number of hierarchies and cannot be less than 2.
+
+    Parameters
+    ----------
+    initial_mu : dict
+        Dictionnary containing the initial values for the `mu` parameter at
+        different levels of the hierarchy. Defaults set to
+        `{"1": 1.0, "2": 1.0}` for a 2-levels model.
+    initial_pi : dict
+        Dictionnary containing the initial values for the `pi` parameter at
+        different levels of the hierarchy. Defaults set to
+        `{"1": 1.0, "2": 1.0}` for a 2-levels model.
+    omega : dict
+        Dictionnary containing the initial values for the `pi` parameter at
+        different levels of the hierarchy. Defaults set to
+        `{"1": -10.0, "2": -10.0}` for a 2-levels model.
+    omega_input: float
+        Default value sets to `np.log(1e-4)`.
+    rho : dict
+        Dictionnary containing the initial values for the `pi` parameter at
+        different levels of the hierarchy. Defaults set to
+        `{"1": 0.0, "2": 0.0}` for a 2-levels model.
+    kappa : dict
+        Dictionnary containing the initial values for the `pi` parameter at
+        different levels of the hierarchy. Defaults set to
+        `{"1": 1.0}` for a 2-levels model.
+    phi : dict
+        Dictionnary containing the initial values for the `pi` parameter at
+        different levels of the hierarchy. Defaults set to
+        `{"1": 1.0, "2": 1.0}` for a 2-levels model.
+    m : dict
+        Dictionnary containing the initial values for the `pi` parameter at
+        different levels of the hierarchy. Defaults set to
+        `{"1": 1.0, "2": 1.0}` for a 2-levels model.
+    """
 
     def __init__(
         self,
-        *,
-        initial_mu1,
-        initial_pi1,
-        initial_mu2,
-        initial_pi2,
-        omega1,
-        kappa1,
-        omega2,
-        omega_input,
-        rho1=0,
-        rho2=0,
-        phi1=0,
-        m1=0,
-        phi2=0,
-        m2=0
+        n_levels: int = 2,
+        initial_mu: Dict[str, float] = {"1": 1.0, "2": 1.0},
+        initial_pi: Dict[str, float] = {"1": 1.0, "2": 1.0},
+        omega_input: float = np.log(1e-4),
+        omega: Dict[str, float] = {"1": -10.0, "2": -10.0},
+        kappa: Dict[str, float] = {"1": 1.0},
+        rho: Dict[str, float] = {"1": 0.0, "2": 0.0},
+        phi: Dict[str, float] = {"1": 0.0, "2": 0.0},
+        m: Dict[str, float] = {"1": 0.0, "2": 0.0},
     ):
+        # Sanity checks
+        if n_levels < 2:
+            raise ValueError("The number of levels cannot be less than 2")
+        for param, names in zip(
+            [initial_mu, initial_pi, omega, rho, phi, m],
+            ["initial_mu", "initial_pi", "omega", "rho", "phi", "m"],
+        ):
+            if len(param) != n_levels:
+                raise ValueError(
+                    (
+                        f"The size of {names} does not match with",
+                        f"the number of levels (should be {n_levels})",
+                    )
+                )
+        if len(kappa) != n_levels - 1:
+            raise ValueError(
+                (
+                    "The size of kappa does not match with",
+                    f"the number of levels (should be {n_levels-1})",
+                )
+            )
 
         # Superclass initialization
         super().__init__()
 
-        # Set up nodes and their relationships
-        self.x2 = self.add_state_node(
-            initial_mu=initial_mu2,
-            initial_pi=initial_pi2,
-            omega=omega2,
-            rho=rho2,
-            phi=phi2,
-            m=m2,
-        )
-        self.x1 = self.add_state_node(
-            initial_mu=initial_mu1,
-            initial_pi=initial_pi1,
-            omega=omega1,
-            rho=rho1,
-            phi=phi1,
-            m=m1,
-        )
+        # Set up nodes
+        for n in range(n_levels, 0, -1):
+            setattr(
+                self,
+                f"x{n}",
+                self.add_state_node(
+                    initial_mu=initial_mu[str(n)],
+                    initial_pi=initial_pi[str(n)],
+                    omega=omega[str(n)],
+                    rho=rho[str(n)],
+                    phi=phi[str(n)],
+                    m=m[str(n)],
+                ),
+            )
+
         self.xU = self.add_input_node(omega=omega_input)
 
-        self.x1.add_volatility_parent(parent=self.x2, kappa=kappa1)
+        # Set up nodes relationships
+        for n in range(1, n_levels):
+            getattr(self, f"x{n}").add_volatility_parent(
+                parent=getattr(self, f"x{n+1}"), kappa=kappa[str(n)]
+            )
+
         self.xU.set_value_parent(parent=self.x1)
 
     # Input method
@@ -208,22 +262,22 @@ class StandardBinaryHGF(Model):
     def __init__(
         self,
         *,
-        initial_mu2,
-        initial_pi2,
-        initial_mu3,
-        initial_pi3,
-        omega2,
-        kappa2,
-        omega3,
-        pihat_input=np.inf,
-        eta0=0,
-        eta1=1,
-        rho2=0,
-        rho3=0,
-        phi2=0,
-        m2=0,
-        phi3=0,
-        m3=0
+        initial_mu2: float,
+        initial_pi2: float,
+        initial_mu3: float,
+        initial_pi3: float,
+        omega2: float,
+        kappa2: float,
+        omega3: float,
+        pihat_input: float = np.inf,
+        eta0: float = 0,
+        eta1: float = 1,
+        rho2: float = 0,
+        rho3: float = 0,
+        phi2: float = 0,
+        m2: float = 0,
+        phi3: float = 0,
+        m3: float = 0,
     ):
 
         # Superclass initialization
@@ -838,13 +892,13 @@ class Parameter(object):
         self,
         *,
         space: str = "native",
-        lower_bound=None,
-        upper_bound=None,
-        value=None,
-        trans_value=None,
-        prior_mean=None,
-        trans_prior_mean=None,
-        trans_prior_precision=None
+        lower_bound: Optional[float] = None,
+        upper_bound: Optional[float] = None,
+        value: Optional[float] = None,
+        trans_value: Optional[float] = None,
+        prior_mean: Optional[float] = None,
+        trans_prior_mean: Optional[float] = None,
+        trans_prior_precision: Optional[float] = None,
     ):
 
         # Initialize attributes
@@ -927,7 +981,7 @@ class Parameter(object):
         return self._lower_bound
 
     @lower_bound.setter
-    def lower_bound(self, lower_bound):
+    def lower_bound(self, lower_bound: Optional[float]):
         space = self.space
         if lower_bound is not None and space == "native":
             raise ParameterConfigurationError(
@@ -959,7 +1013,7 @@ class Parameter(object):
         return self._upper_bound
 
     @upper_bound.setter
-    def upper_bound(self, upper_bound):
+    def upper_bound(self, upper_bound: Optional[float]):
         space = self.space
         if upper_bound is not None and space == "native":
             raise ParameterConfigurationError(
@@ -991,7 +1045,7 @@ class Parameter(object):
         return self._value
 
     @value.setter
-    def value(self, value):
+    def value(self, value: Optional[float]):
         if self.lower_bound is not None and value < self.lower_bound:
             raise ParameterConfigurationError(
                 "value may not be less than current lower_bound"
@@ -1068,7 +1122,7 @@ class Parameter(object):
         return self._trans_prior_mean
 
     @trans_prior_mean.setter
-    def trans_prior_mean(self, trans_prior_mean):
+    def trans_prior_mean(self, trans_prior_mean: Optional[float]):
         self._trans_prior_mean = trans_prior_mean
 
         if trans_prior_mean is not None:
@@ -1096,7 +1150,7 @@ class Parameter(object):
         return self._trans_prior_precision
 
     @trans_prior_precision.setter
-    def trans_prior_precision(self, trans_prior_precision):
+    def trans_prior_precision(self, trans_prior_precision: Optional[float]):
         self._trans_prior_precision = trans_prior_precision
 
         if trans_prior_precision is None:
@@ -1124,7 +1178,7 @@ def exp(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
         return np.exp(x) + lower_bound
 
 
-def log(x, *, lower_bound=0, upper_bound=None):
+def log(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
     """The (shifted and mirrored) natural logarithm"""
     if upper_bound is not None:
         if x > upper_bound:
@@ -1144,12 +1198,12 @@ def log(x, *, lower_bound=0, upper_bound=None):
             return np.log(x - lower_bound)
 
 
-def sgm(x, *, lower_bound=0, upper_bound=1):
+def sgm(x, *, lower_bound: float = 0, upper_bound: float = 1):
     """The logistic sigmoid function"""
     return (upper_bound - lower_bound) / (1 + np.exp(-x)) + lower_bound
 
 
-def logit(x, *, lower_bound=0, upper_bound=1):
+def logit(x, *, lower_bound: float = 0, upper_bound: float = 1):
     """The logistic function"""
     if x < lower_bound:
         raise LogitArgumentError("Logit argmument may not be less than `lower_bound`.")

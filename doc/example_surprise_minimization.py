@@ -4,9 +4,15 @@
 This doesn't work yet as it should - probably the fault of the
 optimization algorithms in scipy.optimize"""
 
+import os
+
 import numpy as np
-import hgf
 from scipy.optimize import minimize
+
+from ghgf import hgf
+
+path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+
 
 # Set up standard 3-level HGF for binary inputs
 binstdhgf = hgf.StandardBinaryHGF(
@@ -20,7 +26,7 @@ binstdhgf = hgf.StandardBinaryHGF(
 )
 
 # Read binary input from Iglesias et al. (2013)
-binary = np.loadtxt("binary_input.dat")
+binary = np.loadtxt(f"{path}/tests/data/binary_input.dat")
 
 # Feed input
 binstdhgf.input(binary)
@@ -51,7 +57,7 @@ stdhgf = hgf.StandardHGF(
 )
 
 # Read USD-CHF data
-usdchf = np.loadtxt("usdchf.dat")
+usdchf = np.loadtxt(f"{path}/tests/data/usdchf.dat")
 
 # Feed input
 stdhgf.input(usdchf)
@@ -71,7 +77,7 @@ stdhgf.xU.omega.trans_prior_mean = -10.1111
 stdhgf.xU.omega.trans_prior_precision = 2 ** -2
 
 # Get the objective function
-stdobjf = binstdhgf.neg_log_joint_function()
+stdobjf = stdhgf.neg_log_joint_function()
 
 # Minimize the negative log-joint
 stdx0 = [param.value for param in stdhgf.var_params]

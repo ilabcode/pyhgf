@@ -6,9 +6,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-DESCRIPTION = (
-    "The generalized, nodalized HGF for predictive coding."
-)
+DESCRIPTION = "The generalized, nodalized HGF for predictive coding."
 
 DISTNAME = "ghgf"
 MAINTAINER = "Nicolas Legrand"

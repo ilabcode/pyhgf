@@ -1,12 +1,3 @@
-# test_hgf.py
-"""The test suite for the hgf.py module
-
-Run this by executing
-
-    python -m pytest -v test_hgf.py
-
-in a shell"""
-
 import os
 import pickle
 import unittest
@@ -23,6 +14,7 @@ path = os.path.dirname(os.path.abspath(__file__))
 class Testsdt(TestCase):
     @pytest.fixture
     def nodes(self):
+
         # Set up a collection of binary HGF nodes
         x3 = hgf.StateNode(initial_mu=1.0, initial_pi=1.0, omega=-6.0)
         x2 = hgf.StateNode(initial_mu=0.0, initial_pi=1.0, omega=-2.5)
@@ -63,6 +55,7 @@ class Testsdt(TestCase):
 
     @pytest.fixture
     def bin_hier(self):
+
         # Set up a simple binary HGF hierarchy
         x3 = hgf.StateNode(initial_mu=1.0, initial_pi=1.0, omega=-6.0)
         x2 = hgf.StateNode(initial_mu=0.0, initial_pi=1.0, omega=-2.5)
@@ -86,6 +79,7 @@ class Testsdt(TestCase):
         # This fixture is not used yet?
 
     def test_model_setup(self):
+
         # Set up model
         m = hgf.Model()
 
@@ -128,6 +122,7 @@ class Testsdt(TestCase):
         return m
 
     def test_continuous_hierarchy_setup(self):
+
         # Set up a simple HGF hierarchy
         x2 = hgf.StateNode(initial_mu=1.0, initial_pi=np.inf, omega=-2.0)
         x1 = hgf.StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0)
@@ -135,7 +130,10 @@ class Testsdt(TestCase):
 
         x1.add_volatility_parent(parent=x2, kappa=1)
         xU.set_value_parent(parent=x1)
-        # No assertion here?
+
+        usdchf = np.loadtxt(f"{path}/data/usdchf.dat")
+
+        xU.input(usdchf)
 
     def test_node_config_error(self):
         with pytest.raises(hgf.NodeConfigurationError):
@@ -143,7 +141,7 @@ class Testsdt(TestCase):
 
     def test_input_continuous(self, cont_hier):
         # Get the hierarchy
-        h = cont_hier
+        h = cont_hier()
 
         # Give some inputs
         for u in [0.5, 0.5, 0.5]:
