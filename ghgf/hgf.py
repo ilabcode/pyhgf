@@ -418,14 +418,14 @@ class StateNode(object):
     def new_muhat(self, time):
         t = time - self.times[-1]
         driftrate = self.rho.value
-        for i, va_pa in enumerate(self.va_pas):
+        for i, _ in enumerate(self.va_pas):
             driftrate += self.psis[i].value * self.va_pas[i].mus[-1]
         return self.mus[-1] + t * driftrate
 
     def _new_nu(self, time):
         t = time - self.times[-1]
         logvol = self.omega.value
-        for i, vo_pa in enumerate(self.vo_pas):
+        for i, _ in enumerate(self.vo_pas):
             logvol += self.kappas[i].value * self.vo_pas[i].mus[-1]
         nu = t * np.exp(logvol)
         if nu > 1e-128:
@@ -492,7 +492,7 @@ class StateNode(object):
     def update(self, time, pihat, pi, muhat, mu, nu):
         self.times.append(time)
         self.pihats.append(pihat)
-        self.pis.append(pi),
+        self.pis.append(pi)
         self.muhats.append(muhat)
         self.mus.append(mu)
         self.nus.append(nu)
@@ -754,11 +754,30 @@ class InputNode(object):
             self._single_input(value, time)
 
 
-# HGF binary input nodes
 class BinaryInputNode(object):
-    """An HGF node that receives binary input"""
+    """An HGF node that receives binary input.
 
-    def __init__(self, *, pihat=np.inf, eta0=0, eta1=1):
+    Parameters
+    ----------
+    pihat : float
+    eta0 : float
+    eta1 : float
+
+    Attributes
+    ----------
+    pihat
+    eta0
+    eta1
+    pa : None
+        Parent nodes.
+    times : list
+    iputs : list
+    inputs_with_time : list
+    surprises : list
+
+    """
+
+    def __init__(self, *, pihat: float = np.inf, eta0: float = 0.0, eta1: float = 1.0):
 
         # Incorporate parameter attributes
         self.pihat = Parameter(value=pihat, space="log")
@@ -886,7 +905,28 @@ class BinaryInputNode(object):
 
 
 class Parameter(object):
-    """Parameters of nodes"""
+    """Parameters of nodes.
+
+    Parameters
+    ----------
+    space: string
+        Default sets to `"native"`.
+    lower_bound : float or None
+        Default sets to `None`.
+    upper_bound : float or None
+        Default sets to `None`.
+    value : float or None
+        Default sets to `None`.
+    trans_value : float or None
+        Default sets to `None`.
+    prior_mean : float or None
+        Default sets to `None`.
+    trans_prior_mean : float or None
+        Default sets to `None`.
+    trans_prior_precision : float or None
+        Default sets to `None`.
+
+    """
 
     def __init__(
         self,
@@ -1074,7 +1114,7 @@ class Parameter(object):
         return self._trans_value
 
     @trans_value.setter
-    def trans_value(self, trans_value):
+    def trans_value(self, trans_value: Optional[float]):
         self._trans_value = trans_value
 
         space = self.space
@@ -1094,7 +1134,7 @@ class Parameter(object):
         return self._prior_mean
 
     @prior_mean.setter
-    def prior_mean(self, prior_mean):
+    def prior_mean(self, prior_mean: Optional[float]):
         self._prior_mean = prior_mean
 
         if prior_mean is not None:
