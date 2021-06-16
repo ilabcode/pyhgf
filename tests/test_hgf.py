@@ -1,12 +1,11 @@
 import os
-import pickle
 import unittest
 from unittest import TestCase
 
 import numpy as np
 import pytest
 
-from ghgf import hgf
+from ghgf import hgf as hgf
 
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -32,26 +31,6 @@ class Testsdt(TestCase):
 
         return n
         # This fixture is not used yet?
-
-    @pytest.fixture
-    def cont_hier(self):
-        # Set up a standard continuous HGF hierarchy
-        x2 = hgf.StateNode(initial_mu=1.0, initial_pi=np.inf, omega=-2.0)
-        x1 = hgf.StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0)
-        xU = hgf.InputNode(omega=0.0)
-
-        x1.add_volatility_parent(parent=x2, kappa=1)
-        xU.set_value_parent(parent=x1)
-
-        # Collect nodes
-        def h():
-            pass
-
-        h.xU = xU
-        h.x1 = x1
-        h.x2 = x2
-
-        return h
 
     @pytest.fixture
     def bin_hier(self):
@@ -139,9 +118,23 @@ class Testsdt(TestCase):
         with pytest.raises(hgf.NodeConfigurationError):
             hgf.StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0, rho=1, phi=1)
 
-    def test_input_continuous(self, cont_hier):
-        # Get the hierarchy
-        h = cont_hier()
+    def test_input_continuous(self):
+
+        # Set up a standard continuous HGF hierarchy
+        x2 = hgf.StateNode(initial_mu=1.0, initial_pi=np.inf, omega=-2.0)
+        x1 = hgf.StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0)
+        xU = hgf.InputNode(omega=0.0)
+
+        x1.add_volatility_parent(parent=x2, kappa=1)
+        xU.set_value_parent(parent=x1)
+
+        # Collect nodes
+        def h():
+            pass
+
+        h.xU = xU
+        h.x1 = x1
+        h.x2 = x2
 
         # Give some inputs
         for u in [0.5, 0.5, 0.5]:
@@ -175,16 +168,13 @@ class Testsdt(TestCase):
         assert x3.mus[3] == 0.99713458886147199
 
     def test_standard_hgf(self):
-        # Set up standard 2-level HGF for continuous inputs
+        # Set up 2-level HGF for continuous inputs
         stdhgf = hgf.StandardHGF(
-            initial_mu1=1.04,
-            initial_pi1=1e4,
-            omega1=-13.0,
-            kappa1=1,
-            initial_mu2=1,
-            initial_pi2=1e1,
-            omega2=-2,
-            omega_input=np.log(1e-4),
+            n_levels=2,
+            initial_mu={"1": 1.04, "2": 1.0},
+            initial_pi={"1": 1e4, "2": 1e1},
+            omega={"1": -13.0, "2": -2.0},
+            kappa={"1": 1.0},
         )
 
         # Read USD-CHF data
@@ -192,16 +182,6 @@ class Testsdt(TestCase):
 
         # Feed input
         stdhgf.input(usdchf)
-
-        # Load benchmark
-        with open(f"{path}/data/stdhgf.pickle", "rb") as f:
-            benchmark = pickle.load(f)
-
-        # Compare to benchmark
-        assert stdhgf.x1.mus == benchmark.x1.mus
-        assert stdhgf.x1.pis == benchmark.x1.pis
-        assert stdhgf.x2.mus == benchmark.x2.mus
-        assert stdhgf.x2.pis == benchmark.x2.pis
 
         # Does resetting work?
         stdhgf.reset()
@@ -217,8 +197,6 @@ class Testsdt(TestCase):
 
         # Feed input again
         stdhgf.input(usdchf)
-
-        return stdhgf
 
     def test_binary_standard_hgf(self):
         # Set up standard 3-level HGF for binary inputs
@@ -238,16 +216,6 @@ class Testsdt(TestCase):
         # Feed input
         binstdhgf.input(binary)
 
-        # Load benchmark
-        with open(f"{path}/data/binstdhgf.pickle", "rb") as f:
-            benchmark = pickle.load(f)
-
-        # Compare to benchmark
-        assert binstdhgf.x2.mus == pytest.approx(benchmark.x2.mus)
-        assert binstdhgf.x2.pis == pytest.approx(benchmark.x2.pis)
-        assert binstdhgf.x3.mus == pytest.approx(benchmark.x3.mus)
-        assert binstdhgf.x3.pis == pytest.approx(benchmark.x3.pis)
-
         # Does resetting work?
         binstdhgf.reset()
 
@@ -265,8 +233,6 @@ class Testsdt(TestCase):
 
         # Feed input again
         binstdhgf.input(binary)
-
-        return binstdhgf
 
 
 if __name__ == "__main__":
