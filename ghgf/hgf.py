@@ -200,6 +200,8 @@ class StandardHGF(Model):
         phi: Dict[str, float] = {"1": 0.0, "2": 0.0},
         m: Dict[str, float] = {"1": 0.0, "2": 0.0},
     ):
+        self.n_levels = n_levels
+
         # Sanity checks
         if n_levels < 2:
             raise ValueError("The number of levels cannot be less than 2")
