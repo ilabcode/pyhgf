@@ -1,4 +1,3 @@
-# Copyright (C) 2019 Nicolas Legrand
 import os
 
 
@@ -15,6 +14,7 @@ VERSION = "0.0.1"
 
 INSTALL_REQUIRES = [
     "numpy>=1.18.1",
+    "numba>=0.51.2",
 ]
 
 PACKAGES = ["ghgf"]

@@ -1,8 +1,9 @@
 """The HGF time series model."""
 
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
+from numba import jit
 
 
 class Model(object):
@@ -459,6 +460,18 @@ class StateNode(object):
     def vope(self):
         return (1 / self.pis[-1] + self.vape() ** 2) * self.pihats[-1] - 1
 
+    @staticmethod
+    @jit(nopython=True)
+    def numba_update_value_parent(
+        i: int, va_pa: List, time: List, psis: List, pihat: List, vape: List
+    ):
+        pihat_pa, nu_pa = va_pa.new_pihat_nu(time)
+        pi_pa = pihat_pa + psis[i].value ** 2 * pihat
+        muhat_pa = va_pa.new_muhat(time)
+        mu_pa = muhat_pa + psis[i].value * pihat / pi_pa * vape
+
+        return pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa
+
     def update_parents(self, time):
         va_pas = self.va_pas
         vo_pas = self.vo_pas
@@ -473,12 +486,9 @@ class StateNode(object):
         vape = self.vape()
 
         for i, va_pa in enumerate(va_pas):
-            pihat_pa, nu_pa = va_pa.new_pihat_nu(time)
-            pi_pa = pihat_pa + psis[i].value ** 2 * pihat
-
-            muhat_pa = va_pa.new_muhat(time)
-            mu_pa = muhat_pa + psis[i].value * pihat / pi_pa * vape
-
+            pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa = self.numba_update_value_parent(
+                i, va_pa, time, psis, pihat, vape
+            )
             va_pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
         # Update volatility parents
