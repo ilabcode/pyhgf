@@ -75,7 +75,16 @@ class Model(object):
         for i, var_param in enumerate(self.var_params):
             var_param.trans_value = trans_values[i]
 
-    def add_state_node(self, *, initial_mu, initial_pi, rho=0, phi=0, m=0, omega=0):
+    def add_state_node(
+        self,
+        *,
+        initial_mu: float,
+        initial_pi: float,
+        rho: float = 0,
+        phi: float = 0,
+        m: float = 0,
+        omega: float = 0,
+    ):
 
         node = StateNode(
             initial_mu=initial_mu,
@@ -94,12 +103,14 @@ class Model(object):
         self._nodes.append(node)
         return node
 
-    def add_input_node(self, *, omega=0):
+    def add_input_node(self, *, omega: float = 0):
         node = InputNode(omega=omega)
         self._nodes.append(node)
         return node
 
-    def add_binary_input_node(self, *, pihat=np.inf, eta0=0, eta1=1):
+    def add_binary_input_node(
+        self, *, pihat: float = np.inf, eta0: float = 0, eta1: float = 1
+    ):
         node = BinaryInputNode(pihat=pihat, eta0=eta0, eta1=eta1)
         self._nodes.append(node)
         return node
