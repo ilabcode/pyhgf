@@ -81,10 +81,10 @@ class Model(object):
         *,
         initial_mu: float,
         initial_pi: float,
-        rho: float = 0,
-        phi: float = 0,
-        m: float = 0,
-        omega: float = 0,
+        rho: float = 0.0,
+        phi: float = 0.0,
+        m: float = 0.0,
+        omega: float = 0.0,
     ):
 
         node = StateNode(
@@ -164,40 +164,63 @@ class Model(object):
 class StandardHGF(Model):
     """The standard n-level HGF for continuous inputs.
 
-    n_levels is the number of hierarchies and cannot be less than 2.
+    Implementation of the GRW and AR1 perceptual models.
 
     Parameters
     ----------
     initial_mu : dict
-        Dictionnary containing the initial values for the `mu` parameter at
+        Dictionnary containing the initial values for the `initial_mu` parameter at
         different levels of the hierarchy. Defaults set to
         `{"1": 1.0, "2": 1.0}` for a 2-levels model.
+
     initial_pi : dict
-        Dictionnary containing the initial values for the `pi` parameter at
+        Dictionnary containing the initial values for the `initial_pi` parameter at
         different levels of the hierarchy. Defaults set to
         `{"1": 1.0, "2": 1.0}` for a 2-levels model.
     omega : dict
-        Dictionnary containing the initial values for the `pi` parameter at
+        Dictionnary containing the initial values for the `omega` parameter at
         different levels of the hierarchy. Defaults set to
         `{"1": -10.0, "2": -10.0}` for a 2-levels model.
+        Tonic part of the variance (that is not affected by the parent node). Only for
+        GRW.
     omega_input: float
         Default value sets to `np.log(1e-4)`.
+
     rho : dict
-        Dictionnary containing the initial values for the `pi` parameter at
+        Dictionnary containing the initial values for the `rho` parameter at
         different levels of the hierarchy. Defaults set to
         `{"1": 0.0, "2": 0.0}` for a 2-levels model.
+        Rho represents the drift. Only for GRW.
     kappa : dict
-        Dictionnary containing the initial values for the `pi` parameter at
+        Dictionnary containing the initial values for the `kappa` parameter at
         different levels of the hierarchy. Defaults set to
-        `{"1": 1.0}` for a 2-levels model.
+        `{"1": 1.0}` for a 2-levels model. Phasic part of the variance.
+        Defines the strenght of the connection between the nod eand the parent node.
+        Often fixed to 1. Only for GRW.
     phi : dict
-        Dictionnary containing the initial values for the `pi` parameter at
+        Dictionnary containing the initial values for the `phi` parameter at
         different levels of the hierarchy. Defaults set to
         `{"1": 1.0, "2": 1.0}` for a 2-levels model.
+        Phi should be between 0 and 1.
+        Only for AR1.
     m : dict
-        Dictionnary containing the initial values for the `pi` parameter at
+        Dictionnary containing the initial values for the `m` parameter at
         different levels of the hierarchy. Defaults set to
         `{"1": 1.0, "2": 1.0}` for a 2-levels model.
+        Only for AR1.
+
+    Attributes
+    ----------
+    n_levels : int
+        The number of hierarchies in the model. Cannot be less than 2.
+
+    Notes
+    -----
+    rho and phi index which model is implemented. rho indexes GRW and phi index AR1.
+
+    pi = precision
+    variance = 1 / pi
+
     """
 
     def __init__(
@@ -231,7 +254,7 @@ class StandardHGF(Model):
         if len(kappa) != n_levels - 1:
             raise ValueError(
                 (
-                    "The size of kappa does not match with",
+                    "The size of kappa does not match with"
                     f"the number of levels (should be {n_levels-1})",
                 )
             )
@@ -265,8 +288,8 @@ class StandardHGF(Model):
         self.xU.set_value_parent(parent=self.x1)
 
     # Input method
-    def input(self, inputs):
-        self.xU.input(inputs)
+    def _input(self, inputs):
+        self.xU._input(inputs)
 
 
 # Standard 3-level HGF for binary inputs
@@ -322,8 +345,8 @@ class StandardBinaryHGF(Model):
         self.xU.set_parent(parent=self.x1)
 
     # Input method
-    def input(self, inputs):
-        self.xU.input(inputs)
+    def _input(self, inputs):
+        self.xU._input(inputs)
 
 
 # HGF continuous state node
@@ -695,7 +718,7 @@ class InputNode(object):
         iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
         try:
-            self.input(iwt)
+            self._input(iwt)
         except HgfUpdateError as e:
             self.undo_last_reset_hierarchy()
             raise e
@@ -761,14 +784,14 @@ class InputNode(object):
         self.inputs_with_times.append((value, time))
         self.surprises.append(self.update_parents(value, time))
 
-    def input(self, inputs):
+    def _input(self, inputs):
         try:
-            for input in inputs:
+            for this_input in inputs:
                 try:
-                    value = input[0]
-                    time = input[1]
+                    value = this_input[0]
+                    time = this_input[1]
                 except IndexError:
-                    value = input
+                    value = this_input
                     time = self.times[-1] + 1
                     self._single_input(value, time)
         except TypeError:
@@ -860,7 +883,7 @@ class BinaryInputNode(object):
         iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
         try:
-            self.input(iwt)
+            self._input(iwt)
         except HgfUpdateError as e:
             self.undo_last_reset_hierarchy()
             raise e
@@ -910,14 +933,14 @@ class BinaryInputNode(object):
         self.inputs_with_times.append((value, time))
         self.surprises.append(self.update_parent(value, time))
 
-    def input(self, inputs):
+    def _input(self, inputs):
         try:
-            for input in inputs:
+            for this_input in inputs:
                 try:
-                    value = input[0]
-                    time = input[1]
+                    value = this_input[0]
+                    time = this_input[1]
                 except IndexError:
-                    value = input
+                    value = this_input
                     time = self.times[-1] + 1
                 finally:
                     self._single_input(value, time)
