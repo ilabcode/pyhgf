@@ -164,91 +164,145 @@ class Model(object):
 class StandardHGF(Model):
     """The standard n-level HGF for continuous inputs.
 
-    Implementation of the GRW and AR1 perceptual models.
+    The standard continuous HGF can implements the Gaussian Random Walk and AR1
+    perceptual models.
 
     Parameters
     ----------
+    n_levels : int
+        The number of hierarchies in the perceptual model (default sets to `2`).
+    model_type : str or None
+        The model type to use (can be "GRW" or "AR1"). If `model_type` is not provided,
+        it is infered from the parameters provided. If both `phi` and `rho` are None
+        or dictionnary, an error is returned.
     initial_mu : dict
         Dictionnary containing the initial values for the `initial_mu` parameter at
-        different levels of the hierarchy. Defaults set to
-        `{"1": 1.0, "2": 1.0}` for a 2-levels model.
-
+        different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
+        for a 2-levels model.
     initial_pi : dict
         Dictionnary containing the initial values for the `initial_pi` parameter at
-        different levels of the hierarchy. Defaults set to
-        `{"1": 1.0, "2": 1.0}` for a 2-levels model.
+        different levels of the hierarchy. Pis values encode the precision of the
+        values at each level (Var = 1/pi) Defaults set to `{"1": 1.0, "2": 1.0}` for
+        a 2-levels model.
     omega : dict
         Dictionnary containing the initial values for the `omega` parameter at
-        different levels of the hierarchy. Defaults set to
-        `{"1": -10.0, "2": -10.0}` for a 2-levels model.
-        Tonic part of the variance (that is not affected by the parent node). Only for
-        GRW.
+        different levels of the hierarchy. Omegas represent the tonic part of the
+        variance (the part that is not affected by the parent node). Defaults set to
+        `{"1": -10.0, "2": -10.0}` for a 2-levels model. This parameters only when
+        `model_type="GRW"`.
     omega_input: float
-        Default value sets to `np.log(1e-4)`.
-
-    rho : dict
+        Default value sets to `np.log(1e-4)`. Represent the noise associated with the
+        input.
+    rho : dict or None
         Dictionnary containing the initial values for the `rho` parameter at
-        different levels of the hierarchy. Defaults set to
-        `{"1": 0.0, "2": 0.0}` for a 2-levels model.
-        Rho represents the drift. Only for GRW.
+        different levels of the hierarchy. Rho represents the drift of the random walk.
+        Only required when `model_type="GRW"`. Defaults set all entries to `0`
+        according to the number of required levels.
     kappa : dict
         Dictionnary containing the initial values for the `kappa` parameter at
-        different levels of the hierarchy. Defaults set to
-        `{"1": 1.0}` for a 2-levels model. Phasic part of the variance.
-        Defines the strenght of the connection between the nod eand the parent node.
-        Often fixed to 1. Only for GRW.
-    phi : dict
+        different levels of the hierarchy. Kappa represents the phasic part of the
+        variance (the part that is affected by the parents nodes) and will defines the
+        strenght of the connection between the nod eand the parent node. Often fixed
+        to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only required when
+        `model_type="GRW"`.
+    phi : dict or None
         Dictionnary containing the initial values for the `phi` parameter at
-        different levels of the hierarchy. Defaults set to
-        `{"1": 1.0, "2": 1.0}` for a 2-levels model.
-        Phi should be between 0 and 1.
-        Only for AR1.
-    m : dict
+        different levels of the hierarchy. Phi should always be between 0 and 1.
+        Defaults set all entries to `0` according to the number of required levels.
+        `phi` is only required when `model_type="AR1"`.
+    m : dict or None
         Dictionnary containing the initial values for the `m` parameter at
-        different levels of the hierarchy. Defaults set to
-        `{"1": 1.0, "2": 1.0}` for a 2-levels model.
-        Only for AR1.
+        different levels of the hierarchy. Defaults set all entries to `0` according to
+        the number of required levels. `m` is only required when `model_type="AR1"`.
 
     Attributes
     ----------
     n_levels : int
         The number of hierarchies in the model. Cannot be less than 2.
+    model_type : str
+        The model implemented (can be `"AR1"` or `"GRW"`).
 
     Notes
     -----
-    rho and phi index which model is implemented. rho indexes GRW and phi index AR1.
+    The model used by the perceptual model is defined by the `model_type` parameter
+    (can be `"GRW"` or `"AR1"`). If `model_type` is not provided, the class will try to
+    determine it automatically by looking at the `rho` and `phi` parameters. If `rho`
+    is provided `model_type="GRW"`, if `phi` is provided `model_type="AR1"`. If both
+    `phi` and `rho` are `None` an error will be returned.
 
-    pi = precision
-    variance = 1 / pi
+    Examples
+    --------
 
     """
 
     def __init__(
         self,
         n_levels: int = 2,
-        initial_mu: Dict[str, float] = {"1": 1.0, "2": 1.0},
+        model_type: Optional[str] = None,
+        initial_mu: Dict[str, float] = {"1": 0.0, "2": 0.0},
         initial_pi: Dict[str, float] = {"1": 1.0, "2": 1.0},
         omega_input: float = np.log(1e-4),
         omega: Dict[str, float] = {"1": -10.0, "2": -10.0},
         kappa: Dict[str, float] = {"1": 1.0},
-        rho: Dict[str, float] = {"1": 0.0, "2": 0.0},
-        phi: Dict[str, float] = {"1": 0.0, "2": 0.0},
-        m: Dict[str, float] = {"1": 0.0, "2": 0.0},
+        rho: Optional[Dict[str, float]] = None,
+        phi: Optional[Dict[str, float]] = None,
+        m: Dict[str, float] = None,
     ):
         self.n_levels = n_levels
 
-        # Sanity checks
+        # Determine which perceptual model to use
+        if (phi is not None) and (rho is not None) & (model_type is None):
+            raise ValueError(
+                (
+                    "Unable to determine the model type to use. "
+                    "Provide model_type or one of the rho or phi parameters."
+                )
+            )
+        elif isinstance(model_type, str):
+            if (model_type == "GRW") and (rho is None):
+                rho = {}
+                for i in range(n_levels):
+                    rho[str(i + 1)] = 0.0
+            elif (model_type == "AR1") and (phi is None) and (m is None):
+                phi, m = {}, {}
+                for i in range(n_levels):
+                    phi[str(i + 1)] = 0.0
+                    m[str(i + 1)] = 0.0
+            elif model_type not in ["GRW", "AR1"]:
+                raise ValueError(
+                    ("Invalid model type specification. Should be 'AR1' or 'GRW'.")
+                )
+        else:
+            if (phi is None) and (rho is None):
+                raise ValueError(
+                    (
+                        "The parameters phi and rho are both None."
+                        "Please provide at least one of them."
+                    )
+                )
+            elif phi is None:
+                model_type = "GRW"
+            elif rho is None:
+                model_type = "AR1"
+
+        self.model_type = model_type
+
+        # Sanity checks - Make sure that the parameters declared match with the
+        # number of levels required
         if n_levels < 2:
             raise ValueError("The number of levels cannot be less than 2")
-        for param, names in zip(
-            [initial_mu, initial_pi, omega, rho, phi, m],
-            ["initial_mu", "initial_pi", "omega", "rho", "phi", "m"],
-        ):
+        if self.model_type == "GRW":
+            params = [initial_mu, initial_pi, omega, rho]
+            names = ["initial_mu", "initial_pi", "omega", "rho"]
+        else:
+            params = [initial_mu, initial_pi, omega, phi, m]
+            names = ["initial_mu", "initial_pi", "omega", "phi", "m"]
+        for param, name in zip(params, names):
             if len(param) != n_levels:
                 raise ValueError(
                     (
-                        f"The size of {names} does not match with",
-                        f"the number of levels (should be {n_levels})",
+                        f"The size of {name} is {len(param)} and does not match with "
+                        f"the number of levels ({n_levels})",
                     )
                 )
         if len(kappa) != n_levels - 1:
@@ -262,20 +316,36 @@ class StandardHGF(Model):
         # Superclass initialization
         super().__init__()
 
-        # Set up nodes
+        # Set up nodes - Loop across the number of levels required and set values
+        # and volatility parents accordingly
+        print(
+            f"Initializing a {self.n_levels} levels perceptual HGF "
+            f"using a {self.model_type} model."
+        )
         for n in range(n_levels, 0, -1):
-            setattr(
-                self,
-                f"x{n}",
-                self.add_state_node(
-                    initial_mu=initial_mu[str(n)],
-                    initial_pi=initial_pi[str(n)],
-                    omega=omega[str(n)],
-                    rho=rho[str(n)],
-                    phi=phi[str(n)],
-                    m=m[str(n)],
-                ),
-            )
+            if self.model_type == "GRW":
+                setattr(
+                    self,
+                    f"x{n}",
+                    self.add_state_node(
+                        initial_mu=initial_mu[str(n)],
+                        initial_pi=initial_pi[str(n)],
+                        omega=omega[str(n)],
+                        rho=rho[str(n)],
+                    ),
+                )
+            elif self.model_type == "AR1":
+                setattr(
+                    self,
+                    f"x{n}",
+                    self.add_state_node(
+                        initial_mu=initial_mu[str(n)],
+                        initial_pi=initial_pi[str(n)],
+                        omega=omega[str(n)],
+                        phi=phi[str(n)],
+                        m=m[str(n)],
+                    ),
+                )
 
         self.xU = self.add_input_node(omega=omega_input)
 
@@ -288,8 +358,8 @@ class StandardHGF(Model):
         self.xU.set_value_parent(parent=self.x1)
 
     # Input method
-    def _input(self, inputs):
-        self.xU._input(inputs)
+    def input(self, inputs):
+        self.xU.input(inputs)
 
 
 # Standard 3-level HGF for binary inputs
@@ -345,8 +415,8 @@ class StandardBinaryHGF(Model):
         self.xU.set_parent(parent=self.x1)
 
     # Input method
-    def _input(self, inputs):
-        self.xU._input(inputs)
+    def input(self, inputs):
+        self.xU.input(inputs)
 
 
 # HGF continuous state node
@@ -689,10 +759,10 @@ class InputNode(object):
         self._times_backup = self.times
         self.times = [0]
 
-        self._inputs_backup = self.inputs
+        self.inputs_backup = self.inputs
         self.inputs = [None]
 
-        self._inputs_with_times_backup = self.inputs_with_times
+        self.inputs_with_times_backup = self.inputs_with_times
         self.inputs_with_times = [(None, 0)]
 
         self._surprises_backup = self.surprises
@@ -700,8 +770,8 @@ class InputNode(object):
 
     def undo_last_reset(self):
         self.times = self._times_backup
-        self.inputs = self._inputs_backup
-        self.inputs_with_times = self._inputs_with_times_backup
+        self.inputs = self.inputs_backup
+        self.inputs_with_times = self.inputs_with_times_backup
         self.surprises = self._surprises_backup
 
     def reset_hierarchy(self):
@@ -718,7 +788,7 @@ class InputNode(object):
         iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
         try:
-            self._input(iwt)
+            self.input(iwt)
         except HgfUpdateError as e:
             self.undo_last_reset_hierarchy()
             raise e
@@ -784,7 +854,7 @@ class InputNode(object):
         self.inputs_with_times.append((value, time))
         self.surprises.append(self.update_parents(value, time))
 
-    def _input(self, inputs):
+    def input(self, inputs):
         try:
             for this_input in inputs:
                 try:
@@ -793,6 +863,7 @@ class InputNode(object):
                 except IndexError:
                     value = this_input
                     time = self.times[-1] + 1
+                finally:
                     self._single_input(value, time)
         except TypeError:
             value = inputs
@@ -854,10 +925,10 @@ class BinaryInputNode(object):
         self._times_backup = self.times
         self.times = [0]
 
-        self._inputs_backup = self.inputs
+        self.inputs_backup = self.inputs
         self.inputs = [None]
 
-        self._inputs_with_times_backup = self.inputs_with_times
+        self.inputs_with_times_backup = self.inputs_with_times
         self.inputs_with_times = [(None, 0)]
 
         self._surprises_backup = self.surprises
@@ -865,8 +936,8 @@ class BinaryInputNode(object):
 
     def undo_last_reset(self):
         self.times = self._times_backup
-        self.inputs = self._inputs_backup
-        self.inputs_with_times = self._inputs_with_times_backup
+        self.inputs = self.inputs_backup
+        self.inputs_with_times = self.inputs_with_times_backup
         self.surprises = self._surprises_backup
 
     def reset_hierarchy(self):
@@ -883,7 +954,7 @@ class BinaryInputNode(object):
         iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
         try:
-            self._input(iwt)
+            self.input(iwt)
         except HgfUpdateError as e:
             self.undo_last_reset_hierarchy()
             raise e
@@ -933,7 +1004,7 @@ class BinaryInputNode(object):
         self.inputs_with_times.append((value, time))
         self.surprises.append(self.update_parent(value, time))
 
-    def _input(self, inputs):
+    def input(self, inputs):
         try:
             for this_input in inputs:
                 try:
