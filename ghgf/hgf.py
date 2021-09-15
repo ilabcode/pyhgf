@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from numba import jit
+from tqdm import tqdm
 
 
 class Model(object):
@@ -248,6 +249,7 @@ class StandardHGF(Model):
         phi: Optional[Dict[str, float]] = None,
         m: Dict[str, float] = None,
     ):
+        print("Continuous Hierarchical Gaussian Filter")
         self.n_levels = n_levels
 
         # Determine which perceptual model to use
@@ -319,7 +321,7 @@ class StandardHGF(Model):
         # Set up nodes - Loop across the number of levels required and set values
         # and volatility parents accordingly
         print(
-            f"Initializing a {self.n_levels} levels perceptual HGF "
+            f"... Initializing a {self.n_levels} levels perceptual HGF "
             f"using a {self.model_type} model."
         )
         for n in range(n_levels, 0, -1):
@@ -856,7 +858,9 @@ class InputNode(object):
 
     def input(self, inputs):
         try:
-            for this_input in inputs:
+            tqdm.write("... providing data to the input node.")
+            pbar = tqdm(inputs, position=0, leave=True)
+            for this_input in pbar:
                 try:
                     value = this_input[0]
                     time = this_input[1]
