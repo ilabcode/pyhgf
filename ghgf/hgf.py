@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from numba import jit
+from scipy.optimize import minimize
 from tqdm import tqdm
 
 
@@ -215,6 +216,8 @@ class StandardHGF(Model):
         Dictionnary containing the initial values for the `m` parameter at
         different levels of the hierarchy. Defaults set all entries to `0` according to
         the number of required levels. `m` is only required when `model_type="AR1"`.
+    verbose : bool
+        Default is `True` (show bar progress).
 
     Attributes
     ----------
@@ -248,7 +251,9 @@ class StandardHGF(Model):
         rho: Optional[Dict[str, float]] = None,
         phi: Optional[Dict[str, float]] = None,
         m: Dict[str, float] = None,
+        verbose: bool = True,
     ):
+        self.verbose = verbose
         print("Continuous Hierarchical Gaussian Filter")
         self.n_levels = n_levels
 
@@ -362,6 +367,25 @@ class StandardHGF(Model):
     # Input method
     def input(self, inputs):
         self.xU.input(inputs)
+
+    # Optimization function
+    def optimization(self):
+        """Parameters optimization.
+
+        Returns
+        -------
+        stdmin : OptimizeResult
+            The optimization result represented as a Scipy OptimizeResult object.
+
+        """
+        print("... parameters optimization.")
+
+        # Retrieve the objective function
+        stdobjf = self.neg_log_joint_function()
+
+        stdmin = minimize(stdobjf, self.var_param_trans_values)
+
+        return stdmin
 
 
 # Standard 3-level HGF for binary inputs
@@ -790,7 +814,7 @@ class InputNode(object):
         iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
         try:
-            self.input(iwt)
+            self.input(iwt, verbose=False)
         except HgfUpdateError as e:
             self.undo_last_reset_hierarchy()
             raise e
@@ -856,10 +880,21 @@ class InputNode(object):
         self.inputs_with_times.append((value, time))
         self.surprises.append(self.update_parents(value, time))
 
-    def input(self, inputs):
+    def input(self, inputs, verbose=True):
+        """Add data to the input node.
+
+        Parameters
+        ----------
+        inputs : list or np.ndarray
+            The input time series.
+        verbose : bool
+            If `True`, show the progress bar.
+
+        """
         try:
-            tqdm.write("... providing data to the input node.")
-            pbar = tqdm(inputs, position=0, leave=True)
+            if verbose:
+                tqdm.write("... Add data to the input node.")
+            pbar = tqdm(inputs, position=0, leave=True, disable=not verbose)
             for this_input in pbar:
                 try:
                     value = this_input[0]
