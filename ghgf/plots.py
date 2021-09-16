@@ -3,6 +3,7 @@ from typing import Optional
 
 import numpy as np
 from bokeh.layouts import column
+from bokeh.models import ColumnDataSource
 from bokeh.palettes import Dark2_5 as palette
 from bokeh.plotting import figure
 from bokeh.plotting.figure import Figure
@@ -43,16 +44,25 @@ def plot_trajectories(
     if time is None:
         x_axis_type = "auto"
         x_axis_label = "Observations"
-        time = np.array(model.xU.times)
+        time = np.array(model.xU.times[1:])
     else:
         x_axis_type = "datetime"
         x_axis_label = "Time"
+
+    data = {"time": time, "input": np.array(model.xU.inputs[1:])}
+    for i in range(model.n_levels):
+        data[f"μ_{i+1}"] = getattr(model, f"x{i+1}").mus[1:]
+        std = np.sqrt(1 / np.array(getattr(model, f"x{i+1}").pis[1:]))
+        # Transform the precision (pi) into standard deviation (sqrt(1/pi))
+        data[f"π_{i+1}_high"] = data[f"μ_{i+1}"] + std
+        data[f"π_{i+1}_low"] = data[f"μ_{i+1}"] - std
+
+    source = ColumnDataSource(data=data)
+
     # create a color iterator
     colors = itertools.cycle(palette)
     hgf = None
     for i, col in zip(reversed(range(1, n_subplots)), colors):
-
-        trajectories = getattr(model, f"x{i}").mus[1:]
 
         if hgf:
             x_range = hgf.x_range
@@ -70,18 +80,17 @@ def plot_trajectories(
         )
 
         if ci is True:
-            # Transform the precision (pi) into standard deviation (sqrt(1/pi))
-            std = np.sqrt(1 / np.array(getattr(model, f"x{i}").pis[1:]))
             hgf.varea(
-                x=time,
-                y1=trajectories - std,
-                y2=trajectories + std,
+                x="time",
+                y1=f"π_{i}_low",
+                y2=f"π_{i}_high",
                 alpha=0.2,
                 legend_label="π",
                 color=col,
+                source=source,
             )
 
-        hgf.line(time, trajectories, line_color=col, legend_label="μ")
+        hgf.line(x="time", y=f"μ_{i}", line_color=col, legend_label="μ", source=source)
 
         cols += (hgf,)
 
@@ -97,7 +106,7 @@ def plot_trajectories(
     )
 
     input_timeseries.line(
-        time, np.array(model.xU.inputs[1:]), line_color="#c02942", legend_label="Inputs"
+        x="time", y="input", line_color="#c02942", legend_label="Inputs", source=source
     )
     cols += (input_timeseries,)
     fig = column(*cols, sizing_mode="stretch_width")
