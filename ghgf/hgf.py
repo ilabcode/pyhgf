@@ -1,5 +1,6 @@
 """The HGF time series model."""
 
+from math import exp, log, sqrt
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -560,7 +561,7 @@ class StateNode(object):
         logvol = self.omega.value
         for i, _ in enumerate(self.vo_pas):
             logvol += self.kappas[i].value * self.vo_pas[i].mus[-1]
-        nu = t * np.exp(logvol)
+        nu = t * exp(logvol)
         if nu > 1e-128:
             return nu
         else:
@@ -843,7 +844,7 @@ class InputNode(object):
         if kappa is not None:
             lognoise += kappa * vo_pa.mu[-1]
 
-        pihat = 1 / np.exp(lognoise)
+        pihat = 1 / exp(lognoise)
 
         # Update value parent
         pihat_va_pa, nu_va_pa = va_pa.new_pihat_nu(time)
@@ -1021,14 +1022,14 @@ class BinaryInputNode(object):
             eta1 = self.eta1.value
             eta0 = self.eta0.value
             # Likelihood under eta1
-            und1 = np.exp(-pihat / 2 * (value - eta1) ** 2)
+            und1 = exp(-pihat / 2 * (value - eta1) ** 2)
             # Likelihood under eta0
-            und0 = np.exp(-pihat / 2 * (value - eta0) ** 2)
+            und0 = exp(-pihat / 2 * (value - eta0) ** 2)
             # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
             mu_pa = muhat_pa * und1 / (muhat_pa * und1 + (1 - muhat_pa) * und0)
             pi_pa = 1 / (mu_pa * (1 - mu_pa))
             # Surprise
-            surprise = -np.log(
+            surprise = -log(
                 muhat_pa * gaussian(value, eta1, pihat)
                 + (1 - muhat_pa) * gaussian(value, eta0, pihat)
             )
@@ -1257,7 +1258,7 @@ class Parameter(object):
         if space == "native":
             self._trans_value = value
         elif space == "log":
-            self._trans_value = log(
+            self._trans_value = log_shift_mirror(
                 value, lower_bound=self.lower_bound, upper_bound=self.upper_bound
             )
         elif space == "logit":
@@ -1277,7 +1278,7 @@ class Parameter(object):
         if space == "native":
             self._value = trans_value
         elif space == "log":
-            self._value = exp(
+            self._value = exp_shift_mirror(
                 trans_value, lower_bound=self.lower_bound, upper_bound=self.upper_bound
             )
         elif space == "logit":
@@ -1298,7 +1299,7 @@ class Parameter(object):
             if space == "native":
                 self._trans_prior_mean = prior_mean
             elif space == "log":
-                self._trans_prior_mean = log(
+                self._trans_prior_mean = log_shift_mirror(
                     prior_mean,
                     lower_bound=self.lower_bound,
                     upper_bound=self.upper_bound,
@@ -1326,7 +1327,7 @@ class Parameter(object):
             if space == "native":
                 self._prior_mean = trans_prior_mean
             elif space == "log":
-                self._prior_mean = exp(
+                self._prior_mean = exp_shift_mirror(
                     trans_prior_mean,
                     lower_bound=self.lower_bound,
                     upper_bound=self.upper_bound,
@@ -1366,15 +1367,15 @@ class Parameter(object):
             ) from e
 
 
-def exp(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
+def exp_shift_mirror(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
     """The (shifted and mirrored) exponential function"""
     if upper_bound is not None:
-        return -np.exp(x) + upper_bound
+        return -exp(x) + upper_bound
     else:
-        return np.exp(x) + lower_bound
+        return exp(x) + lower_bound
 
 
-def log(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
+def log_shift_mirror(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
     """The (shifted and mirrored) natural logarithm"""
     if upper_bound is not None:
         if x > upper_bound:
@@ -1384,19 +1385,19 @@ def log(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
         elif x == upper_bound:
             return -np.inf
         else:
-            return np.log(-x + upper_bound)
+            return log(-x + upper_bound)
     else:
         if x < lower_bound:
             raise LogArgumentError("Log argument may not be less than `lower_bound`.")
         elif x == lower_bound:
             return -np.inf
         else:
-            return np.log(x - lower_bound)
+            return log(x - lower_bound)
 
 
 def sgm(x, *, lower_bound: float = 0, upper_bound: float = 1):
     """The logistic sigmoid function"""
-    return (upper_bound - lower_bound) / (1 + np.exp(-x)) + lower_bound
+    return (upper_bound - lower_bound) / (1 + exp(-x)) + lower_bound
 
 
 def logit(x, *, lower_bound: float = 0, upper_bound: float = 1):
@@ -1412,25 +1413,25 @@ def logit(x, *, lower_bound: float = 0, upper_bound: float = 1):
     elif x == upper_bound:
         return np.inf
     else:
-        return np.log((x - lower_bound) / (upper_bound - x))
+        return log((x - lower_bound) / (upper_bound - x))
 
 
 def gaussian(x: float, mu: float, pi: float):
     """The Gaussian density as defined by mean and precision"""
-    return pi / np.sqrt(2 * np.pi) * np.exp(-pi / 2 * (x - mu) ** 2)
+    return pi / sqrt(2 * np.pi) * exp(-pi / 2 * (x - mu) ** 2)
 
 
 def gaussian_surprise(x: float, muhat: float, pihat: float):
     """Surprise at an outcome under a Gaussian prediction"""
-    return 0.5 * (np.log(2 * np.pi) - np.log(pihat) + pihat * (x - muhat) ** 2)
+    return 0.5 * (log(2 * np.pi) - log(pihat) + pihat * (x - muhat) ** 2)
 
 
 def binary_surprise(x: float, muhat: float):
     """Surprise at a binary outcome"""
     if x == 1:
-        return -np.log(1 - muhat)
+        return -log(1 - muhat)
     if x == 0:
-        return -np.log(muhat)
+        return -log(muhat)
     else:
         raise OutcomeValueError("Outcome needs to be either 0 or 1.")
 
