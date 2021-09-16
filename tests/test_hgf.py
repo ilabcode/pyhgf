@@ -171,6 +171,7 @@ class Testsdt(TestCase):
         # Set up 2-level HGF for continuous inputs
         stdhgf = hgf.StandardHGF(
             n_levels=2,
+            model_type="GRW",
             initial_mu={"1": 1.04, "2": 1.0},
             initial_pi={"1": 1e4, "2": 1e1},
             omega={"1": -13.0, "2": -2.0},
@@ -197,6 +198,36 @@ class Testsdt(TestCase):
 
         # Feed input again
         stdhgf.input(usdchf)
+
+        # Set priors - X1
+        #################
+        stdhgf.x1.initial_mu.trans_prior_mean = 6.5
+        stdhgf.x1.initial_mu.trans_prior_precision = 1.0
+
+        stdhgf.x1.initial_pi.trans_prior_mean = -10.0
+        stdhgf.x1.initial_pi.trans_prior_precision = 1.0
+
+        stdhgf.x1.omega.trans_prior_mean = -13.0
+        stdhgf.x1.omega.trans_prior_precision = 1.0
+
+        # Set priors - X2
+        #################
+        stdhgf.x2.initial_mu.trans_prior_mean = 0.0
+        stdhgf.x2.initial_mu.trans_prior_precision = 1.0
+
+        stdhgf.x2.initial_pi.trans_prior_mean = -2.0
+        stdhgf.x2.initial_pi.trans_prior_precision = 1.0
+
+        stdhgf.x2.omega.trans_prior_mean = -2.0
+        stdhgf.x2.omega.trans_prior_precision = 1.0
+
+        # Set priors - XU
+        #################
+        stdhgf.xU.omega.trans_prior_mean = np.log(1e-4)
+        stdhgf.xU.omega.trans_prior_precision = 1.0
+
+        # Parameters optimization
+        stdhgf.optimization()
 
     def test_binary_standard_hgf(self):
         # Set up standard 3-level HGF for binary inputs
