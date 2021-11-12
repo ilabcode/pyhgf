@@ -303,7 +303,7 @@ class BinaryNode(object):
             self.send_prediction_top_down()
 
     def prompt_parent_prediction(self, time):
-        message = self.bocon.send_time_bottom_up(time)
+        message = self.bo_con.send_time_bottom_up(time)
         return message
 
     def update(self, message):
