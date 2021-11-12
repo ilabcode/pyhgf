@@ -119,8 +119,8 @@ class StateNode(object):
         self.bo_cons.append(bocon)
 
     def send_bottom_up(self):
-        for i, bocon in self.bo_cons:
-            self.bo_cons[i].send_bottom_up()
+        for bocon in self.bo_cons:
+            bocon.send_bottom_up()
 
     def send_posterior_top_down(self):
         self.td_con.send_posterior_top_down()
