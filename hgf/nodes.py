@@ -32,7 +32,7 @@ class StateNode(object):
         self.omega = Parameter(value=omega)
 
         # Initialize connections
-        self.td_con = []
+        self.td_con = None
         self.bo_cons = []
 
         # Initialize time series
@@ -114,7 +114,7 @@ class StateNode(object):
         self.logvol = self._logvol_backup
 
     def set_top_down_connection(self, tdcon):
-        self.td_con.append(tdcon)
+        self.td_con = tdcon
 
     def add_bottom_up_connection(self, bocon):
         self.bo_cons.append(bocon)
@@ -165,8 +165,7 @@ class StateNode(object):
         self.prediction_error()
 
         # signal posteriors top-down
-        for i, td_con in enumerate(self.td_cons):
-            self.td_cons[i].send_posterior_top_down()
+        self.td_con.send_posterior_top_down()
 
     def predict_current(self, time):
         # generate current predictions and store them
@@ -181,8 +180,7 @@ class StateNode(object):
         self.gammas.append(gamma)
 
         # signal prediction top-down if needed
-        for i, td_con in enumerate(self.td_cons):
-            self.td_cons[i].send_prediction_top_down()
+        #self.td_con.send_prediction_top_down()
                                                                      
     def new_muhat(self, t):
         return self.mus[-1] + t * self.driftrate
