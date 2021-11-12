@@ -99,7 +99,6 @@ class StateNode(object):
         self._logvol_backup = self.logvol
         self.logvol = self.omega.value
 
-
     def undo_last_reset(self):
         self.times = self._times_backup
         self.pihats = self._pihats_backup
@@ -225,6 +224,7 @@ class StateNode(object):
         muhat = self.new_muhat(t)
         return muhat
 
+
 # HGF binary state node
 class BinaryNode(object):
     """HGF binary state node"""
@@ -348,6 +348,7 @@ class BinaryNode(object):
     def vape(self):
         return self.mus[-1] - self.muhats[-1]
 
+
 # HGF binary input nodes
 class BinaryInputNode(object):
     """An HGF node that receives binary input"""
@@ -468,7 +469,6 @@ class BinaryInputNode(object):
                         (1 - muhat_pa) * gaussian(value, eta0, pihat)))
         self.surprises.append(surprise)
         
-                 
 
 # HGF input node    
 class InputNode(object):
