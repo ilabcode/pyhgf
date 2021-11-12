@@ -598,7 +598,7 @@ class InputNode(object):
         self.surprises.append(surprise)
 
     def compute_prediction(self, time):
-        muhat_pa = prompt_parent_prediction(time)
+        muhat_pa = self.prompt_parent_prediction(time)
         muhat = muhat_pa
         nu = self.new_nu()
         pihat = self.new_pihat(nu)
