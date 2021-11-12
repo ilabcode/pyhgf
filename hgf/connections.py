@@ -1,13 +1,14 @@
 import numpy as np
 from hgf.parameters import *
 
+
 class Connection(object):
     """Connections between HGF nodes"""
     def __init__(self,
                  child,
                  parent):
 
-    # Initialize attributes
+        # Initialize attributes
         self.child = child
         self.parent = parent
 
@@ -32,6 +33,7 @@ class Connection(object):
 
 # TODO: drop separate vape/vope signalling as first message!
 
+
 class StateToStateValueConnection(Connection):
     """Connections for VAPE coupling between state nodes"""
     def __init__(self,
@@ -39,7 +41,7 @@ class StateToStateValueConnection(Connection):
                  parent,
                  psi=1):
 
-    # Initialize attributes
+        # Initialize attributes
         super().__init__(child, parent)
         self.psi = Parameter(value=psi)
         child.add_bo_con(self)
@@ -70,7 +72,7 @@ class InputToStateValueConnection(Connection):
                  child,
                  parent):
 
-    # Initialize attributes
+        # Initialize attributes
         super().__init__(child, parent)
         child.add_bo_con(self)
         parent.set_td_con(self)
@@ -106,7 +108,7 @@ class BinaryInputToBinaryConnection(Connection):
                  child,
                  parent):
 
-    # Initialize attributes
+        # Initialize attributes
         super().__init__(child, parent)
         child.set_bo_con(self)
         parent.set_td_con(self)
@@ -139,7 +141,7 @@ class BinaryToStateConnection(Connection):
                  child,
                  parent):
 
-    # Initialize attributes
+        # Initialize attributes
         super().__init__(child, parent)
         child.set_bo_con(self)
         parent.set_td_con(self)
@@ -166,14 +168,14 @@ class BinaryToStateConnection(Connection):
         super().send_top_down(message, flag)
 
 
-class StateToStateVolatilityConnection(object):
+class StateToStateVolatilityConnection(Connection):
     """Connections for VOPE coupling between nodes"""
     def __init__(self,
                  child,
                  parent,
                  kappa=1):
 
-    # Initialize attributes
+        # Initialize attributes
         super().__init__(child, parent)
         self.kappa = Parameter(value=kappa, space='log')
         self.type = 'volatility'

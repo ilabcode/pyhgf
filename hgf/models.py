@@ -3,9 +3,11 @@ from hgf.nodes import *
 from hgf.connections import *
 from hgf.exceptions import ModelConfigurationError, HgfUpdateError
 
+
 # Generic HGF model
 class Model(object):
     """Generic HGF model"""
+
     def __init__(self):
         self._nodes = []
         self._connections = []
@@ -125,16 +127,16 @@ class Model(object):
                 c = BinaryToStateConnection(child, parent)
             else:
                 raise ModelConfigurationError(
-                'State nodes can only be value parents to state nodes, binary nodes, and continuous input nodes.')
+                    'State nodes can only be value parents to state nodes, binary nodes, and continuous input nodes.')
         elif isinstance(parent, BinaryNode):
             if isinstance(child, BinaryInputNode):
                 c = BinaryInputToBinaryConnection(child, parent)
-            else: 
+            else:
                 raise ModelConfigurationError(
-                'Binary nodes can only be parents to binary input nodes.')
+                    'Binary nodes can only be parents to binary input nodes.')
         else:
             raise ModelConfigurationError(
-            'Only state nodes and binary nodes can be value parents.')
+                'Only state nodes and binary nodes can be value parents.')
         self._connections.append(c)
 
     def add_volatility_connection(self, child, parent, kappa=1):
@@ -145,10 +147,10 @@ class Model(object):
                 c = InputToStateVolatilityConnection(child, parent, kappa)
             else:
                 raise ModelConfigurationError(
-                'State nodes can only be volatility parents to continuous input nodes and state nodes.')
+                    'State nodes can only be volatility parents to continuous input nodes and state nodes.')
         else:
             raise ModelConfigurationError(
-            'Only state nodes can be volatility parents to other nodes.')
+                'Only state nodes can be volatility parents to other nodes.')
         self._connections.append(c)
 
     def reset(self):
@@ -202,12 +204,14 @@ class Model(object):
             except HgfUpdateError:
                 self.var_param_trans_values = trans_values_backup
                 return np.inf
+
         return f
 
 
 # Standard 2-level HGF for continuous inputs
 class StandardHGF(Model):
     """The standard 2-level HGF for continuous inputs"""
+
     def __init__(self,
                  *,
                  initial_mu1,
@@ -224,7 +228,6 @@ class StandardHGF(Model):
                  m1=0,
                  phi2=0,
                  m2=0):
-
         # Superclass initialization
         super().__init__()
 
@@ -254,6 +257,7 @@ class StandardHGF(Model):
 # Standard 3-level HGF for binary inputs
 class StandardBinaryHGF(Model):
     """The standard 3-level HGF for binary inputs"""
+
     def __init__(self,
                  *,
                  initial_mu2,
@@ -272,7 +276,6 @@ class StandardBinaryHGF(Model):
                  m2=0,
                  phi3=0,
                  m3=0):
-
         # Superclass initialization
         super().__init__()
 
@@ -301,5 +304,3 @@ class StandardBinaryHGF(Model):
     # Input method
     def input(self, inputs):
         self.xU.input(inputs)
-
-
