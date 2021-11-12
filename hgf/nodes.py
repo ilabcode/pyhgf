@@ -479,7 +479,7 @@ class InputNode(object):
         self.omega = Parameter(value=omega)
         
         # Initialize connections
-        self.bo_cons = None
+        self.bo_con = None
 
         # Initialize time series
         self.times = [0]
@@ -498,7 +498,7 @@ class InputNode(object):
     @property
     def connections(self):
         connections = []
-        connections.extend(self.bo_cons)
+        connections.extend(self.bo_con)
         return connections
 
     @property
@@ -558,11 +558,10 @@ class InputNode(object):
         self.lognoise = self._lognoise_backup
 
     def add_bottom_up_connection(self, bocon):
-        self.bo_cons.append(bocon)
+        self.bo_con = bocon
        
     def send_bottom_up(self, flag):
-        for i, bocon in self.bo_cons:
-            self.bo_cons[i].send_bottom_up(flag)
+        self.bo_con.send_bottom_up(flag)
 
     def receive(self, message, flag):
         if flag == 'top-down-value':
@@ -608,7 +607,7 @@ class InputNode(object):
         self.pihats.append(pihat)
 
     def prompt_parent_prediction(self, time):
-        message = self.bocon.send_time_bottom_up(time)
+        message = self.bo_con.send_time_bottom_up(time)
         return message
 
     def new_nu(self):
