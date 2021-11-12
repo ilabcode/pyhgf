@@ -130,7 +130,7 @@ class StateNode(object):
 
     def receive(self, message, flag):
         if flag == 'bottom-up':
-            self.update(self, message)
+            self.update(message)
         elif flag == 'top-down-value':
             self.driftrate += message[0]
         elif flag == 'top-down-volatility':
@@ -139,7 +139,7 @@ class StateNode(object):
     def update(self, message):
         # compute most recent prediction
         time = message[-1]
-        self.predict_current(self, time)
+        self.predict_current(time)
         
         # compute new posteriors and store them
         pihat = self.pihats[-1]
@@ -170,7 +170,7 @@ class StateNode(object):
         # generate current predictions and store them
         t = time - self.times[-1]
         muhat = self.new_muhat(t)
-        nu    = self.new_nu(t)
+        nu = self.new_nu(t)
         pihat = self.new_pihat(nu)
         gamma = self.new_gamma(pihat, nu)
 
@@ -196,7 +196,7 @@ class StateNode(object):
     def new_pihat(self, nu):
         return 1 / (1 / self.pis[-1] + nu)
 
-    def new_gamma(pihat, nu):
+    def new_gamma(self, pihat, nu):
         return pihat * nu
 
     def prediction_error(self):
@@ -581,7 +581,7 @@ class InputNode(object):
                 except IndexError:
                     value = input
                     time = self.times[-1] + 1
-                    self._single_input(value, time)
+                    self.receive_single_input(value, time)
         except TypeError:
             value = inputs
             time = self.times[-1] + 1
@@ -601,7 +601,7 @@ class InputNode(object):
     def compute_prediction(self, time):
         muhat_pa = prompt_parent_prediction(time)
         muhat = muhat_pa
-        nu = self.new_nu(t)
+        nu = self.new_nu()
         pihat = self.new_pihat(nu)
         
         self.muhats.append(muhat)
