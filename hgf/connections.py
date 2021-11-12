@@ -19,7 +19,7 @@ class Connection(object):
 
     def send_bottom_up(self, message):
         parent = self.parent
-        parent.receive(message, 'bottom_up')
+        parent.receive(message, 'bottom-up')
 
     def send_top_down(self, message, flag):
         child = self.child
@@ -74,8 +74,8 @@ class InputToStateValueConnection(Connection):
 
         # Initialize attributes
         super().__init__(child, parent)
-        child.add_bo_con(self)
-        parent.set_td_con(self)
+        child.add_bottom_up_connection(self)
+        parent.set_top_down_connection(self)
 
     def send_time_bottom_up(self, time):
         parent = self.parent
@@ -179,6 +179,8 @@ class StateToStateVolatilityConnection(Connection):
         super().__init__(child, parent)
         self.kappa = Parameter(value=kappa, space='log')
         self.type = 'volatility'
+        child.add_bottom_up_connection(self)
+        parent.set_top_down_connection(self)
 
     @property
     def params(self):
