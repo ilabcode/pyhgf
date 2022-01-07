@@ -1,15 +1,22 @@
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/LegrandNico/metadPy/blob/master/LICENSE) [![pip](https://badge.fury.io/py/metadPy.svg)](https://badge.fury.io/py/metadPy) [![travis](https://travis-ci.com/LegrandNico/ghgf.svg?branch=master)](https://travis-ci.com/LegandNico/ghgf) [![codecov](https://codecov.io/gh/LegrandNico/ghgf/branch/master/graph/badge.svg)](https://codecov.io/gh/LegrandNico/ghgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/LegrandNico/metadPy/blob/master/LICENSE) [![travis](https://travis-ci.com/LegrandNico/ghgf.svg?branch=master)](https://travis-ci.com/LegandNico/ghgf) [![codecov](https://codecov.io/gh/LegrandNico/ghgf/branch/master/graph/badge.svg)](https://codecov.io/gh/LegrandNico/ghgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
+---
 
-# ghgf
-The generalized, nodalized HGF for predictive coding
+# The multilevel, generalized and nodalized Hierarchcal Gaussian Filter for predictive coding
 
+This repository implements the generalized and nodalized version of the Hierarchical Gaussian Filter in [JAX](https://jax.readthedocs.io/en/latest/jax.html). This refactoring offers two advantages:
+1. it offers significant performance improvement as compared to pure Python code.
+2. it makes the model function itself differentiable in a way that optimization can be performed using e.g MCMC sampling and the model can be embedded as a log probability function in Hierarchical Bayesian models e.g using [Numpyro](https://num.pyro.ai/en/latest/index.html#introductory-tutorials).
 
-# Example: surprize minimization
+> **Note:** This branch is a fork of the generalized and nodalized HGF repository and is mainly developed by Nicolas Legrand from the ECG lab (Aarhus University). It is still largely experimental.
+
+---
+
+# Getting started
+## Example: surprize minimization
+
+### Numpy
 Example of surprise minimization using a model from the hgf module
-
-This doesn't work yet as it should - probably the fault of the
-optimization algorithms in scipy.optimize
 
 ```python
 import numpy as np
@@ -84,5 +91,25 @@ stdobjf = binstdhgf.neg_log_joint_function()
 # Minimize the negative log-joint
 stdx0 = [param.value for param in stdhgf.var_params]
 stdmin = minimize(stdobjf, stdx0)
+
+```
+
+### JAX
+
+```python
+
+```
+
+## MCMC samping
+
+Optimizing the HGF parameters using the No U-Turn Sampler (NUTS).
+
+```python
+
+```
+
+## Hierarchical Bayesian modelling
+
+```python
 
 ```
