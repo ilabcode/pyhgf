@@ -2,7 +2,7 @@
 
 ---
 
-# The multilevel, generalized and nodalized Hierarchcal Gaussian Filter for predictive coding
+# The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
 This repository implements the generalized and nodalized version of the Hierarchical Gaussian Filter in [JAX](https://jax.readthedocs.io/en/latest/jax.html). This refactoring offers two advantages:
 1. it offers significant performance improvement as compared to pure Python code.
