@@ -16,30 +16,31 @@ data = loadtxt(f"/home/nicolas/git/ghgf/tests/data/usdchf.dat")
 
 def update_parents(
     node_parameters: Dict[str, float],
-    value_parents: List[Optional[List]],
-    volatility_parents: List[Optional[List]],
+    value_parents: Optional[Tuple],
+    volatility_parents: Optional[Tuple],
     old_time: int,
     new_time: int,
-) -> Tuple[Dict[str, float], Optional[List], Optional[List], int, int]:
+) -> Tuple[
+    Dict[str, float], Optional[Tuple], Optional[Tuple], DeviceArray, DeviceArray
+]:
     """Update the value parents from a given node. If the node has value or volatility
     parents, they will be updated recursively.
 
     Parameters
     ----------
     node_parameters : dict
-        The node parameters containing the following keys:
+        The node parameters is a dictionary containing the following keys:
         `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"`.
 
-        `"psis"` is a list with same length than value parents.
-
-        `"kappas"` is a list with same length than volatility parents.
-    value_parents : list | None
-        The value parent (optional).
-    volatility_parents : list | None
-        The volatility parent (optional).
-    old_time : int
+        `"psis"` is a tuple with same length than value parents.
+        `"kappas"` is a tuple with same length than volatility parents.
+    value_parents : tuple | None
+        The value parent(s) (optional).
+    volatility_parents : tuple | None
+        The volatility parent(s) (optional).
+    old_time : DeviceArray
         The previous time stamp.
-    new_time : int
+    new_time : DeviceArray
         The previous time stamp.
 
     Returns
@@ -47,18 +48,18 @@ def update_parents(
     node_parameters : dict
         The new node parameters containing the following keys:
         `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"`.
-    value_parents : list | None
+    value_parents : tuple | None
         The new value parent (optional).
-    volatility_parents : list | None
+    volatility_parents : tuple | None
         The new volatility parent (optional).
-    old_time : int
+    old_time : DeviceArray
         The previous time stamp.
-    new_time : int
+    new_time : DeviceArray
         The previous time stamp.
 
     """
     # Return here if no parents node are provided
-    if (value_parents[0] is None) and (volatility_parents[0] is None):
+    if (value_parents is None) and (volatility_parents is None):
         return node_parameters, value_parents, volatility_parents
 
     # Time interval
@@ -69,11 +70,11 @@ def update_parents(
     ########################
     # Update value parents #
     ########################
-    if value_parents[0] is not None:
+    if value_parents is not None:
         vape = node_parameters["mu"] - node_parameters["muhat"]
         psis = node_parameters["psis"]
 
-        new_value_parents = []
+        new_value_parents = ()
         for va_pa, psi in zip(value_parents, psis):
 
             # Unpack this node's parameters, value and volatility parents
@@ -84,8 +85,8 @@ def update_parents(
 
             # Look at the (optional) va_pa's volatility parents
             # and update logvol accordingly
-            for va_pa_vo_pa in va_pa_volatility_parents:
-                if va_pa_vo_pa is not None:
+            if va_pa_volatility_parents is not None:
+                for va_pa_vo_pa in va_pa_volatility_parents:
                     kappa = va_pa_vo_pa[0]["kappas"]
                     logvol += kappa * va_pa_vo_pa["mu"]
 
@@ -101,8 +102,8 @@ def update_parents(
 
             # Look at the (optional) va_pa's value parents
             # and update driftrate accordingly
-            for va_pa_va_pa in va_pa_value_parents:
-                if va_pa_va_pa is not None:
+            if va_pa_value_parents is not None:
+                for va_pa_va_pa in va_pa_value_parents:
                     driftrate += psi * va_pa_va_pa["mu"]
 
             muhat_pa = va_pa_node_parameters["mu"] + t * driftrate
@@ -128,20 +129,21 @@ def update_parents(
                 new_time=new_time,
             )
 
-            new_value_parents.append(
-                [
+            new_value_parents += (
+                (
                     new_va_pa_node_parameters,
                     new_va_pa_value_parents,
                     new_va_pa_volatility_parents,
-                ]
+                ),
             )
+
     else:
         new_value_parents = value_parents
 
     #############################
     # Update volatility parents #
     #############################
-    if volatility_parents[0] is not None:
+    if volatility_parents is not None:
 
         nu = node_parameters["nu"]
         kappas = node_parameters["kappas"]
@@ -150,7 +152,7 @@ def update_parents(
             + (node_parameters["mu"] - node_parameters["muhat"]) ** 2
         ) * node_parameters["pihat"] - 1
 
-        new_volatility_parents = []
+        new_volatility_parents = ()
         for vo_pa, kappa in zip(volatility_parents, kappas):
 
             # Unpack this node's parameters, value and volatility parents
@@ -161,8 +163,8 @@ def update_parents(
 
             # Look at the (optional) vo_pa's volatility parents
             # and update logvol accordingly
-            for vo_pa_vo_pa in vo_pa_volatility_parents:
-                if vo_pa_vo_pa is not None:
+            if vo_pa_volatility_parents is not None:
+                for vo_pa_vo_pa in vo_pa_volatility_parents:
                     kappa = vo_pa_vo_pa[0]["kappas"]
                     logvol += kappa * vo_pa_vo_pa["mu"]
 
@@ -184,8 +186,8 @@ def update_parents(
 
             # Look at the (optional) va_pa's value parents
             # and update driftrate accordingly
-            for vo_pa_va_pa in vo_pa_value_parents:
-                if vo_pa_va_pa is not None:
+            if vo_pa_value_parents is not None:
+                for vo_pa_va_pa in vo_pa_value_parents:
                     driftrate += psi * vo_pa_va_pa["mu"]
 
             muhat_pa = vo_pa_node_parameters["mu"] + t * driftrate
@@ -211,12 +213,12 @@ def update_parents(
                 new_time=new_time,
             )
 
-            new_volatility_parents.append(
-                [
+            new_volatility_parents += (
+                (
                     new_vo_pa_node_parameters,
                     new_vo_pa_value_parents,
                     new_vo_pa_volatility_parents,
-                ]
+                ),
             )
     else:
         new_volatility_parents = volatility_parents
@@ -228,200 +230,223 @@ def update_parents(
     return new_node_parameters, new_value_parents, new_volatility_parents
 
 
+def node_validation(node: Tuple, input_node: bool = False):
+    """"Verify that the node structure is valid."""
+    assert len(node) == 3
+    assert isinstance(node[0], dict)
+    for n in [1, 2]:
+        if node[n] is not None:
+            assert isinstance(node[n], tuple)
+            assert len(node[n]) > 0
+            if input_node is True:
+                node_validation(node[n])
+            else:
+                for sub_node in node[n]:
+                    node_validation(sub_node)
+
+
 def update_input_parents(
-    input_node: List,
+    input_node: Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]],
     value: jnp.DeviceArray,
     new_time: jnp.DeviceArray,
     old_time: jnp.DeviceArray,
-) -> Union[jnp.DeviceArray, List]:
-    """Update node structure given one value and return surprise.
+) -> Union[
+    jnp.DeviceArray, Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]]
+]:
+    """Update the input node structure given one value for a time interval and return
+    gaussian surprise.
     
     Parameters
     ----------
-    `"mu", "muhat", "psis", "omega"`
+    input_node : tuple
+        The parameter, value parent and volatility parent of the input node.
+    value : DeviceArray
+        The new input value(s).
+    new_time : DeviceArray
+        The time point (float). 
+    old_time : DeviceArray
+        The time point (float) of the previous observed value.
 
     Returns
     -------
     surprise : jnp.DeviceArray
-        The surprise given the value presented.
-    new_input_node : list
-        The updated node structure.
+        The gaussian surprise given the value(s) presented at time `new_time`.
+    new_input_node : tuple
+        The input node structure after recursive update.
 
     """
     input_node_parameters, value_parents, volatility_parents = input_node
 
-    if (value_parents[0] is None) and (volatility_parents[0] is None):
+    if (value_parents is None) and (volatility_parents is None):
         return
 
     # Time interval
     t = new_time - old_time
 
     lognoise = input_node_parameters["omega"]
-    kappa = input_node_parameters["kappas"][0]
 
-    if kappa is not None:
-        lognoise += kappa * volatility_parents[0][0]["mu"]
+    if input_node_parameters["kappas"] is not None:
+        lognoise += input_node_parameters["kappas"] * volatility_parents[0]["mu"]
 
     pihat = 1 / jnp.exp(lognoise)
 
     ########################
     # Update value parents #
     ########################
-    if value_parents[0] is not None:
-        vape = input_node_parameters["mu"] - input_node_parameters["muhat"]
-        psis = input_node_parameters["psis"]
+    if value_parents is not None:
 
-        new_value_parents = []
-        for va_pa, psi in zip(value_parents, psis):
+        # Unpack this node's parameters, value and volatility parents
+        (
+            va_pa_node_parameters,
+            va_pa_value_parents,
+            va_pa_volatility_parents,
+        ) = value_parents
 
-            # Unpack this node's parameters, value and volatility parents
-            va_pa_node_parameters, va_pa_value_parents, va_pa_volatility_parents = va_pa
+        vape = va_pa_node_parameters["mu"] - va_pa_node_parameters["muhat"]
 
-            # Compute new value for nu and pihat
-            logvol = va_pa_node_parameters["omega"]
+        # Compute new value for nu and pihat
+        logvol = va_pa_node_parameters["omega"]
 
-            # Look at the (optional) va_pa's volatility parents
-            # and update logvol accordingly
+        # Look at the (optional) va_pa's volatility parents
+        # and update logvol accordingly
+        if va_pa_volatility_parents is not None:
             for va_pa_vo_pa in va_pa_volatility_parents:
-                if va_pa_vo_pa is not None:
-                    kappa = va_pa_vo_pa[0]["kappas"]
-                    logvol += kappa * va_pa_vo_pa["mu"]
+                kappa = va_pa_vo_pa[0]["kappas"]
+                logvol += kappa * va_pa_vo_pa["mu"]
 
-            # Estimate new_nu
-            nu = t * jnp.exp(logvol)
-            new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
+        # Estimate new_nu
+        nu = t * jnp.exp(logvol)
+        new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
 
-            pihat_va_pa, nu_va_pa = [
-                1 / (1 / va_pa_node_parameters["pi"] + new_nu),
-                new_nu,
-            ]
-            pi_va_pa = pihat_va_pa + pihat
+        pihat_va_pa, nu_va_pa = [
+            1 / (1 / va_pa_node_parameters["pi"] + new_nu),
+            new_nu,
+        ]
+        pi_va_pa = pihat_va_pa + pihat
 
-            # Compute new muhat
-            driftrate = va_pa_node_parameters["rho"]
+        # Compute new muhat
+        driftrate = va_pa_node_parameters["rho"]
 
-            # Look at the (optional) va_pa's value parents
-            # and update driftrate accordingly
+        # Look at the (optional) va_pa's value parents
+        # and update driftrate accordingly
+        if va_pa_value_parents is not None:
             for va_pa_va_pa in va_pa_value_parents:
-                if va_pa_va_pa is not None:
-                    driftrate += psi * va_pa_va_pa["mu"]
+                driftrate += va_pa_node_parameters["psi"] * va_pa_va_pa["mu"]
 
-            muhat_va_pa = va_pa_node_parameters["mu"] + t * driftrate
-            vape = value - muhat_va_pa
-            mu_va_pa = muhat_va_pa + pihat / pi_va_pa * vape
+        muhat_va_pa = va_pa_node_parameters["mu"] + t * driftrate
+        vape = value - muhat_va_pa
+        mu_va_pa = muhat_va_pa + pihat / pi_va_pa * vape
 
-            # Update value parent's parameters
-            va_pa_node_parameters["pihat"] = pihat_va_pa
-            va_pa_node_parameters["pi"] = pi_va_pa
-            va_pa_node_parameters["muhat"] = muhat_va_pa
-            va_pa_node_parameters["mu"] = mu_va_pa
-            va_pa_node_parameters["nu"] = nu_va_pa
+        # Update value parent's parameters
+        va_pa_node_parameters["pihat"] = pihat_va_pa
+        va_pa_node_parameters["pi"] = pi_va_pa
+        va_pa_node_parameters["muhat"] = muhat_va_pa
+        va_pa_node_parameters["mu"] = mu_va_pa
+        va_pa_node_parameters["nu"] = nu_va_pa
 
-            # Update node's parents recursively
-            (
-                new_va_pa_node_parameters,
-                new_va_pa_value_parents,
-                new_va_pa_volatility_parents,
-            ) = update_parents(
-                node_parameters=va_pa_node_parameters,
-                value_parents=va_pa_value_parents,
-                volatility_parents=va_pa_volatility_parents,
-                old_time=old_time,
-                new_time=new_time,
-            )
+        # Update node's parents recursively
+        (
+            new_va_pa_node_parameters,
+            new_va_pa_value_parents,
+            new_va_pa_volatility_parents,
+        ) = update_parents(
+            node_parameters=va_pa_node_parameters,
+            value_parents=va_pa_value_parents,
+            volatility_parents=va_pa_volatility_parents,
+            old_time=old_time,
+            new_time=new_time,
+        )
 
-            new_value_parents.append(
-                [
-                    new_va_pa_node_parameters,
-                    new_va_pa_value_parents,
-                    new_va_pa_volatility_parents,
-                ]
-            )
+        new_value_parents = (
+            new_va_pa_node_parameters,
+            new_va_pa_value_parents,
+            new_va_pa_volatility_parents,
+        )
+
     else:
         new_value_parents = value_parents
 
     #############################
     # Update volatility parents #
     #############################
-    if volatility_parents[0] is not None:
+    if volatility_parents is not None:
+
+        # Unpack this node's parameters, value and volatility parents
+        (
+            vo_pa_node_parameters,
+            vo_pa_value_parents,
+            vo_pa_volatility_parents,
+        ) = volatility_parents
 
         vope = (1 / pi_va_pa + (value - mu_va_pa) ** 2) * pihat - 1
 
-        nu = input_node_parameters["nu"]
-        kappas = input_node_parameters["kappas"]
+        nu = vo_pa_node_parameters["nu"]
 
-        new_volatility_parents = []
-        for vo_pa, kappa in zip(volatility_parents, kappas):
+        # Compute new value for nu and pihat
+        logvol = vo_pa_node_parameters["omega"]
 
-            # Unpack this node's parameters, value and volatility parents
-            vo_pa_node_parameters, vo_pa_value_parents, vo_pa_volatility_parents = vo_pa
-
-            # Compute new value for nu and pihat
-            logvol = vo_pa_node_parameters["omega"]
-
-            # Look at the (optional) vo_pa's volatility parents
-            # and update logvol accordingly
+        # Look at the (optional) vo_pa's volatility parents
+        # and update logvol accordingly
+        if vo_pa_volatility_parents is not None:
             for vo_pa_vo_pa in vo_pa_volatility_parents:
-                if vo_pa_vo_pa is not None:
-                    kappa = vo_pa_vo_pa[0]["kappas"]
-                    logvol += kappa * vo_pa_vo_pa["mu"]
+                kappa = vo_pa_vo_pa[0]["kappas"]
+                logvol += kappa * vo_pa_vo_pa["mu"]
 
-            # Estimate new_nu
-            nu = t * jnp.exp(logvol)
-            new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
+        # Estimate new_nu
+        nu = t * jnp.exp(logvol)
+        new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
 
-            pihat_vo_pa, nu_vo_pa = [
-                1 / (1 / vo_pa_node_parameters["pi"] + new_nu),
-                new_nu,
-            ]
+        pihat_vo_pa, nu_vo_pa = [
+            1 / (1 / vo_pa_node_parameters["pi"] + new_nu),
+            new_nu,
+        ]
 
-            pi_vo_pa = pihat_vo_pa + 0.5 * kappa ** 2 * (1 + vope)
-            pi_vo_pa = jnp.where(pi_vo_pa <= 0, jnp.nan, pi_vo_pa)
+        pi_vo_pa = pihat_vo_pa + 0.5 * input_node_parameters["kappas"] ** 2 * (1 + vope)
+        pi_vo_pa = jnp.where(pi_vo_pa <= 0, jnp.nan, pi_vo_pa)
 
-            # Compute new muhat
-            driftrate = vo_pa_node_parameters["rho"]
+        # Compute new muhat
+        driftrate = vo_pa_node_parameters["rho"]
 
-            # Look at the (optional) va_pa's value parents
-            # and update driftrate accordingly
+        # Look at the (optional) va_pa's value parents
+        # and update driftrate accordingly
+        if vo_pa_value_parents is not None:
             for vo_pa_va_pa in vo_pa_value_parents:
-                if vo_pa_va_pa is not None:
-                    driftrate += psi * vo_pa_va_pa["mu"]
+                driftrate += vo_pa_node_parameters["psi"] * vo_pa_va_pa["mu"]
 
-            muhat_vo_pa = vo_pa_node_parameters["mu"] + t * driftrate
-            mu_vo_pa = muhat_vo_pa + 0.5 * kappa / pi_vo_pa * vope
+        muhat_vo_pa = vo_pa_node_parameters["mu"] + t * driftrate
+        mu_vo_pa = muhat_vo_pa + 0.5 * input_node_parameters["kappas"] / pi_vo_pa * vope
 
-            # Update node's parameters
-            vo_pa_node_parameters["pihat"] = pihat_vo_pa
-            vo_pa_node_parameters["pi"] = pi_vo_pa
-            vo_pa_node_parameters["muhat"] = muhat_vo_pa
-            vo_pa_node_parameters["mu"] = mu_vo_pa
-            vo_pa_node_parameters["nu"] = nu_vo_pa
+        # Update node's parameters
+        vo_pa_node_parameters["pihat"] = pihat_vo_pa
+        vo_pa_node_parameters["pi"] = pi_vo_pa
+        vo_pa_node_parameters["muhat"] = muhat_vo_pa
+        vo_pa_node_parameters["mu"] = mu_vo_pa
+        vo_pa_node_parameters["nu"] = nu_vo_pa
 
-            # Update node's parents recursively
-            (
-                new_vo_pa_node_parameters,
-                new_vo_pa_value_parents,
-                new_vo_pa_volatility_parents,
-            ) = update_parents(
-                node_parameters=vo_pa_node_parameters,
-                value_parents=vo_pa_value_parents,
-                volatility_parents=vo_pa_volatility_parents,
-                old_time=old_time,
-                new_time=new_time,
-            )
+        # Update node's parents recursively
+        (
+            new_vo_pa_node_parameters,
+            new_vo_pa_value_parents,
+            new_vo_pa_volatility_parents,
+        ) = update_parents(
+            node_parameters=vo_pa_node_parameters,
+            value_parents=vo_pa_value_parents,
+            volatility_parents=vo_pa_volatility_parents,
+            old_time=old_time,
+            new_time=new_time,
+        )
 
-            new_volatility_parents.append(
-                [
-                    new_vo_pa_node_parameters,
-                    new_vo_pa_value_parents,
-                    new_vo_pa_volatility_parents,
-                ]
-            )
+        new_volatility_parents = (
+            new_vo_pa_node_parameters,
+            new_vo_pa_value_parents,
+            new_vo_pa_volatility_parents,
+        )
+
     else:
         new_volatility_parents = volatility_parents
 
     surprise = gaussian_surprise(x=value, muhat=muhat_va_pa, pihat=pihat)
-    input_node = [input_node_parameters, new_value_parents, new_volatility_parents]
+    input_node = input_node_parameters, new_value_parents, new_volatility_parents
 
     return surprise, input_node
 
