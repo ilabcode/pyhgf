@@ -1,17 +1,9 @@
+# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+ 
 from jax.interpreters.xla import DeviceArray
 import jax.numpy as jnp
-from numpy import loadtxt
-from jax.lax import scan
 from jax import jit
-import matplotlib.pyplot as plt
-from functools import partial
-import os
-
-# from ghgf.hgf import StandardHGF
 from typing import Tuple, Union, Optional, List, Dict
-
-# path = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-data = loadtxt(f"/home/nicolas/git/ghgf/tests/data/usdchf.dat")
 
 
 def update_parents(
@@ -25,6 +17,8 @@ def update_parents(
 ]:
     """Update the value parents from a given node. If the node has value or volatility
     parents, they will be updated recursively.
+
+    This is the second part of the update process. The first part is 
 
     Parameters
     ----------
@@ -57,6 +51,10 @@ def update_parents(
     new_time : DeviceArray
         The previous time stamp.
 
+    See also
+    --------
+    update_input_parents
+
     """
     # Return here if no parents node are provided
     if (value_parents is None) and (volatility_parents is None):
@@ -86,9 +84,8 @@ def update_parents(
             # Look at the (optional) va_pa's volatility parents
             # and update logvol accordingly
             if va_pa_volatility_parents is not None:
-                for va_pa_vo_pa in va_pa_volatility_parents:
-                    kappa = va_pa_vo_pa[0]["kappas"]
-                    logvol += kappa * va_pa_vo_pa["mu"]
+                for va_pa_vo_pa, k in zip(va_pa_volatility_parents, va_pa_node_parameters["kappas"]):
+                    logvol += k * va_pa_vo_pa[0]["mu"]
 
             # Estimate new_nu
             nu = t * jnp.exp(logvol)
@@ -234,13 +231,20 @@ def node_validation(node: Tuple, input_node: bool = False):
     """"Verify that the node structure is valid."""
     assert len(node) == 3
     assert isinstance(node[0], dict)
+
     for n in [1, 2]:
         if node[n] is not None:
             assert isinstance(node[n], tuple)
             assert len(node[n]) > 0
+
+
             if input_node is True:
                 node_validation(node[n])
             else:
+                if n== 1:
+                    len(node[0]["psis"]) == len(node[n])
+                elif n == 2:
+                    len(node[0]["kappas"]) == len(node[n])
                 for sub_node in node[n]:
                     node_validation(sub_node)
 
@@ -255,6 +259,10 @@ def update_input_parents(
 ]:
     """Update the input node structure given one value for a time interval and return
     gaussian surprise.
+
+    This function is the entry level of the model fitting. It update the partents of
+    the input node and then call py:func:`ghgf.hgf_jax.update_parents` recursively to
+    update the rest of the node structure.
     
     Parameters
     ----------
@@ -273,6 +281,10 @@ def update_input_parents(
         The gaussian surprise given the value(s) presented at time `new_time`.
     new_input_node : tuple
         The input node structure after recursive update.
+
+    See also
+    --------
+    update_parents
 
     """
     input_node_parameters, value_parents, volatility_parents = input_node
@@ -310,9 +322,8 @@ def update_input_parents(
         # Look at the (optional) va_pa's volatility parents
         # and update logvol accordingly
         if va_pa_volatility_parents is not None:
-            for va_pa_vo_pa in va_pa_volatility_parents:
-                kappa = va_pa_vo_pa[0]["kappas"]
-                logvol += kappa * va_pa_vo_pa["mu"]
+            for va_pa_vo_pa, k in zip(va_pa_volatility_parents, va_pa_node_parameters["kappas"]):
+                logvol += k * va_pa_vo_pa[0]["mu"]
 
         # Estimate new_nu
         nu = t * jnp.exp(logvol)
@@ -331,7 +342,7 @@ def update_input_parents(
         # and update driftrate accordingly
         if va_pa_value_parents is not None:
             for va_pa_va_pa in va_pa_value_parents:
-                driftrate += va_pa_node_parameters["psi"] * va_pa_va_pa["mu"]
+                driftrate += va_pa_node_parameters["psi"] * va_pa_va_pa[0]["mu"]
 
         muhat_va_pa = va_pa_node_parameters["mu"] + t * driftrate
         vape = value - muhat_va_pa
@@ -390,7 +401,7 @@ def update_input_parents(
         if vo_pa_volatility_parents is not None:
             for vo_pa_vo_pa in vo_pa_volatility_parents:
                 kappa = vo_pa_vo_pa[0]["kappas"]
-                logvol += kappa * vo_pa_vo_pa["mu"]
+                logvol += kappa * vo_pa_vo_pa[0]["mu"]
 
         # Estimate new_nu
         nu = t * jnp.exp(logvol)
@@ -410,8 +421,8 @@ def update_input_parents(
         # Look at the (optional) va_pa's value parents
         # and update driftrate accordingly
         if vo_pa_value_parents is not None:
-            for vo_pa_va_pa in vo_pa_value_parents:
-                driftrate += vo_pa_node_parameters["psi"] * vo_pa_va_pa["mu"]
+            for vo_pa_va_pa, p in zip(vo_pa_value_parents, vo_pa_node_parameters["psis"]):
+                driftrate += p * vo_pa_va_pa[0]["mu"]
 
         muhat_vo_pa = vo_pa_node_parameters["mu"] + t * driftrate
         mu_vo_pa = muhat_vo_pa + 0.5 * input_node_parameters["kappas"] / pi_vo_pa * vope
@@ -478,11 +489,12 @@ def gaussian_surprise(
     )
 
 
+@jit
 def loop_inputs(
     res: Tuple, el: Tuple
 ) -> Tuple[Tuple[List, Dict[str, DeviceArray]], DeviceArray]:
     """The HGF function to be scanned by JAX. One time step updating node structure and
-    returning time, value and surprise.
+    returning the new node structure with time, value and surprise.
 
     Parameters
     ----------
