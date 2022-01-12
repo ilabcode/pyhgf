@@ -1,11 +1,11 @@
-import os
+# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+
 import unittest
 from unittest import TestCase
 import jax.numpy as jnp
 from jax.lax import scan
 from numpy import loadtxt
 from typing import List, Tuple
-import pytest
 
 from ghgf.hgf_jax import (
     update_parents,
@@ -17,6 +17,7 @@ from ghgf.hgf_jax import (
 
 
 class Testsdt(TestCase):
+
     def test_update_parents(self):
 
         ###########################################
@@ -186,6 +187,109 @@ class Testsdt(TestCase):
         assert isinstance(output_node[1], tuple)
         assert isinstance(output_node[2], tuple)
 
+        ########################################################################
+        # Both value and volatility parents with values and volatility parents #
+        ########################################################################
+        
+        # Second level
+        vo_pa_2 = {
+            "mu": jnp.array(1.0),
+            "muhat": jnp.array(1.0),
+            "pi": jnp.array(1.0),
+            "pihat": jnp.array(1.0),
+            "kappas": None,
+            "nu": jnp.array(1.0),
+            "psis": None,
+            "omega": jnp.array(-2.0),
+            "rho": jnp.array(0.0),
+        }
+        vo_pa_3 = {
+            "mu": jnp.array(1.0),
+            "muhat": jnp.array(1.0),
+            "pi": jnp.array(1.0),
+            "pihat": jnp.array(1.0),
+            "kappas": None,
+            "nu": jnp.array(1.0),
+            "psis": None,
+            "omega": jnp.array(-2.0),
+            "rho": jnp.array(0.0),
+        }
+        volatility_parent_2 = vo_pa_2, None, None
+        volatility_parent_3 = vo_pa_3, None, None
+
+        va_pa_2 = {
+            "mu": jnp.array(1.0),
+            "muhat": jnp.array(1.0),
+            "pi": jnp.array(1.0),
+            "pihat": jnp.array(1.0),
+            "kappas": (jnp.array(1.0),),
+            "nu": jnp.array(1.0),
+            "psis": None,
+            "omega": jnp.array(-2.0),
+            "rho": jnp.array(0.0),
+        }
+        value_parent_2 = va_pa_2, None, (volatility_parent_3,)
+
+        # First level
+        vo_pa_1 = {
+            "mu": jnp.array(1.0),
+            "muhat": jnp.array(1.0),
+            "pi": jnp.array(1.0),
+            "pihat": jnp.array(1.0),
+            "kappas": None,
+            "nu": jnp.array(1.0),
+            "psis": (jnp.array(1.0),),
+            "omega": jnp.array(-2.0),
+            "rho": jnp.array(0.0),
+        }
+        va_pa = {
+            "mu": jnp.array(1.0),
+            "muhat": jnp.array(1.0),
+            "pi": jnp.array(1.0),
+            "pihat": jnp.array(1.0),
+            "kappas": (jnp.array(1.0),),
+            "nu": jnp.array(1.0),
+            "psis": None,
+            "omega": jnp.array(-2.0),
+            "rho": jnp.array(0.0),
+        }
+        volatility_parent_1 = vo_pa_1, (value_parent_2,), None
+        value_parent_1 = va_pa, None, (volatility_parent_2,)
+        
+        node_parameters, value_parents, volatility_parents = volatility_parent_1
+        output_node = update_parents(
+            node_parameters=node_parameters,
+            value_parents=value_parents,
+            volatility_parents=volatility_parents,
+            old_time=1,
+            new_time=2,
+        )
+
+        # Verify node structure
+        node_validation(output_node)
+        assert len(output_node) == 3
+        assert isinstance(output_node[0], dict)
+        assert isinstance(output_node[1], tuple)
+        assert output_node[2] is None
+
+        node_parameters, value_parents, volatility_parents = value_parent_1
+
+        output_node = update_parents(
+            node_parameters=node_parameters,
+            value_parents=value_parents,
+            volatility_parents=volatility_parents,
+            old_time=1,
+            new_time=2,
+        )
+
+        # Verify node structure
+        node_validation(output_node)
+        assert len(output_node) == 3
+        assert isinstance(output_node[0], dict)
+        assert output_node[1] is None
+        assert isinstance(output_node[2], tuple)
+
+
     def test_gaussian_surprise(self):
         surprise = gaussian_surprise(
             x=jnp.array([1.0, 1.0]),
@@ -278,7 +382,7 @@ class Testsdt(TestCase):
 
         assert results["time"] == 1.0
         assert results["value"] == 5.0
-        assert results["surprise"] == 2.5279474
+        assert jnp.isclose(results["surprise"], 2.5279474)
 
     def test_scan_loop(self):
 
