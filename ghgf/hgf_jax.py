@@ -1,9 +1,10 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
- 
-from jax.interpreters.xla import DeviceArray
+
+from typing import Dict, List, Optional, Tuple, Union
+
 import jax.numpy as jnp
 from jax import jit
-from typing import Tuple, Union, Optional, List, Dict
+from jax.interpreters.xla import DeviceArray
 
 
 def update_parents(
@@ -18,7 +19,11 @@ def update_parents(
     """Update the value parents from a given node. If the node has value or volatility
     parents, they will be updated recursively.
 
-    This is the second part of the update process. The first part is 
+    The parents update is a two step process:
+        1. Update value parent(s) (if provided).
+        2. Update volatility parent(s) (if provided).
+
+    Then returns the new node tuple (parameters, value_parents, volatility_parents)
 
     Parameters
     ----------
@@ -84,7 +89,9 @@ def update_parents(
             # Look at the (optional) va_pa's volatility parents
             # and update logvol accordingly
             if va_pa_volatility_parents is not None:
-                for va_pa_vo_pa, k in zip(va_pa_volatility_parents, va_pa_node_parameters["kappas"]):
+                for va_pa_vo_pa, k in zip(
+                    va_pa_volatility_parents, va_pa_node_parameters["kappas"]
+                ):
                     logvol += k * va_pa_vo_pa[0]["mu"]
 
             # Estimate new_nu
@@ -162,12 +169,12 @@ def update_parents(
             # and update logvol accordingly
             if vo_pa_volatility_parents is not None:
                 for vo_pa_vo_pa in vo_pa_volatility_parents:
-                    kappa = vo_pa_vo_pa[0]["kappas"]
-                    logvol += kappa * vo_pa_vo_pa["mu"]
+                    k = vo_pa_node_parameters["kappas"]
+                    logvol += k * vo_pa_vo_pa["mu"]
 
             # Estimate new_nu
-            nu = t * jnp.exp(logvol)
-            new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
+            new_nu = t * jnp.exp(logvol)
+            new_nu = jnp.where(new_nu > 1e-128, new_nu, jnp.nan)
 
             pihat_pa, nu_pa = [1 / (1 / vo_pa_node_parameters["pi"] + new_nu), new_nu]
 
@@ -228,7 +235,7 @@ def update_parents(
 
 
 def node_validation(node: Tuple, input_node: bool = False):
-    """"Verify that the node structure is valid."""
+    """ "Verify that the node structure is valid."""
     assert len(node) == 3
     assert isinstance(node[0], dict)
 
@@ -237,11 +244,10 @@ def node_validation(node: Tuple, input_node: bool = False):
             assert isinstance(node[n], tuple)
             assert len(node[n]) > 0
 
-
             if input_node is True:
                 node_validation(node[n])
             else:
-                if n== 1:
+                if n == 1:
                     len(node[0]["psis"]) == len(node[n])
                 elif n == 2:
                     len(node[0]["kappas"]) == len(node[n])
@@ -263,7 +269,7 @@ def update_input_parents(
     This function is the entry level of the model fitting. It update the partents of
     the input node and then call py:func:`ghgf.hgf_jax.update_parents` recursively to
     update the rest of the node structure.
-    
+
     Parameters
     ----------
     input_node : tuple
@@ -271,7 +277,7 @@ def update_input_parents(
     value : DeviceArray
         The new input value(s).
     new_time : DeviceArray
-        The time point (float). 
+        The time point (float).
     old_time : DeviceArray
         The time point (float) of the previous observed value.
 
@@ -322,7 +328,9 @@ def update_input_parents(
         # Look at the (optional) va_pa's volatility parents
         # and update logvol accordingly
         if va_pa_volatility_parents is not None:
-            for va_pa_vo_pa, k in zip(va_pa_volatility_parents, va_pa_node_parameters["kappas"]):
+            for va_pa_vo_pa, k in zip(
+                va_pa_volatility_parents, va_pa_node_parameters["kappas"]
+            ):
                 logvol += k * va_pa_vo_pa[0]["mu"]
 
         # Estimate new_nu
@@ -421,7 +429,9 @@ def update_input_parents(
         # Look at the (optional) va_pa's value parents
         # and update driftrate accordingly
         if vo_pa_value_parents is not None:
-            for vo_pa_va_pa, p in zip(vo_pa_value_parents, vo_pa_node_parameters["psis"]):
+            for vo_pa_va_pa, p in zip(
+                vo_pa_value_parents, vo_pa_node_parameters["psis"]
+            ):
                 driftrate += p * vo_pa_va_pa[0]["mu"]
 
         muhat_vo_pa = vo_pa_node_parameters["mu"] + t * driftrate
@@ -466,7 +476,7 @@ def gaussian_surprise(
     x: jnp.DeviceArray, muhat: jnp.DeviceArray, pihat: jnp.DeviceArray
 ) -> jnp.DeviceArray:
     """Surprise at an outcome under a Gaussian prediction.
-    
+
     Parameters
     ----------
     x : jnp.DeviceArray
