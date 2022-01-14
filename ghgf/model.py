@@ -174,7 +174,7 @@ class HGF(object):
         self,
         input_data,
         time: DeviceArray = jnp.array(0.0),
-        value: DeviceArray = jnp.array(0.0),
+        value: DeviceArray = jnp.nan,
         surprise: DeviceArray = jnp.array(0.0),
     ):
 
@@ -200,48 +200,3 @@ class HGF(object):
         _, results = self.final
         surprise = jnp.sum(results["surprise"])
         return jnp.where(jnp.isnan(surprise), -jnp.inf, surprise)
-
-    def log_prior(self):
-        pass
-        # # The log_prior of the parameters
-        # - gaussian_surprise(
-        #     x=trans_value,
-        #     muhat=trans_prior_mean,
-        #     pihat=trans_prior_precision
-        #     )
-
-        # if self.var_params:
-        #     log_prior = 0
-        #     for var_param in self.var_params:
-        #         log_prior += var_param.log_prior()
-        #     return log_prior
-        # else:
-        #     raise ModelConfigurationError("No variable (i.e., non-fixed) parameters.")
-
-    def log_joint(self):
-        return -self.surprise() + self.log_prior()
-
-    # def neg_log_joint_function(self):
-    #     def f(trans_values):
-    #         trans_values_backup = self.var_param_trans_values
-    #         self.var_param_trans_values = trans_values
-    #         self.recalculate()
-
-    #         # Check for NaNs in the parameters times series (invalid parameter space)
-    #         has_nan = np.array(
-    #             [
-    #                 np.isnan(
-    #                     np.array(
-    #                         [
-    #                             getattr(self, f"x{i+1}").mus[1:],
-    #                             getattr(self, f"x{i+1}").pis[1:],
-    #                         ]
-    #                     )
-    #                 )
-    #                 for i in range(self.n_levels)
-    #             ]
-    #         ).any()
-
-    #         return np.where(has_nan, np.nan, -self.log_joint())
-
-    #     return f
