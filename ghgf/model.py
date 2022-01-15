@@ -5,6 +5,7 @@ from typing import Dict, Optional, Tuple
 import jax.numpy as jnp
 from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
+from numpyro.distributions import Distribution, constraints
 
 from ghgf.hgf_jax import loop_inputs, node_validation
 
@@ -200,3 +201,74 @@ class HGF(object):
         _, results = self.final
         surprise = jnp.sum(results["surprise"])
         return jnp.where(jnp.isnan(surprise), -jnp.inf, surprise)
+
+
+class HGFDistribution(Distribution):
+
+    support = constraints.real
+    has_rsample = False
+
+    def __init__(
+        self,
+        input_data,
+        model_type="GRW",
+        omega_1=None,
+        omega_2=None,
+        rho_1=None,
+        rho_2=None,
+        pi_1=None,
+        pi_2=None,
+        mu_1=None,
+        mu_2=None,
+        kappa=jnp.array(1.0),
+    ):
+        self.input_data = input_data
+        self.model_type = model_type
+        self.omega_1 = omega_1
+        self.omega_2 = omega_2
+        self.rho_1 = rho_1
+        self.rho_2 = rho_2
+        self.pi_1 = pi_1
+        self.pi_2 = pi_2
+        self.mu_1 = mu_1
+        self.mu_2 = mu_2
+        self.kappa = kappa
+        super().__init__(batch_shape=(1,), event_shape=())
+
+    def sample(self, key, sample_shape=()):
+        raise NotImplementedError
+
+    def log_prob(self, value):
+
+        hgf = HGF(
+            n_levels=2,
+            model_type="GRW",
+            initial_mu={"1": self.mu_1, "2": self.mu_2},
+            initial_pi={"1": self.pi_1, "2": self.pi_2},
+            omega={"1": self.omega_1, "2": self.omega_2},
+            rho={"1": self.rho_1, "2": self.rho_2},
+            kappa={"1": self.kappa},
+            verbose=False,
+        )
+
+        # Create the input structure
+        res_init = (
+            hgf.input_node,
+            {
+                "time": jnp.array(0.0),
+                "value": jnp.array(0.0),
+                "surprise": jnp.array(0.0),
+            },
+        )
+
+        # This is where the HGF functions are used to scan the input time series
+        _, final = scan(loop_inputs, res_init, self.input_data)
+        nodes, results = final
+        self.nodes = nodes
+        self.final = final
+        self.results = results
+
+        surprise = jnp.sum(results["surprise"])
+
+        # Return the negative surprise or -Inf if the model cannot fit
+        return jnp.where(jnp.isnan(surprise), -jnp.inf, -surprise)
