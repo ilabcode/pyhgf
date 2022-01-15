@@ -2,22 +2,21 @@
 
 import unittest
 from unittest import TestCase
+
 import jax.numpy as jnp
 from jax.lax import scan
 from numpy import loadtxt
-from typing import List, Tuple
 
 from ghgf.hgf_jax import (
-    update_parents,
-    update_input_parents,
     gaussian_surprise,
     loop_inputs,
     node_validation,
+    update_input_parents,
+    update_parents,
 )
 
 
 class Testsdt(TestCase):
-
     def test_update_parents(self):
 
         ###########################################
@@ -190,7 +189,7 @@ class Testsdt(TestCase):
         ########################################################################
         # Both value and volatility parents with values and volatility parents #
         ########################################################################
-        
+
         # Second level
         vo_pa_2 = {
             "mu": jnp.array(1.0),
@@ -255,7 +254,7 @@ class Testsdt(TestCase):
         }
         volatility_parent_1 = vo_pa_1, (value_parent_2,), None
         value_parent_1 = va_pa, None, (volatility_parent_2,)
-        
+
         node_parameters, value_parents, volatility_parents = volatility_parent_1
         output_node = update_parents(
             node_parameters=node_parameters,
@@ -288,7 +287,6 @@ class Testsdt(TestCase):
         assert isinstance(output_node[0], dict)
         assert output_node[1] is None
         assert isinstance(output_node[2], tuple)
-
 
     def test_gaussian_surprise(self):
         surprise = gaussian_surprise(
@@ -386,7 +384,7 @@ class Testsdt(TestCase):
 
     def test_scan_loop(self):
 
-        timeserie = loadtxt(f"/home/nicolas/git/ghgf/tests/data/usdchf.dat")
+        timeserie = loadtxt("/home/nicolas/git/ghgf/tests/data/usdchf.dat")
 
         # No value parent - no volatility parents
         input_node_parameters = {
