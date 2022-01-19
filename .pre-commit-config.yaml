@@ -16,3 +16,8 @@ repos:
     rev: v2.3.0
     hooks:
     - id: flake8
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: ''  # Use the sha / tag you want to point at
+    hooks:
+    -   id: mypy
+        args: [--ignore-missing-imports]
