@@ -1,8 +1,7 @@
 from typing import List, Union
 
 import numpy as np
-from scipy.optimize import minimize
-from scipy.stats import norm
+from jax.scipy.stats import norm
 
 from ghgf.hgf import HgfUpdateError, Model
 
@@ -196,31 +195,3 @@ class ResponseModel:
             ).fit()
 
             return logp.sum()
-
-    def optimization(self):
-        """Miimization of the HGF filter with prediction of responses.
-
-
-        Returns
-        -------
-        hgfmin : OptimizeResult
-            OptimizeResult object outputed by py:func:`scipy.optimize.minimize`.
-
-        """
-
-        # Retrieve parameters from the perceptual model
-        perc_parameters = [param.value for param in self.model.var_params]
-
-        # Merge into a list of parameters
-        # for the perceptual and response model combined
-        func_parameters = perc_parameters.copy()
-        for key in self.parameters:
-            func_parameters.append(self.parameters[key])
-
-        # Get the objective function
-        func = self.objective_func(self, func_parameters)
-
-        # Retrieve parameters from the response model
-        hgfmin = minimize(func, func_parameters)
-
-        return hgfmin

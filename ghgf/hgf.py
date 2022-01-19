@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from numba import jit
-from scipy.optimize import minimize
 from tqdm import tqdm
 
 
@@ -368,25 +367,6 @@ class StandardHGF(Model):
     # Input method
     def input(self, inputs):
         self.xU.input(inputs)
-
-    # Optimization function
-    def optimization(self):
-        """Parameters optimization.
-
-        Returns
-        -------
-        stdmin : OptimizeResult
-            The optimization result represented as a Scipy OptimizeResult object.
-
-        """
-        print("... parameters optimization.")
-
-        # Retrieve the objective function
-        stdobjf = self.neg_log_joint_function()
-
-        stdmin = minimize(stdobjf, self.var_param_trans_values)
-
-        return stdmin
 
 
 # Standard 3-level HGF for binary inputs
