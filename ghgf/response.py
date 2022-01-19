@@ -205,7 +205,9 @@ class ResponseModel:
         -------
         hgfmin : OptimizeResult
             OptimizeResult object outputed by py:func:`scipy.optimize.minimize`.
+
         """
+
         # Retrieve parameters from the perceptual model
         perc_parameters = [param.value for param in self.model.var_params]
 

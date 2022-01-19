@@ -27,7 +27,7 @@ jobs:
         pip install isort flake8 black==21.12b0 mypy
     - name: Run tests and coverage
       run: |
-        mypy ./systole/ --ignore-missing-imports
-        flake8 ./systole/
-        black ./systole/
-        isort ./systole/
+        mypy ./ghgf/ --ignore-missing-imports
+        flake8 ./ghgf/
+        black ./ghgf/
+        isort ./ghgf/

@@ -17,3 +17,4 @@ doc/figures/*/*.aux
 doc/figures/*/*.log
 htmlcov/
 .coverage
+.coverage.xml
