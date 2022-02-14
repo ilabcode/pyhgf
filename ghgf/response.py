@@ -1,55 +1,18 @@
-from typing import List, Union
+# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
+from typing import TYPE_CHECKING, Tuple
+
+import jax.numpy as jnp
 import numpy as np
+from jax import jit, vmap
+from jax.interpreters.xla import DeviceArray
 from jax.scipy.stats import norm
 
-from ghgf.hgf import HgfUpdateError, Model
+if TYPE_CHECKING:
+    from ghgf.model import HGF
 
 
-class ResponseFunction:
-    """Response function objects.
-
-    Parameters
-    ----------
-    model : py:class:`ghgf.hgf.Model` instance
-        The perceptual model.
-    parameters : list
-        The parameters of the response function that should be optimized.
-    responses : list or np.ndarray
-        The responses provided by the participant. Can be a list or a Numpy array with
-        n >= 1 dimensions where axis 0 encodes the number of trials.
-
-    """
-
-    def __inti__(
-        self, model: Model, parameters: List, responses: Union[List, np.ndarray]
-    ):
-
-        # Check that responses and perceptual model fit together
-        if isinstance(responses, list):
-            if len(responses) != len(model.x2.mus[1:]):
-                raise ValueError(
-                    (
-                        "The responses provided does not match the lenght of the "
-                        "beliefs in the perceptual model."
-                    )
-                )
-            self.responses = np.asarray(responses)
-        elif isinstance(responses, np.ndarray):
-            if responses.shape[0] != len(model.x2.mus[1:]):
-                raise ValueError(
-                    (
-                        "The first dimension of the  responses provided does not match "
-                        "the lenght of the beliefs in the perceptual model."
-                    )
-                )
-            self.responses = responses
-
-        self.model = model
-        self.parameters = parameters
-
-
-class GaussianObs(ResponseFunction):
+class GaussianObs:
     """The gaussian observation response function.
 
     The probability of the observed response is given by:
@@ -85,113 +48,102 @@ class GaussianObs(ResponseFunction):
         return (-np.log(sigma) - ((self.responses - mu_hat_1) / sigma) ** 2).sum()
 
 
-class HRD(ResponseFunction):
-    """The gaussian observation response function.
-
-    The probability of the observed response is given by:
-        p(y | mu_hat_1) ~ N(mu_hat_1, zeta > 0)
-
-    Where mu_hat_1 is the mean of the underlying normal distribution, and zeta is the
-    variance of the underlying normal distribution.
-
-    """
-
-    def __init__(self):
-
-        for param in ["sigma_tone", "extero_tone"]:
-            if param not in self.parameters:
-                raise ValueError(
-                    f"The parameter dictionnary should contain a {param} variable"
-                )
-        self.parameters["sigma_tone"] = 1  # Fix this parameter for now
-        if len(self.parameters["extero_tone"]) != len(self.reponses):
-            raise ValueError(
-                "The length of responses and exteroceptives tones are inconsistents"
-            )
-
-    def fit(self):
-        """Fit the responses and return the negative log probability.
-
-        Parameters
-        ----------
-        responses : list
-            The responses provided by the participant.
-
-        Returns
-        -------
-        neg_log_p : floats
-            The sum of the negative log probability.
-
-        """
-        mu_hat_1 = self.model.x1.mus[1:]  # The heart rate estimate at trial t
-
-        return -np.log(
-            norm.cdf(
-                0,
-                loc=mu_hat_1 - self.parameters["extero_tone"],
-                scale=np.sqrt(
-                    1 / self.model.x1.pis[1:] + (self.parameters["sigma_tone"] ** 2)
-                ),
-            )
-        )
-
-
-class ResponseModel:
-    """Response model
+class HRD:
+    """The binary response function for the HRD task.
 
     Parameters
     ----------
-    model : py:class:`ghgf.hgf.Model` instance
-        The perceptual model.
-    parameters : list
-        The parameters of the response model.
-    likelihood : py:class:`ghgf.response.ResponseFunction`
-        The likelihood of the response model.
+    model : py:class:`ghgf.hgf.model.HGF` instance
+        The HGF model (JAX backend).
+    final : tuple
+        Final node structure after perceptual model fit.
+    time : DeviceArray
+        The time vector.
+    triggers_idx : DeviceArray
+        The triggers indexs (sample).
+    tones : DeciceArray
+        The frequencies of the tones presented at each trial.
+    decisions : DeviceArray
+        The participant decision (boolean) where `1` stands for Faster and `0` for
+        Slower.
+    sigma_tone : DeviceArray
+        The precision of the tone perception. Defaults to `1`.
 
     """
 
     def __init__(
         self,
-        model: Model,
-        parameters: List,
-        likelihood: ResponseFunction,
+        model: "HGF",
+        final: Tuple,
+        time: DeviceArray,
+        triggers_idx: DeviceArray,
+        tones: DeviceArray,
+        decisions: DeviceArray,
+        sigma_tone: DeviceArray = jnp.array([1.0]),
     ):
 
-        self.model = model
-        self.parameters = parameters
-        self.likelihood = likelihood
+        assert len(tones) == len(triggers_idx)
 
-    def objective_funtion(self):
-        """Optimization of the parameters of the perceptual and response model.
+        # The continuous HGF model
+        self.model = model
+
+        # The time vector
+        self.time = time
+
+        # The triggers indexs
+        self.triggers_idx = triggers_idx
+
+        # The tone frequency at each trial
+        self.tones = tones
+
+        # The participant's decisions
+        self.decisions = decisions
+
+        # The standard deviation for the tone precision
+        self.sigma_tone = sigma_tone
+
+        # The estimated heart rate (mu_1)
+        self.mu_1 = final[0][1][0]["mu"]
+
+        # The precision of the first level estimate
+        self.pi_1 = final[0][1][2][0][0]["pi"]
+
+    def surprise(self) -> DeviceArray:
+        """Fit the responses and return the negative log probability.
+
+        Parameters
+        ----------
+
 
         Returns
         -------
-        f : Callable
-            The objective function that have to be optimized.
+        surprise : DeviceArray
+            The model surprise given the responses.
+
         """
-        nperc = len  # Delimiter for retrieving perceptual parameters
 
-        def f(self, parameters: Union[List, np.array], nperc: int = nperc):
+        # Extract the values of mu_1 and pi_1 for each trial
+        # --------------------------------------------------
 
-            ##################################################
-            # Reinitialize the HGF filter using new parameters
-            ##################################################
-            trans_values_backup = self.var_param_trans_values
-            self.var_param_trans_values = parameters[:nperc]
-            try:
-                self.recalculate()
-                return -self.log_joint()
-            except HgfUpdateError:
-                self.var_param_trans_values = trans_values_backup
-                return np.inf
+        # First define a function to extract values for one trigger
+        @jit
+        def extract(trigger: int, mu_1=self.mu_1, pi_1=self.pi_1, time=self.time):
+            return (
+                mu_1[jnp.sum(time <= trigger) - 1],
+                pi_1[jnp.sum(time <= trigger) - 1],
+            )
 
-            ###############################################
-            # Generate response and compute log-probability
-            ###############################################
-            logp = self.likelihood(
-                responses=self.responses,
-                model=self.model,
-                parameters=parameters[nperc:],
-            ).fit()
+        hr, precision = vmap(extract)(self.triggers_idx)
+        hr = 60000 / jnp.exp(hr)  # Convert the values to BPM
 
-            return logp.sum()
+        # The probabilit of answering Faster
+        cdf = norm.cdf(
+            0,
+            loc=hr - self.tones,
+            scale=jnp.sqrt(1 / precision + (self.sigma_tone ** 2)),
+        )
+
+        # The surprise (sum of the -log(p)) of the model given the answers
+        surprise = jnp.where(self.decisions, -jnp.log(cdf), -jnp.log(1 - cdf)).sum()
+
+        return surprise

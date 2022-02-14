@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
 from jax import jit
@@ -13,9 +13,7 @@ def update_parents(
     volatility_parents: Optional[Tuple],
     old_time: int,
     new_time: int,
-) -> Tuple[
-    Dict[str, float], Optional[Tuple], Optional[Tuple], DeviceArray, DeviceArray
-]:
+) -> Tuple[Dict[str, float], Optional[Tuple], Optional[Tuple]]:
     """Update the value parents from a given node. If the node has value or volatility
     parents, they will be updated recursively.
 
@@ -77,8 +75,8 @@ def update_parents(
         vape = node_parameters["mu"] - node_parameters["muhat"]
         psis = node_parameters["psis"]
 
-        new_value_parents = ()
-        for va_pa, psi in zip(value_parents, psis):
+        new_value_parents: Any = ()
+        for va_pa, psi in zip(value_parents, psis):  # type:ignore
 
             # Unpack this node's parameters, value and volatility parents
             va_pa_node_parameters, va_pa_value_parents, va_pa_volatility_parents = va_pa
@@ -156,8 +154,8 @@ def update_parents(
             + (node_parameters["mu"] - node_parameters["muhat"]) ** 2
         ) * node_parameters["pihat"] - 1
 
-        new_volatility_parents = ()
-        for vo_pa, kappa in zip(volatility_parents, kappas):
+        new_volatility_parents = ()  # type:ignore
+        for vo_pa, kappa in zip(volatility_parents, kappas):  # type:ignore
 
             # Unpack this node's parameters, value and volatility parents
             vo_pa_node_parameters, vo_pa_value_parents, vo_pa_volatility_parents = vo_pa
@@ -217,7 +215,7 @@ def update_parents(
                 new_time=new_time,
             )
 
-            new_volatility_parents += (
+            new_volatility_parents += (  # type:ignore
                 (
                     new_vo_pa_node_parameters,
                     new_vo_pa_value_parents,
@@ -225,7 +223,7 @@ def update_parents(
                 ),
             )
     else:
-        new_volatility_parents = volatility_parents
+        new_volatility_parents = volatility_parents  # type:ignore
     ##########################
     # Update node parameters #
     ##########################
@@ -260,8 +258,10 @@ def update_input_parents(
     value: jnp.DeviceArray,
     new_time: jnp.DeviceArray,
     old_time: jnp.DeviceArray,
-) -> Union[
-    jnp.DeviceArray, Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]]
+) -> Optional[
+    Union[
+        jnp.DeviceArray, Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]]
+    ]
 ]:
     """Update the input node structure given one value for a time interval and return
     gaussian surprise.
@@ -296,7 +296,7 @@ def update_input_parents(
     input_node_parameters, value_parents, volatility_parents = input_node
 
     if (value_parents is None) and (volatility_parents is None):
-        return
+        return None
 
     # Time interval
     t = new_time - old_time
@@ -304,7 +304,9 @@ def update_input_parents(
     lognoise = input_node_parameters["omega"]
 
     if input_node_parameters["kappas"] is not None:
-        lognoise += input_node_parameters["kappas"] * volatility_parents[0]["mu"]
+        lognoise += (  # type:ignore
+            input_node_parameters["kappas"] * volatility_parents[0]["mu"]  # type:ignore
+        )
 
     pihat = 1 / jnp.exp(lognoise)
 
@@ -383,7 +385,7 @@ def update_input_parents(
         )
 
     else:
-        new_value_parents = value_parents
+        new_value_parents = value_parents  # type:ignore
 
     #############################
     # Update volatility parents #
@@ -464,7 +466,7 @@ def update_input_parents(
         )
 
     else:
-        new_volatility_parents = volatility_parents
+        new_volatility_parents = volatility_parents  # type:ignore
 
     surprise = gaussian_surprise(x=value, muhat=muhat_va_pa, pihat=pihat)
     input_node = input_node_parameters, new_value_parents, new_volatility_parents
@@ -525,7 +527,7 @@ def loop_inputs(
     node_structure, results = res
 
     # Fit the model with the current time and value variables, given model structure
-    surprise, new_node_structure = update_input_parents(
+    surprise, new_node_structure = update_input_parents(  # type:ignore
         input_node=node_structure,
         value=value,
         old_time=results["time"],

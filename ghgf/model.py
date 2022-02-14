@@ -8,6 +8,7 @@ from jax.lax import scan
 from numpyro.distributions import Distribution, constraints
 
 from ghgf.hgf_jax import loop_inputs, node_validation
+from ghgf.response import HRD
 
 
 class HGF(object):
@@ -16,14 +17,14 @@ class HGF(object):
     def __init__(
         self,
         n_levels: Optional[int] = None,
-        model_type: Optional[str] = None,
+        model_type: str = "GRW",
         initial_mu: Dict[str, float] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
         initial_pi: Dict[str, float] = {"1": jnp.array(1.0), "2": jnp.array(1.0)},
         omega_input: float = jnp.log(1e-4),
         omega: Dict[str, float] = {"1": -10.0, "2": -10.0},
         kappa: Dict[str, float] = {"1": jnp.array(1.0)},
-        rho: Optional[Dict[str, float]] = None,
-        phi: Optional[Dict[str, float]] = None,
+        rho: Dict[str, float] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
+        phi: Dict[str, float] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
         m: Dict[str, float] = None,
         verbose: bool = True,
     ):
@@ -61,7 +62,7 @@ class HGF(object):
         omega_input : float
             Default value sets to `np.log(1e-4)`. Represent the noise associated with
             the input.
-        rho : dict | None
+        rho : dict
             Dictionnary containing the initial values for the `rho` parameter at
             different levels of the hierarchy. Rho represents the drift of the random
             walk. Only required when `model_type="GRW"`. Defaults set all entries to
@@ -73,7 +74,7 @@ class HGF(object):
             the strenght of the connection between the node and the parent node. Often
             fixed to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only
             required when `model_type="GRW"`.
-        phi : dict | None
+        phi : dict
             Dictionnary containing the initial values for the `phi` parameter at
             different levels of the hierarchy. Phi should always be between 0 and 1.
             Defaults set all entries to `0` according to the number of required levels.
@@ -111,17 +112,19 @@ class HGF(object):
 
         """
 
+        self.model_type = model_type
         self.verbose = verbose
         self.n_levels = n_levels
-        if self.verbose:
-            print(
-                (
-                    "Fitting the continuous Hierarchical Gaussian Filter (JAX backend) "
-                    f"with {self.n_levels} levels."
-                )
-            )
 
         if n_levels == 2:
+
+            if self.verbose:
+                print(
+                    (
+                        "Fitting the continuous Hierarchical Gaussian Filter (JAX) "
+                        f"with {self.n_levels} levels."
+                    )
+                )
 
             # Second level
             x2_parameters = {
@@ -169,7 +172,7 @@ class HGF(object):
 
         """
         node_validation(nodes, input_node=True)
-        self.input_node = nodes
+        self.input_node = nodes  # type: ignore
 
     def input_data(
         self,
@@ -178,6 +181,8 @@ class HGF(object):
         value: DeviceArray = jnp.nan,
         surprise: DeviceArray = jnp.array(0.0),
     ):
+
+        self.time = time
 
         # Initialise the first values
         res_init = (
@@ -204,23 +209,36 @@ class HGF(object):
 
 
 class HGFDistribution(Distribution):
+    """
+
+    Parameters
+    ----------
+    input_data : DeviceArray
+        A n x 2 DeviceArray (:, (Data, Time)).
+    response_function : str
+        Name of the response function to use to compute model surprise when provided
+        evidences. Defaults to `"GaussianSurprise"` (continuous inputs).
+
+    """
 
     support = constraints.real
     has_rsample = False
 
     def __init__(
         self,
-        input_data,
-        model_type="GRW",
-        omega_1=None,
-        omega_2=None,
-        rho_1=None,
-        rho_2=None,
-        pi_1=None,
-        pi_2=None,
-        mu_1=None,
-        mu_2=None,
-        kappa=jnp.array(1.0),
+        input_data: DeviceArray,
+        model_type: str = "GRW",
+        omega_1: Optional[DeviceArray] = None,
+        omega_2: Optional[DeviceArray] = None,
+        rho_1: Optional[DeviceArray] = None,
+        rho_2: Optional[DeviceArray] = None,
+        pi_1: Optional[DeviceArray] = None,
+        pi_2: Optional[DeviceArray] = None,
+        mu_1: Optional[DeviceArray] = None,
+        mu_2: Optional[DeviceArray] = None,
+        kappa: DeviceArray = jnp.array(1.0),
+        response_function: Optional[str] = "GaussianSurprise",
+        response_function_parameters: Optional[Dict] = None,
     ):
         self.input_data = input_data
         self.model_type = model_type
@@ -233,12 +251,22 @@ class HGFDistribution(Distribution):
         self.mu_1 = mu_1
         self.mu_2 = mu_2
         self.kappa = kappa
+        self.response_function = response_function
+        self.response_function_parameters = response_function_parameters
         super().__init__(batch_shape=(1,), event_shape=())
 
     def sample(self, key, sample_shape=()):
         raise NotImplementedError
 
     def log_prob(self, value):
+        """
+
+        Raises
+        ------
+        ValueError
+            If `response_function` does not match with an existing response function.
+
+        """
 
         hgf = HGF(
             n_levels=2,
@@ -252,23 +280,34 @@ class HGFDistribution(Distribution):
         )
 
         # Create the input structure
+        # Here we use the first tuple from the input data
         res_init = (
             hgf.input_node,
             {
-                "time": jnp.array(0.0),
-                "value": jnp.array(0.0),
+                "time": self.input_data[0, 1],
+                "value": self.input_data[0, 0],
                 "surprise": jnp.array(0.0),
             },
         )
 
         # This is where the HGF functions are used to scan the input time series
-        _, final = scan(loop_inputs, res_init, self.input_data)
+        _, final = scan(loop_inputs, res_init, self.input_data[1:, :])
         nodes, results = final
         self.nodes = nodes
         self.final = final
         self.results = results
 
-        surprise = jnp.sum(results["surprise"])
+        if self.response_function == "hrd":
+            surprise = HRD(
+                model=hgf,
+                final=final,
+                time=self.input_data[:, 0],
+                **self.response_function_parameters,
+            ).surprise()
+        elif self.response_function == "GaussianSurprise":
+            surprise = jnp.sum(results["surprise"])
+        else:
+            raise ValueError("Invalid response function parameter.")
 
-        # Return the negative surprise or -Inf if the model cannot fit
+        # Return the negative surprise or -inf if the model cannot fit
         return jnp.where(jnp.isnan(surprise), -jnp.inf, -surprise)
