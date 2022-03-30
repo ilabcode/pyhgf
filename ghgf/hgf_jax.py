@@ -166,9 +166,9 @@ def update_parents(
             # Look at the (optional) vo_pa's volatility parents
             # and update logvol accordingly
             if vo_pa_volatility_parents is not None:
-                for vo_pa_vo_pa in vo_pa_volatility_parents:
-                    k = vo_pa_node_parameters["kappas"]
-                    logvol += k * vo_pa_vo_pa["mu"]
+                for i, vo_pa_vo_pa in enumerate(vo_pa_volatility_parents):
+                    k = vo_pa_node_parameters["kappas"][i]
+                    logvol += k * vo_pa_vo_pa[0]["mu"]
 
             # Estimate new_nu
             new_nu = t * jnp.exp(logvol)

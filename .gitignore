@@ -18,3 +18,8 @@ doc/figures/*/*.log
 htmlcov/
 .coverage
 .coverage.xml
+ghgf.egg-info
+build
+coverage.xm
+.mypy_cache
+.pytest_cache

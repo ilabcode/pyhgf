@@ -33,26 +33,27 @@ class Testsdt(TestCase):
         jaxhgf.input_data(input_data=data)
 
         surprise = jaxhgf.surprise()  # Sum the surprise for this model
-        assert surprise == -1925.712
+        assert surprise == -1922.2264
 
     def test_HGFDistribution(self):
         """Test the model distribution"""
 
         def model(input_data):
 
-            omega_1 = npy.sample("omega_1", dist.Normal(-10.0, 4.0))
-            omega_2 = npy.sample("omega_2", dist.Normal(-10.0, 4.0))
-            rho_1 = jnp.array(0.0)
-            rho_2 = jnp.array(0.0)
-            pi_1 = jnp.array(1e4)
-            pi_2 = jnp.array(1e1)
-            mu_1 = jnp.array(1.04)
-            mu_2 = jnp.array(1.0)
+            omega_1 = npy.sample("omega_1", dist.Normal(-10.0, 4.0), sample_shape=(1,))
+            omega_2 = npy.sample("omega_2", dist.Normal(-10.0, 4.0), sample_shape=(1,))
+            rho_1 = jnp.array([0.0])
+            rho_2 = jnp.array([0.0])
+            pi_1 = jnp.array([1e4])
+            pi_2 = jnp.array([1e1])
+            mu_1 = jnp.array([input_data[0][0]])
+            mu_2 = jnp.array([1.0])
+            kappa = jnp.array([1.0])
 
             npy.sample(
                 "hgf_log_prob",
                 HGFDistribution(
-                    input_data=input_data,
+                    input_data=[input_data],
                     omega_1=omega_1,
                     omega_2=omega_2,
                     rho_1=rho_1,
@@ -61,6 +62,7 @@ class Testsdt(TestCase):
                     pi_2=pi_2,
                     mu_1=mu_1,
                     mu_2=mu_2,
+                    kappa=kappa,
                 ),
             )
 

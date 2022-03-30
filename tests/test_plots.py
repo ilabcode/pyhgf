@@ -2,10 +2,10 @@ import os
 import unittest
 from unittest import TestCase
 
-import numpy as np
+import jax.numpy as jnp
+from numpy import loadtxt
 
-from ghgf.hgf import StandardHGF
-from ghgf.plots import plot_trajectories
+from ghgf.model import HGF
 
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,25 +13,27 @@ path = os.path.dirname(os.path.abspath(__file__))
 class Testsdt(TestCase):
     def test_plot_trajectories(self):
 
-        # Set up standard 2-level HGF for continuous inputs
-        stdhgf = StandardHGF(
-            n_levels=2,
+        # Set up standard 3-level HGF for continuous inputs
+        hgf = HGF(
+            n_levels=3,
             model_type="GRW",
-            initial_mu={"1": 1.04, "2": 1.0},
-            initial_pi={"1": 1e4, "2": 1e1},
-            omega={"1": -13.0, "2": -2.0},
-            rho={"1": 0.0, "2": 0.0},
-            kappa={"1": 1.0},
+            initial_mu={"1": 1.04, "2": 1.0, "3": 1.0},
+            initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
+            omega={"1": -13.0, "2": -2.0, "3": -2.0},
+            rho={"1": 0.0, "2": 0.0, "3": 0.0},
+            kappa={"1": 1.0, "2": 1.0},
         )
 
         # Read USD-CHF data
-        usdchf = np.loadtxt(f"{path}/data/usdchf.dat")
+        timeserie = loadtxt("/home/nicolas/git/ghgf/tests/data/usdchf.dat")
+        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         # Feed input
-        stdhgf.input(usdchf)
+        hgf.input_data(input_data=data)
 
         # Plot
-        plot_trajectories(model=stdhgf, ci=True, figsize=800)
+        for backend in ["matplotlib", "bokeh"]:
+            hgf.plot_trajectories(backend=backend)
 
 
 if __name__ == "__main__":

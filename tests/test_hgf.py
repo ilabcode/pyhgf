@@ -226,9 +226,6 @@ class Testsdt(TestCase):
         stdhgf.xU.omega.trans_prior_mean = np.log(1e-4)
         stdhgf.xU.omega.trans_prior_precision = 1.0
 
-        # Parameters optimization
-        stdhgf.optimization()
-
     def test_binary_standard_hgf(self):
         # Set up standard 3-level HGF for binary inputs
         binstdhgf = hgf.StandardBinaryHGF(

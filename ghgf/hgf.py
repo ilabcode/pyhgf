@@ -305,11 +305,11 @@ class StandardHGF(Model):
             params = [initial_mu, initial_pi, omega, phi, m]
             names = ["initial_mu", "initial_pi", "omega", "phi", "m"]
         for param, name in zip(params, names):
-            if len(param) != n_levels:
+            if len(param) != n_levels:  # type: ignore
                 raise ValueError(
                     (
-                        f"The size of {name} is {len(param)} and does not match with "
-                        f"the number of levels ({n_levels})",
+                        f"The size of {name} is {len(param)}",  # type: ignore
+                        f" and does not match with the number of levels ({n_levels})",
                     )
                 )
         if len(kappa) != n_levels - 1:
@@ -338,7 +338,7 @@ class StandardHGF(Model):
                         initial_mu=initial_mu[str(n)],
                         initial_pi=initial_pi[str(n)],
                         omega=omega[str(n)],
-                        rho=rho[str(n)],
+                        rho=rho[str(n)],  # type: ignore
                     ),
                 )
             elif self.model_type == "AR1":
@@ -349,8 +349,8 @@ class StandardHGF(Model):
                         initial_mu=initial_mu[str(n)],
                         initial_pi=initial_pi[str(n)],
                         omega=omega[str(n)],
-                        phi=phi[str(n)],
-                        m=m[str(n)],
+                        phi=phi[str(n)],  # type: ignore
+                        m=m[str(n)],  # type: ignore
                     ),
                 )
 
@@ -362,7 +362,7 @@ class StandardHGF(Model):
                 parent=getattr(self, f"x{n+1}"), kappa=kappa[str(n)]
             )
 
-        self.xU.set_value_parent(parent=self.x1)
+        self.xU.set_value_parent(parent=self.x1)  # type: ignore
 
     # Input method
     def input(self, inputs):
@@ -565,9 +565,9 @@ class StateNode(object):
     def numba_update_value_parent(
         i: int, va_pa: List, time: List, psis: List, pihat: List, vape: List
     ):
-        pihat_pa, nu_pa = va_pa.new_pihat_nu(time)
+        pihat_pa, nu_pa = va_pa.new_pihat_nu(time)  # type: ignore
         pi_pa = pihat_pa + psis[i].value ** 2 * pihat
-        muhat_pa = va_pa.new_muhat(time)
+        muhat_pa = va_pa.new_muhat(time)  # type: ignore
         mu_pa = muhat_pa + psis[i].value * pihat / pi_pa * vape
 
         return pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa
@@ -1158,7 +1158,7 @@ class Parameter(object):
         return self._lower_bound
 
     @lower_bound.setter
-    def lower_bound(self, lower_bound: Optional[float]):
+    def lower_bound(self, lower_bound: Optional[int]):
         space = self.space
         if lower_bound is not None and space == "native":
             raise ParameterConfigurationError(
@@ -1190,7 +1190,7 @@ class Parameter(object):
         return self._upper_bound
 
     @upper_bound.setter
-    def upper_bound(self, upper_bound: Optional[float]):
+    def upper_bound(self, upper_bound: Optional[int]):
         space = self.space
         if upper_bound is not None and space == "native":
             raise ParameterConfigurationError(
@@ -1272,7 +1272,7 @@ class Parameter(object):
 
     @prior_mean.setter
     def prior_mean(self, prior_mean: Optional[float]):
-        self._prior_mean = prior_mean
+        self._prior_mean: Optional[float] = prior_mean
 
         if prior_mean is not None:
             space = self.space
@@ -1291,8 +1291,8 @@ class Parameter(object):
                     upper_bound=self.upper_bound,
                 )
         else:
-            self._trans_prior_mean = None
-            self._trans_prior_precision = None
+            self._trans_prior_mean = None  # type:ignore
+            self._trans_prior_precision: Optional[float] = None
 
     @property
     def trans_prior_mean(self):
@@ -1300,7 +1300,7 @@ class Parameter(object):
 
     @trans_prior_mean.setter
     def trans_prior_mean(self, trans_prior_mean: Optional[float]):
-        self._trans_prior_mean = trans_prior_mean
+        self._trans_prior_mean = trans_prior_mean  # type: ignore
 
         if trans_prior_mean is not None:
             space = self.space
@@ -1331,8 +1331,8 @@ class Parameter(object):
         self._trans_prior_precision = trans_prior_precision
 
         if trans_prior_precision is None:
-            self._prior_mean = None
-            self._trans_prior_mean = None
+            self._prior_mean = None  # type: ignore
+            self._trans_prior_mean = None  # type: ignore
 
     def log_prior(self):
         try:

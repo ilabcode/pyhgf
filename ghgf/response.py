@@ -6,6 +6,7 @@ import jax.numpy as jnp
 import numpy as np
 from jax import jit, vmap
 from jax.interpreters.xla import DeviceArray
+from jax.lax import dynamic_slice
 from jax.scipy.stats import norm
 
 if TYPE_CHECKING:
@@ -64,8 +65,9 @@ class HRD:
     tones : DeciceArray
         The frequencies of the tones presented at each trial.
     decisions : DeviceArray
-        The participant decision (boolean) where `1` stands for Faster and `0` for
-        Slower.
+        The participant decision (boolean) where `1` stands for Slower and `0` for
+        Faster. The coding is different from what is used by the Psi staircase as the
+        input use different units (log(RR), in miliseconds).
     sigma_tone : DeviceArray
         The precision of the tone perception. Defaults to `1`.
 
@@ -93,8 +95,8 @@ class HRD:
         # The triggers indexs
         self.triggers_idx = triggers_idx
 
-        # The tone frequency at each trial
-        self.tones = tones
+        # The tone frequency at each trial - convert to log(RR) - ms
+        self.tones = jnp.log(60000 / tones)
 
         # The participant's decisions
         self.decisions = decisions
@@ -111,10 +113,6 @@ class HRD:
     def surprise(self) -> DeviceArray:
         """Fit the responses and return the negative log probability.
 
-        Parameters
-        ----------
-
-
         Returns
         -------
         surprise : DeviceArray
@@ -123,20 +121,22 @@ class HRD:
         """
 
         # Extract the values of mu_1 and pi_1 for each trial
+        # The heart rate belief and the precision of the heart rate belief
         # --------------------------------------------------
 
         # First define a function to extract values for one trigger
+        # (Use the average over the 5 heartbeats after trigger)
         @jit
         def extract(trigger: int, mu_1=self.mu_1, pi_1=self.pi_1, time=self.time):
+            idx = jnp.sum(time <= trigger) - 1
             return (
-                mu_1[jnp.sum(time <= trigger) - 1],
-                pi_1[jnp.sum(time <= trigger) - 1],
+                dynamic_slice(mu_1, (idx,), (3,)).mean(),
+                dynamic_slice(pi_1, (idx,), (3,)).mean(),
             )
 
         hr, precision = vmap(extract)(self.triggers_idx)
-        hr = 60000 / jnp.exp(hr)  # Convert the values to BPM
 
-        # The probabilit of answering Faster
+        # The probability of answering Slower
         cdf = norm.cdf(
             0,
             loc=hr - self.tones,
