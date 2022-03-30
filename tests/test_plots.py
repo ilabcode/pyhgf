@@ -25,7 +25,7 @@ class Testsdt(TestCase):
         )
 
         # Read USD-CHF data
-        timeserie = loadtxt("/home/nicolas/git/ghgf/tests/data/usdchf.dat")
+        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
         data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         # Feed input

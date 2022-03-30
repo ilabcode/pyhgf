@@ -88,7 +88,7 @@ class Testsdt(TestCase):
         xU.set_parent(parent=x1)
 
         # Read binary input from Iglesias et al. (2013)
-        binary = np.loadtxt(f"{path}/data/binary_input.dat")
+        binary = np.loadtxt("./tests/data/binary_input.dat")
 
         # Feed input
         xU.input(binary)
@@ -110,7 +110,7 @@ class Testsdt(TestCase):
         x1.add_volatility_parent(parent=x2, kappa=1)
         xU.set_value_parent(parent=x1)
 
-        usdchf = np.loadtxt(f"{path}/data/usdchf.dat")
+        usdchf = np.loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
 
         xU.input(usdchf)
 
@@ -179,7 +179,7 @@ class Testsdt(TestCase):
         )
 
         # Read USD-CHF data
-        usdchf = np.loadtxt(f"{path}/data/usdchf.dat")
+        usdchf = np.loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
 
         # Feed input
         stdhgf.input(usdchf)
@@ -239,7 +239,7 @@ class Testsdt(TestCase):
         )
 
         # Read binary input from Iglesias et al. (2013)
-        binary = np.loadtxt(f"{path}/data/binary_input.dat")
+        binary = np.loadtxt("./tests/data/binary_input.dat")
 
         # Feed input
         binstdhgf.input(binary)

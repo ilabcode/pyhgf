@@ -1,5 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
+import os
 from unittest import TestCase
 
 import jax.numpy as jnp
@@ -17,7 +18,7 @@ class Testsdt(TestCase):
 
         np.random.seed(123)
 
-        timeserie = loadtxt("/home/nicolas/git/ghgf/tests/data/usdchf.dat")
+        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
         data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         ################
@@ -50,8 +51,8 @@ class Testsdt(TestCase):
         stdhgf.input(timeserie)
         std_surprise = stdhgf.surprise()
 
-        assert jax_surprise == -1922.2264
-        assert std_surprise == -1924.5794736619316
+        assert jnp.isclose(jax_surprise, -1922.2264)
+        assert jnp.isclose(std_surprise, -1924.5794736619316)
         assert len(stdhgf.input_nodes[0].surprises) == 615
         assert len(results["surprise"]) == 613
 
@@ -117,8 +118,8 @@ class Testsdt(TestCase):
         stdhgf.input(timeserie)
         std_surprise = stdhgf.surprise()
 
-        assert jax_surprise == -1915.0765
-        assert std_surprise == -1914.917339132975
+        assert jnp.isclose(jax_surprise, -1915.0765)
+        assert jnp.isclose(std_surprise, -1914.917339132975)
         len(stdhgf.input_nodes[0].surprises)
         len(results["surprise"])
 

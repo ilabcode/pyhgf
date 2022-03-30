@@ -1,5 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
+import os
 import unittest
 from unittest import TestCase
 
@@ -384,7 +385,7 @@ class Testsdt(TestCase):
 
     def test_scan_loop(self):
 
-        timeserie = loadtxt("/home/nicolas/git/ghgf/tests/data/usdchf.dat")
+        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
 
         # No value parent - no volatility parents
         input_node_parameters = {

@@ -1,5 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
+import os
 import unittest
 from unittest import TestCase
 
@@ -18,7 +19,7 @@ class Testsdt(TestCase):
         """Test the model class"""
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt("/home/nicolas/git/ghgf/tests/data/usdchf.dat")
+        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
         data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         jaxhgf = HGF(
@@ -33,7 +34,7 @@ class Testsdt(TestCase):
         jaxhgf.input_data(input_data=data)
 
         surprise = jaxhgf.surprise()  # Sum the surprise for this model
-        assert surprise == -1922.2264
+        assert jnp.isclose(surprise, -1922.2264)
 
     def test_HGFDistribution(self):
         """Test the model distribution"""
@@ -67,7 +68,7 @@ class Testsdt(TestCase):
             )
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt("/home/nicolas/git/ghgf/tests/data/usdchf.dat")
+        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
         input_data = jnp.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
