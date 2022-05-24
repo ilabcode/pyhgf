@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from numba import jit
-from tqdm import tqdm
 
 
 class Model(object):
@@ -247,7 +246,7 @@ class StandardHGF(Model):
         initial_pi: Dict[str, float] = {"1": 1.0, "2": 1.0},
         omega_input: float = np.log(1e-4),
         omega: Dict[str, float] = {"1": -10.0, "2": -10.0},
-        kappa: Dict[str, float] = {"1": 1.0},
+        kappas: Dict[str, float] = {"1": 1.0},
         rho: Optional[Dict[str, float]] = None,
         phi: Optional[Dict[str, float]] = None,
         m: Dict[str, float] = None,
@@ -312,7 +311,7 @@ class StandardHGF(Model):
                         f" and does not match with the number of levels ({n_levels})",
                     )
                 )
-        if len(kappa) != n_levels - 1:
+        if len(kappas) != n_levels - 1:
             raise ValueError(
                 (
                     "The size of kappa does not match with"
@@ -359,7 +358,7 @@ class StandardHGF(Model):
         # Set up nodes relationships
         for n in range(1, n_levels):
             getattr(self, f"x{n}").add_volatility_parent(
-                parent=getattr(self, f"x{n+1}"), kappa=kappa[str(n)]
+                parent=getattr(self, f"x{n+1}"), kappa=kappas[str(n)]
             )
 
         self.xU.set_value_parent(parent=self.x1)  # type: ignore
@@ -841,7 +840,7 @@ class InputNode(object):
             vope = (1 / pi_va_pa + (value - mu_va_pa) ** 2) * pihat - 1
 
             pihat_vo_pa, nu_vo_pa = vo_pa.new_pihat_nu(time)
-            pi_vo_pa = pihat_vo_pa + 0.5 * kappa ** 2 * (1 + vope)
+            pi_vo_pa = pihat_vo_pa + 0.5 * kappa**2 * (1 + vope)
             if pi_vo_pa <= 0:
                 raise HgfUpdateError(
                     "Negative posterior precision. Parameters values are\n"
@@ -873,10 +872,7 @@ class InputNode(object):
 
         """
         try:
-            if verbose:
-                tqdm.write("... Add data to the input node.")
-            pbar = tqdm(inputs, position=0, leave=True, disable=not verbose)
-            for this_input in pbar:
+            for this_input in inputs:
                 try:
                     value = this_input[0]
                     time = this_input[1]

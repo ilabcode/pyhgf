@@ -32,7 +32,7 @@ class Testsdt(TestCase):
             initial_pi={"1": 1e4, "2": 1e1},
             omega={"1": -13.0, "2": -2.0},
             rho={"1": 0.0, "2": 0.0},
-            kappa={"1": 1.0},
+            kappas={"1": 1.0},
         )
         jaxhgf.input_data(input_data=data)
 
@@ -46,7 +46,7 @@ class Testsdt(TestCase):
             initial_pi={"1": 1e4, "2": 1e1},
             omega={"1": -13.0, "2": -2.0},
             rho={"1": 0.0, "2": 0.0},
-            kappa={"1": 1.0},
+            kappas={"1": 1.0},
         )
         stdhgf.input(timeserie)
         std_surprise = stdhgf.surprise()
@@ -99,7 +99,7 @@ class Testsdt(TestCase):
             initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
             omega={"1": -13.0, "2": -2.0, "3": -2.0},
             rho={"1": 0.0, "2": 0.0, "3": 0.0},
-            kappa={"1": 1.0, "2": 1.0},
+            kappas={"1": 1.0, "2": 1.0},
         )
         jaxhgf.input_data(input_data=data)
 
@@ -113,7 +113,7 @@ class Testsdt(TestCase):
             initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
             omega={"1": -13.0, "2": -2.0, "3": -2.0},
             rho={"1": 0.0, "2": 0.0, "3": 0.0},
-            kappa={"1": 1.0, "2": 1.0},
+            kappas={"1": 1.0, "2": 1.0},
         )
         stdhgf.input(timeserie)
         std_surprise = stdhgf.surprise()
@@ -126,25 +126,28 @@ class Testsdt(TestCase):
         ############
         # Surprise #
         ############
-        plt.figure(figsize=(12, 6))
+        plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.input_nodes[0].surprises[2:], label="Standard HGF")
         plt.plot(results["surprise"], label="JAX HGF")
+        plt.title("Surprise")
         plt.legend()
 
         ##############
         # First node #
         ##############
-        plt.figure(figsize=(12, 6))
-        plt.plot(stdhgf.x1.mus, label="Standard HGF")
+        plt.figure(figsize=(12, 3))
+        plt.plot(stdhgf.x1.mus[2:], label="Standard HGF")
         plt.plot(node[1][0]["mu"], label="JAX HGF")
+        plt.title(r"$\mu_1$")
         plt.legend()
 
         ###############
         # Second node #
         ###############
-        plt.figure(figsize=(12, 6))
-        plt.plot(stdhgf.x2.mus, label="Standard HGF")
+        plt.figure(figsize=(12, 3))
+        plt.plot(stdhgf.x2.mus[2:], label="Standard HGF")
         plt.plot(node[1][2][0][0]["mu"], label="JAX HGF")
+        plt.title(r"$\mu_2$")
         plt.legend()
 
         ###############
@@ -158,9 +161,10 @@ class Testsdt(TestCase):
         ##############
         # Third node #
         ##############
-        plt.figure(figsize=(12, 6))
-        plt.plot(stdhgf.x3.mus, label="Standard HGF")
+        plt.figure(figsize=(12, 3))
+        plt.plot(stdhgf.x3.mus[2:], label="Standard HGF")
         plt.plot(node[1][2][0][2][0][0]["mu"], label="JAX HGF")
+        plt.title(r"$\mu_3$")
         plt.legend()
 
         ##############

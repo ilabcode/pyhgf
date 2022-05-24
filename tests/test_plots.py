@@ -21,7 +21,7 @@ class Testsdt(TestCase):
             initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
             omega={"1": -13.0, "2": -2.0, "3": -2.0},
             rho={"1": 0.0, "2": 0.0, "3": 0.0},
-            kappa={"1": 1.0, "2": 1.0},
+            kappas={"1": 1.0, "2": 1.0},
         )
 
         # Read USD-CHF data
