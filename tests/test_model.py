@@ -45,30 +45,21 @@ class Testmodel(TestCase):
 
         # Repeate the input time series 3 time to test for multiple models
         input_data = jnp.array(
-            [
-                jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
-                for _ in range(3)
-            ]
-        )
+            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
+        ).T
 
-        # Simulate recording with different lenght
-        input_data = input_data.at[1, 610:, :].set(jnp.nan)
-        input_data = input_data.at[2, 600:, :].set(jnp.nan)
-
-        rho_1 = jnp.array([0.0, 0.0, 0.0])
-        rho_2 = jnp.array([0.0, 0.0, 0.0])
-        pi_1 = jnp.array([1e4, 1e4, 1e4])
-        pi_2 = jnp.array([1e1, 1e1, 1e1])
-        mu_1 = jnp.array(
-            [input_data[0][0][0], input_data[0][0][0], input_data[0][0][0]]
-        )
-        mu_2 = jnp.array([0.0, 0.0, 0.0])
-        kappa = jnp.array([1.0, 1.0])
+        rho_1 = jnp.array(0.0)
+        rho_2 = jnp.array(0.0)
+        pi_1 = jnp.array(1e4)
+        pi_2 = jnp.array(1e1)
+        mu_1 = jnp.array(input_data[0][0])
+        mu_2 = jnp.array(0.0)
+        kappa = jnp.array(1.0)
 
         hgf = HGFDistribution(
             input_data=input_data,
-            omega_1=jnp.array([-3.0, -3.0, -3.0]),
-            omega_2=jnp.array([-3.0, -3.0, -3.0]),
+            omega_1=jnp.array(-3.0),
+            omega_2=jnp.array(-3.0),
             rho_1=rho_1,
             rho_2=rho_2,
             pi_1=pi_1,
@@ -76,53 +67,39 @@ class Testmodel(TestCase):
             mu_1=mu_1,
             mu_2=mu_2,
             kappa_1=kappa,
+            bias=jnp.array(0.0),
         )
 
-        assert jnp.isclose(hgf.log_prob(None), 5765.3843)
+        assert jnp.isclose(hgf.log_prob(None), 1938.0101)
 
         #################
         # Test sampling #
         #################
 
-        input_data = jnp.array(
-            [
-                jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
-                for _ in range(3)
-            ]
-        )
-
         def model(input_data):
 
-            # Hyper-parameters
-            μ_ω_1 = npy.sample("μ_ω_1", dist.Normal(0.0, 2.0))
-            σ_ω_1 = npy.sample("σ_ω_1", dist.HalfNormal(0.5))
-
-            with npy.plate("plate_i", 3):
-                ω_1 = npy.sample("ω_1", dist.Normal(μ_ω_1, σ_ω_1))
-
-            omega_2 = jnp.array([-3.0, -3.0, -3.0])
-            rho_1 = jnp.array([0.0, 0.0, 0.0])
-            rho_2 = jnp.array([0.0, 0.0, 0.0])
-            pi_1 = jnp.array([1e4, 1e4, 1e4])
-            pi_2 = jnp.array([1e1, 1e1, 1e1])
-            mu_1 = jnp.array(
-                [input_data[0][0][0], input_data[0][0][0], input_data[0][0][0]]
-            )
-            mu_2 = jnp.array([0.0, 0.0, 0.0])
-            kappa_1 = jnp.array([1.0, 1.0, 1.0])
+            ω_1 = npy.sample("ω_1", dist.Normal(0.0, 5.0))
+            ω_2 = jnp.array(-3.0)
+            rho_1 = jnp.array(0.0)
+            rho_2 = jnp.array(0.0)
+            pi_1 = jnp.array(1e4)
+            pi_2 = jnp.array(1e1)
+            μ_1 = jnp.array(input_data[0][0])
+            μ_2 = jnp.array(0.0)
+            kappa_1 = jnp.array(1.0)
 
             npy.sample(
                 "hgf_log_prob",
                 HGFDistribution(
                     input_data=input_data,
                     omega_1=ω_1,
-                    omega_2=omega_2,
+                    omega_2=ω_2,
                     rho_1=rho_1,
                     rho_2=rho_2,
                     pi_1=pi_1,
                     pi_2=pi_2,
-                    mu_1=mu_1,
-                    mu_2=mu_2,
+                    mu_1=μ_1,
+                    mu_2=μ_2,
                     kappa_1=kappa_1,
                 ),
             )
@@ -138,7 +115,7 @@ class Testmodel(TestCase):
 
         samples = az.from_numpyro(mcmc)
 
-        assert round(az.summary(samples)["mean"]["μ_ω_1"]) == 4
+        assert round(az.summary(samples)["mean"]["μ_ω_1"]) == -1
 
 
 if __name__ == "__main__":

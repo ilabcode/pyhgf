@@ -1,10 +1,12 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
+from functools import partial
 from typing import Dict, Optional, Tuple
 
 import jax.numpy as jnp
+from jax import jit
 from jax.interpreters.xla import DeviceArray
-from jax.lax import fori_loop, scan
+from jax.lax import scan
 from numpyro.distributions import Distribution, constraints
 
 from ghgf.hgf_jax import loop_inputs, node_validation
@@ -13,20 +15,21 @@ from ghgf.response import HRD
 
 
 class HGF(object):
-    """Generic HGF model"""
+    """Generic HGF model using JAX backend."""
 
     def __init__(
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "GRW",
-        initial_mu: Dict[str, float] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
-        initial_pi: Dict[str, float] = {"1": jnp.array(1.0), "2": jnp.array(1.0)},
-        omega_input: float = jnp.log(1e-4),
-        omega: Dict[str, float] = {"1": -10.0, "2": -10.0},
-        kappas: Dict[str, float] = {"1": jnp.array(1.0)},
-        rho: Dict[str, float] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
-        phi: Dict[str, float] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
-        m: Dict[str, float] = None,
+        initial_mu: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
+        initial_pi: Dict[str, DeviceArray] = {"1": jnp.array(1.0), "2": jnp.array(1.0)},
+        omega_input: DeviceArray = jnp.log(1e-4),
+        omega: Dict[str, DeviceArray] = {"1": -10.0, "2": -10.0},
+        kappas: Dict[str, DeviceArray] = {"1": jnp.array(1.0)},
+        rho: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
+        phi: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
+        m: Dict[str, DeviceArray] = None,
+        bias: Optional[DeviceArray] = None,
         verbose: bool = True,
     ):
 
@@ -85,6 +88,9 @@ class HGF(object):
             different levels of the hierarchy. Defaults set all entries to `0`
             according to the number of required levels. `m` is only required when
             `model_type="AR1"`.
+        bias : DeviceArray
+            The bias introduced in the perception of the input signal. This value is
+            added to the input time serie before model fitting.
         verbose : bool
             Default is `True` (show bar progress).
 
@@ -193,21 +199,16 @@ class HGF(object):
         x1 = x1_parameters, None, (x2,)
 
         # Input node
-        input_node_parameters = {
-            "kappas": None,
-            "omega": omega_input,
-        }
+        input_node_parameters = {"kappas": None, "omega": omega_input, "bias": bias}
         self.input_node = input_node_parameters, x1, None
 
     def add_nodes(self, nodes: Tuple):
         """Add a custom node structure.
-
         Parameters
         ----------
         nodes : tuple
             The input node embeding the node hierarchy that will be updated during
             model fit.
-
         """
         node_validation(nodes, input_node=True)
         self.input_node = nodes  # type: ignore
@@ -238,7 +239,7 @@ class HGF(object):
         self.last = last  # The last tuple returned
         self.final = final  # The commulative update of the nodes and results
 
-    def plot_trajectories(self, backend="matplotlib", **kwargs):
+    def plot_trajectories(self, backend: str = "matplotlib", **kwargs):
         plot_trajectories(model=self, backend=backend, **kwargs)
 
     def surprise(self):
@@ -249,7 +250,6 @@ class HGF(object):
 
 class HGFDistribution(Distribution):
     """
-
     Parameters
     ----------
     input_data : DeviceArray
@@ -257,8 +257,6 @@ class HGFDistribution(Distribution):
     response_function : str
         Name of the response function to use to compute model surprise when provided
         evidences. Defaults to `"GaussianSurprise"` (continuous inputs).
-    size : int
-        Size of the model plate (number of models to fit).
 
     """
 
@@ -284,11 +282,11 @@ class HGFDistribution(Distribution):
         mu_3: Optional[DeviceArray] = None,
         kappa_1: DeviceArray = jnp.array(1.0),
         kappa_2: DeviceArray = jnp.array(1.0),
+        bias: Optional[DeviceArray] = None,
         response_function: Optional[str] = "GaussianSurprise",
-        response_function_parameters: Optional[Dict] = None,
+        response_function_parameters: Dict = {},
     ):
         self.input_data = input_data
-        self.size = self.input_data.shape[0]
         self.model_type = model_type
         self.n_levels = n_levels
         self.omega_1 = omega_1
@@ -307,101 +305,86 @@ class HGFDistribution(Distribution):
         self.kappa_2 = kappa_2
         self.response_function = response_function
         self.response_function_parameters = response_function_parameters
+        self.bias = bias
         super().__init__(batch_shape=(1,), event_shape=())
 
     def sample(self, key, sample_shape=()):
         raise NotImplementedError
 
+    @partial(jit, static_argnums=(0,))
     def log_prob(self, value) -> jnp.DeviceArray:
-        """Compute the log probability from the HGF model giventhe data and
+        """Compute the log probability from the HGF model given the data and
         parameters.
         """
+        data = self.input_data
 
-        # The function fitted for each model/participant. i is the index, logp is
-        # the cumulative log probability for all models. this_logp is the model evidence
-        # (logp) for the current instance in the loop.
-        def body_fun(i, logp):
+        # Transpose data if time is not the first dimension
+        if (data.shape[0] == 2) & (data.shape[1] > 2):
+            data = data.T
 
-            data = self.input_data[i]
+        # Format HGF parameters
+        initial_mu = {"1": self.mu_1, "2": self.mu_2}
+        initial_pi = {"1": self.pi_1, "2": self.pi_2}
+        omega = {"1": self.omega_1, "2": self.omega_2}
+        rho = {"1": self.rho_1, "2": self.rho_2}
+        kappas = {"1": self.kappa_1}
 
-            # Transpose data if time is not the first dimension
-            if (data.shape[0] == 2) & (data.shape[1] > 2):
-                data = data.T
+        # Add parameters for a third level if required
+        initial_mu["3"] = self.mu_3 if self.n_levels == 3 else None
+        initial_pi["3"] = self.pi_3 if self.n_levels == 3 else None
+        omega["3"] = self.omega_3 if self.n_levels == 3 else None
+        rho["3"] = self.rho_3 if self.n_levels == 3 else None
+        kappas["2"] = self.kappa_2 if self.n_levels == 3 else None
 
-            # Format HGF parameters
-            initial_mu = {"1": self.mu_1[i], "2": self.mu_2[i]}
-            initial_pi = {"1": self.pi_1[i], "2": self.pi_2[i]}
-            omega = {"1": self.omega_1[i], "2": self.omega_2[i]}
-            rho = {"1": self.rho_1[i], "2": self.rho_2[i]}
-            kappas = {"1": self.kappa_1[i]}
+        hgf = HGF(
+            n_levels=self.n_levels,
+            model_type=self.model_type,
+            initial_mu=initial_mu,
+            initial_pi=initial_pi,
+            omega=omega,
+            rho=rho,
+            kappas=kappas,
+            bias=self.bias,
+            verbose=False,
+        )
 
-            # Add parameters for a third level if required
-            initial_mu["3"] = self.mu_3[i] if self.n_levels == 3 else None
-            initial_pi["3"] = self.pi_3[i] if self.n_levels == 3 else None
-            omega["3"] = self.omega_3[i] if self.n_levels == 3 else None
-            rho["3"] = self.rho_3[i] if self.n_levels == 3 else None
-            kappas["2"] = self.kappa_2[i] if self.n_levels == 3 else None
+        # Create the input structure
+        # Here we use the first row from the input data
+        res_init = (
+            hgf.input_node,
+            {
+                "time": data[0, 1],
+                "value": data[0, 0],
+                "surprise": jnp.array(0.0),
+            },
+        )
 
-            hgf = HGF(
-                n_levels=self.n_levels,
-                model_type=self.model_type,
-                initial_mu=initial_mu,
-                initial_pi=initial_pi,
-                omega=omega,
-                rho=rho,
-                kappas=kappas,
-                verbose=False,
+        # This is where the HGF functions is used to scan the input time series
+        _, final = scan(loop_inputs, res_init, data[1:, :])
+        _, results = final
+
+        # Return the model evidence. Here, the evidence is filtered for valid
+        # inputs, otherwise just fill with zeros to cancel the input contribution.
+        # This behavior allows to batch many time series while using JIT
+        # even with unequal lenghts (many models/participants).
+        if self.response_function == "hrd":
+            this_logp = HRD(
+                model=hgf,
+                final=final,
+                time=data[:, 1],
+                **self.response_function_parameters,
+            ).surprise()
+        elif self.response_function == "GaussianSurprise":
+
+            # Fill surprises with zeros if invalid input
+            this_surprise = jnp.where(
+                jnp.any(jnp.isnan(data[1:, :]), axis=1), 0.0, results["surprise"]
             )
+            # Return an infinite surprise if the model cannot fit
+            this_surprise = jnp.where(jnp.isnan(this_surprise), jnp.inf, this_surprise)
 
-            # Create the input structure
-            # Here we use the first tuple from the input data
-            res_init = (
-                hgf.input_node,
-                {
-                    "time": data[0, 1],
-                    "value": data[0, 0],
-                    "surprise": jnp.array(0.0),
-                },
-            )
-
-            # This is where the HGF functions is used to scan the input time series
-            _, final = scan(loop_inputs, res_init, data[1:, :])
-            nodes, results = final
-
-            # Return the model evidence. Here, the evidence is filtered for valid
-            # inputs, otherwise just fill with zeros to cancel the input contribution.
-            # This behavior allows to batch many time series while using JIT
-            # even with unequal lenghts (many models/participants).
-            if self.response_function == "hrd":
-                this_logp = HRD(
-                    model=hgf,
-                    final=final,
-                    time=data[:, 1],
-                    **self.response_function_parameters[i],
-                ).surprise()
-            elif self.response_function == "GaussianSurprise":
-
-                # Fill surprises with zeros if invalid input
-                this_surprise = jnp.where(
-                    jnp.any(jnp.isnan(data[1:, :]), axis=1), 0.0, results["surprise"]
-                )
-                # Return an infinite surprise if the model cannot fit
-                this_surprise = jnp.where(
-                    jnp.isnan(this_surprise), jnp.inf, this_surprise
-                )
-
-                # Sum the surprise for this model
-                this_logp = jnp.sum(this_surprise)
-
-            return logp + this_logp
-
-        lower = 0
-        upper = self.size  # The number of models (usually one/subject)
-        init_val = 0.0  # Initial value for the log prob
-
-        # Loop across all models, fit the HGF and return the sum of the log prob
-        # Use JAX fori_loop for efficiency. surprise is the sum of the log probabilities
-        surprise = fori_loop(lower, upper, body_fun, init_val)
+            # Sum the surprise for this model
+            this_logp = jnp.sum(this_surprise)
 
         # Return the negative of the sum of the log probabilities
-        return -surprise
+        return -this_logp

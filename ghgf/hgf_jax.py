@@ -97,7 +97,7 @@ def update_parents(
             new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
 
             pihat_pa, nu_pa = [1 / (1 / va_pa_node_parameters["pi"] + new_nu), new_nu]
-            pi_pa = pihat_pa + psi ** 2 * pihat
+            pi_pa = pihat_pa + psi**2 * pihat
 
             # Compute new muhat
             driftrate = va_pa_node_parameters["rho"]
@@ -300,6 +300,10 @@ def update_input_parents(
 
     # Time interval
     t = new_time - old_time
+
+    # Add a bias to the input value
+    if input_node_parameters["bias"] is not None:
+        value += input_node_parameters["bias"]
 
     lognoise = input_node_parameters["omega"]
 

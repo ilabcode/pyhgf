@@ -1,3 +1,5 @@
+# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+
 import itertools
 from typing import Optional
 
@@ -14,7 +16,6 @@ def plot_trajectories(
     model, ci: bool = True, figsize: Optional[int] = None, backend="matplotlib"
 ) -> Figure:
     """Plot perceptual HGF parameters time series
-
     Parameters
     ----------
     model : py:class`ghgf.model.HGF`
@@ -25,17 +26,14 @@ def plot_trajectories(
         The height of the figures.
     backend : str
         The plotting backend (`"matplotlib"` or `"bokeh"`).
-
     Returns
     -------
     axs : :class:`matplotlib.axes.Axes` | :class:`bokeh.plotting.figure.Figure`
         The figure (Matplotlib or Bokeh) containing the parameters trajectories.
-
     Raises
     ------
     ValueError:
         If an invalid backend is provided
-
     """
 
     if backend not in ["matplotlib", "bokeh"]:
