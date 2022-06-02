@@ -29,7 +29,7 @@ class HGF(object):
         rho: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
         phi: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
         m: Dict[str, DeviceArray] = None,
-        bias: Optional[DeviceArray] = None,
+        bias: DeviceArray = jnp.array(0.0),
         verbose: bool = True,
     ):
 
@@ -321,7 +321,7 @@ class HGFDistribution(Distribution):
         mu_3: Optional[DeviceArray] = None,
         kappa_1: DeviceArray = jnp.array(1.0),
         kappa_2: DeviceArray = jnp.array(1.0),
-        bias: Optional[DeviceArray] = None,
+        bias: DeviceArray = jnp.array(0.0),
         response_function: Optional[str] = "GaussianSurprise",
         response_function_parameters: Dict = {},
     ):
@@ -392,7 +392,7 @@ class HGFDistribution(Distribution):
         res_init = (
             hgf.input_node,
             {
-                "time": data[0, 1],
+                "time": data[0, 1] + self.bias,
                 "value": data[0, 0],
                 "surprise": jnp.array(0.0),
             },
