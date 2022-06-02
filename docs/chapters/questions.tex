@@ -1,0 +1,24 @@
+\section{Open Questions and Issues}
+
+\begin{itemize}
+	\item To Do: 
+	\begin{itemize}
+		\item Decide on the most useful visualizations for the paper: 
+		\begin{itemize}
+			\item move figure \ref{fig:vapediffnonu} to the appendix or discard it?
+			\item include a figure that schematically displays volatility and value estimation within a cortical column and how this could be coupled to higher-level regions, skipping all computational details within the columns, for section 5.2?
+			\item separate versions of figure 1 for VAPE and VOPE coupling with a specification of the quantities being signaled by every arrow?
+			\item update VOPE figures for new definition of gamma (i.e., move the kappa weight to the other connections)
+		\end{itemize}
+		\item Discuss overlap and differences with Karls precision paper \cite{Kanai2015}.
+		\item more elaborate description of VOPE figures in the appendix
+		\item Implement the new network setup in the python code.
+		\item Additionally implement the differential equations, examine the stability of the network and present exemplary simulations. 
+		\end{itemize}
+	
+	\item Equations: The coupling parameters $\alpha$ and $\kappa$ must be available to both the connection between a node's \textsf{PE unit} and the parent's \textsf{UPDATE unit}, as well as the connection between a node's \textsf{PREDICTION unit} and the parent's \textsf{UPDATE unit}. How can it be ensured that the coupling strength is the same for both connections? For this question we would actually have to consider the learning or update equations for the parameters of the model (see for example the approach in \cite{Bogacz2017}). However, even without writing them down, we could assume that under 'healthy' conditions, the weights of these different connections automatically converge to the same (or at least very similar) values. This opens up new possibilities of modeling abnormal inference: Using the simulations presented above, we could find out how an agent's inference would be altered if these values were not the same, and what range of difference would actually lead to observable changes in the inference. 
+
+	\item Implementation: To whom does the knowledge about parameters, in particular coupling strengths, belong? Ideally, this would belong to the connections themselves and be accessible to both child and parent node. However, in terms of synaptic signalling, how can a node have direct access to a coupling strength other than via the signalled value (which is the product of the coupling strength and the signal)?
+
+	\item Not covered here: Computations of input nodes and binary input nodes.
+\end{itemize}

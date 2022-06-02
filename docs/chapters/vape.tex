@@ -1,0 +1,101 @@
+\section{Computations for VAPE coupling}
+The exact computations of the \textsf{UPDATE step} depend on the nature of the coupling with the child node(s), while both the \textsf{PE step} and the \textsf{PREDICTION step} depend on the coupling with the parent node(s).
+
+\subsection{Update Step}
+If Node~$i$ is the value parent of Node $i-1$, then the following update equations apply to Node~$i$:
+
+\begin{align*}
+\pi_i^{(k)} &= \hat{\pi}_i^{(k)} 
+			+ \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}\\
+\mu_i^{(k)} &= \hat{\mu}_i^{(k)} 
+			+ \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}} {\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)} + \hat{\pi}_{i}^{(k)}} \delta_{i-1}^{(k)}
+\end{align*}			
+
+\noindent
+We note here that we can let the update of the precision happen first, and therefore use it for the update of the mean:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\pi_i^{(k)} &= \hat{\pi}_i^{(k)} 
+			+ \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}\\
+\mu_i^{(k)} &= \hat{\mu}_i^{(k)} 
+			+ \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}} {\pi_i^{(k)}} \delta_{i-1}^{(k)}
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+In sum, at the time of the update, Node~$i$ needs to have access to the following quantities:
+
+\begin{description}
+\item[Its own predictions:]  	$\hat{\mu}_i^{(k)}$, $\hat{\pi}_i^{(k)}$
+\item[Coupling strength:] 		$\alpha_{i-1,i}$
+\item[From level below:]		$\delta_{i-1}^{(k)}$, $\hat{\pi}_{i-1}^{(k)}$
+\end{description}
+
+All of these are available at the time of the update. Node~$i$ therefore only needs to receive the PE and the predicted precision from the level below to perform its update.
+
+\subsection{Prediction Error Step}
+We will assume in the following, that Node~$i$ is the value child of Node $i+1$. Then the following quantities have to be sent up to Node $i+1$ (cf. necessary information from level below in a value parent):
+
+\begin{description}
+\item[Predicted precision:] 	$\hat{\pi}_{i}^{(k)}$
+\item[Prediction error:]		$\delta_{i}^{(k)}$
+\end{description}
+
+Node~$i$ has already performed the \textsf{PREDICTION step} on the previous trial, so it has already computed the predicted precision of the current trial,~$\hat{\pi}_{i}^{(k)}$. Hence, in the \textsf{PE step}, it needs to perform only the following calculation:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{equation}
+\delta_i^{(k)} 	= \mu_i^{(k)} - \hat{\mu}_i^{(k)}
+\end{equation}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+
+
+\subsection{Prediction Step}
+Still assuming that Node~$i$ is the value child of Node $i+1$, the \textsf{PREDICTION step} consists of the following computations:
+\vspace{0.5cm}
+
+\noindent
+\fbox{
+\begin{minipage}{\textwidth}
+
+\begin{align}
+\hat{\mu}_i^{(k+1)} 	&= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}\\
+\hat{\pi}_i^{(k+1)} 	&= \frac{1}{\frac{1}{\pi_i^{(k)}} + \nu_i^{(k+1)} }
+\end{align}			
+\vspace{1pt}
+
+\end{minipage}
+}%end:fbox
+\vspace{0.5cm}
+
+\noindent
+with
+\begin{equation}
+\nu_i^{(k+1)} = \exp(\omega_i).
+\end{equation}
+
+Note that if Node~$i$ additionally has a \textsf{VOPE} parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. \textsf{PREDICTION step} for \textsf{VOPE} coupling).\\
+
+In general, the prediction of the mean will depend only on whether Node~$i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node~$i$ has a volatility parent or not. \\
+
+Thus, the \textsf{PREDICTION step} only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
+%\newpage
