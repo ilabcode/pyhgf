@@ -122,6 +122,7 @@ class HGF(object):
         self.model_type = model_type
         self.verbose = verbose
         self.n_levels = n_levels
+        self.bias = bias
 
         if self.n_levels == 2:
 
@@ -199,7 +200,11 @@ class HGF(object):
         x1 = x1_parameters, None, (x2,)
 
         # Input node
-        input_node_parameters = {"kappas": None, "omega": omega_input, "bias": bias}
+        input_node_parameters = {
+            "kappas": None,
+            "omega": omega_input,
+            "bias": self.bias,
+        }
         self.input_node = input_node_parameters, x1, None
 
     def add_nodes(self, nodes: Tuple):
@@ -227,7 +232,7 @@ class HGF(object):
             self.input_node,
             {
                 "time": input_data[0, 1],
-                "value": input_data[0, 0],
+                "value": input_data[0, 0] + self.bias,
                 "surprise": jnp.array(0.0),
             },
         )
@@ -262,6 +267,40 @@ class HGFDistribution(Distribution):
 
     support = constraints.real
     has_rsample = False
+    arg_constraints = {
+        "omega_1": constraints.real,
+        "omega_2": constraints.real,
+        "omega_3": constraints.real,
+        "rho_1": constraints.real,
+        "rho_2": constraints.real,
+        "rho_3": constraints.real,
+        "pi_1": constraints.positive,
+        "pi_2": constraints.positive,
+        "pi_3": constraints.positive,
+        "mu_1": constraints.real,
+        "mu_2": constraints.real,
+        "mu_3": constraints.real,
+        "kappa_1": constraints.unit_interval,
+        "kappa_2": constraints.unit_interval,
+        "bias": constraints.real,
+    }
+    reparametrized_params = [
+        "omega_1",
+        "omega_2",
+        "omega_3",
+        "rho_1",
+        "rho_2",
+        "rho_3",
+        "pi_1",
+        "pi_2",
+        "pi_3",
+        "mu_1",
+        "mu_2",
+        "mu_3",
+        "kappa_1",
+        "kappa_2",
+        "bias",
+    ]
 
     def __init__(
         self,
