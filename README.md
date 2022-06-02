@@ -4,7 +4,7 @@
 
 # The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
-This repository implements the generalized and nodalized version of the Hierarchical Gaussian Filter in [JAX](https://jax.readthedocs.io/en/latest/jax.html). This refactoring offers two advantages:
+This repository implements the generalized and nodalized Hierarchical Gaussian Filter in Python and [JAX](https://jax.readthedocs.io/en/latest/jax.html). This refactoring offers two advantages:
 1. it offers significant performance improvement as compared to pure Python code.
 2. it makes the model function itself differentiable in a way that optimization can be performed using e.g MCMC sampling and the model can be embedded as a log probability function in Hierarchical Bayesian models e.g using [Numpyro](https://num.pyro.ai/en/latest/index.html#introductory-tutorials).
 
@@ -23,103 +23,82 @@ This repository implements the generalized and nodalized version of the Hierarch
 | Hierarchical HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb)
 
 # Getting started
-## Example: surprize minimization
+## Pure Python code
 
-### Numpy
-Example of surprise minimization using a model from the hgf module
+Example of surprise minimization on a continuous input using the pure Python implementation.
 
 ```python
-import numpy as np
-from ghgf import hgf
-from scipy.optimize import minimize
+import os
+from numpy import loadtxt
+from ghgf.hgf import StandardHGF
 
-# Set up standard 3-level HGF for binary inputs
-binstdhgf = hgf.StandardBinaryHGF(
-    initial_mu2=0.0,
-    initial_pi2=1.0,
-    omega2=-2.5,
-    kappa2=1.0,
-    initial_mu3=1.0,
-    initial_pi3=1.0,
-    omega3=-8.0,
+# Load time series
+timeserie = loadtxt("./test/data/usdchf.dat")
+
+stdhgf = StandardHGF(
+    n_levels=2,
+    model_type="GRW",
+    initial_mu={"1": 1.04, "2": 1.0},
+    initial_pi={"1": 1e4, "2": 1e1},
+    omega={"1": -13.0, "2": -2.0},
+    rho={"1": 0.0, "2": 0.0},
+    kappas={"1": 1.0},
 )
+```
+`
+Continuous Hierarchical Gaussian Filter
+... Initializing a 2 levels perceptual HGF using a GRW model.
+`
 
-# Read binary input from Iglesias et al. (2013)
-binary = np.loadtxt("binary_input.dat")
+```python
+%timeit
+stdhgf.input(timeserie)
+```
+`
+6.81 ms ± 22.6 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+`
 
-# Feed input
-binstdhgf.input(binary)
+## JAX backend
+  
+```python
+from ghgf.model import HGF
+import jax.numpy as jnp
 
-# Set priors
-binstdhgf.x2.omega.trans_prior_mean = -3
-binstdhgf.x2.omega.trans_prior_precision = 4 ** -2
-binstdhgf.x3.omega.trans_prior_mean = -6
-binstdhgf.x3.omega.trans_prior_precision = 4 ** -2
+data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
-# Get the objective function
-binstdf = binstdhgf.neg_log_joint_function()
-
-# Minimize the negative log-joint
-binstdx0 = [param.value for param in binstdhgf.var_params]
-binstdmin = minimize(binstdf, binstdx0)
-
-# Set up standard 2-level HGF for continuous inputs
-stdhgf = hgf.StandardHGF(
-    initial_mu1=1.04,
-    initial_pi1=1e4,
-    omega1=-13.0,
-    kappa1=1,
-    initial_mu2=1,
-    initial_pi2=1e1,
-    omega2=-2,
-    omega_input=np.log(1e-4),
+jaxhgf = HGF(
+    n_levels=2,
+    model_type="GRW",
+    initial_mu={"1": 1.04, "2": 1.0},
+    initial_pi={"1": 1e4, "2": 1e1},
+    omega={"1": -13.0, "2": -2.0},
+    rho={"1": 0.0, "2": 0.0},
+    kappas={"1": 1.0},
 )
-
-# Read USD-CHF data
-usdchf = np.loadtxt("usdchf.dat")
-
-# Feed input
-stdhgf.input(usdchf)
-
-# Set priors
-stdhgf.x1.initial_mu.trans_prior_mean = 1.0375
-stdhgf.x1.initial_mu.trans_prior_precision = 4.0625e5
-stdhgf.x1.initial_pi.trans_prior_mean = -10.1111
-stdhgf.x1.initial_pi.trans_prior_precision = 1
-stdhgf.x1.omega.trans_prior_mean = -12.1111
-stdhgf.x1.omega.trans_prior_precision = 4 ** -2
-stdhgf.x2.initial_pi.trans_prior_mean = -2.3026
-stdhgf.x2.initial_pi.trans_prior_precision = 1
-stdhgf.x2.omega.trans_prior_mean = -4
-stdhgf.x2.omega.trans_prior_precision = 4 ** -2
-stdhgf.xU.omega.trans_prior_mean = -10.1111
-stdhgf.xU.omega.trans_prior_precision = 2 ** -2
-
-# Get the objective function
-stdobjf = binstdhgf.neg_log_joint_function()
-
-# Minimize the negative log-joint
-stdx0 = [param.value for param in stdhgf.var_params]
-stdmin = minimize(stdobjf, stdx0)
-
 ```
-
-### JAX
+`
+Fitting the continuous Hierarchical Gaussian Filter (JAX) with 2 levels.
+`
 
 ```python
-
+%%timeit
+jaxhgf.input_data(input_data=data)
 ```
+`
+3.08 ms ± 104 µs per loop (mean ± std. dev. of 7 runs, 1 loop each)
+`
 
-## MCMC samping
+Get the surprise associated with this model.
+```python
+jaxhgf.surprise()
+```
+`
+DeviceArray(-1922.2267, dtype=float32)
+`
 
-Optimizing the HGF parameters using the No U-Turn Sampler (NUTS).
+Plot the beliefs trajectories.
 
 ```python
-
+jaxhgf.plot_trajectories()
 ```
-
-## Hierarchical Bayesian modelling
-
-```python
-
-```
+![png](./docs/images/trajectories.png)

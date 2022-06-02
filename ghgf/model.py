@@ -64,7 +64,7 @@ class HGF(object):
             `{"1": -10.0, "2": -10.0}` for a 2-levels model. This parameters only when
             `model_type="GRW"`.
         omega_input : float
-            Default value sets to `np.log(1e-4)`. Represent the noise associated with
+            Default value sets to `np.log(1e-4)`. Represents the noise associated with
             the input.
         rho : dict
             Dictionnary containing the initial values for the `rho` parameter at
@@ -92,7 +92,7 @@ class HGF(object):
             The bias introduced in the perception of the input signal. This value is
             added to the input time serie before model fitting.
         verbose : bool
-            Default is `True` (show bar progress).
+            Default is `True`.
 
         Attributes
         ----------

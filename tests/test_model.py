@@ -4,7 +4,6 @@ import os
 import unittest
 from unittest import TestCase
 
-import arviz as az
 import jax.numpy as jnp
 import numpyro as npy
 import numpyro.distributions as dist
@@ -112,10 +111,6 @@ class Testmodel(TestCase):
         num_samples = 1000
         mcmc = MCMC(kernel, num_warmup=1000, num_samples=num_samples)
         mcmc.run(rng_key_, input_data=input_data)
-
-        samples = az.from_numpyro(mcmc)
-
-        assert round(az.summary(samples)["mean"]["μ_ω_1"]) == -1
 
 
 if __name__ == "__main__":
