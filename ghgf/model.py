@@ -24,7 +24,7 @@ class HGF(object):
         initial_mu: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
         initial_pi: Dict[str, DeviceArray] = {"1": jnp.array(1.0), "2": jnp.array(1.0)},
         omega_input: DeviceArray = jnp.log(1e-4),
-        omega: Dict[str, DeviceArray] = {"1": -10.0, "2": -10.0},
+        omega: Dict[str, DeviceArray] = {"1": jnp.array(-10.0), "2": jnp.array(-10.0)},
         kappas: Dict[str, DeviceArray] = {"1": jnp.array(1.0)},
         rho: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
         phi: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
@@ -271,6 +271,7 @@ class HGFDistribution(Distribution):
         "omega_1": constraints.real,
         "omega_2": constraints.real,
         "omega_3": constraints.real,
+        "omega_input": constraints.real,
         "rho_1": constraints.real,
         "rho_2": constraints.real,
         "rho_3": constraints.real,
@@ -288,6 +289,7 @@ class HGFDistribution(Distribution):
         "omega_1",
         "omega_2",
         "omega_3",
+        "omega_input",
         "rho_1",
         "rho_2",
         "rho_3",
@@ -310,6 +312,7 @@ class HGFDistribution(Distribution):
         omega_1: Optional[DeviceArray] = None,
         omega_2: Optional[DeviceArray] = None,
         omega_3: Optional[DeviceArray] = None,
+        omega_input: DeviceArray = jnp.log(1e-4),
         rho_1: Optional[DeviceArray] = None,
         rho_2: Optional[DeviceArray] = None,
         rho_3: Optional[DeviceArray] = None,
@@ -331,6 +334,7 @@ class HGFDistribution(Distribution):
         self.omega_1 = omega_1
         self.omega_2 = omega_2
         self.omega_3 = omega_3
+        self.omega_input = omega_input
         self.rho_1 = rho_1
         self.rho_2 = rho_2
         self.rho_3 = rho_3
@@ -353,8 +357,7 @@ class HGFDistribution(Distribution):
     @partial(jit, static_argnums=(0,))
     def log_prob(self, value) -> jnp.DeviceArray:
         """Compute the log probability from the HGF model given the data and
-        parameters.
-        """
+        parameters."""
         data = self.input_data
 
         # Transpose data if time is not the first dimension
@@ -381,6 +384,7 @@ class HGFDistribution(Distribution):
             initial_mu=initial_mu,
             initial_pi=initial_pi,
             omega=omega,
+            omega_input=self.omega_input,
             rho=rho,
             kappas=kappas,
             bias=self.bias,
@@ -392,8 +396,8 @@ class HGFDistribution(Distribution):
         res_init = (
             hgf.input_node,
             {
-                "time": data[0, 1] + self.bias,
-                "value": data[0, 0],
+                "time": data[0, 1],
+                "value": data[0, 0] + self.bias,
                 "surprise": jnp.array(0.0),
             },
         )
@@ -402,10 +406,7 @@ class HGFDistribution(Distribution):
         _, final = scan(loop_inputs, res_init, data[1:, :])
         _, results = final
 
-        # Return the model evidence. Here, the evidence is filtered for valid
-        # inputs, otherwise just fill with zeros to cancel the input contribution.
-        # This behavior allows to batch many time series while using JIT
-        # even with unequal lenghts (many models/participants).
+        # Return the model evidence
         if self.response_function == "hrd":
             this_logp = HRD(
                 model=hgf,
