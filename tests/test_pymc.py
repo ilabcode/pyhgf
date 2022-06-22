@@ -10,7 +10,7 @@ import numpy as np
 import pymc as pm
 from numpy import loadtxt
 
-from ghgf.pymc import grad_hgf_logp, hgf_logp, hgf_logp_grad_op, hgf_logp_op
+from ghgf.pymc import HGFLogpGradOp, HGFLogpOp, grad_hgf_logp, hgf_logp
 
 
 class Testsdt(TestCase):
@@ -28,7 +28,7 @@ class Testsdt(TestCase):
             data=input_data,
             omega_1=jnp.array(-3.0),
             omega_2=jnp.array(-3.0),
-            omega_input=np.log(1e-4),
+            omega_input=jnp.log(1e-4),
             rho_1=jnp.array(0.0),
             rho_2=jnp.array(0.0),
             pi_1=jnp.array(1e4),
@@ -37,6 +37,7 @@ class Testsdt(TestCase):
             mu_2=jnp.array(0.0),
             kappa_1=jnp.array(1.0),
             bias=jnp.array(0.0),
+            model_type="continuous",
         )
         assert jnp.isclose(logp, 1938.0101)
 
@@ -76,6 +77,7 @@ class Testsdt(TestCase):
             np.array(0.0),
             np.array(1.0),
             np.array(0.0),
+            model_type="continuous",
         )
 
         assert jnp.isclose(omega_1, 0.47931308)
@@ -100,6 +102,8 @@ class Testsdt(TestCase):
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
+
+        hgf_logp_op = HGFLogpOp(model_type="continuous")
 
         logp = hgf_logp_op(
             data=input_data,
@@ -129,6 +133,8 @@ class Testsdt(TestCase):
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
+        hgf_logp_grad_op = HGFLogpGradOp(model_type="continuous")
+
         omega_1 = hgf_logp_grad_op(
             data=input_data,
             omega_1=np.array(-3.0),
@@ -156,6 +162,8 @@ class Testsdt(TestCase):
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
+
+        hgf_logp_op = HGFLogpOp()
 
         with pm.Model() as model:
 

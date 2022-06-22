@@ -1,7 +1,5 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Optional
-
 import aesara.tensor as at
 import jax.numpy as jnp
 import numpy as np
@@ -14,26 +12,31 @@ from ghgf.hgf_jax import loop_inputs
 from ghgf.model import HGF
 
 
-@jit
 def hgf_logp(
     data: DeviceArray,
-    omega_1: Optional[DeviceArray] = None,
-    omega_2: Optional[DeviceArray] = None,
+    omega_1: DeviceArray = jnp.array(-3.0),
+    omega_2: DeviceArray = jnp.array(-3.0),
     omega_input: DeviceArray = jnp.log(1e-4),
-    rho_1: Optional[DeviceArray] = None,
-    rho_2: Optional[DeviceArray] = None,
-    pi_1: Optional[DeviceArray] = None,
-    pi_2: Optional[DeviceArray] = None,
-    mu_1: Optional[DeviceArray] = None,
-    mu_2: Optional[DeviceArray] = None,
+    rho_1: DeviceArray = jnp.array(0.0),
+    rho_2: DeviceArray = jnp.array(0.0),
+    pi_1: DeviceArray = jnp.array(1e4),
+    pi_2: DeviceArray = jnp.array(1e1),
+    mu_1: DeviceArray = jnp.array(0.0),
+    mu_2: DeviceArray = jnp.array(0.0),
     kappa_1: DeviceArray = jnp.array(1.0),
     bias: DeviceArray = jnp.array(0.0),
+    model_type: str = "continous",
 ) -> jnp.DeviceArray:
-    """Compute the log probability from the HGF model given the data and parameters."""
+    """Compute the log probability from the HGF model given the data and parameters.
 
-    # Transpose data if time is not the first dimension
-    if (data.shape[0] == 2) & (data.shape[1] > 2):
-        data = data.T
+    Parameters
+    ----------
+    data : DeviceArray
+        The input data. If `model_type` is `"continuous"`, the data should be two times
+        series (time and values).
+    ** HGF parameters (see ghgf.model.HGF).
+
+    """
 
     # Format HGF parameters
     initial_mu = {"1": mu_1, "2": mu_2}
@@ -43,6 +46,7 @@ def hgf_logp(
     kappas = {"1": kappa_1}
 
     hgf = HGF(
+        model_type=model_type,
         initial_mu=initial_mu,
         initial_pi=initial_pi,
         omega=omega,
@@ -82,10 +86,23 @@ def hgf_logp(
     return -this_logp
 
 
-grad_hgf_logp = jit(grad(hgf_logp, argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]))
+grad_hgf_logp = jit(
+    grad(
+        hgf_logp,
+        argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    ),
+    static_argnames=["model_type"],
+)
 
 
 class HGFLogpGradOp(Op):
+    def __init__(
+        self,
+        model_type: str = "continous",
+    ):
+
+        self.model_type = model_type
+
     def make_node(
         self,
         data: DeviceArray,
@@ -101,6 +118,7 @@ class HGFLogpGradOp(Op):
         kappa_1=jnp.array(1.0),
         bias=jnp.array(0.0),
     ):
+
         # Convert our inputs to symbolic variables
         inputs = [
             at.as_tensor_variable(data),
@@ -137,7 +155,7 @@ class HGFLogpGradOp(Op):
             grad_mu_2,
             grad_kappa_1,
             grad_bias,
-        ) = grad_hgf_logp(*inputs)
+        ) = grad_hgf_logp(*inputs, model_type=self.model_type)
 
         outputs[0][0] = np.asarray(grad_input, dtype=node.outputs[0].dtype)
         outputs[1][0] = np.asarray(grad_omega_1, dtype=node.outputs[1].dtype)
@@ -153,11 +171,11 @@ class HGFLogpGradOp(Op):
         outputs[11][0] = np.asarray(grad_bias, dtype=node.outputs[11].dtype)
 
 
-# Initialize our `Op`s
-hgf_logp_grad_op = HGFLogpGradOp()
-
-
 class HGFLogpOp(Op):
+    def __init__(self, model_type: str = "continuous"):
+        self.model_type = model_type
+        self.hgf_logp_grad_op = HGFLogpGradOp(model_type=self.model_type)
+
     def make_node(
         self,
         data,
@@ -173,6 +191,7 @@ class HGFLogpOp(Op):
         kappa_1,
         bias,
     ):
+
         # Convert our inputs to symbolic variables
         inputs = [
             at.as_tensor_variable(data),
@@ -193,13 +212,7 @@ class HGFLogpOp(Op):
         return Apply(self, inputs, outputs)
 
     def perform(self, node, inputs, outputs):
-        result = hgf_logp(*inputs)
-        # Aesara raises an error if the dtype of the returned output is not
-        # exactly the one expected from the Apply node (in this case
-        # `dscalar`, which stands for float64 scalar), so we make sure
-        # to convert to the expected dtype. To avoid unnecessary conversions
-        # you should make sure the expected output defined in `make_node`
-        # is already of the correct dtype
+        result = hgf_logp(*inputs, model_type=self.model_type)
         outputs[0][0] = np.asarray(result, dtype=node.outputs[0].dtype)
 
     def grad(self, inputs, output_gradients):
@@ -216,7 +229,7 @@ class HGFLogpOp(Op):
             grad_mu_2,
             grad_kappa_1,
             grad_bias,
-        ) = hgf_logp_grad_op(*inputs)
+        ) = self.hgf_logp_grad_op(*inputs)
         # If there are inputs for which the gradients will never be needed or cannot
         # be computed, `aesara.gradient.grad_not_implemented` should  be used as the
         # output gradient for that input.
@@ -235,6 +248,3 @@ class HGFLogpOp(Op):
             output_gradient * grad_kappa_1,
             output_gradient * grad_bias,
         ]
-
-
-hgf_logp_op = HGFLogpOp()

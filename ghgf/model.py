@@ -15,28 +15,48 @@ from ghgf.response import HRD
 
 
 class HGF(object):
-    """Generic HGF model using JAX backend."""
+    """The standard 2 or 3 levels HGF for continuous inputs.
+
+    Attributes
+    ----------
+    verbose : bool
+        Verbosity level.
+    n_levels : int
+        The number of hierarchies in the model. Cannot be less than 2.
+    model_type : str
+        The model implemented (can be `"AR1"` or `"GRW"`).
+    nodes : tuple
+        The nodes hierarchy.
+
+    Notes
+    -----
+    The model used by the perceptual model is defined by the `model_type` parameter
+    (can be `"GRW"` or `"AR1"`). If `model_type` is not provided, the class will
+    try to determine it automatically by looking at the `rho` and `phi` parameters.
+    If `rho` is provided `model_type="GRW"`, if `phi` is provided
+    `model_type="AR1"`. If both `phi` and `rho` are `None` an error will be
+    returned.
+
+    Examples
+    --------
+
+    """
 
     def __init__(
         self,
         n_levels: Optional[int] = 2,
-        model_type: str = "GRW",
+        model_type: str = "continuous",
         initial_mu: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
         initial_pi: Dict[str, DeviceArray] = {"1": jnp.array(1.0), "2": jnp.array(1.0)},
         omega_input: DeviceArray = jnp.log(1e-4),
         omega: Dict[str, DeviceArray] = {"1": jnp.array(-10.0), "2": jnp.array(-10.0)},
         kappas: Dict[str, DeviceArray] = {"1": jnp.array(1.0)},
         rho: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
-        phi: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
-        m: Dict[str, DeviceArray] = None,
         bias: DeviceArray = jnp.array(0.0),
         verbose: bool = True,
     ):
 
-        """The standard n-level HGF for continuous inputs with JAX backend.
-
-        The standard continuous HGF can implements the Gaussian Random Walk and AR1
-        perceptual models.
+        """Parameterization of the HGF model.
 
         Parameters
         ----------
@@ -44,10 +64,8 @@ class HGF(object):
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
             `None`, the nodes hierarchy is not created and might be provided afterward
             using `add_nodes()`. Default sets to `2`.
-        model_type : str or None
-            The model type to use (can be "GRW" or "AR1"). If `model_type` is not
-            provided, it is infered from the parameters provided. If both `phi` and
-            `rho` are None or dictionnary, an error is returned.
+        model_type : str
+            The model type to use (can be "continuous" or "binary").
         initial_mu : dict
             Dictionnary containing the initial values for the `initial_mu` parameter at
             different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
@@ -78,46 +96,15 @@ class HGF(object):
             the strenght of the connection between the node and the parent node. Often
             fixed to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only
             required when `model_type="GRW"`.
-        phi : dict
-            Dictionnary containing the initial values for the `phi` parameter at
-            different levels of the hierarchy. Phi should always be between 0 and 1.
-            Defaults set all entries to `0` according to the number of required levels.
-            `phi` is only required when `model_type="AR1"`.
-        m : dict or None
-            Dictionnary containing the initial values for the `m` parameter at
-            different levels of the hierarchy. Defaults set all entries to `0`
-            according to the number of required levels. `m` is only required when
-            `model_type="AR1"`.
         bias : DeviceArray
             The bias introduced in the perception of the input signal. This value is
             added to the input time serie before model fitting.
         verbose : bool
             Default is `True`.
 
-        Attributes
-        ----------
-        verbose : bool
-            Verbosity level.
-        n_levels : int
-            The number of hierarchies in the model. Cannot be less than 2.
-        model_type : str
-            The model implemented (can be `"AR1"` or `"GRW"`).
-        nodes : tuple
-            The nodes hierarchy.
-
-        Notes
-        -----
-        The model used by the perceptual model is defined by the `model_type` parameter
-        (can be `"GRW"` or `"AR1"`). If `model_type` is not provided, the class will
-        try to determine it automatically by looking at the `rho` and `phi` parameters.
-        If `rho` is provided `model_type="GRW"`, if `phi` is provided
-        `model_type="AR1"`. If both `phi` and `rho` are `None` an error will be
-        returned.
-
-        Examples
-        --------
-
         """
+        if model_type == "binary":
+            raise NotImplementedError
 
         self.model_type = model_type
         self.verbose = verbose
@@ -222,10 +209,6 @@ class HGF(object):
         self,
         input_data,
     ):
-
-        # Transpose data if time is not the first dimension
-        if (input_data.shape[0] == 2) & (input_data.shape[1] > 2):
-            input_data = input_data.T
 
         # Initialise the first values
         res_init = (
@@ -359,10 +342,6 @@ class HGFDistribution(Distribution):
         """Compute the log probability from the HGF model given the data and
         parameters."""
         data = self.input_data
-
-        # Transpose data if time is not the first dimension
-        if (data.shape[0] == 2) & (data.shape[1] > 2):
-            data = data.T
 
         # Format HGF parameters
         initial_mu = {"1": self.mu_1, "2": self.mu_2}
