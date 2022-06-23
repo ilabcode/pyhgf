@@ -175,18 +175,18 @@ class StandardHGF(Model):
     model_type : str or None
         The model type to use (can be "GRW" or "AR1"). If `model_type` is not provided,
         it is infered from the parameters provided. If both `phi` and `rho` are None
-        or dictionnary, an error is returned.
+        or dictionary, an error is returned.
     initial_mu : dict
-        Dictionnary containing the initial values for the `initial_mu` parameter at
+        Dictionary containing the initial values for the `initial_mu` parameter at
         different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
         for a 2-levels model.
     initial_pi : dict
-        Dictionnary containing the initial values for the `initial_pi` parameter at
+        Dictionary containing the initial values for the `initial_pi` parameter at
         different levels of the hierarchy. Pis values encode the precision of the
         values at each level (Var = 1/pi) Defaults set to `{"1": 1.0, "2": 1.0}` for
         a 2-levels model.
     omega : dict
-        Dictionnary containing the initial values for the `omega` parameter at
+        Dictionary containing the initial values for the `omega` parameter at
         different levels of the hierarchy. Omegas represent the tonic part of the
         variance (the part that is not affected by the parent node). Defaults set to
         `{"1": -10.0, "2": -10.0}` for a 2-levels model. This parameters only when
@@ -195,24 +195,24 @@ class StandardHGF(Model):
         Default value sets to `np.log(1e-4)`. Represent the noise associated with the
         input.
     rho : dict or None
-        Dictionnary containing the initial values for the `rho` parameter at
+        Dictionary containing the initial values for the `rho` parameter at
         different levels of the hierarchy. Rho represents the drift of the random walk.
         Only required when `model_type="GRW"`. Defaults set all entries to `0`
         according to the number of required levels.
     kappa : dict
-        Dictionnary containing the initial values for the `kappa` parameter at
+        Dictionary containing the initial values for the `kappa` parameter at
         different levels of the hierarchy. Kappa represents the phasic part of the
         variance (the part that is affected by the parents nodes) and will defines the
         strenght of the connection between the nod eand the parent node. Often fixed
         to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only required when
         `model_type="GRW"`.
     phi : dict or None
-        Dictionnary containing the initial values for the `phi` parameter at
+        Dictionary containing the initial values for the `phi` parameter at
         different levels of the hierarchy. Phi should always be between 0 and 1.
         Defaults set all entries to `0` according to the number of required levels.
         `phi` is only required when `model_type="AR1"`.
     m : dict or None
-        Dictionnary containing the initial values for the `m` parameter at
+        Dictionary containing the initial values for the `m` parameter at
         different levels of the hierarchy. Defaults set all entries to `0` according to
         the number of required levels. `m` is only required when `model_type="AR1"`.
     verbose : bool

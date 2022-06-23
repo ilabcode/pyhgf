@@ -16,7 +16,7 @@ from ghgf.pymc import HGFLogpGradOp, HGFLogpOp, hgf_logp
 from ghgf.response import gaussian_surprise
 
 
-class Testsdt(TestCase):
+class TestPyMC(TestCase):
     def test_hgf_logp(self):
 
         # Create the data (value and time vectors)

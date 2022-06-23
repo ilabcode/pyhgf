@@ -50,7 +50,7 @@ def hgf_logp(
         The response function used to compute the log probability. Defaults to
         py:func`ghgf.response.gaussiangurprise`.
     response_function_parameters : tuple
-        Dictionnary containing additional data that will be passed to the custom
+        Dictionary containing additional data that will be passed to the custom
         response function.
 
     """
@@ -79,9 +79,12 @@ def hgf_logp(
     # This is where the HGF functions is used to scan the input time series
     hgf.input_data(data)
 
+    hgf_results = hgf.hgf_results
+
     # Return the model evidence
     logp = response_function(
-        hgf=hgf, response_function_parameters=response_function_parameters
+        hgf_results=hgf_results,
+        response_function_parameters=response_function_parameters,
     )
 
     # Return the negative of the sum of the log probabilities

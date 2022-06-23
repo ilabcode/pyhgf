@@ -1,25 +1,22 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import TYPE_CHECKING, Tuple
+from typing import Dict, Tuple
 
 import jax.numpy as jnp
 import numpy as np
-from jax import jit, vmap
+from jax import vmap
 from jax.interpreters.xla import DeviceArray
 from jax.lax import dynamic_slice
 from jax.scipy.stats import norm
 
-if TYPE_CHECKING:
-    from ghgf.model import HGF
 
-
-def gaussian_surprise(hgf: "HGF", response_function_parameters):
+def gaussian_surprise(hgf_results: Dict, response_function_parameters):
     """The sum of the gaussian surprise along the time series (continuous HGF).
 
     Parameters
     ----------
-    model : py:class:`ghgf.hgf.model.HGF` instance
-        The HGF model (JAX backend).
+    hgf_results : dict
+        Dictionary containing the HGF results.
     response_function_parameters : None
         No additional parameters are required.
 
@@ -29,11 +26,11 @@ def gaussian_surprise(hgf: "HGF", response_function_parameters):
         The model surprise given the input data.
 
     """
-    _, results = hgf.final
+    _, results = hgf_results["final"]
 
     # Fill surprises with zeros if invalid input
     this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf.data[1:, :]), axis=1), 0.0, results["surprise"]
+        jnp.any(jnp.isnan(hgf_results["data"][1:, :]), axis=1), 0.0, results["surprise"]
     )
 
     # Return an infinite surprise if the model cannot fit
@@ -46,7 +43,7 @@ def gaussian_surprise(hgf: "HGF", response_function_parameters):
 
 
 def hrd(
-    hgf: "HGF",
+    hgf_results: Dict,
     response_function_parameters: Tuple[
         np.ndarray, np.ndarray, np.ndarray, float, float
     ],
@@ -60,8 +57,8 @@ def hrd(
 
     Parameters
     ----------
-    model : py:class:`ghgf.hgf.model.HGF` instance
-        The HGF model (JAX backend).
+    hgf_results : dict
+        Dictionary containing the HGF results.
     response_function_parameters : tuple
         Additional parameters used to compute the log probability from the HGF model:
 
@@ -75,7 +72,7 @@ def hrd(
             the input use different units (log(RR), in miliseconds).
         - sigma_tone : float
             The precision of the tone perception. Defaults to `0`.
-        - recording_duration : float
+        - time_vector : float
             The length of the physiological recording (seconds).
 
     Return
@@ -89,32 +86,32 @@ def hrd(
         tones,
         decisions,
         sigma_tone,
-        recording_duration,
+        time_vector,
     ) = response_function_parameters
 
     # The tone frequency at each trial - convert to log(RR) - ms
     tones = jnp.log(60000 / tones)
 
     # The estimated heart rate (mu_1)
-    mu_1 = hgf.final[0][1][0]["mu"]
+    mu_1 = hgf_results["final"][0][1][0]["mu"]
 
     # The precision of the first level estimate
-    pi_1 = hgf.final[0][1][2][0][0]["pi"]
+    pi_1 = hgf_results["final"][0][1][2][0][0]["pi"]
 
     # The surprise along the entire time series
-    model_surprise = hgf.final[1]["surprise"]
+    model_surprise = hgf_results["final"][1]["surprise"]
 
     # The time vector
-    time = hgf.data[:, 1]
+    time = hgf_results["data"][:, 1]
 
     # Interpolate the model trajectories to 1000 Hz
     new_mu1 = jnp.interp(
-        x=np.arange(0, recording_duration, 0.001),
+        x=time_vector,
         xp=time[1:],
         fp=mu_1,
     )
     new_pi1 = jnp.interp(
-        x=np.arange(0, recording_duration, 0.001),
+        x=time_vector,
         xp=time[1:],
         fp=pi_1,
     )
@@ -125,11 +122,10 @@ def hrd(
 
     # First define a function to extract values for one trigger
     # (Use the average over the 5 seconds after the trigger)
-    @jit
-    def extract(trigger: int, mu_1=new_mu1, pi_1=new_pi1):
+    def extract(trigger: int, new_mu1=new_mu1, new_pi1=new_pi1):
         return (
-            dynamic_slice(mu_1, (trigger,), (5000,)).mean(),
-            dynamic_slice(pi_1, (trigger,), (5000,)).mean(),
+            dynamic_slice(new_mu1, (trigger,), (5000,)).mean(),
+            dynamic_slice(new_pi1, (trigger,), (5000,)).mean(),
         )
 
     hr, precision = vmap(extract)(triggers_idx)

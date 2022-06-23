@@ -12,7 +12,7 @@ from ghgf.model import HGF
 from ghgf.python import StandardHGF
 
 
-class Testsdt(TestCase):
+class TestCompareBackends(TestCase):
     def test_compare_backends(self):
         """Compare the JAX and pure Python implementation of the HGF."""
 
@@ -36,7 +36,7 @@ class Testsdt(TestCase):
         )
         jaxhgf.input_data(input_data=data)
 
-        node, results = jaxhgf.final
+        node, results = jaxhgf.hgf_results["final"]
         jax_surprise = results["surprise"].sum()
 
         stdhgf = StandardHGF(
@@ -103,7 +103,7 @@ class Testsdt(TestCase):
         )
         jaxhgf.input_data(input_data=data)
 
-        node, results = jaxhgf.final
+        node, results = jaxhgf.hgf_results["final"]
         jax_surprise = results["surprise"].sum()
 
         stdhgf = StandardHGF(

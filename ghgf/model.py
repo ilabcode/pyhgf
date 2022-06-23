@@ -63,16 +63,16 @@ class HGF(object):
         model_type : str
             The model type to use (can be "continuous" or "binary").
         initial_mu : dict
-            Dictionnary containing the initial values for the `initial_mu` parameter at
+            Dictionary containing the initial values for the `initial_mu` parameter at
             different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
             for a 2-levels model.
         initial_pi : dict
-            Dictionnary containing the initial values for the `initial_pi` parameter at
+            Dictionary containing the initial values for the `initial_pi` parameter at
             different levels of the hierarchy. Pis values encode the precision of the
             values at each level (Var = 1/pi) Defaults set to `{"1": 1.0, "2": 1.0}` for
             a 2-levels model.
         omega : dict
-            Dictionnary containing the initial values for the `omega` parameter at
+            Dictionary containing the initial values for the `omega` parameter at
             different levels of the hierarchy. Omegas represent the tonic part of the
             variance (the part that is not affected by the parent node). Defaults set to
             `{"1": -10.0, "2": -10.0}` for a 2-levels model. This parameters only when
@@ -81,12 +81,12 @@ class HGF(object):
             Default value sets to `np.log(1e-4)`. Represents the noise associated with
             the input.
         rho : dict
-            Dictionnary containing the initial values for the `rho` parameter at
+            Dictionary containing the initial values for the `rho` parameter at
             different levels of the hierarchy. Rho represents the drift of the random
             walk. Only required when `model_type="GRW"`. Defaults set all entries to
             `0` according to the number of required levels.
         kappas : dict
-            Dictionnary containing the initial values for the `kappa` parameter at
+            Dictionary containing the initial values for the `kappa` parameter at
             different levels of the hierarchy. Kappa represents the phasic part of the
             variance (the part that is affected by the parents nodes) and will defines
             the strenght of the connection between the node and the parent node. Often
@@ -219,15 +219,17 @@ class HGF(object):
         # This is where the HGF functions are used to scan the input time series
         last, final = scan(loop_inputs, res_init, input_data[1:, :])
 
-        # Save results in the HGF instance
-        self.last = last  # The last tuple returned
-        self.final = final  # The commulative update of the nodes and results
-        self.data = input_data  # The input data
+        # Save results in the HGF dictionary
+        self.hgf_results = {}
+        self.hgf_results["last"] = last  # The last tuple returned
+        self.hgf_results[
+            "final"
+        ] = final  # The commulative update of the nodes and results
+        self.hgf_results["data"] = input_data  # The input data
 
     def plot_trajectories(self, backend: str = "matplotlib", **kwargs):
-        plot_trajectories(model=self, backend=backend, **kwargs)
+        plot_trajectories(hgf=self, backend=backend, **kwargs)
 
     def surprise(self):
 
-        _, results = self.final
-        return jnp.sum(results["surprise"])
+        return jnp.sum(self.hgf_results["final"][1]["surprise"])

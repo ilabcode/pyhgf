@@ -150,9 +150,12 @@ class HGFDistribution(Distribution):
         # This is where the HGF functions is used to scan the input time series
         hgf.input_data(data)
 
+        hgf_results = hgf.hgf_results
+
         # Return the model evidence
         logp = self.response_function(
-            hgf=hgf, response_function_parameters=self.response_function_parameters
+            hgf_results=hgf_results,
+            response_function_parameters=self.response_function_parameters,
         )
 
         # Return the negative of the sum of the log probabilities

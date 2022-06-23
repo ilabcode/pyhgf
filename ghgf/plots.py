@@ -13,12 +13,12 @@ from bokeh.plotting.figure import Figure
 
 
 def plot_trajectories(
-    model, ci: bool = True, figsize: Optional[int] = None, backend="matplotlib"
+    hgf, ci: bool = True, figsize: Optional[int] = None, backend="matplotlib"
 ) -> Figure:
     """Plot perceptual HGF parameters time series
     Parameters
     ----------
-    model : py:class`ghgf.model.HGF`
+    hgf : py:class`ghgf.model.HGF`
         Instance of the HGF model.
     ci : bool
         Show the uncertainty aroud the values estimates (standard deviation).
@@ -39,9 +39,9 @@ def plot_trajectories(
     if backend not in ["matplotlib", "bokeh"]:
         raise ValueError("Invalid backend provided. Should be `matplotlib` or `bokeh`")
 
-    nrows = model.n_levels + 1
-    time = model.final[1]["time"]
-    node, results = model.final
+    nrows = hgf.n_levels + 1
+    time = hgf.hgf_results["final"][1]["time"]
+    node, results = hgf.hgf_results["final"]
 
     if backend == "matplotlib":
 
@@ -49,7 +49,7 @@ def plot_trajectories(
 
         # Level 3
         #########
-        if model.n_levels == 3:
+        if hgf.n_levels == 3:
             mu = node[1][2][0][2][0][0]["mu"]
             axs[0].plot(time, mu, label=r"$\mu_3$", color="#55a868")
             if ci is True:
@@ -63,43 +63,43 @@ def plot_trajectories(
         # Level 2
         #########
         mu = node[1][2][0][0]["mu"]
-        axs[model.n_levels - 2].plot(time, mu, label=r"$\mu_2$", color="#c44e52")
+        axs[hgf.n_levels - 2].plot(time, mu, label=r"$\mu_2$", color="#c44e52")
         if ci is True:
             pi = node[1][2][0][0]["pi"]
             sd = np.sqrt(1 / pi)
-            axs[model.n_levels - 2].fill_between(
+            axs[hgf.n_levels - 2].fill_between(
                 x=time, y1=mu - sd, y2=mu + sd, alpha=0.2, color="#c44e52"
             )
-        axs[model.n_levels - 2].legend()
+        axs[hgf.n_levels - 2].legend()
 
         # Level 1
         #########
         mu = node[1][0]["mu"]
-        axs[model.n_levels - 1].plot(time, mu, label=r"$\mu_1$", color="#55a868")
+        axs[hgf.n_levels - 1].plot(time, mu, label=r"$\mu_1$", color="#55a868")
         if ci is True:
             pi = node[1][0]["pi"]
             sd = np.sqrt(1 / pi)
-            axs[model.n_levels - 1].fill_between(
+            axs[hgf.n_levels - 1].fill_between(
                 x=time, y1=mu - sd, y2=mu + sd, alpha=0.2, color="#55a868"
             )
 
-        axs[model.n_levels - 1].plot(
+        axs[hgf.n_levels - 1].plot(
             time,
-            model.final[1]["value"],
+            hgf.hgf_results["final"][1]["value"],
             linewidth=2,
             linestyle="dotted",
             label="Input",
             color="#4c72b0",
         )
-        axs[model.n_levels - 1].legend()
+        axs[hgf.n_levels - 1].legend()
 
         # Surprise
         ##########
-        axs[model.n_levels].plot(
+        axs[hgf.n_levels].plot(
             time, results["surprise"], label="Surprise", color="#7f7f7f"
         )
-        axs[model.n_levels].set_xlabel("Time")
-        axs[model.n_levels].legend()
+        axs[hgf.n_levels].set_xlabel("Time")
+        axs[hgf.n_levels].legend()
 
         return axs
 
@@ -115,7 +115,7 @@ def plot_trajectories(
         x_axis_type = "auto"
         x_axis_label = "Observations"
 
-        data = {"time": time, "input": np.array(model.final[1]["value"])}
+        data = {"time": time, "input": np.array(hgf.hgf_results["final"][1]["value"])}
         data["μ_1"] = np.array(node[1][0]["mu"])
         data["μ_2"] = np.array(node[1][2][0][0]["mu"])
 
@@ -129,7 +129,7 @@ def plot_trajectories(
         data["π_2_high"] = data["μ_2"] + sd
         data["π_2_low"] = data["μ_2"] - sd
 
-        if model.n_levels == 3:
+        if hgf.n_levels == 3:
             data["μ_3"] = np.array(node[1][2][0][2][0][0]["mu"])
             pi = np.array(node[1][2][0][2][0][0]["pi"])
             sd = np.sqrt(1 / pi)
