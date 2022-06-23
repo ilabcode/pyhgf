@@ -13,6 +13,7 @@ from jax.tree_util import Partial
 from numpy import loadtxt
 
 from ghgf.pymc import HGFLogpGradOp, HGFLogpOp, hgf_logp
+from ghgf.response import gaussian_surprise
 
 
 class Testsdt(TestCase):
@@ -41,7 +42,7 @@ class Testsdt(TestCase):
             bias=jnp.array(0.0),
             model_type="continuous",
             n_levels=2,
-            response_function="GaussianSurprise",
+            response_function=gaussian_surprise,
             response_function_parameters=(1, 1),
         )
         assert jnp.isclose(logp, 1938.0101)
@@ -61,9 +62,9 @@ class Testsdt(TestCase):
                 Partial(
                     hgf_logp,
                     n_levels=2,
-                    response_function="GaussianSurprise",
+                    response_function=gaussian_surprise,
                     model_type="continuous",
-                    response_function_parameters=(1, 1),
+                    response_function_parameters=None,
                 ),
                 argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             ),
@@ -98,16 +99,6 @@ class Testsdt(TestCase):
         )
 
         assert jnp.isclose(omega_1, 0.47931308)
-        # assert jnp.isclose(omega_2, 1938.0101)
-        # assert jnp.isclose(omega_input, 1938.0101)
-        # assert jnp.isclose(rho_1, 1938.0101)
-        # assert jnp.isclose(rho_2, 1938.0101)
-        # assert jnp.isclose(pi_1, 1938.0101)
-        # assert jnp.isclose(pi_2, 1938.0101)
-        # assert jnp.isclose(mu_1, 1938.0101)
-        # assert jnp.isclose(mu_2, 1938.0101)
-        # assert jnp.isclose(kappa_1, 1938.0101)
-        # assert jnp.isclose(bias, 1938.0101)
 
     def test_aesara_logp(self):
         """Test the aesara hgf_logp op."""
@@ -123,8 +114,8 @@ class Testsdt(TestCase):
         hgf_logp_op = HGFLogpOp(
             model_type="continuous",
             n_levels=2,
-            response_function="GaussianSurprise",
-            response_function_parameters=(1, 1),
+            response_function=gaussian_surprise,
+            response_function_parameters=None,
         )
 
         logp = hgf_logp_op(
@@ -158,8 +149,8 @@ class Testsdt(TestCase):
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="continuous",
             n_levels=2,
-            response_function="GaussianSurprise",
-            response_function_parameters=(1, 1),
+            response_function=gaussian_surprise,
+            response_function_parameters=None,
         )
 
         omega_1 = hgf_logp_grad_op(
@@ -192,13 +183,12 @@ class Testsdt(TestCase):
 
         hgf_logp_op = HGFLogpOp(
             n_levels=2,
-            response_function="GaussianSurprise",
+            response_function=gaussian_surprise,
             response_function_parameters=(np.array(1), 1),
         )
 
         with pm.Model() as model:
 
-            # omega_1 = pm.Normal("omega_1", -3.0, 2)
             omega_2 = pm.Normal("omega_2", -11.0, 2)
 
             pm.Potential(
@@ -212,7 +202,7 @@ class Testsdt(TestCase):
                     rho_2=np.array(0.0),
                     pi_1=np.array(1e4),
                     pi_2=np.array(1e1),
-                    mu_1=np.array(input_data[0][0]),
+                    mu_1=np.array(input_data[0, 0]),
                     mu_2=np.array(0.0),
                     kappa_1=np.array(1.0),
                     bias=np.array(0.0),

@@ -1,7 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
 from functools import partial
-from typing import Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import jax.numpy as jnp
 from jax import jit
@@ -11,7 +11,7 @@ from numpyro.distributions import Distribution, constraints
 
 from ghgf.hgf_jax import loop_inputs, node_validation
 from ghgf.plots import plot_trajectories
-from ghgf.response import HRD
+from ghgf.response import gaussian_surprise
 
 
 class HGF(object):
@@ -223,9 +223,10 @@ class HGF(object):
         # This is where the HGF functions are used to scan the input time series
         last, final = scan(loop_inputs, res_init, input_data[1:, :])
 
-        # Store ouptut values
+        # Save results in the HGF instance
         self.last = last  # The last tuple returned
         self.final = final  # The commulative update of the nodes and results
+        self.data = input_data  # The input data
 
     def plot_trajectories(self, backend: str = "matplotlib", **kwargs):
         plot_trajectories(model=self, backend=backend, **kwargs)
@@ -308,7 +309,7 @@ class HGFDistribution(Distribution):
         kappa_1: DeviceArray = jnp.array(1.0),
         kappa_2: DeviceArray = jnp.array(1.0),
         bias: DeviceArray = jnp.array(0.0),
-        response_function: Optional[str] = "GaussianSurprise",
+        response_function: Callable = gaussian_surprise,
         response_function_parameters: Dict = {},
     ):
         self.input_data = input_data
@@ -370,40 +371,14 @@ class HGFDistribution(Distribution):
             verbose=False,
         )
 
-        # Create the input structure
-        # Here we use the first row from the input data
-        res_init = (
-            hgf.input_node,
-            {
-                "time": data[0, 1],
-                "value": data[0, 0] + self.bias,
-                "surprise": jnp.array(0.0),
-            },
-        )
-
+        # Create the input structure - use the first row from the input data
         # This is where the HGF functions is used to scan the input time series
-        _, final = scan(loop_inputs, res_init, data[1:, :])
-        _, results = final
+        hgf.input_data(data)
 
         # Return the model evidence
-        if self.response_function == "hrd":
-            this_logp = HRD(
-                model=hgf,
-                final=final,
-                time=data[:, 1],
-                **self.response_function_parameters,
-            ).surprise()
-        elif self.response_function == "GaussianSurprise":
-
-            # Fill surprises with zeros if invalid input
-            this_surprise = jnp.where(
-                jnp.any(jnp.isnan(data[1:, :]), axis=1), 0.0, results["surprise"]
-            )
-            # Return an infinite surprise if the model cannot fit
-            this_surprise = jnp.where(jnp.isnan(this_surprise), jnp.inf, this_surprise)
-
-            # Sum the surprise for this model
-            this_logp = jnp.sum(this_surprise)
+        logp = self.response_function(
+            hgf=hgf, response_function_parameters=self.response_function_parameters
+        )
 
         # Return the negative of the sum of the log probabilities
-        return -this_logp
+        return -logp

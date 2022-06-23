@@ -13,43 +13,44 @@ if TYPE_CHECKING:
     from ghgf.model import HGF
 
 
-class GaussianObs:
-    """The gaussian observation response function.
+def gaussian_surprise(hgf: "HGF", response_function_parameters):
+    """The sum of the gaussian surprise along the time series (continuous HGF).
 
-    The probability of the observed response is given by:
-        p(y | mu_hat_1) ~ N(mu_hat_1, zeta > 0)
+    Parameters
+    ----------
+    model : py:class:`ghgf.hgf.model.HGF` instance
+        The HGF model (JAX backend).
+    response_function_parameters : None
+        No additional parameters are required.
 
-    Where mu_hat_1 is the mean of the underlying normal distribution, and zeta is the
-    variance of the underlying normal distribution.
+    Return
+    ------
+    logp : DeviceArray
+        The model surprise given the input data.
 
     """
+    _, results = hgf.final
 
-    def __init__(self):
-        if "zeta" not in self.parameters:
-            raise ValueError("The parameter dictionnary should contain a zeta variable")
+    # Fill surprises with zeros if invalid input
+    this_surprise = jnp.where(
+        jnp.any(jnp.isnan(hgf.data[1:, :]), axis=1), 0.0, results["surprise"]
+    )
 
-    def fit(self):
-        """Fit the responses and return the negative log probability.
+    # Return an infinite surprise if the model cannot fit
+    this_surprise = jnp.where(jnp.isnan(this_surprise), jnp.inf, this_surprise)
 
-        Parameters
-        ----------
-        responses : list
-            The responses provided by the participant.
+    # Sum the surprise for this model
+    logp = jnp.sum(this_surprise)
 
-        Returns
-        -------
-        neg_log_p : floats
-            The sum of the negative log probability.
-
-        """
-
-        sigma = np.sqrt(self.parameters["zeta"])
-        mu_hat_1 = self.model.x1.mus[1:]
-
-        return (-np.log(sigma) - ((self.responses - mu_hat_1) / sigma) ** 2).sum()
+    return logp
 
 
-class HRD:
+def hrd(
+    hgf: "HGF",
+    response_function_parameters: Tuple[
+        np.ndarray, np.ndarray, np.ndarray, float, float
+    ],
+) -> DeviceArray:
     """The binary response function for the HRD task.
 
     The response function use the average of heart rate beliefs (here represented by
@@ -61,11 +62,7 @@ class HRD:
     ----------
     model : py:class:`ghgf.hgf.model.HGF` instance
         The HGF model (JAX backend).
-    final : tuple
-        Final node structure after perceptual model fit.
-    time : DeviceArray
-        The time vector.
-    response_function_parameters : Tuple
+    response_function_parameters : tuple
         Additional parameters used to compute the log probability from the HGF model:
 
        - triggers_idx : np.ndarray
@@ -81,98 +78,73 @@ class HRD:
         - recording_duration : float
             The length of the physiological recording (seconds).
 
+    Return
+    ------
+    logp : DeviceArray
+        The model evidence given the participant's behavior.
+
     """
+    (
+        triggers_idx,
+        tones,
+        decisions,
+        sigma_tone,
+        recording_duration,
+    ) = response_function_parameters
 
-    def __init__(
-        self,
-        model: "HGF",
-        final: Tuple,
-        time: np.ndarray,
-        triggers_idx: np.ndarray,
-        tones: np.ndarray,
-        decisions: np.ndarray,
-        sigma_tone: float = 0.0,
-        recording_duration: float = 0.0,
-    ):
+    # The tone frequency at each trial - convert to log(RR) - ms
+    tones = jnp.log(60000 / tones)
 
-        assert len(tones) == len(triggers_idx)
+    # The estimated heart rate (mu_1)
+    mu_1 = hgf.final[0][1][0]["mu"]
 
-        # Lenght of physiological signal (seconds)
-        self.recording_duration = recording_duration
+    # The precision of the first level estimate
+    pi_1 = hgf.final[0][1][2][0][0]["pi"]
 
-        # The continuous HGF model
-        self.model = model
+    # The surprise along the entire time series
+    model_surprise = hgf.final[1]["surprise"]
 
-        # The time vector
-        self.time = time
+    # The time vector
+    time = hgf.data[:, 1]
 
-        # The triggers indexs
-        self.triggers_idx = triggers_idx
+    # Interpolate the model trajectories to 1000 Hz
+    new_mu1 = jnp.interp(
+        x=np.arange(0, recording_duration, 0.001),
+        xp=time[1:],
+        fp=mu_1,
+    )
+    new_pi1 = jnp.interp(
+        x=np.arange(0, recording_duration, 0.001),
+        xp=time[1:],
+        fp=pi_1,
+    )
 
-        # The tone frequency at each trial - convert to log(RR) - ms
-        self.tones = jnp.log(60000 / tones)
+    # Extract the values of mu_1 and pi_1 for each trial
+    # The heart rate belief and the precision of the heart rate belief
+    # --------------------------------------------------
 
-        # The participant's decisions
-        self.decisions = decisions
-
-        # The standard deviation for the tone precision
-        self.sigma_tone = sigma_tone
-
-        # The estimated heart rate (mu_1)
-        self.mu_1 = final[0][1][0]["mu"]
-
-        # The precision of the first level estimate
-        self.pi_1 = final[0][1][2][0][0]["pi"]
-
-        self.model_surprise = final[1]["surprise"]
-
-    def surprise(self) -> DeviceArray:
-        """Fit the responses and return the negative log probability.
-
-        Returns
-        -------
-        surprise : DeviceArray
-            The model surprise given the responses.
-
-        """
-
-        new_mu1 = jnp.interp(
-            x=np.arange(0, self.recording_duration, 0.001),
-            xp=self.time[1:],
-            fp=self.mu_1,
-        )
-        new_pi1 = jnp.interp(
-            x=np.arange(0, self.recording_duration, 0.001),
-            xp=self.time[1:],
-            fp=self.pi_1,
+    # First define a function to extract values for one trigger
+    # (Use the average over the 5 seconds after the trigger)
+    @jit
+    def extract(trigger: int, mu_1=new_mu1, pi_1=new_pi1):
+        return (
+            dynamic_slice(mu_1, (trigger,), (5000,)).mean(),
+            dynamic_slice(pi_1, (trigger,), (5000,)).mean(),
         )
 
-        # Extract the values of mu_1 and pi_1 for each trial
-        # The heart rate belief and the precision of the heart rate belief
-        # --------------------------------------------------
+    hr, precision = vmap(extract)(triggers_idx)
 
-        # First define a function to extract values for one trigger
-        # (Use the average over the 5 seconds after the trigger)
-        @jit
-        def extract(trigger: int, mu_1=new_mu1, pi_1=new_pi1):
-            return (
-                dynamic_slice(mu_1, (trigger,), (5000,)).mean(),
-                dynamic_slice(pi_1, (trigger,), (5000,)).mean(),
-            )
+    # The probability of answering Slower
+    cdf = norm.cdf(
+        0,
+        loc=hr - tones,
+        scale=jnp.sqrt(1 / precision + (sigma_tone**2)),
+    )
 
-        hr, precision = vmap(extract)(self.triggers_idx)
+    # The surprise (sum of the log(p)) of the model given the answers
+    logp = jnp.where(decisions, -jnp.log(cdf), -jnp.log(1 - cdf)).sum()
 
-        # The probability of answering Slower
-        cdf = norm.cdf(
-            0,
-            loc=hr - self.tones,
-            scale=jnp.sqrt(1 / precision + (self.sigma_tone**2)),
-        )
+    # Return an infinite surprise if the model could not fit in the first place
+    logp = jnp.where(jnp.any(jnp.isnan(model_surprise)), jnp.inf, logp)
 
-        # The surprise (sum of the log(p)) of the model given the answers
-        logp = jnp.where(self.decisions, -jnp.log(cdf), -jnp.log(1 - cdf)).sum()
-
-        # Return an infinite surprise if the model could not fit in the first place
-        logp = jnp.where(jnp.any(jnp.isnan(self.model_surprise)), jnp.inf, logp)
-
-        return logp
+    return logp
