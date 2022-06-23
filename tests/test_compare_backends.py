@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy import loadtxt
 
-from ghgf.hgf import StandardHGF
 from ghgf.model import HGF
+from ghgf.python import StandardHGF
 
 
 class Testsdt(TestCase):

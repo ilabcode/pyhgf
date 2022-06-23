@@ -267,7 +267,7 @@ def update_input_parents(
     gaussian surprise.
 
     This function is the entry level of the model fitting. It update the partents of
-    the input node and then call py:func:`ghgf.hgf_jax.update_parents` recursively to
+    the input node and then call py:func:`ghgf.jax.update_parents` recursively to
     update the rest of the node structure.
 
     Parameters

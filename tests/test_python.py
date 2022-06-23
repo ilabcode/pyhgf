@@ -5,7 +5,17 @@ from unittest import TestCase
 import numpy as np
 import pytest
 
-from ghgf import hgf as hgf
+from ghgf.python import (
+    BinaryInputNode,
+    BinaryNode,
+    HgfUpdateError,
+    InputNode,
+    Model,
+    NodeConfigurationError,
+    StandardBinaryHGF,
+    StandardHGF,
+    StateNode,
+)
 
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,10 +25,10 @@ class Testsdt(TestCase):
     def nodes(self):
 
         # Set up a collection of binary HGF nodes
-        x3 = hgf.StateNode(initial_mu=1.0, initial_pi=1.0, omega=-6.0)
-        x2 = hgf.StateNode(initial_mu=0.0, initial_pi=1.0, omega=-2.5)
-        x1 = hgf.BinaryNode()
-        xU = hgf.BinaryInputNode()
+        x3 = StateNode(initial_mu=1.0, initial_pi=1.0, omega=-6.0)
+        x2 = StateNode(initial_mu=0.0, initial_pi=1.0, omega=-2.5)
+        x1 = BinaryNode()
+        xU = BinaryInputNode()
 
         # Collect nodes
         def n():
@@ -36,10 +46,10 @@ class Testsdt(TestCase):
     def bin_hier(self):
 
         # Set up a simple binary HGF hierarchy
-        x3 = hgf.StateNode(initial_mu=1.0, initial_pi=1.0, omega=-6.0)
-        x2 = hgf.StateNode(initial_mu=0.0, initial_pi=1.0, omega=-2.5)
-        x1 = hgf.BinaryNode()
-        xU = hgf.BinaryInputNode()
+        x3 = StateNode(initial_mu=1.0, initial_pi=1.0, omega=-6.0)
+        x2 = StateNode(initial_mu=0.0, initial_pi=1.0, omega=-2.5)
+        x1 = BinaryNode()
+        xU = BinaryInputNode()
 
         x2.add_volatility_parent(parent=x3, kappa=1)
         x1.set_parent(parent=x2)
@@ -60,7 +70,7 @@ class Testsdt(TestCase):
     def test_model_setup(self):
 
         # Set up model
-        m = hgf.Model()
+        m = Model()
 
         # Check basic model setup
         assert m.nodes == []
@@ -103,9 +113,9 @@ class Testsdt(TestCase):
     def test_continuous_hierarchy_setup(self):
 
         # Set up a simple HGF hierarchy
-        x2 = hgf.StateNode(initial_mu=1.0, initial_pi=np.inf, omega=-2.0)
-        x1 = hgf.StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0)
-        xU = hgf.InputNode(omega=0.0)
+        x2 = StateNode(initial_mu=1.0, initial_pi=np.inf, omega=-2.0)
+        x1 = StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0)
+        xU = InputNode(omega=0.0)
 
         x1.add_volatility_parent(parent=x2, kappa=1)
         xU.set_value_parent(parent=x1)
@@ -115,15 +125,15 @@ class Testsdt(TestCase):
         xU.input(usdchf)
 
     def test_node_config_error(self):
-        with pytest.raises(hgf.NodeConfigurationError):
-            hgf.StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0, rho=1, phi=1)
+        with pytest.raises(NodeConfigurationError):
+            StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0, rho=1, phi=1)
 
     def test_input_continuous(self):
 
         # Set up a standard continuous HGF hierarchy
-        x2 = hgf.StateNode(initial_mu=1.0, initial_pi=np.inf, omega=-2.0)
-        x1 = hgf.StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0)
-        xU = hgf.InputNode(omega=0.0)
+        x2 = StateNode(initial_mu=1.0, initial_pi=np.inf, omega=-2.0)
+        x1 = StateNode(initial_mu=1.04, initial_pi=np.inf, omega=-12.0)
+        xU = InputNode(omega=0.0)
 
         x1.add_volatility_parent(parent=x2, kappa=1)
         xU.set_value_parent(parent=x1)
@@ -141,7 +151,7 @@ class Testsdt(TestCase):
             h.xU.input(u)
 
         # Check if NegativePosteriorPrecisionError exception is correctly raised
-        with pytest.raises(hgf.HgfUpdateError):
+        with pytest.raises(HgfUpdateError):
             h.xU.input(1e5)
 
         # Has update worked?
@@ -150,10 +160,10 @@ class Testsdt(TestCase):
 
     def test_binary_node_setup(self):
         # Set up a simple binary HGF hierarchy
-        x3 = hgf.StateNode(initial_mu=1.0, initial_pi=1.0, omega=-6.0)
-        x2 = hgf.StateNode(initial_mu=0.0, initial_pi=1.0, omega=-2.5)
-        x1 = hgf.BinaryNode()
-        xU = hgf.BinaryInputNode()
+        x3 = StateNode(initial_mu=1.0, initial_pi=1.0, omega=-6.0)
+        x2 = StateNode(initial_mu=0.0, initial_pi=1.0, omega=-2.5)
+        x1 = BinaryNode()
+        xU = BinaryInputNode()
 
         x2.add_volatility_parent(parent=x3, kappa=1)
         x1.set_parent(parent=x2)
@@ -169,7 +179,7 @@ class Testsdt(TestCase):
 
     def test_standard_hgf(self):
         # Set up 2-level HGF for continuous inputs
-        stdhgf = hgf.StandardHGF(
+        stdhgf = StandardHGF(
             n_levels=2,
             model_type="GRW",
             initial_mu={"1": 1.04, "2": 1.0},
@@ -228,7 +238,7 @@ class Testsdt(TestCase):
 
     def test_binary_standard_hgf(self):
         # Set up standard 3-level HGF for binary inputs
-        binstdhgf = hgf.StandardBinaryHGF(
+        binstdhgf = StandardBinaryHGF(
             initial_mu2=0.0,
             initial_pi2=1.0,
             omega2=-2.5,
