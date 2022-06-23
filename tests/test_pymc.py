@@ -38,6 +38,9 @@ class Testsdt(TestCase):
             kappa_1=jnp.array(1.0),
             bias=jnp.array(0.0),
             model_type="continuous",
+            n_levels=2,
+            response_function="GaussianSurprise",
+            response_function_parameters=(1, 1),
         )
         assert jnp.isclose(logp, 1938.0101)
 
@@ -64,6 +67,7 @@ class Testsdt(TestCase):
             mu_2,
             kappa_1,
             bias,
+            response_function_parameters,
         ) = grad_hgf_logp(
             input_data,
             np.array(-3.0),
@@ -77,7 +81,10 @@ class Testsdt(TestCase):
             np.array(0.0),
             np.array(1.0),
             np.array(0.0),
+            (1, 1),
             model_type="continuous",
+            n_levels=2,
+            response_function="GaussianSurprise",
         )
 
         assert jnp.isclose(omega_1, 0.47931308)
@@ -103,7 +110,12 @@ class Testsdt(TestCase):
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
-        hgf_logp_op = HGFLogpOp(model_type="continuous")
+        hgf_logp_op = HGFLogpOp(
+            model_type="continuous",
+            n_levels=2,
+            response_function="GaussianSurprise",
+            response_function_parameters=(1, 1),
+        )
 
         logp = hgf_logp_op(
             data=input_data,
@@ -133,7 +145,12 @@ class Testsdt(TestCase):
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
-        hgf_logp_grad_op = HGFLogpGradOp(model_type="continuous")
+        hgf_logp_grad_op = HGFLogpGradOp(
+            model_type="continuous",
+            n_levels=2,
+            response_function="GaussianSurprise",
+            response_function_parameters=(1, 1),
+        )
 
         omega_1 = hgf_logp_grad_op(
             data=input_data,
@@ -163,7 +180,11 @@ class Testsdt(TestCase):
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
-        hgf_logp_op = HGFLogpOp()
+        hgf_logp_op = HGFLogpOp(
+            n_levels=2,
+            response_function="GaussianSurprise",
+            response_function_parameters=(np.array(1), 1),
+        )
 
         with pm.Model() as model:
 
@@ -195,7 +216,7 @@ class Testsdt(TestCase):
         assert pointslogs["hhgf_loglike"] == 2149.04
 
         with model:
-            idata = pm.sample(chains=4, cores=1, tune=10000, target_accept=0.95)
+            idata = pm.sample(chains=4, cores=4, tune=10000, target_accept=0.95)
 
         assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
         # az.plot_trace(idata)

@@ -1,5 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
+from typing import Tuple
+
 import aesara.tensor as at
 import jax.numpy as jnp
 import numpy as np
@@ -10,6 +12,7 @@ from jax.lax import scan
 
 from ghgf.hgf_jax import loop_inputs
 from ghgf.model import HGF
+from ghgf.response import HRD
 
 
 def hgf_logp(
@@ -25,7 +28,10 @@ def hgf_logp(
     mu_2: DeviceArray = jnp.array(0.0),
     kappa_1: DeviceArray = jnp.array(1.0),
     bias: DeviceArray = jnp.array(0.0),
+    response_function_parameters: Tuple = (),
     model_type: str = "continous",
+    n_levels: int = 2,
+    response_function: str = "GaussianSurprise",
 ) -> jnp.DeviceArray:
     """Compute the log probability from the HGF model given the data and parameters.
 
@@ -35,6 +41,18 @@ def hgf_logp(
         The input data. If `model_type` is `"continuous"`, the data should be two times
         series (time and values).
     ** HGF parameters (see ghgf.model.HGF).
+    model_type : str
+        The type of HGF (can be `"continuous"` or `"binary"`).
+    n_levels : int
+        The number of hierarchies in the perceptual model (can be `2` or `3`). If
+        `None`, the nodes hierarchy is not created and might be provided afterward
+        using `add_nodes()`. Default sets to `2`.
+    response_function : str
+        The response function used to compute the log probability. Defaults to
+        `"GaussianSurprise"`.
+    response_function_parameters : tuple
+        Dictionnary containing additional data that will be passed to the custom
+        response function.
 
     """
 
@@ -55,6 +73,7 @@ def hgf_logp(
         kappas=kappas,
         bias=bias,
         verbose=False,
+        n_levels=n_levels,
     )
 
     # Create the input structure
@@ -72,26 +91,52 @@ def hgf_logp(
     _, final = scan(loop_inputs, res_init, data[1:, :])
     _, results = final
 
-    # Fill surprises with zeros if invalid input
-    this_surprise = jnp.where(
-        jnp.any(jnp.isnan(data[1:, :]), axis=1), 0.0, results["surprise"]
-    )
-    # Return an infinite surprise if the model cannot fit
-    this_surprise = jnp.where(jnp.isnan(this_surprise), jnp.inf, this_surprise)
+    # Return the model evidence
+    if response_function == "hrd":
+        (
+            triggers_idx,
+            tones,
+            decisions,
+            sigma_tone,
+        ) = response_function_parameters
 
-    # Sum the surprise for this model
-    this_logp = jnp.sum(this_surprise)
+        tones = jnp.array(tones)
+        triggers_idx = jnp.array(triggers_idx)
+        decisions = jnp.array(decisions)
+        sigma_tone = jnp.array(sigma_tone)
+
+        this_logp = HRD(
+            model=hgf,
+            final=final,
+            time=data[:, 1],
+            triggers_idx=triggers_idx,
+            tones=tones,
+            decisions=decisions,
+            sigma_tone=sigma_tone,
+        ).surprise()
+    elif response_function == "GaussianSurprise":
+
+        # Fill surprises with zeros if invalid input
+        this_surprise = jnp.where(
+            jnp.any(jnp.isnan(data[1:, :]), axis=1), 0.0, results["surprise"]
+        )
+        # Return an infinite surprise if the model cannot fit
+        this_surprise = jnp.where(jnp.isnan(this_surprise), jnp.inf, this_surprise)
+
+        # Sum the surprise for this model
+        this_logp = jnp.sum(this_surprise)
 
     # Return the negative of the sum of the log probabilities
     return -this_logp
 
 
 grad_hgf_logp = jit(
-    grad(
-        hgf_logp,
-        argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-    ),
-    static_argnames=["model_type"],
+    grad(hgf_logp, argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], allow_int=True),
+    static_argnames=[
+        "model_type",
+        "n_levels",
+        "response_function",
+    ],
 )
 
 
@@ -99,9 +144,15 @@ class HGFLogpGradOp(Op):
     def __init__(
         self,
         model_type: str = "continous",
+        n_levels: int = 2,
+        response_function: str = "GaussianSurprise",
+        response_function_parameters: Tuple = (),
     ):
 
         self.model_type = model_type
+        self.n_levels = n_levels
+        self.response_function = response_function
+        self.response_function_parameters = response_function_parameters
 
     def make_node(
         self,
@@ -155,7 +206,14 @@ class HGFLogpGradOp(Op):
             grad_mu_2,
             grad_kappa_1,
             grad_bias,
-        ) = grad_hgf_logp(*inputs, model_type=self.model_type)
+            _,
+        ) = grad_hgf_logp(
+            *inputs,
+            self.response_function_parameters,
+            model_type=self.model_type,
+            n_levels=self.n_levels,
+            response_function=self.response_function,
+        )
 
         outputs[0][0] = np.asarray(grad_input, dtype=node.outputs[0].dtype)
         outputs[1][0] = np.asarray(grad_omega_1, dtype=node.outputs[1].dtype)
@@ -172,9 +230,20 @@ class HGFLogpGradOp(Op):
 
 
 class HGFLogpOp(Op):
-    def __init__(self, model_type: str = "continuous"):
+    def __init__(
+        self,
+        model_type: str = "continous",
+        n_levels: int = 2,
+        response_function: str = "GaussianSurprise",
+        response_function_parameters: Tuple = (),
+    ):
         self.model_type = model_type
-        self.hgf_logp_grad_op = HGFLogpGradOp(model_type=self.model_type)
+        self.hgf_logp_grad_op = HGFLogpGradOp(
+            model_type=model_type,
+            n_levels=n_levels,
+            response_function=response_function,
+            response_function_parameters=response_function_parameters,
+        )
 
     def make_node(
         self,

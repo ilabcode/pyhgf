@@ -65,16 +65,19 @@ class HRD:
         Final node structure after perceptual model fit.
     time : DeviceArray
         The time vector.
-    triggers_idx : DeviceArray
-        The triggers indexs (sample).
-    tones : DeciceArray
-        The frequencies of the tones presented at each trial.
-    decisions : DeviceArray
-        The participant decision (boolean) where `1` stands for Slower and `0` for
-        Faster. The coding is different from what is used by the Psi staircase as the
-        input use different units (log(RR), in miliseconds).
-    sigma_tone : DeviceArray
-        The precision of the tone perception. Defaults to `0`.
+    response_function_parameters : Tuple
+        Additional parameters used to compute the log probability from the HGF model:
+
+       - triggers_idx : DeviceArray
+            The triggers indexs (sample).
+        - tones : DeciceArray
+            The frequencies of the tones presented at each trial.
+        - decisions : DeviceArray
+            The participant decision (boolean) where `1` stands for Slower and `0` for
+            Faster. The coding is different from what is used by the Psi staircase as
+            the input use different units (log(RR), in miliseconds).
+        - sigma_tone : DeviceArray
+            The precision of the tone perception. Defaults to `0`.
 
     """
 
@@ -115,6 +118,8 @@ class HRD:
         # The precision of the first level estimate
         self.pi_1 = final[0][1][2][0][0]["pi"]
 
+        self.model_surprise = final[1]["surprise"]
+
     def surprise(self) -> DeviceArray:
         """Fit the responses and return the negative log probability.
 
@@ -125,18 +130,24 @@ class HRD:
 
         """
 
+        new_mu1 = jnp.interp(
+            x=np.arange(0, self.time[-1], 0.001), xp=self.time[1:], fp=self.mu_1
+        )
+        new_pi1 = jnp.interp(
+            x=np.arange(0, self.time[-1], 0.001), xp=self.time[1:], fp=self.pi_1
+        )
+
         # Extract the values of mu_1 and pi_1 for each trial
         # The heart rate belief and the precision of the heart rate belief
         # --------------------------------------------------
 
         # First define a function to extract values for one trigger
-        # (Use the average over the 3 heartbeats after trigger)
+        # (Use the average over the 5 seconds after the trigger)
         @jit
-        def extract(trigger: int, mu_1=self.mu_1, pi_1=self.pi_1, time=self.time):
-            idx = jnp.sum(time <= trigger) - 1
+        def extract(trigger: int, mu_1=new_mu1, pi_1=new_pi1):
             return (
-                dynamic_slice(mu_1, (idx,), (3,)).mean(),
-                dynamic_slice(pi_1, (idx,), (3,)).mean(),
+                dynamic_slice(mu_1, (trigger,), (5000,)).mean(),
+                dynamic_slice(pi_1, (trigger,), (5000,)).mean(),
             )
 
         hr, precision = vmap(extract)(self.triggers_idx)
@@ -148,7 +159,10 @@ class HRD:
             scale=jnp.sqrt(1 / precision + (self.sigma_tone**2)),
         )
 
-        # The surprise (sum of the -log(p)) of the model given the answers
-        surprise = jnp.where(self.decisions, -jnp.log(cdf), -jnp.log(1 - cdf)).sum()
+        # The surprise (sum of the log(p)) of the model given the answers
+        logp = jnp.where(self.decisions, -jnp.log(cdf), -jnp.log(1 - cdf)).sum()
 
-        return surprise
+        # Return an infinite surprise if the model could not fit in the first place
+        logp = jnp.where(jnp.any(jnp.isnan(self.model_surprise)), jnp.inf, logp)
+
+        return logp
