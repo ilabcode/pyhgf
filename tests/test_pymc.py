@@ -8,9 +8,11 @@ import arviz as az
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
+from jax import grad, jit
+from jax.tree_util import Partial
 from numpy import loadtxt
 
-from ghgf.pymc import HGFLogpGradOp, HGFLogpOp, grad_hgf_logp, hgf_logp
+from ghgf.pymc import HGFLogpGradOp, HGFLogpOp, hgf_logp
 
 
 class Testsdt(TestCase):
@@ -54,6 +56,19 @@ class Testsdt(TestCase):
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
+        grad_logp = jit(
+            grad(
+                Partial(
+                    hgf_logp,
+                    n_levels=2,
+                    response_function="GaussianSurprise",
+                    model_type="continuous",
+                    response_function_parameters=(1, 1),
+                ),
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            ),
+        )
+
         (
             data,
             omega_1,
@@ -67,8 +82,7 @@ class Testsdt(TestCase):
             mu_2,
             kappa_1,
             bias,
-            response_function_parameters,
-        ) = grad_hgf_logp(
+        ) = grad_logp(
             input_data,
             np.array(-3.0),
             np.array(-3.0),
@@ -81,10 +95,6 @@ class Testsdt(TestCase):
             np.array(0.0),
             np.array(1.0),
             np.array(0.0),
-            (1, 1),
-            model_type="continuous",
-            n_levels=2,
-            response_function="GaussianSurprise",
         )
 
         assert jnp.isclose(omega_1, 0.47931308)
@@ -219,6 +229,7 @@ class Testsdt(TestCase):
             idata = pm.sample(chains=4, cores=4, tune=10000, target_accept=0.95)
 
         assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
+        assert az.summary(idata)["r_hat"].values[0] == 1
         # az.plot_trace(idata)
 
 

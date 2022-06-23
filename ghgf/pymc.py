@@ -9,6 +9,7 @@ from aesara.graph import Apply, Op
 from jax import grad, jit
 from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
+from jax.tree_util import Partial
 
 from ghgf.hgf_jax import loop_inputs
 from ghgf.model import HGF
@@ -16,7 +17,7 @@ from ghgf.response import HRD
 
 
 def hgf_logp(
-    data: DeviceArray,
+    data: np.ndarray,
     omega_1: DeviceArray = jnp.array(-3.0),
     omega_2: DeviceArray = jnp.array(-3.0),
     omega_input: DeviceArray = jnp.log(1e-4),
@@ -98,6 +99,7 @@ def hgf_logp(
             tones,
             decisions,
             sigma_tone,
+            recording_duration,
         ) = response_function_parameters
 
         tones = jnp.array(tones)
@@ -113,6 +115,7 @@ def hgf_logp(
             tones=tones,
             decisions=decisions,
             sigma_tone=sigma_tone,
+            recording_duration=recording_duration,
         ).surprise()
     elif response_function == "GaussianSurprise":
 
@@ -130,16 +133,6 @@ def hgf_logp(
     return -this_logp
 
 
-grad_hgf_logp = jit(
-    grad(hgf_logp, argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], allow_int=True),
-    static_argnames=[
-        "model_type",
-        "n_levels",
-        "response_function",
-    ],
-)
-
-
 class HGFLogpGradOp(Op):
     def __init__(
         self,
@@ -149,14 +142,22 @@ class HGFLogpGradOp(Op):
         response_function_parameters: Tuple = (),
     ):
 
-        self.model_type = model_type
-        self.n_levels = n_levels
-        self.response_function = response_function
-        self.response_function_parameters = response_function_parameters
+        self.grad_logp = jit(
+            grad(
+                Partial(
+                    hgf_logp,
+                    n_levels=n_levels,
+                    response_function=response_function,
+                    model_type=model_type,
+                    response_function_parameters=response_function_parameters,
+                ),
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            )
+        )
 
     def make_node(
         self,
-        data: DeviceArray,
+        data: np.ndarray,
         omega_1=jnp.array(-3.0),
         omega_2=jnp.array(-3.0),
         omega_input=np.log(1e-4),
@@ -206,14 +207,7 @@ class HGFLogpGradOp(Op):
             grad_mu_2,
             grad_kappa_1,
             grad_bias,
-            _,
-        ) = grad_hgf_logp(
-            *inputs,
-            self.response_function_parameters,
-            model_type=self.model_type,
-            n_levels=self.n_levels,
-            response_function=self.response_function,
-        )
+        ) = self.grad_logp(*inputs)
 
         outputs[0][0] = np.asarray(grad_input, dtype=node.outputs[0].dtype)
         outputs[1][0] = np.asarray(grad_omega_1, dtype=node.outputs[1].dtype)

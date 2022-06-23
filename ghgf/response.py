@@ -68,16 +68,18 @@ class HRD:
     response_function_parameters : Tuple
         Additional parameters used to compute the log probability from the HGF model:
 
-       - triggers_idx : DeviceArray
+       - triggers_idx : np.ndarray
             The triggers indexs (sample).
-        - tones : DeciceArray
+        - tones : np.ndarray
             The frequencies of the tones presented at each trial.
-        - decisions : DeviceArray
+        - decisions : np.ndarray
             The participant decision (boolean) where `1` stands for Slower and `0` for
             Faster. The coding is different from what is used by the Psi staircase as
             the input use different units (log(RR), in miliseconds).
-        - sigma_tone : DeviceArray
+        - sigma_tone : float
             The precision of the tone perception. Defaults to `0`.
+        - recording_duration : float
+            The length of the physiological recording (seconds).
 
     """
 
@@ -85,14 +87,18 @@ class HRD:
         self,
         model: "HGF",
         final: Tuple,
-        time: DeviceArray,
-        triggers_idx: DeviceArray,
-        tones: DeviceArray,
-        decisions: DeviceArray,
-        sigma_tone: DeviceArray = jnp.array([0.0]),
+        time: np.ndarray,
+        triggers_idx: np.ndarray,
+        tones: np.ndarray,
+        decisions: np.ndarray,
+        sigma_tone: float = 0.0,
+        recording_duration: float = 0.0,
     ):
 
         assert len(tones) == len(triggers_idx)
+
+        # Lenght of physiological signal (seconds)
+        self.recording_duration = recording_duration
 
         # The continuous HGF model
         self.model = model
@@ -131,10 +137,14 @@ class HRD:
         """
 
         new_mu1 = jnp.interp(
-            x=np.arange(0, self.time[-1], 0.001), xp=self.time[1:], fp=self.mu_1
+            x=np.arange(0, self.recording_duration, 0.001),
+            xp=self.time[1:],
+            fp=self.mu_1,
         )
         new_pi1 = jnp.interp(
-            x=np.arange(0, self.time[-1], 0.001), xp=self.time[1:], fp=self.pi_1
+            x=np.arange(0, self.recording_duration, 0.001),
+            xp=self.time[1:],
+            fp=self.pi_1,
         )
 
         # Extract the values of mu_1 and pi_1 for each trial
