@@ -15,7 +15,6 @@ from ghgf.response import gaussian_surprise
 
 
 def hgf_logp(
-    data: np.ndarray,
     omega_1: DeviceArray = jnp.array(-3.0),
     omega_2: DeviceArray = jnp.array(-3.0),
     omega_input: DeviceArray = jnp.log(1e-4),
@@ -27,6 +26,7 @@ def hgf_logp(
     mu_2: DeviceArray = jnp.array(0.0),
     kappa_1: DeviceArray = jnp.array(1.0),
     bias: DeviceArray = jnp.array(0.0),
+    data: np.ndarray = np.array(0.0),
     response_function_parameters: Tuple = (),
     model_type: str = "continous",
     n_levels: int = 2,
@@ -91,6 +91,7 @@ def hgf_logp(
 class HGFLogpGradOp(Op):
     def __init__(
         self,
+        data: np.ndarray = np.array(0.0),
         model_type: str = "continous",
         n_levels: int = 2,
         response_function: Callable = gaussian_surprise,
@@ -102,17 +103,17 @@ class HGFLogpGradOp(Op):
                 Partial(
                     hgf_logp,
                     n_levels=n_levels,
+                    data=data,
                     response_function=response_function,
                     model_type=model_type,
                     response_function_parameters=response_function_parameters,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             )
         )
 
     def make_node(
         self,
-        data: np.ndarray,
         omega_1=jnp.array(-3.0),
         omega_2=jnp.array(-3.0),
         omega_input=np.log(1e-4),
@@ -128,7 +129,6 @@ class HGFLogpGradOp(Op):
 
         # Convert our inputs to symbolic variables
         inputs = [
-            at.as_tensor_variable(data),
             at.as_tensor_variable(omega_1),
             at.as_tensor_variable(omega_2),
             at.as_tensor_variable(omega_input),
@@ -150,7 +150,6 @@ class HGFLogpGradOp(Op):
 
     def perform(self, node, inputs, outputs):
         (
-            grad_input,
             grad_omega_1,
             grad_omega_2,
             grad_omega_input,
@@ -164,23 +163,23 @@ class HGFLogpGradOp(Op):
             grad_bias,
         ) = self.grad_logp(*inputs)
 
-        outputs[0][0] = np.asarray(grad_input, dtype=node.outputs[0].dtype)
-        outputs[1][0] = np.asarray(grad_omega_1, dtype=node.outputs[1].dtype)
-        outputs[2][0] = np.asarray(grad_omega_2, dtype=node.outputs[2].dtype)
-        outputs[3][0] = np.asarray(grad_omega_input, dtype=node.outputs[3].dtype)
-        outputs[4][0] = np.asarray(grad_rho_1, dtype=node.outputs[4].dtype)
-        outputs[5][0] = np.asarray(grad_rho_2, dtype=node.outputs[5].dtype)
-        outputs[6][0] = np.asarray(grad_pi_1, dtype=node.outputs[6].dtype)
-        outputs[7][0] = np.asarray(grad_pi_2, dtype=node.outputs[7].dtype)
-        outputs[8][0] = np.asarray(grad_mu_1, dtype=node.outputs[8].dtype)
-        outputs[9][0] = np.asarray(grad_mu_2, dtype=node.outputs[9].dtype)
-        outputs[10][0] = np.asarray(grad_kappa_1, dtype=node.outputs[10].dtype)
-        outputs[11][0] = np.asarray(grad_bias, dtype=node.outputs[11].dtype)
+        outputs[0][0] = np.asarray(grad_omega_1, dtype=node.outputs[0].dtype)
+        outputs[1][0] = np.asarray(grad_omega_2, dtype=node.outputs[1].dtype)
+        outputs[2][0] = np.asarray(grad_omega_input, dtype=node.outputs[2].dtype)
+        outputs[3][0] = np.asarray(grad_rho_1, dtype=node.outputs[3].dtype)
+        outputs[4][0] = np.asarray(grad_rho_2, dtype=node.outputs[4].dtype)
+        outputs[5][0] = np.asarray(grad_pi_1, dtype=node.outputs[5].dtype)
+        outputs[6][0] = np.asarray(grad_pi_2, dtype=node.outputs[6].dtype)
+        outputs[7][0] = np.asarray(grad_mu_1, dtype=node.outputs[7].dtype)
+        outputs[8][0] = np.asarray(grad_mu_2, dtype=node.outputs[8].dtype)
+        outputs[9][0] = np.asarray(grad_kappa_1, dtype=node.outputs[9].dtype)
+        outputs[10][0] = np.asarray(grad_bias, dtype=node.outputs[10].dtype)
 
 
 class HGFLogpOp(Op):
     def __init__(
         self,
+        data: np.ndarray = np.array(0.0),
         model_type: str = "continous",
         n_levels: int = 2,
         response_function: Callable = gaussian_surprise,
@@ -191,6 +190,7 @@ class HGFLogpOp(Op):
             Partial(
                 hgf_logp,
                 n_levels=n_levels,
+                data=data,
                 response_function=response_function,
                 model_type=model_type,
                 response_function_parameters=response_function_parameters,
@@ -199,6 +199,7 @@ class HGFLogpOp(Op):
 
         # The gradient function
         self.hgf_logp_grad_op = HGFLogpGradOp(
+            data=data,
             model_type=model_type,
             n_levels=n_levels,
             response_function=response_function,
@@ -207,7 +208,6 @@ class HGFLogpOp(Op):
 
     def make_node(
         self,
-        data,
         omega_1,
         omega_2,
         omega_input,
@@ -223,7 +223,6 @@ class HGFLogpOp(Op):
 
         # Convert our inputs to symbolic variables
         inputs = [
-            at.as_tensor_variable(data),
             at.as_tensor_variable(omega_1),
             at.as_tensor_variable(omega_2),
             at.as_tensor_variable(omega_input),
@@ -246,7 +245,6 @@ class HGFLogpOp(Op):
 
     def grad(self, inputs, output_gradients):
         (
-            grad_input,
             grad_omega_1,
             grad_omega_2,
             grad_omega_input,
@@ -264,7 +262,6 @@ class HGFLogpOp(Op):
         # output gradient for that input.
         output_gradient = output_gradients[0]
         return [
-            output_gradient * grad_input,
             output_gradient * grad_omega_1,
             output_gradient * grad_omega_2,
             output_gradient * grad_omega_input,

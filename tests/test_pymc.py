@@ -27,8 +27,18 @@ class Testsdt(TestCase):
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
-        logp = hgf_logp(
-            data=input_data,
+        jax_logp = jit(
+            Partial(
+                hgf_logp,
+                n_levels=2,
+                data=input_data,
+                response_function=gaussian_surprise,
+                model_type="continuous",
+                response_function_parameters=None,
+            )
+        )
+
+        logp = jax_logp(
             omega_1=jnp.array(-3.0),
             omega_2=jnp.array(-3.0),
             omega_input=jnp.log(1e-4),
@@ -40,10 +50,6 @@ class Testsdt(TestCase):
             mu_2=jnp.array(0.0),
             kappa_1=jnp.array(1.0),
             bias=jnp.array(0.0),
-            model_type="continuous",
-            n_levels=2,
-            response_function=gaussian_surprise,
-            response_function_parameters=(1, 1),
         )
         assert jnp.isclose(logp, 1938.0101)
 
@@ -62,16 +68,16 @@ class Testsdt(TestCase):
                 Partial(
                     hgf_logp,
                     n_levels=2,
+                    data=input_data,
                     response_function=gaussian_surprise,
                     model_type="continuous",
                     response_function_parameters=None,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             ),
         )
 
         (
-            data,
             omega_1,
             omega_2,
             omega_input,
@@ -84,7 +90,6 @@ class Testsdt(TestCase):
             kappa_1,
             bias,
         ) = grad_logp(
-            input_data,
             np.array(-3.0),
             np.array(-3.0),
             np.log(1e-4),
@@ -92,7 +97,7 @@ class Testsdt(TestCase):
             np.array(0.0),
             np.array(1e4),
             np.array(1e1),
-            np.array(input_data[0][0]),
+            np.array(input_data[0, 0]),
             np.array(0.0),
             np.array(1.0),
             np.array(0.0),
@@ -112,6 +117,7 @@ class Testsdt(TestCase):
         ).T
 
         hgf_logp_op = HGFLogpOp(
+            data=input_data,
             model_type="continuous",
             n_levels=2,
             response_function=gaussian_surprise,
@@ -119,7 +125,6 @@ class Testsdt(TestCase):
         )
 
         logp = hgf_logp_op(
-            data=input_data,
             omega_1=np.array(-3.0),
             omega_2=np.array(-3.0),
             omega_input=np.log(1e-4),
@@ -148,13 +153,13 @@ class Testsdt(TestCase):
 
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="continuous",
+            data=input_data,
             n_levels=2,
             response_function=gaussian_surprise,
             response_function_parameters=None,
         )
 
         omega_1 = hgf_logp_grad_op(
-            data=input_data,
             omega_1=np.array(-3.0),
             omega_2=np.array(-3.0),
             omega_input=np.log(1e-4),
@@ -162,11 +167,11 @@ class Testsdt(TestCase):
             rho_2=np.array(0.0),
             pi_1=np.array(1e4),
             pi_2=np.array(1e1),
-            mu_1=np.array(input_data[0][0]),
+            mu_1=np.array(input_data[0, 0]),
             mu_2=np.array(0.0),
             kappa_1=np.array(1.0),
             bias=np.array(0.0),
-        )[1].eval()
+        )[0].eval()
 
         assert jnp.isclose(omega_1, 0.47931308)
 
@@ -183,6 +188,7 @@ class Testsdt(TestCase):
 
         hgf_logp_op = HGFLogpOp(
             n_levels=2,
+            data=input_data,
             response_function=gaussian_surprise,
             response_function_parameters=(np.array(1), 1),
         )
@@ -194,7 +200,6 @@ class Testsdt(TestCase):
             pm.Potential(
                 "hhgf_loglike",
                 hgf_logp_op(
-                    data=input_data,
                     omega_1=np.array(0.0),
                     omega_2=omega_2,
                     omega_input=np.log(1e-4),
@@ -216,7 +221,7 @@ class Testsdt(TestCase):
         assert pointslogs["hhgf_loglike"] == 2149.04
 
         with model:
-            idata = pm.sample(chains=4, cores=4, tune=10000, target_accept=0.95)
+            idata = pm.sample(chains=4, cores=4, tune=1000)
 
         assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
         assert az.summary(idata)["r_hat"].values[0] == 1
