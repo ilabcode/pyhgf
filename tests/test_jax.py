@@ -8,7 +8,7 @@ import jax.numpy as jnp
 from jax.lax import scan
 from numpy import loadtxt
 
-from ghgf.hgf_jax import (
+from ghgf.jax import (
     gaussian_surprise,
     loop_inputs,
     node_validation,
