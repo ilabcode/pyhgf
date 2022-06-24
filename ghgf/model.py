@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import jax.numpy as jnp
 from jax.interpreters.xla import DeviceArray
@@ -8,6 +8,7 @@ from jax.lax import scan
 
 from ghgf.jax import loop_inputs, node_validation
 from ghgf.plots import plot_trajectories
+from ghgf.response import gaussian_surprise
 
 
 class HGF(object):
@@ -23,6 +24,8 @@ class HGF(object):
         The model implemented (can be `"AR1"` or `"GRW"`).
     nodes : tuple
         The nodes hierarchy.
+    hgf_results : dict
+        The output of the model after oberving the input data.
 
     Notes
     -----
@@ -227,9 +230,34 @@ class HGF(object):
         ] = final  # The commulative update of the nodes and results
         self.hgf_results["data"] = input_data  # The input data
 
+        return self
+
     def plot_trajectories(self, backend: str = "matplotlib", **kwargs):
         plot_trajectories(hgf=self, backend=backend, **kwargs)
 
-    def surprise(self):
+    def surprise(
+        self,
+        response_function: Callable = gaussian_surprise,
+        response_function_parameters: Tuple = (),
+    ):
+        """Returns the model surprise (negative log probability) given the input data
+        and a response function and additional parameters to the response function.
 
-        return jnp.sum(self.hgf_results["final"][1]["surprise"])
+        Parameters
+        ----------
+        response_function : callable
+            The response function to use to compute the model surprise.
+        response_function_parameters : tuple
+            (Optional) Additional parameters to the response function.
+
+        Returns
+        -------
+        surprise : float
+            The model surprise given the input data and the response function.
+
+        """
+
+        return response_function(
+            hgf_results=self.hgf_results,
+            response_function_parameters=response_function_parameters,
+        )

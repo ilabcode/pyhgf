@@ -133,30 +133,25 @@ class HGFDistribution(Distribution):
         rho["3"] = self.rho_3 if self.n_levels == 3 else None
         kappas["2"] = self.kappa_2 if self.n_levels == 3 else None
 
-        hgf = HGF(
-            n_levels=self.n_levels,
-            model_type=self.model_type,
-            initial_mu=initial_mu,
-            initial_pi=initial_pi,
-            omega=omega,
-            omega_input=self.omega_input,
-            rho=rho,
-            kappas=kappas,
-            bias=self.bias,
-            verbose=False,
-        )
-
-        # Create the input structure - use the first row from the input data
-        # This is where the HGF functions is used to scan the input time series
-        hgf.input_data(data)
-
-        hgf_results = hgf.hgf_results
-
-        # Return the model evidence
-        logp = self.response_function(
-            hgf_results=hgf_results,
-            response_function_parameters=self.response_function_parameters,
+        surprise = (
+            HGF(
+                n_levels=self.n_levels,
+                model_type=self.model_type,
+                initial_mu=initial_mu,
+                initial_pi=initial_pi,
+                omega=omega,
+                omega_input=self.omega_input,
+                rho=rho,
+                kappas=kappas,
+                bias=self.bias,
+                verbose=False,
+            )
+            .input_data(data)
+            .surprise(
+                response_function=self.response_function,
+                response_function_parameters=self.response_function_parameters,
+            )
         )
 
         # Return the negative of the sum of the log probabilities
-        return -logp
+        return -surprise

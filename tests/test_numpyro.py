@@ -4,6 +4,7 @@ import os
 import unittest
 from unittest import TestCase
 
+import arviz as az
 import jax.numpy as jnp
 import numpyro as npy
 import numpyro.distributions as dist
@@ -30,7 +31,7 @@ class Testnumpyro(TestCase):
         rho_2 = jnp.array(0.0)
         pi_1 = jnp.array(1e4)
         pi_2 = jnp.array(1e1)
-        mu_1 = jnp.array(input_data[0][0])
+        mu_1 = jnp.array(input_data[0, 0])
         mu_2 = jnp.array(0.0)
         kappa = jnp.array(1.0)
 
@@ -56,13 +57,13 @@ class Testnumpyro(TestCase):
 
         def model(input_data):
 
-            ω_1 = npy.sample("ω_1", dist.Normal(0.0, 5.0))
-            ω_2 = jnp.array(-3.0)
+            ω_1 = jnp.array(0.0)
+            ω_2 = npy.sample("ω_2", dist.Normal(-11.0, 2.0))
             rho_1 = jnp.array(0.0)
             rho_2 = jnp.array(0.0)
             pi_1 = jnp.array(1e4)
             pi_2 = jnp.array(1e1)
-            μ_1 = jnp.array(input_data[0][0])
+            μ_1 = jnp.array(input_data[0, 0])
             μ_2 = jnp.array(0.0)
             kappa_1 = jnp.array(1.0)
 
@@ -87,9 +88,15 @@ class Testnumpyro(TestCase):
 
         # Run NUTS.
         kernel = NUTS(model)
-        num_samples = 1000
-        mcmc = MCMC(kernel, num_warmup=1000, num_samples=num_samples)
+        mcmc = MCMC(kernel, num_warmup=1000, num_samples=1000)
         mcmc.run(rng_key_, input_data=input_data)
+
+        numpyro_samples = az.from_numpyro(mcmc)
+        assert (
+            -14
+            < round(az.summary(numpyro_samples, var_names="ω_2")["mean"].values[0])
+            < -10
+        )
 
 
 if __name__ == "__main__":

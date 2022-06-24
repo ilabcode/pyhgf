@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 
 import jax.numpy as jnp
 import numpy as np
-from jax import vmap
+from jax import jit, vmap
 from jax.interpreters.xla import DeviceArray
 from jax.lax import dynamic_slice
 from jax.scipy.stats import norm
@@ -22,7 +22,7 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
 
     Return
     ------
-    logp : DeviceArray
+    surprise : DeviceArray
         The model surprise given the input data.
 
     """
@@ -37,15 +37,15 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
     this_surprise = jnp.where(jnp.isnan(this_surprise), jnp.inf, this_surprise)
 
     # Sum the surprise for this model
-    logp = jnp.sum(this_surprise)
+    surprise = jnp.sum(this_surprise)
 
-    return logp
+    return surprise
 
 
-def hrd(
+def hrd_behaviors(
     hgf_results: Dict,
     response_function_parameters: Tuple[
-        np.ndarray, np.ndarray, np.ndarray, float, float
+        np.ndarray, np.ndarray, np.ndarray, float, np.ndarray
     ],
 ) -> DeviceArray:
     """The binary response function for the HRD task.
@@ -62,22 +62,20 @@ def hrd(
     response_function_parameters : tuple
         Additional parameters used to compute the log probability from the HGF model:
 
-       - triggers_idx : np.ndarray
+        - triggers_idx : np.ndarray
             The triggers indexs (sample).
         - tones : np.ndarray
-            The frequencies of the tones presented at each trial.
+            The frequencies at each trial, converted to log(RR) (ms).
         - decisions : np.ndarray
             The participant decision (boolean) where `1` stands for Slower and `0` for
             Faster. The coding is different from what is used by the Psi staircase as
             the input use different units (log(RR), in miliseconds).
         - sigma_tone : float
-            The precision of the tone perception. Defaults to `0`.
-        - time_vector : float
-            The length of the physiological recording (seconds).
+            The precision of the tone perception. Defaults to `0.0`.
 
     Return
     ------
-    logp : DeviceArray
+    surprise : DeviceArray
         The model evidence given the participant's behavior.
 
     """
@@ -89,20 +87,17 @@ def hrd(
         time_vector,
     ) = response_function_parameters
 
-    # The tone frequency at each trial - convert to log(RR) - ms
-    tones = jnp.log(60000 / tones)
-
     # The estimated heart rate (mu_1)
     mu_1 = hgf_results["final"][0][1][0]["mu"]
 
-    # The precision of the first level estimate
-    pi_1 = hgf_results["final"][0][1][2][0][0]["pi"]
+    # The precision around the heart rate restimate
+    pi_1 = hgf_results["final"][0][1][0]["pi"]
 
     # The surprise along the entire time series
     model_surprise = hgf_results["final"][1]["surprise"]
 
     # The time vector
-    time = hgf_results["data"][:, 1]
+    time = hgf_results["data"][:, 1] * 1000
 
     # Interpolate the model trajectories to 1000 Hz
     new_mu1 = jnp.interp(
@@ -137,10 +132,89 @@ def hrd(
         scale=jnp.sqrt(1 / precision + (sigma_tone**2)),
     )
 
+    # Force probabilities to be greater or smaller than 0 or 1
+    cdf = jnp.where(cdf == 1.0, 1 - 1e-6, cdf)
+    cdf = jnp.where(cdf == 0.0, 1e-6, cdf)
+
     # The surprise (sum of the log(p)) of the model given the answers
-    logp = jnp.where(decisions, -jnp.log(cdf), -jnp.log(1 - cdf)).sum()
+    surprise = jnp.where(decisions, -jnp.log(cdf), -jnp.log(1 - cdf)).sum()
 
     # Return an infinite surprise if the model could not fit in the first place
-    logp = jnp.where(jnp.any(jnp.isnan(model_surprise)), jnp.inf, logp)
+    surprise = jnp.where(jnp.any(jnp.isnan(model_surprise)), jnp.inf, surprise)
 
-    return logp
+    return surprise
+
+
+def hrd_ideal_oberver(
+    hgf_results: Dict,
+    response_function_parameters: Tuple[np.ndarray, np.ndarray, np.ndarray],
+) -> DeviceArray:
+    """The binary response function for the HRD task given by an ideal observer.
+
+    Parameters
+    ----------
+    hgf_results : dict
+        Dictionary containing the HGF results.
+    response_function_parameters : tuple
+        Additional parameters used to compute the log probability from the HGF model:
+
+       - triggers_idx : np.ndarray
+            The triggers indexs (sample).
+        - tones : np.ndarray
+            The frequencies of the tones presented at each trial.
+        - decisions : np.ndarray
+            The participant decision (boolean) where `1` stands for Slower and `0` for
+            Faster. The coding is different from what is used by the Psi staircase as
+            the input use different units (log(RR), in miliseconds).
+
+    Return
+    ------
+    surprise : DeviceArray
+        The model evidence given the participant's behavior.
+
+    """
+    (
+        triggers_idx,
+        tones,
+        condition,
+    ) = response_function_parameters
+
+    # The estimated heart rate (mu_1)
+    mu_1 = hgf_results["final"][0][1][0]["mu"]
+
+    # The surprise along the entire time series
+    model_surprise = hgf_results["final"][1]["surprise"]
+
+    # The time vector
+    time = hgf_results["data"][:, 1]
+
+    # Extract the values of mu_1 and pi_1 for each trial
+    # The heart rate belief and the precision of the heart rate belief
+    # --------------------------------------------------
+
+    # First define a function to extract values for one trigger
+    @jit
+    def extract(trigger: int, mu_1=mu_1, time=time):
+        idx = jnp.sum(time <= trigger) + 1
+        return (dynamic_slice(mu_1, (idx,), (3,)).mean(),)
+
+    hr = vmap(extract)(triggers_idx)
+
+    # The probability of answering Slower
+    cdf = norm.cdf(
+        0,
+        loc=hr - tones,
+        scale=1e-6,
+    )
+
+    # Force probabilities to be greater or smaller than 0 or 1
+    cdf = jnp.where(cdf == 1.0, 1 - 1e-6, cdf)
+    cdf = jnp.where(cdf == 0.0, 1e-6, cdf)
+
+    # The surprise (negative sum of the log(p)) of the model given the answers
+    surprise = jnp.where(condition, -jnp.log(cdf), -jnp.log(1 - cdf)).sum()
+
+    # Return an infinite surprise if the model could not fit in the first place
+    surprise = jnp.where(jnp.any(jnp.isnan(model_surprise)), jnp.inf, surprise)
+
+    return surprise
