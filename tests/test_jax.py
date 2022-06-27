@@ -1,13 +1,12 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-import os
 import unittest
 from unittest import TestCase
 
 import jax.numpy as jnp
 from jax.lax import scan
-from numpy import loadtxt
 
+from ghgf import load_data
 from ghgf.jax import (
     gaussian_surprise,
     loop_inputs,
@@ -387,7 +386,7 @@ class Testsdt(TestCase):
 
     def test_scan_loop(self):
 
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        timeserie = load_data("continuous")
 
         # No value parent - no volatility parents
         input_node_parameters = {

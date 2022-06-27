@@ -1,6 +1,5 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-import os
 import unittest
 from unittest import TestCase
 
@@ -10,9 +9,9 @@ import numpy as np
 import pymc as pm
 from jax import grad, jit
 from jax.tree_util import Partial
-from numpy import loadtxt
 
-from ghgf.pymc import HGFLogpGradOp, HGFLogpOp, hgf_logp
+from ghgf import load_data
+from ghgf.pymc import HGFDistribution, HGFLogpGradOp, hgf_logp
 from ghgf.response import gaussian_surprise
 
 
@@ -20,9 +19,7 @@ class TestPyMC(TestCase):
     def test_hgf_logp(self):
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
-
-        # Repeate the input time series 3 time to test for multiple models
+        timeserie = load_data("continuous")
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
@@ -56,7 +53,7 @@ class TestPyMC(TestCase):
     def test_grad_logp(self):
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        timeserie = load_data("continuous")
 
         # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
@@ -109,14 +106,14 @@ class TestPyMC(TestCase):
         """Test the aesara hgf_logp op."""
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        timeserie = load_data("continuous")
 
         # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
-        hgf_logp_op = HGFLogpOp(
+        hgf_logp_op = HGFDistribution(
             data=input_data,
             model_type="continuous",
             n_levels=2,
@@ -144,7 +141,7 @@ class TestPyMC(TestCase):
         """Test the aesara gradient hgf_logp op."""
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        timeserie = load_data("continuous")
 
         # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
@@ -179,14 +176,14 @@ class TestPyMC(TestCase):
         """Test the aesara hgf_logp op."""
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        timeserie = load_data("continuous")
 
         # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
-        hgf_logp_op = HGFLogpOp(
+        hgf_logp_op = HGFDistribution(
             n_levels=2,
             data=input_data,
             response_function=gaussian_surprise,

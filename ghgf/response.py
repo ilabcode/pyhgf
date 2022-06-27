@@ -196,7 +196,7 @@ def hrd_ideal_oberver(
     @jit
     def extract(trigger: int, mu_1=mu_1, time=time):
         idx = jnp.sum(time <= trigger) + 1
-        return (dynamic_slice(mu_1, (idx,), (3,)).mean(),)
+        return dynamic_slice(mu_1, (idx,), (3,)).mean()
 
     hr = vmap(extract)(triggers_idx)
 

@@ -41,5 +41,6 @@ if __name__ == "__main__":
         version=VERSION,
         install_requires=INSTALL_REQUIRES,
         include_package_data=True,
+        package_data={"": ["ghgf/ghgf/data/*.dat"]},
         packages=PACKAGES,
     )

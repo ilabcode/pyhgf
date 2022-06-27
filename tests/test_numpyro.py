@@ -1,17 +1,16 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-import os
 import unittest
 from unittest import TestCase
 
 import arviz as az
-import jax.numpy as jnp
+import numpy as np
 import numpyro as npy
 import numpyro.distributions as dist
 from jax import random
-from numpy import loadtxt
 from numpyro.infer import MCMC, NUTS
 
+from ghgf import load_data
 from ghgf.numpyro import HGFDistribution
 
 
@@ -20,25 +19,24 @@ class Testnumpyro(TestCase):
         """Test the Numpyro distribution"""
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        timeserie = load_data("continuous")
 
         # Repeate the input time series 3 time to test for multiple models
-        input_data = jnp.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
+        input_data = np.array(
+            [timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
-        rho_1 = jnp.array(0.0)
-        rho_2 = jnp.array(0.0)
-        pi_1 = jnp.array(1e4)
-        pi_2 = jnp.array(1e1)
-        mu_1 = jnp.array(input_data[0, 0])
-        mu_2 = jnp.array(0.0)
-        kappa = jnp.array(1.0)
+        omega_1, omega_2 = -3.0, -3.0
+        rho_1, rho_2 = 0.0, 0.0
+        pi_1, pi_2 = 1e4, 1e1
+        mu_1, mu_2 = input_data[0, 0], 0.0
+        kappa = 1.0
+        bias = 0.0
 
         hgf = HGFDistribution(
             input_data=input_data,
-            omega_1=jnp.array(-3.0),
-            omega_2=jnp.array(-3.0),
+            omega_1=omega_1,
+            omega_2=omega_2,
             rho_1=rho_1,
             rho_2=rho_2,
             pi_1=pi_1,
@@ -46,10 +44,10 @@ class Testnumpyro(TestCase):
             mu_1=mu_1,
             mu_2=mu_2,
             kappa_1=kappa,
-            bias=jnp.array(0.0),
+            bias=bias,
         )
 
-        assert jnp.isclose(hgf.log_prob(None), 1938.0101)
+        assert np.isclose(hgf.log_prob(None), 1938.0101)
 
         #################
         # Test sampling #
@@ -57,15 +55,15 @@ class Testnumpyro(TestCase):
 
         def model(input_data):
 
-            ω_1 = jnp.array(0.0)
+            ω_1 = 0.0
             ω_2 = npy.sample("ω_2", dist.Normal(-11.0, 2.0))
-            rho_1 = jnp.array(0.0)
-            rho_2 = jnp.array(0.0)
-            pi_1 = jnp.array(1e4)
-            pi_2 = jnp.array(1e1)
-            μ_1 = jnp.array(input_data[0, 0])
-            μ_2 = jnp.array(0.0)
-            kappa_1 = jnp.array(1.0)
+            rho_1 = 0.0
+            rho_2 = 0.0
+            pi_1 = 1e4
+            pi_2 = 1e1
+            μ_1 = input_data[0, 0]
+            μ_2 = 0.0
+            kappa_1 = 1.0
 
             npy.sample(
                 "hgf_log_prob",

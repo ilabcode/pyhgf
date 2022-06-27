@@ -1,13 +1,12 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-import os
 from unittest import TestCase
 
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import loadtxt
 
+from ghgf import load_data
 from ghgf.model import HGF
 from ghgf.python import StandardHGF
 
@@ -18,7 +17,7 @@ class TestCompareBackends(TestCase):
 
         np.random.seed(123)
 
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        timeserie = load_data("continuous")
         data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         ################

@@ -1,5 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
+from math import log
 from typing import Callable, Dict, Optional, Tuple
 
 import jax.numpy as jnp
@@ -21,20 +22,12 @@ class HGF(object):
     n_levels : int
         The number of hierarchies in the model. Cannot be less than 2.
     model_type : str
-        The model implemented (can be `"AR1"` or `"GRW"`).
+        The model implemented (can be `"continous"` or `"binary"`).
     nodes : tuple
-        The nodes hierarchy.
+        A tuple of tuples representing the nodes hierarchy.
     hgf_results : dict
-        The output of the model after oberving the input data.
-
-    Notes
-    -----
-    The model used by the perceptual model is defined by the `model_type` parameter
-    (can be `"GRW"` or `"AR1"`). If `model_type` is not provided, the class will
-    try to determine it automatically by looking at the `rho` and `phi` parameters.
-    If `rho` is provided `model_type="GRW"`, if `phi` is provided
-    `model_type="AR1"`. If both `phi` and `rho` are `None` an error will be
-    returned.
+        After oberving the data using the `input_data` method, the output of the model
+        are stored in the `hgf_results` dictionary.
 
     Examples
     --------
@@ -45,13 +38,13 @@ class HGF(object):
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
-        initial_mu: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
-        initial_pi: Dict[str, DeviceArray] = {"1": jnp.array(1.0), "2": jnp.array(1.0)},
-        omega_input: DeviceArray = jnp.log(1e-4),
-        omega: Dict[str, DeviceArray] = {"1": jnp.array(-10.0), "2": jnp.array(-10.0)},
-        kappas: Dict[str, DeviceArray] = {"1": jnp.array(1.0)},
-        rho: Dict[str, DeviceArray] = {"1": jnp.array(0.0), "2": jnp.array(0.0)},
-        bias: DeviceArray = jnp.array(0.0),
+        initial_mu: Dict[str, float] = {"1": 0.0, "2": 0.0},
+        initial_pi: Dict[str, float] = {"1": 1.0, "2": 1.0},
+        omega_input: DeviceArray = log(1e-4),
+        omega: Dict[str, float] = {"1": -3.0, "2": -3.0},
+        kappas: Dict[str, float] = {"1": 1.0},
+        rho: Dict[str, float] = {"1": 0.0, "2": 0.0},
+        bias: float = 0.0,
         verbose: bool = True,
     ):
 
@@ -62,7 +55,7 @@ class HGF(object):
         n_levels : int | None
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
             `None`, the nodes hierarchy is not created and might be provided afterward
-            using `add_nodes()`. Default sets to `2`.
+            using `add_nodes()`. Defaults to `2` for a 2-levels HGF.
         model_type : str
             The model type to use (can be "continuous" or "binary").
         initial_mu : dict

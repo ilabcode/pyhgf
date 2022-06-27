@@ -1,12 +1,12 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-import os
 import unittest
 from unittest import TestCase
 
 import jax.numpy as jnp
-from numpy import loadtxt
+import numpy as np
 
+from ghgf import load_data
 from ghgf.model import HGF
 
 
@@ -15,8 +15,8 @@ class Testmodel(TestCase):
         """Test the model class"""
 
         # Create the data (value and time vectors)
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+        timeserie = load_data("continuous")
+        data = np.array([timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         jaxhgf = HGF(
             n_levels=2,

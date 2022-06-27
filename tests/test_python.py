@@ -1,10 +1,12 @@
-import os
+# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+
 import unittest
 from unittest import TestCase
 
 import numpy as np
 import pytest
 
+from ghgf import load_data
 from ghgf.python import (
     BinaryInputNode,
     BinaryNode,
@@ -16,8 +18,6 @@ from ghgf.python import (
     StandardHGF,
     StateNode,
 )
-
-path = os.path.dirname(os.path.abspath(__file__))
 
 
 class Testsdt(TestCase):
@@ -98,7 +98,7 @@ class Testsdt(TestCase):
         xU.set_parent(parent=x1)
 
         # Read binary input from Iglesias et al. (2013)
-        binary = np.loadtxt("./tests/data/binary_input.dat")
+        binary = load_data("binary")
 
         # Feed input
         xU.input(binary)
@@ -120,7 +120,7 @@ class Testsdt(TestCase):
         x1.add_volatility_parent(parent=x2, kappa=1)
         xU.set_value_parent(parent=x1)
 
-        usdchf = np.loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        usdchf = load_data("continuous")
 
         xU.input(usdchf)
 
@@ -189,7 +189,7 @@ class Testsdt(TestCase):
         )
 
         # Read USD-CHF data
-        usdchf = np.loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
+        usdchf = load_data("continuous")
 
         # Feed input
         stdhgf.input(usdchf)
@@ -249,7 +249,7 @@ class Testsdt(TestCase):
         )
 
         # Read binary input from Iglesias et al. (2013)
-        binary = np.loadtxt("./tests/data/binary_input.dat")
+        binary = load_data("binary")
 
         # Feed input
         binstdhgf.input(binary)

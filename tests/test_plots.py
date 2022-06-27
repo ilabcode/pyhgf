@@ -1,13 +1,12 @@
-import os
+# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+
 import unittest
 from unittest import TestCase
 
-import jax.numpy as jnp
-from numpy import loadtxt
+import numpy as np
 
+from ghgf import load_data
 from ghgf.model import HGF
-
-path = os.path.dirname(os.path.abspath(__file__))
 
 
 class Testsdt(TestCase):
@@ -25,8 +24,8 @@ class Testsdt(TestCase):
         )
 
         # Read USD-CHF data
-        timeserie = loadtxt(os.path.dirname(__file__) + "/data/usdchf.dat")
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+        timeserie = load_data("continuous")
+        data = np.array([timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         # Feed input
         hgf.input_data(input_data=data)

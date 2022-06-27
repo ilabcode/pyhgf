@@ -1,9 +1,11 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
 from functools import partial
+from math import log
 from typing import Callable, Dict, Optional
 
 import jax.numpy as jnp
+import numpy as np
 from jax import jit
 from jax.interpreters.xla import DeviceArray
 from numpyro.distributions import Distribution, constraints
@@ -13,14 +15,78 @@ from ghgf.response import gaussian_surprise
 
 
 class HGFDistribution(Distribution):
-    """
-    Parameters
-    ----------
-    input_data : DeviceArray
-        A n x 2 DeviceArray (:, (Data, Time)).
-    response_function : str
-        Name of the response function to use to compute model surprise when provided
-        evidences. Defaults to `"GaussianSurprise"` (continuous inputs).
+    """The HGF distribution. Should be used in the context of the declaration of a
+    Numpyro model.
+
+    Examples
+    --------
+    This class should be used in the context of a Numpyro probabilistic model to
+    estimate one or many parameter-s probability density with MCMC sampling.
+
+    .. python::
+
+        from ghgf import load_data
+        from ghgf.numpyro import HGFDistribution
+        from numpyro.infer import MCMC, NUTS
+        import numpyro as npy
+        from jax import random
+        import numpyro.distributions as dist
+        import numpy as np
+        import arviz as az
+
+        # Load and format the input data (2d array with values and time vector)
+        timeseries = load_data("continuous")
+        input_data = np.array(
+            [timeseries, np.arange(1, len(timeseries) + 1, dtype=float)]
+        ).T
+
+        # Create the probabilistic model
+        # Here we are fixing all the paramters to arbitrary values and sampling the
+        # posterior probability density of Omega in the second level, using a normal
+        # distribution as prior : ω_2 ~ N(-11, 2).
+
+        def model(input_data):
+
+            ω_1 = 0.0
+            ω_2 = npy.sample("ω_2", dist.Normal(-11.0, 2.0))
+            rho_1 = 0.0
+            rho_2 = 0.0
+            pi_1 = 1e4
+            pi_2 = 1e1
+            μ_1 = input_data[0, 0]
+            μ_2 = 0.0
+            kappa_1 = 1.0
+
+            npy.sample(
+                "hgf_log_prob",
+                HGFDistribution(
+                    input_data=input_data,
+                    omega_1=ω_1,
+                    omega_2=ω_2,
+                    rho_1=rho_1,
+                    rho_2=rho_2,
+                    pi_1=pi_1,
+                    pi_2=pi_2,
+                    mu_1=μ_1,
+                    mu_2=μ_2,
+                    kappa_1=kappa_1,
+                ),
+            )
+
+        # Sample the model using Numpyro NUST sampler with 1000 warmup and 1000 samples
+        rng_key = random.PRNGKey(0)
+        rng_key, rng_key_ = random.split(rng_key)
+
+        kernel = NUTS(model)
+        mcmc = MCMC(kernel, num_warmup=1000, num_samples=1000)
+        mcmc.run(rng_key_, input_data=input_data)
+
+        # Print a summary of the results using Arviz
+        numpyro_samples = az.from_numpyro(mcmc)
+        az.summary(numpyro_samples, var_names="ω_2")
+        ===  =======  =====  =======  =======  =====  =====  ===  ===  ===
+        ω_2  -12.948  1.363  -15.405  -10.596  0.048  0.034  854  781  nan
+        ===  =======  =====  =======  =======  =====  =====  ===  ===  ===
 
     """
 
@@ -65,28 +131,54 @@ class HGFDistribution(Distribution):
 
     def __init__(
         self,
-        input_data: DeviceArray,
-        model_type: str = "GRW",
-        n_levels: int = 2,
-        omega_1: Optional[DeviceArray] = None,
-        omega_2: Optional[DeviceArray] = None,
-        omega_3: Optional[DeviceArray] = None,
-        omega_input: DeviceArray = jnp.log(1e-4),
-        rho_1: Optional[DeviceArray] = None,
-        rho_2: Optional[DeviceArray] = None,
-        rho_3: Optional[DeviceArray] = None,
-        pi_1: Optional[DeviceArray] = None,
-        pi_2: Optional[DeviceArray] = None,
-        pi_3: Optional[DeviceArray] = None,
-        mu_1: Optional[DeviceArray] = None,
-        mu_2: Optional[DeviceArray] = None,
-        mu_3: Optional[DeviceArray] = None,
-        kappa_1: DeviceArray = jnp.array(1.0),
-        kappa_2: DeviceArray = jnp.array(1.0),
-        bias: DeviceArray = jnp.array(0.0),
+        input_data: np.ndarray,
+        omega_1: float,
+        omega_2: float,
+        rho_1: float,
+        rho_2: float,
+        pi_1: float,
+        pi_2: float,
+        mu_1: float,
+        mu_2: float,
+        omega_input: float = log(1e-4),
+        omega_3: Optional[float] = None,
+        rho_3: Optional[float] = None,
+        pi_3: Optional[float] = None,
+        mu_3: Optional[float] = None,
+        kappa_1: float = 1.0,
+        kappa_2: Optional[float] = None,
+        bias: DeviceArray = 0.0,
         response_function: Callable = gaussian_surprise,
         response_function_parameters: Dict = {},
+        n_levels: int = 2,
+        model_type: str = "continuous",
     ):
+        """
+        Parameters
+        ----------
+        input_data : np.ndarray
+            A n x 2 DeviceArray (:, (Data, Time)) where n is the number of samples in
+            the time series. The first column should contain the values and the second
+            column should contain the time vector.
+        model_type : str
+            The model type to use (can be "continuous" or "binary").
+        n_levels : int | None
+            The number of hierarchies in the perceptual model (can be `2` or `3`). If
+            `None`, the nodes hierarchy is not created and might be provided afterward
+            using `add_nodes()`. Default sets to `2`.
+        omega_1, omega_2, omega_3, rho_1, rho_2, rho_3, pi_1, pi_2, pi_3, mu_1, mu_2,
+        mu_3, kappa_1, kappa_2, bias : DeviceArray
+            The HGD parameters (see py:class:`ghgf.model.HGF` for details).
+        response_function : callable
+            The response function to use to compute the model surprise.
+        response_function_parameters : tuple
+            (Optional) Additional parameters to the response function.
+
+        See also
+        --------
+        py:func:`ghgf.model.HGF`
+
+        """
         self.input_data = input_data
         self.model_type = model_type
         self.n_levels = n_levels
@@ -153,5 +245,5 @@ class HGFDistribution(Distribution):
             )
         )
 
-        # Return the negative of the sum of the log probabilities
+        # Return the sum of the log probabilities
         return -surprise
