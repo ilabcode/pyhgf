@@ -45,7 +45,7 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
 def hrd_behaviors(
     hgf_results: Dict,
     response_function_parameters: Tuple[
-        np.ndarray, np.ndarray, np.ndarray, float, np.ndarray
+        np.ndarray, np.ndarray, np.ndarray, np.ndarray
     ],
 ) -> DeviceArray:
     """The binary response function for the HRD task.
