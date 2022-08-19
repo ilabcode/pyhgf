@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-import pkg_resources
+import pkg_resources  # type: ignore
 from numpy import loadtxt
 
 

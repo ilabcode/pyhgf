@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Callable, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import aesara.tensor as at
 import jax.numpy as jnp
@@ -56,11 +56,11 @@ def hgf_logp(
     """
 
     # Format HGF parameters
-    initial_mu = {"1": mu_1, "2": mu_2}
-    initial_pi = {"1": pi_1, "2": pi_2}
-    omega = {"1": omega_1, "2": omega_2}
-    rho = {"1": rho_1, "2": rho_2}
-    kappas = {"1": kappa_1}
+    initial_mu: Dict[str, Optional[float]] = {"1": mu_1, "2": mu_2}
+    initial_pi: Dict[str, Optional[float]] = {"1": pi_1, "2": pi_2}
+    omega: Dict[str, Optional[float]] = {"1": omega_1, "2": omega_2}
+    rho: Dict[str, Optional[float]] = {"1": rho_1, "2": rho_2}
+    kappas: Dict[str, Optional[float]] = {"1": kappa_1}
 
     surprise = (
         HGF(

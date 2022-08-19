@@ -44,13 +44,11 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
 
 def hrd_behaviors(
     hgf_results: Dict,
-    response_function_parameters: Tuple[
-        np.ndarray, np.ndarray, np.ndarray, np.ndarray
-    ],
+    response_function_parameters: Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray],
 ) -> DeviceArray:
     """The binary response function for the HRD task.
 
-    The participant try to correctly decide if the tone currently presented 
+    The participant try to correctly decide if the tone currently presented
     (`sound_frequency`) is faster or slower than her/his heart rate, using the belief
     about this values `heart_rate_belief`. `heart_rate_belief` is the average of
     heart rate beliefs (the first level of the HGF model, `mu_1`) over 5 seconds (which
@@ -99,7 +97,7 @@ def hrd_behaviors(
     # The trajectories of the heart rate beliefs (first level of the HGF, mu_1)
     mu_1 = hgf_results["final"][0][1][0]["mu"]
 
-    # The trajectories of the precision of the heart rate beliefs 
+    # The trajectories of the precision of the heart rate beliefs
     # (first level of the HGF, pi_1)
     pi_1 = hgf_results["final"][0][1][0]["pi"]
 
@@ -135,6 +133,7 @@ def hrd_behaviors(
             dynamic_slice(new_mu1, (trigger,), (5000,)).mean(),
             dynamic_slice(new_pi1, (trigger,), (5000,)).mean(),
         )
+
     # Map this function along the triggers dimension using vmap()
     heart_rate_belief, precision = vmap(extract)(triggers_idx)
     # ----------------------------------------------------------------------------------
