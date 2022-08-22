@@ -4,7 +4,7 @@ from math import log
 from typing import Callable, Dict, Optional, Tuple
 
 import jax.numpy as jnp
-from jax.interpreters.xla import DeviceArray
+import numpy as np
 from jax.lax import scan
 
 from ghgf.jax import loop_inputs, node_validation
@@ -20,7 +20,8 @@ class HGF(object):
     verbose : bool
         Verbosity level.
     n_levels : int
-        The number of hierarchies in the model. Cannot be less than 2.
+        The number of hierarchies in the model, including the input vector. Cannot be
+        less than 2.
     model_type : str
         The model implemented (can be `"continous"` or `"binary"`).
     nodes : tuple
@@ -29,8 +30,15 @@ class HGF(object):
         After oberving the data using the `input_data` method, the output of the model
         are stored in the `hgf_results` dictionary.
 
-    Examples
-    --------
+    Methods
+    -------
+    add_nodes(nodes: Tuple)
+        Add a custom node structure to the model.
+    input_data(input_data: np.ndarray)
+        Input data and update the node structure accordingly.
+    plot_trajectories(backend: str = "matplotlib", **kwargs)
+        Plot the trajectories of the different parameters once the data has been
+        observed.
 
     """
 
@@ -40,7 +48,7 @@ class HGF(object):
         model_type: str = "continuous",
         initial_mu: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0},
         initial_pi: Dict[str, Optional[float]] = {"1": 1.0, "2": 1.0},
-        omega_input: DeviceArray = log(1e-4),
+        omega_input: float = log(1e-4),
         omega: Dict[str, Optional[float]] = {"1": -3.0, "2": -3.0},
         kappas: Dict[str, Optional[float]] = {"1": 1.0},
         rho: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0},
@@ -74,7 +82,7 @@ class HGF(object):
             `{"1": -10.0, "2": -10.0}` for a 2-levels model. This parameters only when
             `model_type="GRW"`.
         omega_input : float
-            Default value sets to `np.log(1e-4)`. Represents the noise associated with
+            Default value sets to `log(1e-4)`. Represents the noise associated with
             the input.
         rho : dict
             Dictionary containing the initial values for the `rho` parameter at
@@ -156,7 +164,7 @@ class HGF(object):
                 "muhat": jnp.nan,
                 "pi": initial_pi["2"],
                 "pihat": jnp.nan,
-                "kappas": (kappas["2"],),
+                "kappas": (kappas["2"],),  # type: ignore
                 "nu": jnp.nan,
                 "psis": None,
                 "omega": omega["2"],
@@ -199,8 +207,11 @@ class HGF(object):
 
     def input_data(
         self,
-        input_data,
+        input_data: np.ndarray,
     ):
+
+        # Store the input data
+        self.data = input_data
 
         # Initialise the first values
         res_init = (
@@ -221,7 +232,6 @@ class HGF(object):
         self.hgf_results[
             "final"
         ] = final  # The commulative update of the nodes and results
-        self.hgf_results["data"] = input_data  # The input data
 
         return self
 

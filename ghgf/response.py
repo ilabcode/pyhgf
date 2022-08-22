@@ -128,7 +128,11 @@ def hrd_behaviors(
     # just a dynamic array indexing.
     # ----------------------------------------------------------------------------------
     # First define a function to extract values for one trigger using dynamic_slice()
-    def extract(trigger: int, new_mu1=new_mu1, new_pi1=new_pi1):
+    def extract(
+        trigger: np.ndarray,
+        new_mu1: DeviceArray = new_mu1,
+        new_pi1: DeviceArray = new_pi1,
+    ):
         return (
             dynamic_slice(new_mu1, (trigger,), (5000,)).mean(),
             dynamic_slice(new_pi1, (trigger,), (5000,)).mean(),

@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import jax.numpy as jnp
 from jax import jit
@@ -11,8 +11,8 @@ def update_parents(
     node_parameters: Dict[str, float],
     value_parents: Optional[Tuple],
     volatility_parents: Optional[Tuple],
-    old_time: int,
-    new_time: int,
+    old_time: Union[float, DeviceArray],
+    new_time: Union[float, DeviceArray],
 ) -> Tuple[Dict[str, float], Optional[Tuple], Optional[Tuple]]:
     """Update the value parents from a given node. If the node has value or volatility
     parents, they will be updated recursively.
@@ -64,7 +64,7 @@ def update_parents(
         return node_parameters, value_parents, volatility_parents
 
     # Time interval
-    t = new_time - old_time
+    t = jnp.subtract(new_time, old_time)
 
     pihat = node_parameters["pihat"]
 
@@ -259,7 +259,7 @@ def update_input_parents(
     new_time: jnp.DeviceArray,
     old_time: jnp.DeviceArray,
 ) -> Optional[
-    Union[
+    Tuple[
         jnp.DeviceArray, Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]]
     ]
 ]:
@@ -273,20 +273,22 @@ def update_input_parents(
     Parameters
     ----------
     input_node : tuple
-        The parameter, value parent and volatility parent of the input node.
+        The parameter, value parent and volatility parent of the input node. The
+        volatility and value parents contain their own value and volatility parents,
+        this structure being nested up to the higher level of the hierarchy.
     value : DeviceArray
-        The new input value(s).
+        The new input value that is observed by the model at time t=`new_time`.
     new_time : DeviceArray
-        The time point (float).
+        The current time point.
     old_time : DeviceArray
-        The time point (float) of the previous observed value.
+        The time point of the previous observed value.
 
     Returns
     -------
     surprise : jnp.DeviceArray
-        The gaussian surprise given the value(s) presented at time `new_time`.
+        The gaussian surprise given the value(s) presented at t=`new_time`.
     new_input_node : tuple
-        The input node structure after recursive update.
+        The input node structure after recursively updating all the nodes.
 
     See also
     --------
@@ -299,11 +301,11 @@ def update_input_parents(
         return None
 
     # Time interval
-    t = new_time - old_time
+    t = jnp.subtract(new_time, old_time)
 
     # Add a bias to the input value
     if input_node_parameters["bias"] is not None:
-        value += input_node_parameters["bias"]
+        value = jnp.add(value, input_node_parameters["bias"])
 
     lognoise = input_node_parameters["omega"]
 
@@ -426,7 +428,9 @@ def update_input_parents(
             new_nu,
         ]
 
-        pi_vo_pa = pihat_vo_pa + 0.5 * input_node_parameters["kappas"] ** 2 * (1 + vope)
+        pi_vo_pa = pihat_vo_pa + 0.5 * jnp.square(input_node_parameters["kappas"]) * (
+            1 + vope
+        )
         pi_vo_pa = jnp.where(pi_vo_pa <= 0, jnp.nan, pi_vo_pa)
 
         # Compute new muhat
@@ -441,7 +445,10 @@ def update_input_parents(
                 driftrate += p * vo_pa_va_pa[0]["mu"]
 
         muhat_vo_pa = vo_pa_node_parameters["mu"] + t * driftrate
-        mu_vo_pa = muhat_vo_pa + 0.5 * input_node_parameters["kappas"] / pi_vo_pa * vope
+        mu_vo_pa = (
+            muhat_vo_pa
+            + jnp.multiply(0.5, input_node_parameters["kappas"]) / pi_vo_pa * vope
+        )
 
         # Update node's parameters
         vo_pa_node_parameters["pihat"] = pihat_vo_pa
@@ -501,14 +508,12 @@ def gaussian_surprise(
     return jnp.array(0.5) * (
         jnp.log(jnp.array(2.0) * jnp.pi)
         - jnp.log(pihat)
-        + pihat * jnp.square(x - muhat)
+        + pihat * jnp.square(jnp.subtract(x, muhat))
     )
 
 
 @jit
-def loop_inputs(
-    res: Tuple, el: Tuple
-) -> Tuple[Tuple[List, Dict[str, DeviceArray]], DeviceArray]:
+def loop_inputs(res: Tuple, el: Tuple) -> Tuple[Tuple, Tuple]:
     """The HGF function to be scanned by JAX. One time step updating node structure and
     returning the new node structure with time, value and surprise.
 

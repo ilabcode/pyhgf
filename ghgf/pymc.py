@@ -112,17 +112,17 @@ class HGFLogpGradOp(Op):
 
     def make_node(
         self,
-        omega_1=jnp.array(-3.0),
-        omega_2=jnp.array(-3.0),
+        omega_1=np.array(-3.0),
+        omega_2=np.array(-3.0),
         omega_input=np.log(1e-4),
-        rho_1=jnp.array(0.0),
-        rho_2=jnp.array(0.0),
-        pi_1=jnp.array(1e4),
-        pi_2=jnp.array(1e1),
-        mu_1=jnp.array(0.0),
-        mu_2=jnp.array(0.0),
-        kappa_1=jnp.array(1.0),
-        bias=jnp.array(0.0),
+        rho_1=np.array(0.0),
+        rho_2=np.array(0.0),
+        pi_1=np.array(1e4),
+        pi_2=np.array(1e1),
+        mu_1=np.array(0.0),
+        mu_2=np.array(0.0),
+        kappa_1=np.array(1.0),
+        bias=np.array(0.0),
     ):
 
         # Convert our inputs to symbolic variables
@@ -281,17 +281,17 @@ class HGFDistribution(Op):
 
     def make_node(
         self,
-        omega_1: float,
-        omega_2: float,
-        omega_input: float,
-        rho_1: float,
-        rho_2: float,
-        pi_1: float,
-        pi_2: float,
-        mu_1: float,
-        mu_2: float,
-        kappa_1: float,
-        bias: float,
+        omega_1,
+        omega_2,
+        omega_input,
+        rho_1,
+        rho_2,
+        pi_1,
+        pi_2,
+        mu_1,
+        mu_2,
+        kappa_1,
+        bias,
     ):
 
         # Convert our inputs to symbolic variables
