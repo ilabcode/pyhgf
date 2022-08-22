@@ -210,9 +210,6 @@ class HGF(object):
         input_data: np.ndarray,
     ):
 
-        # Store the input data
-        self.data = input_data
-
         # Initialise the first values
         res_init = (
             self.input_node,
@@ -232,6 +229,7 @@ class HGF(object):
         self.hgf_results[
             "final"
         ] = final  # The commulative update of the nodes and results
+        self.hgf_results["data"] = input_data  # type: ignore
 
         return self
 
