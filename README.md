@@ -2,80 +2,56 @@
 
 ---
 
-# The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
+# HGF.py
 
-This repository implements the generalized and nodalized Hierarchical Gaussian Filter in Python and [JAX](https://jax.readthedocs.io/en/latest/jax.html). This refactoring offers two advantages:
-1. it offers significant performance improvement as compared to pure Python code.
-2. it makes the model function itself differentiable in a way that optimization can be performed using e.g MCMC sampling and the model can be embedded as a log probability function in Hierarchical Bayesian models e.g using [Numpyro](https://num.pyro.ai/en/latest/index.html#introductory-tutorials).
+The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
-> **Note:** This branch is a fork of the generalized and nodalized HGF repository and is mainly developed by Nicolas Legrand from the ECG lab (Aarhus University). It is still largely experimental.
+**HGF.py** is a Python library that implements the generalized and nodalized Hierarchical Gaussian Filter in Python. It uses [JAX](https://jax.readthedocs.io/en/latest/jax.html) and [Numba](http://numba.pydata.org/) as backend for compilation. Parameters probability distribution can be estimated using MCMC sampling using [PyMC](https://www.pymc.io/welcome.html).
 
 ---
 
-# Tutorials
+## Getting started
 
-> Under construction
+### Installation
 
-| Notebook | Colab | nbViewer |
-| --- | ---| --- |
-| Binary HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/1-Binary%20HGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/1-Binary%20HGF.ipynb)
-| Continuous HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/2-Continuous%20HGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/2-Continuous%20HGF.ipynb)
-| Hierarchical HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb)
+The latest release of **HGF.py** can be installed from PyPI using pip:
 
-# Getting started
-## Pure Python code
+`pip install ghgf`
 
-Example of surprise minimization on a continuous input using the pure Python implementation.
+### Example
+
+Fitting a continuous 3 levels HGF model on time series.
 
 ```python
-import os
 from numpy import loadtxt
-from ghgf.hgf import StandardHGF
-
-# Load time series
-timeserie = loadtxt("./test/data/usdchf.dat")
-
-stdhgf = StandardHGF(
-    n_levels=2,
-    model_type="GRW",
-    initial_mu={"1": 1.04, "2": 1.0},
-    initial_pi={"1": 1e4, "2": 1e1},
-    omega={"1": -13.0, "2": -2.0},
-    rho={"1": 0.0, "2": 0.0},
-    kappas={"1": 1.0},
-)
-```
-`
-Continuous Hierarchical Gaussian Filter
-... Initializing a 2 levels perceptual HGF using a GRW model.
-`
-
-```python
-%timeit
-stdhgf.input(timeserie)
-```
-`
-6.81 ms ± 22.6 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
-`
-
-## JAX backend
-  
-```python
 from ghgf.model import HGF
+from ghgf import load_data
 import jax.numpy as jnp
 
-data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+# Load time series example data
+timeserie = load_data("continuous")
 
-jaxhgf = HGF(
-    n_levels=2,
-    model_type="GRW",
-    initial_mu={"1": 1.04, "2": 1.0},
-    initial_pi={"1": 1e4, "2": 1e1},
-    omega={"1": -13.0, "2": -2.0},
+# Format input data and add a time vector 
+data = jnp.array(
+    [
+        timeserie, 
+        jnp.arange(1, len(timeserie) + 1, dtype=float)
+        ]
+    ).T
+
+# This is where we define all the model parameters - You can control the value of
+# different variables at different levels using the corresponding dictionary.
+hgf_model = HGF(
+    n_levels=3,
+    initial_mu={"1": 1.04, "2": 1.0, "3": 1.0},
+    initial_pi={"1": 1e4, "2": 1e1, "3": 1.0},
+    omega={"1": -13.0, "2": -2.0, "3": -2.0},
     rho={"1": 0.0, "2": 0.0},
-    kappas={"1": 1.0},
+    kappas={"1": 1.0, "2": 1.0},
 )
+
 ```
+
 `
 Fitting the continuous Hierarchical Gaussian Filter (JAX) with 2 levels.
 `
@@ -102,3 +78,15 @@ Plot the beliefs trajectories.
 jaxhgf.plot_trajectories()
 ```
 ![png](./docs/images/trajectories.png)
+
+## Tutorials
+
+> Under construction
+
+| Notebook | Colab | nbViewer |
+| --- | ---| --- |
+| Binary HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/1-Binary%20HGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/1-Binary%20HGF.ipynb)
+| Continuous HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/2-Continuous%20HGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/2-Continuous%20HGF.ipynb)
+| Hierarchical HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb)
+
+##
