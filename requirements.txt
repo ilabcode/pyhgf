@@ -4,3 +4,5 @@ matplotlib>=3.4.3
 bokeh>=2.4.2
 arviz>=0.12.0
 pymc>=4.0.0
+jax
+jaxlib
