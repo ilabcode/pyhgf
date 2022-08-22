@@ -3,6 +3,8 @@
 import pkg_resources  # type: ignore
 from numpy import loadtxt
 
+__version__ = "0.0.1dev"
+
 
 def load_data(dataset: str):
     """Load dataset for continuous or binary HGF.
