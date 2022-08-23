@@ -1,26 +1,22 @@
+<img src="docs/source/images/logo.png" align="center" alt="hgf" VSPACE=30>
+
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/LegrandNico/metadPy/blob/master/LICENSE) [![travis](https://travis-ci.com/LegrandNico/ghgf.svg?branch=master)](https://travis-ci.com/LegandNico/ghgf) [![codecov](https://codecov.io/gh/LegrandNico/ghgf/branch/master/graph/badge.svg)](https://codecov.io/gh/LegrandNico/ghgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
----
+# The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding.
 
-# HGF.py
-
-The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
-
-**HGF.py** is a Python library that implements the generalized and nodalized Hierarchical Gaussian Filter in Python. It uses [JAX](https://jax.readthedocs.io/en/latest/jax.html) and [Numba](http://numba.pydata.org/) as backend for compilation. Parameters probability distribution can be estimated using MCMC sampling using [PyMC](https://www.pymc.io/welcome.html).
-
----
+**GHGF** is a Python library that implements the generalized and nodalized Hierarchical Gaussian Filter in Python. It uses [JAX](https://jax.readthedocs.io/en/latest/jax.html) and [Numba](http://numba.pydata.org/) as backend for compilation. The HGF distribution can easily be embedded in [PyMC](https://www.pymc.io/welcome.html) for MCMC sampling.
 
 ## Getting started
 
 ### Installation
 
-The latest release of **HGF.py** can be installed from PyPI using pip:
+The latest release of **HGF** can be installed from PyPI using pip:
 
 `pip install ghgf`
 
 ### Example
 
-Fitting a continuous 3 levels HGF model on time series.
+Fitting a continuous 3 levels HGF model on a time series.
 
 ```python
 from numpy import loadtxt
@@ -77,11 +73,12 @@ Plot the beliefs trajectories.
 ```python
 jaxhgf.plot_trajectories()
 ```
-![png](./docs/images/trajectories.png)
+
+![png](./docs/source/images/trajectories.png)
 
 ## Tutorials
 
-> Under construction
+You can find detailled introduction to different version of the Hierarchical Gaussian Filter applied to binary or continuous dataset in the following notebooks:
 
 | Notebook | Colab | nbViewer |
 | --- | ---| --- |
@@ -89,4 +86,6 @@ jaxhgf.plot_trajectories()
 | Continuous HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/2-Continuous%20HGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/2-Continuous%20HGF.ipynb)
 | Hierarchical HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb)
 
-##
+## How does it works
+
+## References
