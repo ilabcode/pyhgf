@@ -233,8 +233,8 @@ class HGF(object):
 
         return self
 
-    def plot_trajectories(self, backend: str = "matplotlib", **kwargs):
-        plot_trajectories(hgf=self, backend=backend, **kwargs)
+    def plot_trajectories(self, **kwargs):
+        plot_trajectories(hgf=self, **kwargs)
 
     def plot_correlations(self):
         plot_correlations(hgf=self)

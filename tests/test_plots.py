@@ -31,8 +31,7 @@ class Testsdt(TestCase):
         hgf.input_data(input_data=data)
 
         # Plot
-        for backend in ["matplotlib", "bokeh"]:
-            hgf.plot_trajectories(backend=backend)
+        hgf.plot_trajectories()
 
 
 if __name__ == "__main__":
