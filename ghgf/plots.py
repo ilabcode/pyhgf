@@ -5,6 +5,8 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 from bokeh.layouts import column
 from bokeh.models import ColumnDataSource
 from bokeh.palettes import Dark2_5 as palette
@@ -15,7 +17,8 @@ from bokeh.plotting.figure import Figure
 def plot_trajectories(
     hgf, ci: bool = True, figsize: Optional[int] = None, backend="matplotlib"
 ) -> Figure:
-    """Plot perceptual HGF parameters time series
+    """Plot perceptual HGF parameters time series.
+
     Parameters
     ----------
     hgf : py:class`ghgf.model.HGF`
@@ -26,14 +29,17 @@ def plot_trajectories(
         The height of the figures.
     backend : str
         The plotting backend (`"matplotlib"` or `"bokeh"`).
+
     Returns
     -------
     axs : :class:`matplotlib.axes.Axes` | :class:`bokeh.plotting.figure.Figure`
         The figure (Matplotlib or Bokeh) containing the parameters trajectories.
+
     Raises
     ------
     ValueError:
-        If an invalid backend is provided
+        If an invalid backend is provided.
+
     """
 
     if backend not in ["matplotlib", "bokeh"]:
@@ -208,3 +214,66 @@ def plot_trajectories(
         fig = column(*cols, sizing_mode="stretch_width")
 
         return fig
+
+
+def plot_correlations(hgf):
+    """Plot the heatmap correlation of beliefs trajectories.
+
+    Parameters
+    ----------
+    hgf : py:class`ghgf.model.HGF`
+        Instance of the HGF model.
+
+    Returns
+    -------
+    axs : :class:`matplotlib.axes.Axes`
+        The Matplotlib ax instance containing the heatmap of parameters trajectories
+        correlation.
+
+    """
+
+    node, results = hgf.hgf_results["final"]
+
+    results["surprise"]
+
+    # Level 1
+    mu_1 = node[1][0]["mu"]
+    pi_1 = node[1][0]["pi"]
+    pihat_1 = node[1][0]["pihat"]
+    muhat_1 = node[1][0]["muhat"]
+    nu_1 = node[1][0]["nu"]
+
+    # Level 2
+    mu_2 = node[1][2][0][0]["mu"]
+    pi_2 = node[1][2][0][0]["pi"]
+    pihat_2 = node[1][2][0][0]["pihat"]
+    muhat_2 = node[1][2][0][0]["muhat"]
+
+    # Time series of the model beliefs
+    df = pd.DataFrame(
+        {
+            r"$\nu_{1}$": nu_1,
+            r"$\mu_{1}$": mu_1,
+            r"$\pi_{1}$": pi_1,
+            r"$\mu_{2}$": mu_2,
+            r"$\pi_{2}$": pi_2,
+            r"$\hat{mu}_{1}$": muhat_1,
+            r"$\hat{pi}_{1}$": pihat_1,
+            r"$\hat{mu}_{2}$": muhat_2,
+            r"$\hat{pi}_{2}$": pihat_2,
+        }
+    )
+
+    correlation_mat = df.corr()
+    ax = sns.heatmap(
+        correlation_mat,
+        annot=True,
+        cmap="RdBu",
+        vmin=-1,
+        vmax=1,
+        linewidths=2,
+        square=True,
+    )
+    ax.set_title("Correlation between the model beliefs")
+
+    return ax

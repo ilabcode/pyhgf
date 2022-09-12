@@ -8,7 +8,7 @@ import numpy as np
 from jax.lax import scan
 
 from ghgf.jax import loop_inputs, node_validation
-from ghgf.plots import plot_trajectories
+from ghgf.plots import plot_correlations, plot_trajectories
 from ghgf.response import gaussian_surprise
 
 
@@ -235,6 +235,9 @@ class HGF(object):
 
     def plot_trajectories(self, backend: str = "matplotlib", **kwargs):
         plot_trajectories(hgf=self, backend=backend, **kwargs)
+
+    def plot_correlations(self):
+        plot_correlations(hgf=self)
 
     def surprise(
         self,
