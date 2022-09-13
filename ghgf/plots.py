@@ -6,12 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from bokeh.plotting.figure import Figure
+from matplotlib.axes import Axes
 
 
-def plot_trajectories(
-    hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)
-) -> Figure:
+def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) -> Axes:
     """Plot perceptual HGF parameters time series.
 
     Parameters
@@ -91,7 +89,7 @@ def plot_trajectories(
     return axs
 
 
-def plot_correlations(hgf):
+def plot_correlations(hgf) -> Axes:
     """Plot the heatmap correlation of beliefs trajectories.
 
     Parameters
