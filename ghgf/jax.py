@@ -512,6 +512,31 @@ def gaussian_surprise(
     )
 
 
+def binary_surprise(x: jnp.DeviceArray, muhat: jnp.DeviceArray):
+    """Surprise at a binary outcome.
+
+    Parameters
+    ----------
+    x : jnp.DeviceArray
+        The outcome.
+    muhat : jnp.DeviceArray
+        The mean of the Bernouilli distribution.
+
+    Return
+    ------
+    surprise : jnp.DeviceArray
+        The surprise.
+
+    """
+
+    if x == 1:
+        return -jnp.log(1 - muhat)
+    elif x == 0:
+        return -jnp.log(muhat)
+    else:
+        return -jnp.inf
+
+
 @jit
 def loop_inputs(res: Tuple, el: Tuple) -> Tuple[Tuple, Tuple]:
     """The HGF function to be scanned by JAX. One time step updating node structure and

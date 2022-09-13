@@ -13,6 +13,7 @@ from ghgf.jax import (
     node_validation,
     update_input_parents,
     update_parents,
+    binary_surprise,
 )
 
 
@@ -295,6 +296,13 @@ class Testsdt(TestCase):
             pihat=jnp.array([1.0, 1.0]),
         )
         assert jnp.all(jnp.isclose(surprise, 1.4189385))
+
+    def test_binary_surprise(self):
+        surprise = binary_surprise(
+            x=jnp.array([1.0]),
+            muhat=jnp.array([0.2]),
+        )
+        assert jnp.all(jnp.isclose(surprise, 0.22314353))
 
     def test_update_input_parents(self):
 
