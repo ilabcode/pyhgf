@@ -530,7 +530,7 @@ def binary_surprise(x: jnp.DeviceArray, muhat: jnp.DeviceArray):
     """
 
     if x == 1:
-        return -jnp.log(1 - muhat)
+        return -jnp.log(jnp.array(1.0) - muhat)
     elif x == 0:
         return -jnp.log(muhat)
     else:

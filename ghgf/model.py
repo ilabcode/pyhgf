@@ -1,7 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
 from math import log
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple
 
 import jax.numpy as jnp
 import numpy as np
@@ -11,9 +11,7 @@ from ghgf.jax import loop_inputs, node_validation
 from ghgf.plots import plot_correlations, plot_trajectories
 from ghgf.response import gaussian_surprise
 
-NodeType = Tuple[
-    Dict[str, Union[str, jnp.array, None]], Optional[Tuple], Optional[Tuple]
-]
+NodeType = Tuple[Dict, Optional[Tuple], Optional[Tuple]]
 
 
 class HGF(object):
