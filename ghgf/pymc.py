@@ -28,7 +28,7 @@ def hgf_logp(
     data: np.ndarray = np.array(0.0),
     response_function: Callable = gaussian_surprise,
     response_function_parameters: Tuple = (),
-    model_type: str = "continous",
+    model_type: str = "continuous",
     n_levels: int = 2,
 ) -> jnp.DeviceArray:
     """Compute the log probability from the HGF model given the data and parameters.
@@ -247,7 +247,7 @@ class HGFDistribution(Op):
     def __init__(
         self,
         data: np.ndarray = np.array(0.0),
-        model_type: str = "continous",
+        model_type: str = "continuous",
         n_levels: int = 2,
         response_function: Callable = gaussian_surprise,
         response_function_parameters: Tuple = (),

@@ -15,7 +15,7 @@ class Testsdt(TestCase):
         # Set up standard 3-level HGF for continuous inputs
         hgf = HGF(
             n_levels=3,
-            model_type="GRW",
+            model_type="continuous",
             initial_mu={"1": 1.04, "2": 1.0, "3": 1.0},
             initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
             omega={"1": -13.0, "2": -2.0, "3": -2.0},

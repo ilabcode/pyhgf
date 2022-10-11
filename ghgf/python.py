@@ -172,10 +172,10 @@ class StandardHGF(Model):
     ----------
     n_levels : int
         The number of hierarchies in the perceptual model (default sets to `2`).
-    model_type : str or None
-        The model type to use (can be "GRW" or "AR1"). If `model_type` is not provided,
-        it is infered from the parameters provided. If both `phi` and `rho` are None
-        or dictionary, an error is returned.
+    process_type : str or None
+        The model type to use (can be "GRW" or "AR1"). If `process_type` is not
+        provided, it is infered from the parameters provided. If both `phi` and `rho`
+        are None or dictionary, an error is returned.
     initial_mu : dict
         Dictionary containing the initial values for the `initial_mu` parameter at
         different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
@@ -190,14 +190,14 @@ class StandardHGF(Model):
         different levels of the hierarchy. Omegas represent the tonic part of the
         variance (the part that is not affected by the parent node). Defaults set to
         `{"1": -10.0, "2": -10.0}` for a 2-levels model. This parameters only when
-        `model_type="GRW"`.
+        `process_type="GRW"`.
     omega_input: float
         Default value sets to `np.log(1e-4)`. Represent the noise associated with the
         input.
     rho : dict or None
         Dictionary containing the initial values for the `rho` parameter at
         different levels of the hierarchy. Rho represents the drift of the random walk.
-        Only required when `model_type="GRW"`. Defaults set all entries to `0`
+        Only required when `process_type="GRW"`. Defaults set all entries to `0`
         according to the number of required levels.
     kappa : dict
         Dictionary containing the initial values for the `kappa` parameter at
@@ -205,16 +205,16 @@ class StandardHGF(Model):
         variance (the part that is affected by the parents nodes) and will defines the
         strenght of the connection between the nod eand the parent node. Often fixed
         to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only required when
-        `model_type="GRW"`.
+        `process_type="GRW"`.
     phi : dict or None
         Dictionary containing the initial values for the `phi` parameter at
         different levels of the hierarchy. Phi should always be between 0 and 1.
         Defaults set all entries to `0` according to the number of required levels.
-        `phi` is only required when `model_type="AR1"`.
+        `phi` is only required when `process_type="AR1"`.
     m : dict or None
         Dictionary containing the initial values for the `m` parameter at
         different levels of the hierarchy. Defaults set all entries to `0` according to
-        the number of required levels. `m` is only required when `model_type="AR1"`.
+        the number of required levels. `m` is only required when `process_type="AR1"`.
     verbose : bool
         Default is `True` (show bar progress).
 
@@ -222,26 +222,23 @@ class StandardHGF(Model):
     ----------
     n_levels : int
         The number of hierarchies in the model. Cannot be less than 2.
-    model_type : str
+    process_type : str
         The model implemented (can be `"AR1"` or `"GRW"`).
 
     Notes
     -----
-    The model used by the perceptual model is defined by the `model_type` parameter
-    (can be `"GRW"` or `"AR1"`). If `model_type` is not provided, the class will try to
-    determine it automatically by looking at the `rho` and `phi` parameters. If `rho`
-    is provided `model_type="GRW"`, if `phi` is provided `model_type="AR1"`. If both
-    `phi` and `rho` are `None` an error will be returned.
-
-    Examples
-    --------
+    The model used by the perceptual model is defined by the `process_type` parameter
+    (can be `"GRW"` or `"AR1"`). If `process_type` is not provided, the class will try
+    to determine it automatically by looking at the `rho` and `phi` parameters. If
+    `rho` is provided `process_type="GRW"`, if `phi` is provided `process_type="AR1"`.
+    If both `phi` and `rho` are `None` an error will be returned.
 
     """
 
     def __init__(
         self,
         n_levels: int = 2,
-        model_type: Optional[str] = None,
+        process_type: Optional[str] = None,
         initial_mu: Dict[str, float] = {"1": 0.0, "2": 0.0},
         initial_pi: Dict[str, float] = {"1": 1.0, "2": 1.0},
         omega_input: float = np.log(1e-4),
@@ -257,24 +254,24 @@ class StandardHGF(Model):
         self.n_levels = n_levels
 
         # Determine which perceptual model to use
-        if (phi is not None) and (rho is not None) & (model_type is None):
+        if (phi is not None) and (rho is not None) & (process_type is None):
             raise ValueError(
                 (
                     "Unable to determine the model type to use. "
-                    "Provide model_type or one of the rho or phi parameters."
+                    "Provide process_type or one of the rho or phi parameters."
                 )
             )
-        elif isinstance(model_type, str):
-            if (model_type == "GRW") and (rho is None):
+        elif isinstance(process_type, str):
+            if (process_type == "GRW") and (rho is None):
                 rho = {}
                 for i in range(n_levels):
                     rho[str(i + 1)] = 0.0
-            elif (model_type == "AR1") and (phi is None) and (m is None):
+            elif (process_type == "AR1") and (phi is None) and (m is None):
                 phi, m = {}, {}
                 for i in range(n_levels):
                     phi[str(i + 1)] = 0.0
                     m[str(i + 1)] = 0.0
-            elif model_type not in ["GRW", "AR1"]:
+            elif process_type not in ["GRW", "AR1"]:
                 raise ValueError(
                     ("Invalid model type specification. Should be 'AR1' or 'GRW'.")
                 )
@@ -287,17 +284,17 @@ class StandardHGF(Model):
                     )
                 )
             elif phi is None:
-                model_type = "GRW"
+                process_type = "GRW"
             elif rho is None:
-                model_type = "AR1"
+                process_type = "AR1"
 
-        self.model_type = model_type
+        self.process_type = process_type
 
         # Sanity checks - Make sure that the parameters declared match with the
         # number of levels required
         if n_levels < 2:
             raise ValueError("The number of levels cannot be less than 2")
-        if self.model_type == "GRW":
+        if self.process_type == "GRW":
             params = [initial_mu, initial_pi, omega, rho]
             names = ["initial_mu", "initial_pi", "omega", "rho"]
         else:
@@ -326,10 +323,10 @@ class StandardHGF(Model):
         # and volatility parents accordingly
         print(
             f"... Initializing a {self.n_levels} levels perceptual HGF "
-            f"using a {self.model_type} model."
+            f"using a {self.process_type} model."
         )
         for n in range(n_levels, 0, -1):
-            if self.model_type == "GRW":
+            if self.process_type == "GRW":
                 setattr(
                     self,
                     f"x{n}",
@@ -340,7 +337,7 @@ class StandardHGF(Model):
                         rho=rho[str(n)],  # type: ignore
                     ),
                 )
-            elif self.model_type == "AR1":
+            elif self.process_type == "AR1":
                 setattr(
                     self,
                     f"x{n}",
@@ -370,7 +367,12 @@ class StandardHGF(Model):
 
 # Standard 3-level HGF for binary inputs
 class StandardBinaryHGF(Model):
-    """The standard 3-level HGF for binary inputs"""
+    """The standard 3-level HGF for binary inputs
+
+    Parameters
+    ----------
+
+    """
 
     def __init__(
         self,
