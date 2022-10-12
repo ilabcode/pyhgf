@@ -1,21 +1,22 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
 from math import log
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
 from jax.lax import scan
 
-from ghgf.jax import loop_inputs, node_validation
+from ghgf.jax import loop_binary_inputs, loop_continuous_inputs, node_validation
 from ghgf.plots import plot_correlations, plot_trajectories
 from ghgf.response import gaussian_surprise
 
-NodeType = Tuple[Dict, Optional[Tuple], Optional[Tuple]]
+NodeParameters = Dict[str, Optional[Union[float, Tuple]]]
+NodeType = Tuple[NodeParameters, Optional[Tuple], Optional[Tuple]]
 
 
 class HGF(object):
-    """The standard 2 or 3 levels HGF for continuous inputs.
+    """The standard 2 or 3 levels HGF for continuous or binary inputs.
 
     Attributes
     ----------
@@ -43,6 +44,9 @@ class HGF(object):
         omega_input: float = log(1e-4),
         omega: Dict[str, Optional[float]] = {"1": -3.0, "2": -3.0},
         kappas: Dict[str, Optional[float]] = {"1": 1.0},
+        eta0: float = 0.0,
+        eta1: float = 1.0,
+        pihat: float = jnp.inf,
         rho: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0},
         bias: float = 0.0,
         verbose: bool = True,
@@ -88,6 +92,15 @@ class HGF(object):
             the strenght of the connection between the node and the parent node. Often
             fixed to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only
             required when `model_type="GRW"`.
+        eta0 : float
+            This value is used by the binary input node. Defaults to `0.0`. Only
+            relevant if `model_type="binary"`.
+        eta1 : float
+            This value is used by the binary input node. Default to `1.0`. Only relevant
+            if `model_type="binary"`.
+        pihat : float
+            This value is used by the binary input node. Default to `jnp.inf`. Only
+            relevant if `model_type="binary"`.
         bias : DeviceArray
             The bias introduced in the perception of the input signal. This value is
             added to the input time serie before model fitting.
@@ -119,7 +132,7 @@ class HGF(object):
                     )
 
                     # Third level
-                    x3_parameters = {
+                    x3_parameters: NodeParameters = {
                         "mu": initial_mu["3"],
                         "muhat": jnp.nan,
                         "pi": initial_pi["3"],
@@ -129,12 +142,11 @@ class HGF(object):
                         "psis": None,
                         "omega": omega["3"],
                         "rho": rho["3"],
-                        "node_type": "continuous",
                     }
                     x3: NodeType = x3_parameters, None, None
 
                     # Second level
-                    x2_parameters = {
+                    x2_parameters: NodeParameters = {
                         "mu": initial_mu["2"],
                         "muhat": jnp.nan,
                         "pi": initial_pi["2"],
@@ -144,12 +156,11 @@ class HGF(object):
                         "psis": None,
                         "omega": omega["2"],
                         "rho": rho["2"],
-                        "node_type": "continuous",
                     }
                     x2: NodeType = x2_parameters, None, (x3,)
 
                     # First level - Binary node
-                    x1_parameters = {
+                    x1_parameters: NodeParameters = {
                         "mu": initial_mu["1"],
                         "muhat": jnp.nan,
                         "pi": initial_pi["1"],
@@ -159,17 +170,16 @@ class HGF(object):
                         "psis": None,
                         "omega": omega["1"],
                         "rho": rho["1"],
-                        "node_type": "binary",
                     }
                     x1: NodeType = x1_parameters, None, (x2,)
 
                     # Input node
-                    input_node_parameters = {
-                        "kappas": None,
-                        "omega": omega_input,
-                        "bias": self.bias,
+                    input_node_parameters: NodeParameters = {
+                        "pihat": pihat,
+                        "eta0": eta0,
+                        "eta1": eta1,
                     }
-                    self.input_node = input_node_parameters, x1, None
+                    self.input_node: NodeType = input_node_parameters, x1, None
 
         elif model_type == "continuous":
 
@@ -286,7 +296,10 @@ class HGF(object):
         )
 
         # This is where the HGF functions are used to scan the input time series
-        last, final = scan(loop_inputs, res_init, input_data[1:, :])
+        if self.model_type == "continuous":
+            last, final = scan(loop_continuous_inputs, res_init, input_data[1:, :])
+        elif self.model_type == "binary":
+            last, final = scan(loop_binary_inputs, res_init, input_data[1:, :])
 
         # Save results in the HGF dictionary
         self.hgf_results = {}
