@@ -569,10 +569,10 @@ def update_binary_input_parents(
         eta1 = input_node_parameters["eta1"]
 
         # Likelihood under eta1
-        und1 = jnp.exp(-pihat / 2 * (value - eta1) ** 2)
+        und1 = jnp.exp(jnp.subtract(0, pihat) / 2 * (jnp.subtract(value, eta1)) ** 2)
 
         # Likelihood under eta0
-        und0 = jnp.exp(-pihat / 2 * (value - eta0) ** 2)
+        und0 = jnp.exp(jnp.subtract(0, pihat) / 2 * (jnp.subtract(value, eta0)) ** 2)
 
         # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
         mu_va_pa = muhat_va_pa * und1 / (muhat_va_pa * und1 + (1 - muhat_va_pa) * und0)
@@ -627,23 +627,7 @@ def update_binary_input_parents(
 def gaussian_surprise(
     x: jnp.DeviceArray, muhat: jnp.DeviceArray, pihat: jnp.DeviceArray
 ) -> jnp.DeviceArray:
-    """Surprise at an outcome under a Gaussian prediction.
-
-    Parameters
-    ----------
-    x : jnp.DeviceArray
-        The outcome.
-    muhat : jnp.DeviceArray
-        The mean of the Gaussian distribution.
-    pihat : jnp.DeviceArray
-        The precision of the Gaussian distribution.
-
-    Return
-    ------
-    surprise : jnp.DeviceArray
-        The surprise.
-
-    """
+    """Surprise at an outcome under a Gaussian prediction."""
     return jnp.array(0.5) * (
         jnp.log(jnp.array(2.0) * jnp.pi)
         - jnp.log(pihat)
@@ -651,14 +635,24 @@ def gaussian_surprise(
     )
 
 
-def gaussian_density(x: float, mu: float, pi: float) -> jnp.DeviceArray:
+def gaussian_density(
+    x: jnp.DeviceArray, mu: jnp.DeviceArray, pi: jnp.DeviceArray
+) -> jnp.DeviceArray:
     """The Gaussian density as defined by mean and precision."""
-    return pi / jnp.sqrt(2 * jnp.pi) * jnp.exp(-pi / 2 * (x - mu) ** 2)
+    return (
+        pi
+        / jnp.sqrt(2 * jnp.pi)
+        * jnp.exp(jnp.subtract(0, pi) / 2 * (jnp.subtract(x, mu)) ** 2)
+    )
 
 
-def sgm(x, lower_bound: float = 0.0, upper_bound: float = 1.0):
+def sgm(
+    x,
+    lower_bound: jnp.DeviceArray = jnp.array(0.0),
+    upper_bound: jnp.DeviceArray = jnp.array(1.0),
+):
     """The logistic sigmoid function"""
-    return (upper_bound - lower_bound) / (1 + jnp.exp(-x)) + lower_bound
+    return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound
 
 
 def binary_surprise(x: jnp.DeviceArray, muhat: jnp.DeviceArray):
