@@ -172,7 +172,7 @@ class StandardHGF(Model):
     ----------
     n_levels : int
         The number of hierarchies in the perceptual model (default sets to `2`).
-    process_type : str or None
+    process_type : str | None
         The model type to use (can be "GRW" or "AR1"). If `process_type` is not
         provided, it is infered from the parameters provided. If both `phi` and `rho`
         are None or dictionary, an error is returned.
@@ -194,7 +194,7 @@ class StandardHGF(Model):
     omega_input: float
         Default value sets to `np.log(1e-4)`. Represent the noise associated with the
         input.
-    rho : dict or None
+    rho : dict | None
         Dictionary containing the initial values for the `rho` parameter at
         different levels of the hierarchy. Rho represents the drift of the random walk.
         Only required when `process_type="GRW"`. Defaults set all entries to `0`
@@ -206,15 +206,15 @@ class StandardHGF(Model):
         strenght of the connection between the nod eand the parent node. Often fixed
         to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only required when
         `process_type="GRW"`.
-    phi : dict or None
+    phi : dict | None
         Dictionary containing the initial values for the `phi` parameter at
         different levels of the hierarchy. Phi should always be between 0 and 1.
         Defaults set all entries to `0` according to the number of required levels.
         `phi` is only required when `process_type="AR1"`.
-    m : dict or None
-        Dictionary containing the initial values for the `m` parameter at
-        different levels of the hierarchy. Defaults set all entries to `0` according to
-        the number of required levels. `m` is only required when `process_type="AR1"`.
+    m : dict | None
+        Dictionary containing the initial values for the `m` parameter at different
+        levels of the hierarchy. Defaults set all entries to `0` according to the number
+        of required levels. `m` is only required when `process_type="AR1"`.
     verbose : bool
         Default is `True` (show bar progress).
 
