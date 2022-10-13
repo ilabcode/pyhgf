@@ -7,21 +7,18 @@ import jax.numpy as jnp
 from jax.lax import scan
 
 from ghgf import load_data
-from ghgf.jax import (
+from ghgf.continuous import (
     gaussian_surprise,
     loop_continuous_inputs,
-    loop_binary_inputs,
-    node_validation,
-    update_continuous_input_parents,
-    update_binary_input_parents,
-    update_parents,
-    binary_surprise,
+    continuous_input_update,
+    continuous_node_update,
 )
+from ghgf.typing import node_validation
 
 
-class Testjax(TestCase):
+class Testcontinuous(TestCase):
 
-    def test_update_parents(self):
+    def test_continuous_node_update(self):
 
         ###########################################
         # No value parent - no volatility parents #
@@ -41,7 +38,7 @@ class Testjax(TestCase):
         value_parents = None
         volatility_parents = None
 
-        output_node = update_parents(
+        output_node = continuous_node_update(
             node_parameters=node_parameters,
             value_parents=value_parents,
             volatility_parents=volatility_parents,
@@ -86,7 +83,7 @@ class Testjax(TestCase):
 
         volatility_parents = None
 
-        output_node = update_parents(
+        output_node = continuous_node_update(
             node_parameters=node_parameters,
             value_parents=value_parents,
             volatility_parents=volatility_parents,
@@ -131,7 +128,7 @@ class Testjax(TestCase):
 
         value_parents = None
 
-        output_node = update_parents(
+        output_node = continuous_node_update(
             node_parameters=node_parameters,
             value_parents=value_parents,
             volatility_parents=volatility_parents,
@@ -175,7 +172,7 @@ class Testjax(TestCase):
         volatility_parents = ((parent_parameters, None, None),)
         value_parents = ((parent_parameters, None, None),)
 
-        output_node = update_parents(
+        output_node = continuous_node_update(
             node_parameters=node_parameters,
             value_parents=value_parents,
             volatility_parents=volatility_parents,
@@ -260,7 +257,7 @@ class Testjax(TestCase):
         value_parent_1 = va_pa, None, (volatility_parent_2,)
 
         node_parameters, value_parents, volatility_parents = volatility_parent_1
-        output_node = update_parents(
+        output_node = continuous_node_update(
             node_parameters=node_parameters,
             value_parents=value_parents,
             volatility_parents=volatility_parents,
@@ -277,7 +274,7 @@ class Testjax(TestCase):
 
         node_parameters, value_parents, volatility_parents = value_parent_1
 
-        output_node = update_parents(
+        output_node = continuous_node_update(
             node_parameters=node_parameters,
             value_parents=value_parents,
             volatility_parents=volatility_parents,
@@ -300,13 +297,6 @@ class Testjax(TestCase):
         )
         assert jnp.all(jnp.isclose(surprise, 1.4189385))
 
-    def test_binary_surprise(self):
-        surprise = binary_surprise(
-            x=jnp.array([1.0]),
-            muhat=jnp.array([0.2]),
-        )
-        assert jnp.all(jnp.isclose(surprise, 0.22314353))
-
     def test_update_continuous_input_parents(self):
 
         # No value parent - no volatility parents
@@ -328,10 +318,10 @@ class Testjax(TestCase):
             "rho": jnp.array(1.0),
         }
 
-        volatility_parents = parent_parameters, None, None
-        value_parents = parent_parameters, None, None
+        volatility_parents = (parent_parameters, None, None),
+        value_parents = (parent_parameters, None, None),
 
-        surprise, output_node = update_continuous_input_parents(
+        surprise, output_node = continuous_input_update(
             input_node=(input_node_parameters, value_parents, volatility_parents),
             value=0.2,
             old_time=jnp.array(1.0),
@@ -341,50 +331,11 @@ class Testjax(TestCase):
         assert surprise == 2.1381817
 
         # Verify node structure
-        node_validation(output_node, input_node=True)
+        node_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert isinstance(output_node[1], tuple)
         assert isinstance(output_node[2], tuple)
-        
-    def test_update_binary_input_parents(self):
-
-        # No value parent - no volatility parents
-        input_node_parameters = {
-            "pihat": jnp.inf,
-            "eta0": 0.0,
-            "eta1": 1.0,
-        }
-
-        parent_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
-        }
-
-        value_parents = parent_parameters, None, None
-
-        surprise, output_node = update_binary_input_parents(
-            input_node=(input_node_parameters, value_parents, None),
-            value=0.0,
-            old_time=jnp.array(1.0),
-            new_time=jnp.array(2.0),
-        )
-
-        assert surprise == 0.12692808
-
-        # Verify node structure
-        node_validation(output_node, input_node=True)
-        assert len(output_node) == 3
-        assert isinstance(output_node[0], dict)
-        assert isinstance(output_node[1], tuple)
-        assert output_node[2] is None
 
     def test_loop_continuous_inputs(self):
         """Test the function that should be scanned"""
@@ -415,8 +366,8 @@ class Testjax(TestCase):
             "rho": jnp.array(1.0),
         }
 
-        volatility_parents = parent_parameters, None, None
-        value_parents = parent_parameters, None, None
+        volatility_parents = (parent_parameters, None, None),
+        value_parents = (parent_parameters, None, None),
 
         input_node = input_node_parameters, value_parents, volatility_parents
 
@@ -434,46 +385,6 @@ class Testjax(TestCase):
         assert results["value"] == 5.0
         assert jnp.isclose(results["surprise"], 2.5279474)
 
-
-    def test_loop_binary_inputs(self):
-        """Test the function that should be scanned"""
-
-        # No value parent - no volatility parents
-        input_node_parameters = {
-            "pihat": 1.0,
-            "eta0": 0.0,
-            "eta1": 1.0,
-        }
-
-        parent_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": (jnp.array(1.0),),
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": (jnp.array(1.0),),
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
-        }
-
-        value_parents = parent_parameters, None, None
-
-        input_node = input_node_parameters, value_parents, None
-
-        el = jnp.array(1.0), jnp.array(1.0)  # value, new_time
-        res_init = (
-            input_node,
-            {"time": jnp.array(0.0), "value": jnp.array(0.0), "surprise": 0.0},
-        )
-
-        res, _ = loop_binary_inputs(res=res_init, el=el)
-
-        _, results = res
-
-        assert results["time"] == 1.0
-        assert results["value"] == 1.0
-        assert jnp.isclose(results["surprise"], 0.9669768)
 
     def test_scan_loop(self):
         
@@ -509,8 +420,8 @@ class Testjax(TestCase):
             "rho": jnp.array(0.0),
         }
 
-        volatility_parents = parent_parameters, None, None
-        value_parents = parent_parameters, None, None
+        volatility_parents = (parent_parameters, None, None),
+        value_parents = (parent_parameters, None, None),
 
         input_node = input_node_parameters, value_parents, volatility_parents
 
@@ -527,52 +438,6 @@ class Testjax(TestCase):
 
         # Run the entire for loop
         last, final = scan(loop_continuous_inputs, res_init, data)
-
-        node_structure, results = final
-        
-
-        ##############
-        # Binary HGF #
-        ##############
-
-        timeserie = load_data("binary")
-
-        # No value parent - no volatility parents
-        input_node_parameters = {
-            "pihat": 1.0,
-            "eta0": 0.0,
-            "eta1": 1.0,
-        }
-
-        parent_parameters = {
-            "mu": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "pihat": jnp.array(1.0),
-            "kappas": (jnp.array(1.0),),
-            "nu": jnp.array(1.0),
-            "psis": (jnp.array(1.0),),
-            "omega": jnp.array(-2.0),
-            "rho": jnp.array(0.0),
-        }
-
-        value_parents = parent_parameters, None, None
-
-        input_node = input_node_parameters, value_parents, None
-
-        res_init = (
-            input_node,
-            {
-                "time": jnp.array(0.0),
-                "value": jnp.array(0.0),
-                "surprise": jnp.array(0.0),
-            },
-        )
-        # Create the data (value and time vectors)
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
-
-        # Run the entire for loop
-        last, final = scan(loop_binary_inputs, res_init, data)
 
         node_structure, results = final
 

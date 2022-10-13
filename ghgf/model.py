@@ -1,18 +1,17 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
 from math import log
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple
 
 import jax.numpy as jnp
 import numpy as np
 from jax.lax import scan
 
-from ghgf.jax import loop_binary_inputs, loop_continuous_inputs, node_validation
+from ghgf.binary import loop_binary_inputs
+from ghgf.continuous import loop_continuous_inputs
 from ghgf.plots import plot_correlations, plot_trajectories
 from ghgf.response import gaussian_surprise
-
-NodeParameters = Dict[str, Optional[Union[float, Tuple]]]
-NodeType = Tuple[NodeParameters, Optional[Tuple], Optional[Tuple]]
+from ghgf.typing import ParametersType, node_validation
 
 
 class HGF(object):
@@ -32,6 +31,8 @@ class HGF(object):
     hgf_results : dict
         After oberving the data using the `input_data` method, the output of the model
         are stored in the `hgf_results` dictionary.
+    bias : float
+        Input bias (only relevant is `model_type="continuous"`).
 
     """
 
@@ -119,150 +120,95 @@ class HGF(object):
         self.n_levels = n_levels
         self.bias = bias
 
-        if model_type == "binary":
+        if self.verbose:
+            print(
+                (
+                    f"Creating a {self.model_type} Hierarchical Gaussian Filter "
+                    f"with {self.n_levels} levels (JAX backend)."
+                )
+            )
 
-            if self.n_levels == 3:
+        if self.n_levels == 2:
 
-                if self.verbose:
-                    print(
-                        (
-                            "Fitting the binary Hierarchical Gaussian Filter (JAX) "
-                            f"with {self.n_levels} levels."
-                        )
-                    )
-
-                    # Third level
-                    x3_parameters: NodeParameters = {
-                        "mu": initial_mu["3"],
-                        "muhat": jnp.nan,
-                        "pi": initial_pi["3"],
-                        "pihat": jnp.nan,
-                        "kappas": None,
-                        "nu": jnp.nan,
-                        "psis": None,
-                        "omega": omega["3"],
-                        "rho": rho["3"],
-                    }
-                    x3: NodeType = x3_parameters, None, None
-
-                    # Second level
-                    x2_parameters: NodeParameters = {
-                        "mu": initial_mu["2"],
-                        "muhat": jnp.nan,
-                        "pi": initial_pi["2"],
-                        "pihat": jnp.nan,
-                        "kappas": (kappas["2"],),  # type: ignore
-                        "nu": jnp.nan,
-                        "psis": None,
-                        "omega": omega["2"],
-                        "rho": rho["2"],
-                    }
-                    x2: NodeType = x2_parameters, None, (x3,)
-
-                    # First level - Binary node
-                    x1_parameters: NodeParameters = {
-                        "mu": initial_mu["1"],
-                        "muhat": jnp.nan,
-                        "pi": initial_pi["1"],
-                        "pihat": jnp.nan,
-                        "kappas": (kappas["1"],),
-                        "nu": jnp.nan,
-                        "psis": None,
-                        "omega": omega["1"],
-                        "rho": rho["1"],
-                    }
-                    x1: NodeType = x1_parameters, None, (x2,)
-
-                    # Input node
-                    input_node_parameters: NodeParameters = {
-                        "pihat": pihat,
-                        "eta0": eta0,
-                        "eta1": eta1,
-                    }
-                    self.input_node: NodeType = input_node_parameters, x1, None
-
-        elif model_type == "continuous":
-
-            if self.n_levels == 2:
-
-                if self.verbose:
-                    print(
-                        (
-                            "Fitting the continuous Hierarchical Gaussian Filter (JAX) "
-                            f"with {self.n_levels} levels."
-                        )
-                    )
-                # Second level
-                x2_parameters = {
-                    "mu": initial_mu["2"],
-                    "muhat": jnp.nan,
-                    "pi": initial_pi["2"],
-                    "pihat": jnp.nan,
-                    "kappas": None,
-                    "nu": jnp.nan,
-                    "psis": None,
-                    "omega": omega["2"],
-                    "rho": rho["2"],
-                }
-                x2 = x2_parameters, None, None
-
-            elif self.n_levels == 3:
-
-                if self.verbose:
-                    print(
-                        (
-                            "Fitting the continuous Hierarchical Gaussian Filter (JAX) "
-                            f"with {self.n_levels} levels."
-                        )
-                    )
-
-                # Third level
-                x3_parameters = {
-                    "mu": initial_mu["3"],
-                    "muhat": jnp.nan,
-                    "pi": initial_pi["3"],
-                    "pihat": jnp.nan,
-                    "kappas": None,
-                    "nu": jnp.nan,
-                    "psis": None,
-                    "omega": omega["3"],
-                    "rho": rho["3"],
-                }
-                x3 = x3_parameters, None, None
-
-                # Second level
-                x2_parameters = {
-                    "mu": initial_mu["2"],
-                    "muhat": jnp.nan,
-                    "pi": initial_pi["2"],
-                    "pihat": jnp.nan,
-                    "kappas": (kappas["2"],),  # type: ignore
-                    "nu": jnp.nan,
-                    "psis": None,
-                    "omega": omega["2"],
-                    "rho": rho["2"],
-                }
-                x2: NodeType = x2_parameters, None, (x3,)  # type: ignore
-
-            # First level
-            x1_parameters = {
-                "mu": initial_mu["1"],
+            # Second level
+            x2_parameters = {
+                "mu": initial_mu["2"],
                 "muhat": jnp.nan,
-                "pi": initial_pi["1"],
+                "pi": initial_pi["2"],
                 "pihat": jnp.nan,
-                "kappas": (kappas["1"],),
+                "kappas": None,
                 "nu": jnp.nan,
                 "psis": None,
-                "omega": omega["1"],
-                "rho": rho["1"],
+                "omega": omega["2"],
+                "rho": rho["2"],
             }
-            x1 = x1_parameters, None, (x2,)
+            x2 = ((x2_parameters, None, None),)
+
+        elif self.n_levels == 3:
+
+            # Third level
+            x3_parameters = {
+                "mu": initial_mu["3"],
+                "muhat": jnp.nan,
+                "pi": initial_pi["3"],
+                "pihat": jnp.nan,
+                "kappas": None,
+                "nu": jnp.nan,
+                "psis": None,
+                "omega": omega["3"],
+                "rho": rho["3"],
+            }
+            x3 = ((x3_parameters, None, None),)
+
+            # Second level
+            x2_parameters = {
+                "mu": initial_mu["2"],
+                "muhat": jnp.nan,
+                "pi": initial_pi["2"],
+                "pihat": jnp.nan,
+                "kappas": (kappas["2"],),  # type: ignore
+                "nu": jnp.nan,
+                "psis": None,
+                "omega": omega["2"],
+                "rho": rho["2"],
+            }
+            x2 = ((x2_parameters, None, x3),)
+
+        x1_parameters = {
+            "mu": initial_mu["1"],
+            "muhat": jnp.nan,
+            "pi": initial_pi["1"],
+            "pihat": jnp.nan,
+            "kappas": (kappas["1"],),
+            "nu": jnp.nan,
+            "psis": None,
+            "omega": omega["1"],
+            "rho": rho["1"],
+        }
+
+        if model_type == "continuous":
+
+            # First level (continuous node)
+            x1 = ((x1_parameters, None, x2),)
 
             # Input node
-            input_node_parameters = {
+            input_node_parameters: ParametersType = {
                 "kappas": None,
                 "omega": omega_input,
                 "bias": self.bias,
+            }
+
+            self.input_node = input_node_parameters, x1, None
+
+        elif model_type == "binary":
+
+            # First level (binary node)
+            x1 = ((x1_parameters, x2, None),)
+
+            input_node_parameters: ParametersType = {
+                "pihat": pihat,
+                "eta0": eta0,
+                "eta1": eta1,
             }
             self.input_node = input_node_parameters, x1, None
 
@@ -284,6 +230,8 @@ class HGF(object):
         self,
         input_data: np.ndarray,
     ):
+        if self.verbose:
+            print((f"Add {input_data.shape[0]} new {self.model_type} observations."))
 
         # Initialise the first values
         res_init = (

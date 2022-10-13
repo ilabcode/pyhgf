@@ -1,27 +1,29 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 import jax.numpy as jnp
 from jax import jit
 from jax.interpreters.xla import DeviceArray
 
+from ghgf.typing import NodeType, ParametersType, ParentsType
 
-def update_parents(
-    node_parameters: Dict[str, float],
-    value_parents: Optional[Tuple],
-    volatility_parents: Optional[Tuple],
+
+def continuous_node_update(
+    node_parameters: ParametersType,
+    value_parents: ParentsType,
+    volatility_parents: ParentsType,
     old_time: Union[float, DeviceArray],
     new_time: Union[float, DeviceArray],
-) -> Tuple[Dict[str, float], Optional[Tuple], Optional[Tuple]]:
-    """Update the value parents from a given node. If the node has value or volatility
-    parents, they will be updated recursively.
+) -> NodeType:
+    """Update the value and volatility parents of a continuous node. If the parents have
+    value and/or volatility parents, they will be updated recursively.
 
-    The parents update is a two step process:
-        1. Update value parent(s) (if provided).
-        2. Update volatility parent(s) (if provided).
+    Updating the node's parents is a two step process:
+        1. Update value parent(s) and their parents (if provided).
+        2. Update volatility parent(s) and their parents (if provided).
 
-    Then returns the new node tuple (parameters, value_parents, volatility_parents)
+    Then returns the new node tuple `(parameters, value_parents, volatility_parents)`.
 
     Parameters
     ----------
@@ -66,12 +68,13 @@ def update_parents(
     # Time interval
     t = jnp.subtract(new_time, old_time)
 
-    pihat = node_parameters["pihat"]
+    pihat: DeviceArray = node_parameters["pihat"]
 
-    ########################
-    # Update value parents #
-    ########################
+    #######################################
+    # Update the continuous value parents #
+    #######################################
     if value_parents is not None:
+
         vape = node_parameters["mu"] - node_parameters["muhat"]
         psis = node_parameters["psis"]
 
@@ -123,7 +126,7 @@ def update_parents(
                 new_va_pa_node_parameters,
                 new_va_pa_value_parents,
                 new_va_pa_volatility_parents,
-            ) = update_parents(
+            ) = continuous_node_update(
                 node_parameters=va_pa_node_parameters,
                 value_parents=va_pa_value_parents,
                 volatility_parents=va_pa_volatility_parents,
@@ -207,7 +210,7 @@ def update_parents(
                 new_vo_pa_node_parameters,
                 new_vo_pa_value_parents,
                 new_vo_pa_volatility_parents,
-            ) = update_parents(
+            ) = continuous_node_update(
                 node_parameters=vo_pa_node_parameters,
                 value_parents=vo_pa_value_parents,
                 volatility_parents=vo_pa_volatility_parents,
@@ -233,43 +236,18 @@ def update_parents(
     return new_node_parameters, new_value_parents, new_volatility_parents
 
 
-def node_validation(node: Tuple, input_node: bool = False):
-    """ "Verify that the node structure is valid."""
-    assert len(node) == 3
-    assert isinstance(node[0], dict)
-
-    for n in [1, 2]:
-        if node[n] is not None:
-            assert isinstance(node[n], tuple)
-            assert len(node[n]) > 0
-
-            if input_node is True:
-                node_validation(node[n])
-            else:
-                if n == 1:
-                    len(node[0]["psis"]) == len(node[n])
-                elif n == 2:
-                    len(node[0]["kappas"]) == len(node[n])
-                for sub_node in node[n]:
-                    node_validation(sub_node)
-
-
-def update_continuous_input_parents(
-    input_node: Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]],
-    value: jnp.DeviceArray,
-    new_time: jnp.DeviceArray,
-    old_time: jnp.DeviceArray,
-) -> Optional[
-    Tuple[
-        jnp.DeviceArray, Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]]
-    ]
-]:
+def continuous_input_update(
+    input_node: NodeType,
+    value: DeviceArray,
+    new_time: DeviceArray,
+    old_time: DeviceArray,
+) -> Optional[Tuple[DeviceArray, NodeType]]:
     """Update the input node structure given one value for a time interval and return
     gaussian surprise.
 
     This function is the entry level of the model fitting. It update the partents of
-    the input node and then call py:func:`ghgf.jax.update_parents` recursively to
-    update the rest of the node structure.
+    the input node and then call py:func:`ghgf.jax.continuous_node_update` recursively
+    to update the rest of the node structure.
 
     Parameters
     ----------
@@ -293,7 +271,7 @@ def update_continuous_input_parents(
 
     See also
     --------
-    update_parents, update_binary_input_parents
+    continuous_node_update, update_binary_input_parents
 
     """
     input_node_parameters, value_parents, volatility_parents = input_node
@@ -312,7 +290,8 @@ def update_continuous_input_parents(
 
     if input_node_parameters["kappas"] is not None:
         lognoise += (  # type:ignore
-            input_node_parameters["kappas"] * volatility_parents[0]["mu"]  # type:ignore
+            input_node_parameters["kappas"]
+            * volatility_parents[0][0]["mu"]  # type:ignore
         )
 
     pihat = 1 / jnp.exp(lognoise)
@@ -327,7 +306,7 @@ def update_continuous_input_parents(
             va_pa_node_parameters,
             va_pa_value_parents,
             va_pa_volatility_parents,
-        ) = value_parents
+        ) = value_parents[0]
 
         vape = va_pa_node_parameters["mu"] - va_pa_node_parameters["muhat"]
 
@@ -377,7 +356,7 @@ def update_continuous_input_parents(
             new_va_pa_node_parameters,
             new_va_pa_value_parents,
             new_va_pa_volatility_parents,
-        ) = update_parents(
+        ) = continuous_node_update(
             node_parameters=va_pa_node_parameters,
             value_parents=va_pa_value_parents,
             volatility_parents=va_pa_volatility_parents,
@@ -386,9 +365,11 @@ def update_continuous_input_parents(
         )
 
         new_value_parents = (
-            new_va_pa_node_parameters,
-            new_va_pa_value_parents,
-            new_va_pa_volatility_parents,
+            (
+                new_va_pa_node_parameters,
+                new_va_pa_value_parents,
+                new_va_pa_volatility_parents,
+            ),
         )
 
     else:
@@ -404,7 +385,7 @@ def update_continuous_input_parents(
             vo_pa_node_parameters,
             vo_pa_value_parents,
             vo_pa_volatility_parents,
-        ) = volatility_parents
+        ) = volatility_parents[0]
 
         vope = (1 / pi_va_pa + (value - mu_va_pa) ** 2) * pihat - 1
 
@@ -463,7 +444,7 @@ def update_continuous_input_parents(
             new_vo_pa_node_parameters,
             new_vo_pa_value_parents,
             new_vo_pa_volatility_parents,
-        ) = update_parents(
+        ) = continuous_node_update(
             node_parameters=vo_pa_node_parameters,
             value_parents=vo_pa_value_parents,
             volatility_parents=vo_pa_volatility_parents,
@@ -472,9 +453,11 @@ def update_continuous_input_parents(
         )
 
         new_volatility_parents = (
-            new_vo_pa_node_parameters,
-            new_vo_pa_value_parents,
-            new_vo_pa_volatility_parents,
+            (
+                new_vo_pa_node_parameters,
+                new_vo_pa_value_parents,
+                new_vo_pa_volatility_parents,
+            ),
         )
 
     else:
@@ -482,144 +465,6 @@ def update_continuous_input_parents(
 
     surprise = gaussian_surprise(x=value, muhat=muhat_va_pa, pihat=pihat)
     input_node = input_node_parameters, new_value_parents, new_volatility_parents
-
-    return surprise, input_node
-
-
-def update_binary_input_parents(
-    input_node: Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]],
-    value: jnp.DeviceArray,
-    new_time: jnp.DeviceArray,
-    old_time: jnp.DeviceArray,
-) -> Optional[
-    Tuple[
-        jnp.DeviceArray, Tuple[Dict[str, DeviceArray], Optional[Tuple], Optional[Tuple]]
-    ]
-]:
-    """Update the input node structure given one value for a time interval and return
-    gaussian surprise.
-
-    This function is the entry level of the model fitting. It update the partents of
-    the input node and then call py:func:`ghgf.jax.update_parents` recursively to
-    update the rest of the node structure.
-
-    Parameters
-    ----------
-    input_node : tuple
-        The parameter, value parent and volatility parent of the input node. The
-        volatility and value parents contain their own value and volatility parents,
-        this structure being nested up to the higher level of the hierarchy.
-    value : DeviceArray
-        The new input value that is observed by the model at time t=`new_time`.
-    new_time : DeviceArray
-        The current time point.
-    old_time : DeviceArray
-        The time point of the previous observed value.
-
-    Returns
-    -------
-    surprise : jnp.DeviceArray
-        The gaussian surprise given the value(s) presented at t=`new_time`.
-    new_input_node : tuple
-        The input node structure after recursively updating all the nodes.
-
-    See also
-    --------
-    update_parents, update_continuous_input_parents
-
-    """
-    input_node_parameters, value_parents, volatility_parents = input_node
-
-    if (value_parents is None) and (volatility_parents is None):
-        return None
-
-    # Time interval
-    t = jnp.subtract(new_time, old_time)
-
-    pihat = input_node_parameters["pihat"]
-
-    ########################
-    # Update value parents #
-    ########################
-
-    if value_parents is not None:
-
-        # Unpack this node's parameters, value and volatility parents
-        (
-            va_pa_node_parameters,
-            va_pa_value_parents,
-            va_pa_volatility_parents,
-        ) = value_parents
-
-        # Compute new muhat
-        driftrate = va_pa_node_parameters["rho"]
-
-        # Look at the (optional) va_pa's value parents
-        # and update driftrate accordingly
-        if va_pa_value_parents is not None:
-            for va_pa_va_pa in va_pa_value_parents:
-                driftrate += va_pa_node_parameters["psi"] * va_pa_va_pa[0]["mu"]
-
-        muhat_va_pa = va_pa_node_parameters["mu"] + t * driftrate
-
-        muhat_va_pa = sgm(muhat_va_pa)
-        pihat_va_pa = 1 / (muhat_va_pa * (1 - muhat_va_pa))
-
-        eta0 = input_node_parameters["eta0"]
-        eta1 = input_node_parameters["eta1"]
-
-        # Likelihood under eta1
-        und1 = jnp.exp(jnp.subtract(0, pihat) / 2 * (jnp.subtract(value, eta1)) ** 2)
-
-        # Likelihood under eta0
-        und0 = jnp.exp(jnp.subtract(0, pihat) / 2 * (jnp.subtract(value, eta0)) ** 2)
-
-        # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
-        mu_va_pa = muhat_va_pa * und1 / (muhat_va_pa * und1 + (1 - muhat_va_pa) * und0)
-        pi_va_pa = 1 / (mu_va_pa * (1 - mu_va_pa))
-
-        # Surprise
-        surprise = -jnp.log(
-            muhat_va_pa * gaussian_density(value, eta1, pihat)
-            + (1 - muhat_va_pa) * gaussian_density(value, eta0, pihat)
-        )
-
-        # Just pass the value through in the absence of noise
-        mu_va_pa = jnp.where(pihat == jnp.inf, value, mu_va_pa)
-        pi_va_pa = jnp.where(pihat == jnp.inf, jnp.inf, pi_va_pa)
-        surprise = jnp.where(
-            pihat == jnp.inf, binary_surprise(value, muhat_va_pa), surprise
-        )
-
-        # Update value parent's parameters
-        va_pa_node_parameters["pihat"] = pihat_va_pa
-        va_pa_node_parameters["pi"] = pi_va_pa
-        va_pa_node_parameters["muhat"] = muhat_va_pa
-        va_pa_node_parameters["mu"] = mu_va_pa
-
-        # Update node's parents recursively
-        (
-            new_va_pa_node_parameters,
-            new_va_pa_value_parents,
-            new_va_pa_volatility_parents,
-        ) = update_parents(
-            node_parameters=va_pa_node_parameters,
-            value_parents=va_pa_value_parents,
-            volatility_parents=va_pa_volatility_parents,
-            old_time=old_time,
-            new_time=new_time,
-        )
-
-        new_value_parents = (
-            new_va_pa_node_parameters,
-            new_va_pa_value_parents,
-            new_va_pa_volatility_parents,
-        )
-
-    else:
-        new_value_parents = value_parents  # type:ignore
-
-    input_node = input_node_parameters, new_value_parents, None
 
     return surprise, input_node
 
@@ -633,45 +478,6 @@ def gaussian_surprise(
         - jnp.log(pihat)
         + pihat * jnp.square(jnp.subtract(x, muhat))
     )
-
-
-def gaussian_density(
-    x: jnp.DeviceArray, mu: jnp.DeviceArray, pi: jnp.DeviceArray
-) -> jnp.DeviceArray:
-    """The Gaussian density as defined by mean and precision."""
-    return (
-        pi
-        / jnp.sqrt(2 * jnp.pi)
-        * jnp.exp(jnp.subtract(0, pi) / 2 * (jnp.subtract(x, mu)) ** 2)
-    )
-
-
-def sgm(
-    x,
-    lower_bound: jnp.DeviceArray = jnp.array(0.0),
-    upper_bound: jnp.DeviceArray = jnp.array(1.0),
-):
-    """The logistic sigmoid function"""
-    return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound
-
-
-def binary_surprise(x: jnp.DeviceArray, muhat: jnp.DeviceArray):
-    """Surprise at a binary outcome.
-
-    Parameters
-    ----------
-    x : jnp.DeviceArray
-        The outcome.
-    muhat : jnp.DeviceArray
-        The mean of the Bernouilli distribution.
-
-    Return
-    ------
-    surprise : jnp.DeviceArray
-        The surprise.
-
-    """
-    return jnp.where(x, -jnp.log(jnp.array(1.0) - muhat), -jnp.log(muhat))
 
 
 @jit
@@ -698,45 +504,7 @@ def loop_continuous_inputs(res: Tuple, el: Tuple) -> Tuple[Tuple, Tuple]:
     node_structure, results = res
 
     # Fit the model with the current time and value variables, given model structure
-    surprise, new_node_structure = update_continuous_input_parents(  # type:ignore
-        input_node=node_structure,
-        value=value,
-        old_time=results["time"],
-        new_time=new_time,
-    )
-
-    # the model structure is packed with current time point
-    # surprise is accumulated separately
-    res = new_node_structure, {"time": new_time, "value": value, "surprise": surprise}
-
-    return res, res  # ("carryover", "accumulated")
-
-
-@jit
-def loop_binary_inputs(res: Tuple, el: Tuple) -> Tuple[Tuple, Tuple]:
-    """The HGF function to be scanned by JAX. One time step updating node structure and
-    returning the new node structure with time, value and surprise.
-
-    Parameters
-    ----------
-    res : tuple
-        Result from the previous iteration. The node structure and results from the
-        previous iteration as a tuple in the form:
-        `(node_structure, {"time": time, "value": value, "surprise": surprise})`.
-    el : tuple
-        The current array element. Scan will iterate over a n x 2 DeviceArray with time
-        and values (i.e. the input time series).
-
-    """
-
-    # Extract the current iteration variables values and time
-    value, new_time = el
-
-    # Extract model previous structure and results {time, value, surprise}
-    node_structure, results = res
-
-    # Fit the model with the current time and value variables, given model structure
-    surprise, new_node_structure = update_binary_input_parents(  # type:ignore
+    surprise, new_node_structure = continuous_input_update(  # type:ignore
         input_node=node_structure,
         value=value,
         old_time=results["time"],
