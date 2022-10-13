@@ -10,7 +10,6 @@ from jax import grad, jit
 from jax.tree_util import Partial
 
 from ghgf.model import HGF
-from ghgf.response import gaussian_surprise
 
 
 def hgf_logp(
@@ -26,7 +25,7 @@ def hgf_logp(
     kappa_1: float = 1.0,
     bias: float = 0.0,
     data: np.ndarray = np.array(0.0),
-    response_function: Callable = gaussian_surprise,
+    response_function: Optional[Callable] = None,
     response_function_parameters: Tuple = (),
     model_type: str = "continuous",
     n_levels: int = 2,
@@ -44,8 +43,7 @@ def hgf_logp(
     response_function : callable
         The response function to use to compute the model surprise.
     response_function_parameters : tuple
-        (Optional) Additional parameters to the response function.    model_type : str
-    The type of HGF (can be `"continuous"` or `"binary"`).
+        (Optional) Additional parameters to the response function.    
     model_type : str
         The model type to use (can be "continuous" or "binary").
     n_levels : int
@@ -92,7 +90,7 @@ class HGFLogpGradOp(Op):
         data: np.ndarray = np.array(0.0),
         model_type: str = "continous",
         n_levels: int = 2,
-        response_function: Callable = gaussian_surprise,
+        response_function: Optional[Callable] = None,
         response_function_parameters: Tuple = (),
     ):
 
@@ -182,65 +180,61 @@ class HGFDistribution(Op):
     This class should be used in the context of a PyMC probabilistic model to estimate
     one or many parameter-s probability density with MCMC sampling.
 
-    .. python::
+    >>> import arviz as az
+    >>> import numpy as np
+    >>> import pymc as pm
+    >>> from math import log
+    >>> from ghgf import load_data
+    >>> from ghgf.pymc import HGFDistribution
+    >>> from ghgf.response import gaussian_surprise
 
-        import arviz as az
-        import numpy as np
-        import pymc as pm
-        from math import log
-        from ghgf import load_data
-        from ghgf.pymc import HGFDistribution
-        from ghgf.response import gaussian_surprise
+    Create the data (value and time vectors)
+    >>> timeserie = load_data("continuous")
+    >>> input_data = np.array(
+    >>>     [timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]
+    >>> ).T
 
-        # Create the data (value and time vectors)
-        timeserie = load_data("continuous")
-        input_data = np.array(
-            [timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
+    We create the PyMC distribution here, specifying the type of model and
+    response function we want to use (i.e simple gaussian surprise).
+    >>> hgf_logp_op = HGFDistribution(
+    >>>     n_levels=2,
+    >>>     data=input_data,
+    >>>     response_function=gaussian_surprise,
+    >>> )
 
-        # We create the PyMC distribution here, specifying the type of model and
-        # response function we want to use (i.e simple gaussian surprise).
-        hgf_logp_op = HGFDistribution(
-            n_levels=2,
-            data=input_data,
-            response_function=gaussian_surprise,
-        )
+    Create the PyMC model
+    Here we are fixing all the paramters to arbitrary values and sampling the
+    posterior probability density of Omega in the second level, using a normal
+    distribution as prior : ω_2 ~ N(-11, 2).
 
-        # Create the PyMC model
-        # Here we are fixing all the paramters to arbitrary values and sampling the
-        # posterior probability density of Omega in the second level, using a normal
-        # distribution as prior : ω_2 ~ N(-11, 2).
+    >>> with pm.Model() as model:
+    >>>     ω_2 = pm.Normal("ω_2", -11.0, 2)
+    >>>     pm.Potential(
+    >>>         "hhgf_loglike",
+    >>>         hgf_logp_op(
+    >>>             omega_1=0.0,
+    >>>             omega_2=ω_2,
+    >>>             omega_input=log(1e-4),
+    >>>             rho_1=0.0,
+    >>>             rho_2=0.0,
+    >>>             pi_1=1e4,
+    >>>             pi_2=1e1,
+    >>>             mu_1=input_data[0, 0],
+    >>>             mu_2=0.0,
+    >>>             kappa_1=1.0,
+    >>>             bias=0.0,
+    >>>         ),
+    >>>     )
 
-        with pm.Model() as model:
+    Sample the model - Using 4 chain, 4 cores and 1000 warmups.
+    >>> with model:
+    >>>     hgf_samples = pm.sample(chains=4, cores=4, tune=1000)
 
-            ω_2 = pm.Normal("ω_2", -11.0, 2)
-
-            pm.Potential(
-                "hhgf_loglike",
-                hgf_logp_op(
-                    omega_1=0.0,
-                    omega_2=ω_2,
-                    omega_input=log(1e-4),
-                    rho_1=0.0,
-                    rho_2=0.0,
-                    pi_1=1e4,
-                    pi_2=1e1,
-                    mu_1=input_data[0, 0],
-                    mu_2=0.0,
-                    kappa_1=1.0,
-                    bias=0.0,
-                ),
-            )
-
-        # Sample the model - Using 4 chain, 4 cores and 1000 warmups.
-        with model:
-            hgf_samples = pm.sample(chains=4, cores=4, tune=1000)
-
-        # Print a summary of the results using Arviz
-        az.summary(hgf_samples, var_names="ω_2")
-        ===  =======  =====  =======  =======  =====  =====  ====  ====  =
-        ω_2  -12.846  1.305  -15.466  -10.675  0.038  0.027  1254  1726  1
-        ===  =======  =====  =======  =======  =====  =====  ====  ====  =
+    Print a summary of the results using Arviz
+    >>> az.summary(hgf_samples, var_names="ω_2")
+    ===  =======  =====  =======  =======  =====  =====  ====  ====  =
+    ω_2  -12.846  1.305  -15.466  -10.675  0.038  0.027  1254  1726  1
+    ===  =======  =====  =======  =======  =====  =====  ====  ====  =
 
     """
 
@@ -249,13 +243,18 @@ class HGFDistribution(Op):
         data: np.ndarray = np.array(0.0),
         model_type: str = "continuous",
         n_levels: int = 2,
-        response_function: Callable = gaussian_surprise,
+        response_function: Optional[Callable] = None,
         response_function_parameters: Tuple = (),
     ):
         """
 
         Parameters
         ----------
+        data : DeviceArray
+        model_type : str
+        n_levels : int
+        response_function : callable (optional)
+        response_function_parameters : Tuple
 
         """
         # The value function

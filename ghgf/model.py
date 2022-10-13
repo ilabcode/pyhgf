@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import numpy as np
 from jax.lax import scan
 
-from ghgf.binary import loop_binary_inputs
+from ghgf.binary import binary_surprise, loop_binary_inputs
 from ghgf.continuous import loop_continuous_inputs
 from ghgf.plots import plot_correlations, plot_trajectories
 from ghgf.response import gaussian_surprise
@@ -267,7 +267,7 @@ class HGF(object):
 
     def surprise(
         self,
-        response_function: Callable = gaussian_surprise,
+        response_function: Optional[Callable] = None,
         response_function_parameters: Tuple = (),
     ):
         """Returns the model surprise (negative log probability) given the input data
@@ -275,10 +275,12 @@ class HGF(object):
 
         Parameters
         ----------
-        response_function : callable
-            The response function to use to compute the model surprise.
-        response_function_parameters : tuple
-            (Optional) Additional parameters to the response function.
+        response_function : callable (optional)
+            The response function to use to compute the model surprise. If `None`
+            (default), return the sum of gaussian surprise if `model_type=="continuous"`
+            or the sum of the binary surprise if `model_type=="binary"`.
+        response_function_parameters : tuple (optional)
+            Additional parameters to the response function (optional) .
 
         Returns
         -------
@@ -286,6 +288,8 @@ class HGF(object):
             The model surprise given the input data and the response function.
 
         """
+        if response_function is None:
+            response_function = gaussian_surprise if self.model_type == "continuous" else binary_surprise
 
         return response_function(
             hgf_results=self.hgf_results,
