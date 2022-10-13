@@ -1,5 +1,5 @@
 
-@article{Mathys2011,
+@article{2011:mathys,
 abstract = {Computational learning models are critical for understanding mechanisms of adaptive behavior. However, the two major current frameworks, reinforcement learning (RL) and Bayesian learning, both have certain limitations. For example, many Bayesian models are agnostic of inter-individual variability and involve complicated integrals, making online learning difficult. Here, we introduce a generic hierarchical Bayesian framework for individual learning under multiple forms of uncertainty (e.g., environmental volatility and perceptual uncertainty). The model assumes Gaussian random walks of states at all but the first level, with the step size determined by the next highest level. The coupling between levels is controlled by parameters that shape the influence of uncertainty on learning in a subject-specific fashion. Using variational Bayes under a mean-field approximation and a novel approximation to the posterior energy function, we derive trial-by-trial update equations which (i) are analytical and extremely efficient, enabling real-time learning, (ii) have a natural interpretation in terms of RL, and (iii) contain parameters representing processes which play a key role in current theories of learning, e.g., precision-weighting of prediction error. These parameters allow for the expression of individual differences in learning and may relate to specific neuromodulatory mechanisms in the brain. Our model is very general: it can deal with both discrete and continuous states and equally accounts for deterministic and probabilistic relations between environmental events and perceptual states (i.e., situations with and without perceptual uncertainty). These properties are illustrated by simulations and analyses of empirical time series. Overall, our framework provides a novel foundation for understanding normal and pathological learning that contextualizes RL within a generic Bayesian scheme and thus connects it to principles of optimality from probability theory.},
 author = {Mathys, Christoph D.},
 doi = {10.3389/fnhum.2011.00039},
@@ -17,7 +17,19 @@ volume = {5},
 year = {2011}
 }
 
-@article{Shipp2016,
+@ARTICLE{2014:mathys,
+AUTHOR={Mathys, Christoph D. and Lomakina, Ekaterina I. and Daunizeau, Jean and Iglesias, Sandra and Brodersen, Kay H. and Friston, Karl J. and Stephan, Klaas E.},
+TITLE={Uncertainty in perception and the Hierarchical Gaussian Filter},
+JOURNAL={Frontiers in Human Neuroscience},
+VOLUME={8},
+YEAR={2014},
+URL={https://www.frontiersin.org/articles/10.3389/fnhum.2014.00825},
+DOI={10.3389/fnhum.2014.00825},
+ISSN={1662-5161},
+ABSTRACT={In its full sense, perception rests on an agent's model of how its sensory input comes about and the inferences it draws based on this model. These inferences are necessarily uncertain. Here, we illustrate how the Hierarchical Gaussian Filter (HGF) offers a principled and generic way to deal with the several forms that uncertainty in perception takes. The HGF is a recent derivation of one-step update equations from Bayesian principles that rests on a hierarchical generative model of the environment and its (in)stability. It is computationally highly efficient, allows for online estimates of hidden states, and has found numerous applications to experimental data from human subjects. In this paper, we generalize previous descriptions of the HGF and its account of perceptual uncertainty. First, we explicitly formulate the extension of the HGF's hierarchy to any number of levels; second, we discuss how various forms of uncertainty are accommodated by the minimization of variational free energy as encoded in the update equations; third, we combine the HGF with decision models and demonstrate the inversion of this combination; finally, we report a simulation study that compared four optimization methods for inverting the HGF/decision model combination at different noise levels. These four methods (Nelder–Mead simplex algorithm, Gaussian process-based global optimization, variational Bayes and Markov chain Monte Carlo sampling) all performed well even under considerable noise, with variational Bayes offering the best combination of efficiency and informativeness of inference. Our results demonstrate that the HGF provides a principled, flexible, and efficient—but at the same time intuitive—framework for the resolution of perceptual uncertainty in behaving agents.}
+}
+
+@article{2016:shipp,
 abstract = {Predictive coding theories of sensory brain function interpret the hierarchical construction of the cerebral cortex as a Bayesian, generative model capable of predicting the sensory data consistent with any given percept. Predictions are fed backwards in the hierarchy and reciprocated by prediction error in the forward direction, acting to modify the representation of the outside world at increasing levels of abstraction, and so to optimize the nature of perception over a series of iterations. This accounts for many ‘illusory' instances of perception where what is seen (heard, etc) is unduly influenced by what is expected, based on past experience. This simple conception, the hierarchical exchange of prediction and prediction error, confronts a rich cortical microcircuitry that is yet to be fully documented. This article presents the view that, in the current state of theory and practice, it is profitable to begin a two-way exchange: that predictive coding theory can support an understanding of cortical microcircuit function, and prompt particular aspects of future investigation, whilst existing knowledge of microcircuitry can, in return, influence theoretical development. As an example, a neural inference arising from the earliest formulations of predictive coding is that the source populations of forwards and backwards pathways should be completely separate, given their functional distinction; this aspect of circuitry – that neurons with extrinsically bifurcating axons do not project in both directions – has only recently been confirmed. Here, the computational architecture prescribed by a generalized (free-energy) formulation of predictive coding is combined with the classic ‘canonical microcircuit' and the laminar architecture of hierarchical extrinsic connectivity to produce a template schematic, that is further examined in the light of (a) updates in the microcircuitry of primate visual cortex, and (b) rapid technical advances made possible by transgenic neural engineering in the mouse. The exercise highlights a number of recurring themes, amongst them the consideration of interneuron diversity as a spur to theoretical development and the potential for specifying a pyramidal neuron's function by its individual ‘connectome', combining its extrinsic projection (forward, backward or subcortical) with evaluation of its intrinsic network (e.g. unidirectional versus bidirectional connections with other pyramidal neurons).},
 archivePrefix = {arXiv},
 arxivId = {arXiv:1011.1669v3},
@@ -37,7 +49,7 @@ volume = {7},
 year = {2016}
 }
 
-@article{Bogacz2017,
+@article{2017:bogacz,
 abstract = {This paper provides an easy to follow tutorial on the free-energy framework for modelling perception developed by Friston, which extends the predictive coding model of Rao and Ballard. These models assume that the sensory cortex infers the most likely values of attributes or features of sensory stimuli from the noisy inputs encoding the stimuli. Remarkably, these models describe how this inference could be implemented in a network of very simple computational elements, suggesting that this inference could be performed by biological networks of neurons. Furthermore, learning about the parameters describing the features and their uncertainty is implemented in these models by simple rules of synaptic plasticity based on Hebbian learning. This tutorial introduces the free-energy framework using very simple examples, and provides step-by-step derivations of the model. It also discusses in more detail how the model could be implemented in biological neural circuits. In particular, it presents an extended version of the model in which the neurons only sum their inputs, and synaptic plasticity only depends on activity of pre-synaptic and post-synaptic neurons.},
 author = {Bogacz, Rafal},
 doi = {10.1016/j.jmp.2015.11.003},
@@ -53,7 +65,7 @@ volume = {76},
 year = {2017}
 }
 
-@article{Kanai2015,
+@article{2015:kanai,
 abstract = {This paper considers neuronal architectures from a computational perspective and askswhat aspects of neuroanatomyand neurophysiology can be disclosed by the nature of neuronal computations? In particular, we extend current formulationsof the brainas anorganof inference—baseduponhierarchical pre- dictive coding—and consider how these inferences are orchestrated. In other words,whatwould the brain require to dynamically coordinate and contextua- lize its message passing to optimize its computational goals? The answer that emerges rests onthe delicate(modulatory) gain control of neuronal populations that select and coordinate (prediction error) signals that ascend cortical hierar- chies. This is important because it speaks to a hierarchical anatomyof extrinsic (between region) connections that form two distinct classes, namely a class of driving (first-order) connections that are concerned with encoding the content of neuronal representations and a class of modulatory (second-order) connec- tions that establish context—in the formof the salience or precision ascribed to content.We explore the implications of this distinction from a formal perspec- tive (using simulations of feature–ground segregation) and consider the neurobiological substrates of the ensuing precision-engineered dynamics, with a special focus on the pulvinar and attention. 1.},
 author = {Kanai, R. and Komura, Y. and Shipp, S. and Friston, Karl J.},
 doi = {10.1098/rstb.2014.0169},
@@ -69,4 +81,21 @@ title = {{Cerebral hierarchies: predictive processing, precision and the pulvina
 url = {http://rstb.royalsocietypublishing.org/cgi/doi/10.1098/rstb.2014.0169},
 volume = {370},
 year = {2015}
+}
+
+@article{2013:iglesias,
+title = {Hierarchical Prediction Errors in Midbrain and Basal Forebrain during Sensory Learning},
+journal = {Neuron},
+volume = {80},
+number = {2},
+pages = {519-530},
+year = {2013},
+issn = {0896-6273},
+doi = {https://doi.org/10.1016/j.neuron.2013.09.009},
+url = {https://www.sciencedirect.com/science/article/pii/S0896627313008076},
+author = {Sandra Iglesias and Christoph Mathys and Kay H. Brodersen and Lars Kasper and Marco Piccirelli and Hanneke E.M. den Ouden and Klaas E. Stephan},
+abstract = {Summary
+In Bayesian brain theories, hierarchically related prediction errors (PEs) play a central role for predicting sensory inputs and inferring their underlying causes, e.g., the probabilistic structure of the environment and its volatility. Notably, PEs at different hierarchical levels may be encoded by different neuromodulatory transmitters. Here, we tested this possibility in computational fMRI studies of audio-visual learning. Using a hierarchical Bayesian model, we found that low-level PEs about visual stimulus outcome were reflected by widespread activity in visual and supramodal areas but also in the midbrain. In contrast, high-level PEs about stimulus probabilities were encoded by the basal forebrain. These findings were replicated in two groups of healthy volunteers. While our fMRI measures do not reveal the exact neuron types activated in midbrain and basal forebrain, they suggest a dichotomy between neuromodulatory systems, linking dopamine to low-level PEs about stimulus outcome and acetylcholine to more abstract PEs about stimulus probabilities.
+Video Abstract
+}
 }

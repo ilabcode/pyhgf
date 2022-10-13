@@ -31,6 +31,10 @@ sphinx_gallery_conf = {
     "image_scrapers": image_scrapers,
 }
 
+bibtex_bibfiles = ['refs.bib']
+bibtex_reference_style = "author_year"
+bibtex_default_style = "unsrt"
+
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -51,6 +55,7 @@ extensions = [
     "sphinx_panels",
     "myst_nb",
     "sphinx_gallery.load_style",
+    "sphinxcontrib.bibtex"
 ]
 
 panels_add_bootstrap_css = False
