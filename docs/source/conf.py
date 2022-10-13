@@ -85,6 +85,10 @@ exclude_patterns = []
 
 # -- Options for HTML output -------------------------------------------------
 
+html_static_path = ['_static']
+html_logo = "images/logo.png"
+html_favicon = "images/logo.png"
+
 # The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
 
@@ -95,20 +99,22 @@ html_theme_options = {
         dict(
             name="GitHub",
             url="https://github.com/ilabcode/ghgf",
-            icon="fab fa-github-square",
+            icon="fa-brands fa-square-github",
         ),
         dict(
             name="Twitter",
             url="https://twitter.com/legrandni",
-            icon="fab fa-twitter-square",
+            icon="fa-brands fa-square-twitter",
         ),
         dict(
             name="Pypi",
             url="https://pypi.org/project/ghgf/",
-            icon="fas fa-box",
+            icon="fa-solid fa-box",
         ),
     ],
-    "logo_link": "https://ilabcode.github.io/ghgf/#",
+    "logo": {
+        "text": "gHGF",
+    }
 }
 
 html_sidebars = {
@@ -116,17 +122,8 @@ html_sidebars = {
   "changelog": [],
 }
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
-html_css_files = ["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"]
-html_logo = "images/logo.png"
-
-
 def setup(app):
     app.add_css_file('style.css')
-
 
 # -- Intersphinx ------------------------------------------------
 
