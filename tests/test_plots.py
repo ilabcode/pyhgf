@@ -3,7 +3,7 @@
 import unittest
 from unittest import TestCase
 
-import numpy as np
+import jax.numpy as jnp
 
 from ghgf import load_data
 from ghgf.model import HGF
@@ -25,7 +25,7 @@ class Testsdt(TestCase):
 
         # Read USD-CHF data
         timeserie = load_data("continuous")
-        data = np.array([timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]).T
+        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         # Feed input
         hgf.input_data(input_data=data)
@@ -33,6 +33,27 @@ class Testsdt(TestCase):
         # Plot
         hgf.plot_trajectories()
 
+        # Read binary input
+        timeserie = load_data("binary")
+        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+        three_levels_hgf = HGF(
+            n_levels=3,
+            model_type="binary",
+            initial_mu={"1": .0, "2": .5, "3": 0.},
+            initial_pi={"1": .0, "2": 1e4, "3": 1e1},
+            omega={"1": None, "2": -6.0, "3": -2.0},
+            rho={"1": None, "2": 0.0, "3": 0.0},
+            kappas={"1": None, "2": 1.0},
+            eta0=0.0,
+            eta1=1.0,
+            pihat = jnp.inf,
+        )
+        
+        # Feed input
+        three_levels_hgf = three_levels_hgf.input_data(data)
+        
+        # Plot
+        three_levels_hgf.plot_trajectories()
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)

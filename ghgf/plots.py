@@ -37,10 +37,16 @@ def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) 
     # Level 3
     #########
     if hgf.n_levels == 3:
-        mu = node[1][0][2][0][2][0][0]["mu"]
+        if hgf.model_type == "continuous":
+            mu = node[1][0][2][0][2][0][0]["mu"]
+        elif hgf.model_type == "binary":
+            mu = node[1][0][1][0][2][0][0]["mu"]
         axs[0].plot(time, mu, label=r"$\mu_3$", color="#55a868")
         if ci is True:
-            pi = node[1][0][2][0][2][0][0]["pi"]
+            if hgf.model_type == "continuous":
+                pi = node[1][0][2][0][2][0][0]["pi"]
+            elif hgf.model_type == "binary":
+                pi = node[1][0][1][0][2][0][0]["pi"]
             sd = np.sqrt(1 / pi)
             axs[0].fill_between(
                 x=time, y1=mu - sd, y2=mu + sd, alpha=0.2, color="#55a868"
@@ -49,10 +55,17 @@ def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) 
 
     # Level 2
     #########
-    mu = node[1][0][2][0][0]["mu"]
+    if hgf.model_type == "continuous":
+        mu = node[1][0][2][0][0]["mu"]
+    elif hgf.model_type == "binary":
+        mu = node[1][0][1][0][0]["mu"]
+
     axs[hgf.n_levels - 2].plot(time, mu, label=r"$\mu_2$", color="#c44e52")
     if ci is True:
-        pi = node[1][0][2][0][0]["pi"]
+        if hgf.model_type == "continuous":
+            pi = node[1][0][2][0][0]["pi"]
+        elif hgf.model_type == "binary":
+            pi = node[1][0][1][0][0]["pi"]
         sd = np.sqrt(1 / pi)
         axs[hgf.n_levels - 2].fill_between(
             x=time, y1=mu - sd, y2=mu + sd, alpha=0.2, color="#c44e52"
@@ -61,23 +74,34 @@ def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) 
 
     # Level 1
     #########
-    mu = node[1][0][0]["mu"]
-    axs[hgf.n_levels - 1].plot(time, mu, label=r"$\mu_1$", color="#55a868")
-    if ci is True:
-        pi = node[1][0][0]["pi"]
-        sd = np.sqrt(1 / pi)
-        axs[hgf.n_levels - 1].fill_between(
-            x=time, y1=mu - sd, y2=mu + sd, alpha=0.2, color="#55a868"
-        )
+    if hgf.model_type == "continuous":
+        mu = node[1][0][0]["mu"]
+        axs[hgf.n_levels - 1].plot(time, mu, label=r"$\mu_1$", color="#55a868")
+        if ci is True:
+            pi = node[1][0][0]["pi"]
+            sd = np.sqrt(1 / pi)
+            axs[hgf.n_levels - 1].fill_between(
+                x=time, y1=mu - sd, y2=mu + sd, alpha=0.2, color="#55a868"
+            )
 
-    axs[hgf.n_levels - 1].plot(
-        time,
-        hgf.hgf_results["final"][1]["value"],
-        linewidth=2,
-        linestyle="dotted",
-        label="Input",
-        color="#4c72b0",
-    )
+            axs[hgf.n_levels - 1].plot(
+                time,
+                hgf.hgf_results["final"][1]["value"],
+                linewidth=2,
+                linestyle="dotted",
+                label="Input",
+                color="#4c72b0",
+            )
+    elif hgf.model_type == "binary":
+        mu = node[1][0][0]["muhat"]
+        axs[hgf.n_levels - 1].plot(time, mu, label=r"$\mu_1$", color="#55a868")
+        
+        axs[hgf.n_levels - 1].scatter(
+            time,
+            hgf.hgf_results["final"][1]["value"],
+            label="Input",
+            color="#4c72b0",
+        )
     axs[hgf.n_levels - 1].legend()
 
     # Surprise
