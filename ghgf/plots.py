@@ -141,10 +141,10 @@ def plot_correlations(hgf) -> Axes:
     nu_1 = node[1][0][0]["nu"]
 
     # Level 2
-    mu_2 = node[1][0][2][0][0]["mu"]
-    pi_2 = node[1][0][2][0][0]["pi"]
-    pihat_2 = node[1][0][2][0][0]["pihat"]
-    muhat_2 = node[1][0][2][0][0]["muhat"]
+    mu_2 = node[1][0][2][0][0]["mu"] if hgf.model_type == "continuous" else node[1][0][1][0][0]["mu"]
+    pi_2 = node[1][0][2][0][0]["pi"] if hgf.model_type == "continuous" else node[1][0][1][0][0]["pi"]
+    pihat_2 = node[1][0][2][0][0]["pihat"] if hgf.model_type == "continuous" else node[1][0][1][0][0]["pihat"]
+    muhat_2 = node[1][0][2][0][0]["muhat"] if hgf.model_type == "continuous" else node[1][0][1][0][0]["muhat"]
 
     # Time series of the model beliefs
     df = pd.DataFrame(
@@ -160,6 +160,18 @@ def plot_correlations(hgf) -> Axes:
             r"$\hat{pi}_{2}$": pihat_2,
         }
     )
+    
+    if hgf.n_levels == 3:
+        if hgf.model_type == "continuous":
+            df[r"$\mu_{3}$"] = node[1][0][2][0][2][0][0]["mu"]
+            df[r"$\pi_{3}$"] = node[1][0][2][0][2][0][0]["pi"]
+            df[r"$\hat{mu}_{3}$"] = node[1][0][2][0][2][0][0]["muhat"]
+            df[r"$\hat{pi}_{3}$"] = node[1][0][2][0][2][0][0]["pihat"]
+        elif hgf.model_type == "binary":
+            df[r"$\mu_{3}$"] = node[1][0][1][0][2][0][0]["mu"]
+            df[r"$\pi_{3}$"] = node[1][0][1][0][2][0][0]["pi"]
+            df[r"$\hat{mu}_{3}$"] = node[1][0][1][0][2][0][0]["muhat"]
+            df[r"$\hat{pi}_{3}$"] = node[1][0][1][0][2][0][0]["pihat"]
 
     correlation_mat = df.corr()
     ax = sns.heatmap(
