@@ -86,8 +86,8 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 
 html_static_path = ['_static']
-html_logo = "images/logo.png"
-html_favicon = "images/logo.png"
+html_logo = "images/logo_small.svg"
+html_favicon = "images/logo_small.svg"
 
 # The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
