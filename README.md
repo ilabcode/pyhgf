@@ -22,6 +22,8 @@ The Hierarchical Gaussian Filter consists of a hierarchy of interdependent nodes
 2. A value parent (optional).
 3. A volatility parent (optional).
 
+[Figure1](./docs/source/images/genmod.svg)
+
 Value parent (`vapa`) and volatility (`vopa`) parent are nodes themself and are organized following the same principle.
 
 The node structure consists of nodes embedding other nodes hierarchically (i.e. tuples embedding other tuples). A generalization of the standard Hierarchical Gaussian Filter can build a hierarchical structure containing an arbitrary number of nodes, inputs and non-linear transformation between nodes. The structure continues as long as a given node has value or volatility parents. Well-known special cases of such hierarchies are the 2-level and 3-level Hierarchical Gaussian Filters.
@@ -103,7 +105,7 @@ You can find detailled introduction to different version of the Hierarchical Gau
 
 # Acknoledgements
 
-This implementation of the Hierarchical Gaussian Filter was largely inspired by the original Matlab implementation (https://translationalneuromodeling.github.io/tapas). A Julia implementation can be found https://github.com/ilabcode/HGF.jl.
+This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab implementation](https://translationalneuromodeling.github.io/tapas). A Julia implementation can be found [here](https://github.com/ilabcode/HGF.jl).
 
 ## References
 
