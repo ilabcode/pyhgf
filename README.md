@@ -22,7 +22,7 @@ The Hierarchical Gaussian Filter consists of a hierarchy of interdependent nodes
 2. A value parent (optional).
 3. A volatility parent (optional).
 
-[Figure1](./docs/source/images/genmod.svg)
+![Figure1](./docs/source/images/genmod.png)
 
 Value parent (`vapa`) and volatility (`vopa`) parent are nodes themself and are organized following the same principle.
 
