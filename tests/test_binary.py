@@ -15,6 +15,8 @@ from ghgf.binary import (
     gaussian_density,
     sgm
 )
+#from jax.config import config 
+#config.update("jax_debug_nans", True)
 
 
 class Testbinary(TestCase):
@@ -76,12 +78,12 @@ class Testbinary(TestCase):
 
         surprise, output_node = binary_input_update(
             input_node=(input_node_parameters, binary_node, None),
-            value=0.0,
+            value=1.0,
             old_time=jnp.array(1.0),
             new_time=jnp.array(2.0),
         )
 
-        assert surprise == 0.12692808
+        assert surprise == 2.1269276
 
         # Verify node structure
         node_validation(output_node)
@@ -95,7 +97,7 @@ class Testbinary(TestCase):
 
         # One binary node and one continuous parent
         input_node_parameters = {
-            "pihat": jnp.inf,
+            "pihat": 1e6,
             "eta0": 0.0,
             "eta1": 1.0,
         }
@@ -142,7 +144,7 @@ class Testbinary(TestCase):
 
         assert results["time"] == 1.0
         assert results["value"] == 1.0
-        assert jnp.isclose(results["surprise"], 2.1269276)
+        assert jnp.isclose(results["surprise"], -12.769644)
 
     def test_scan_loop(self):
 

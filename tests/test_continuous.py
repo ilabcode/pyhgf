@@ -387,7 +387,7 @@ class Testcontinuous(TestCase):
 
 
     def test_scan_loop(self):
-        
+
         ##################
         # Continuous HGF #
         ##################

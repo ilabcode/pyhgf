@@ -19,7 +19,7 @@ from ghgf.response import gaussian_surprise, binary_surprise
 class TestPyMC(TestCase):
 
     def test_hgf_logp(self):
-        
+
         ##################
         # Continuous HGF #
         ##################
@@ -55,11 +55,11 @@ class TestPyMC(TestCase):
             bias=jnp.array(0.0),
         )
         assert jnp.isclose(logp, 1938.0101)
-        
+
         ##############
         # Binary HGF #
         ##############
-        
+
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
         input_data = np.array(
@@ -93,7 +93,7 @@ class TestPyMC(TestCase):
         assert jnp.isclose(logp, -237.2308)
 
     def test_grad_logp(self):
-        
+
         ##################
         # Continuous HGF #
         ##################
@@ -160,6 +160,7 @@ class TestPyMC(TestCase):
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
+        
         grad_logp = jit(
             grad(
                 Partial(
@@ -170,41 +171,36 @@ class TestPyMC(TestCase):
                     model_type="binary",
                     response_function_parameters=None,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                argnums=[1, 3, 4, 6, 8, 9],
             ),
         )
 
         (
-            omega_1,
             omega_2,
-            omega_input,
             rho_1,
             rho_2,
-            pi_1,
             pi_2,
-            mu_1,
             mu_2,
-            kappa_1,
-            bias,
+            kappa_1
         ) = grad_logp(
-            np.nan,
-            np.array(-6.0),
-            np.nan,
-            np.array(0.0),
-            np.array(0.0),
-            np.array(0.0),
-            np.array(1e4),
-            np.array(0.0),
-            np.array(0.5),
-            np.array(1.0),
-            np.nan,
+                np.array(0.0),
+                np.array(-2.0),
+                np.array(0.0),
+                np.array(0.0),
+                np.array(0.0),
+                np.array(0.0),
+                np.array(1e4),
+                np.array(0.0),
+                np.array(0.5),
+                np.array(1.0),
+                np.array(0.0),
         )
 
-        #assert jnp.isclose(omega_1, -52.749176)
+        assert jnp.isclose(omega_1, 0.47931308)
 
     def test_aesara_logp(self):
         """Test the aesara hgf_logp op."""
-        
+
         ##################
         # Continuous HGF #
         ##################
@@ -262,7 +258,7 @@ class TestPyMC(TestCase):
         )
 
         logp = hgf_logp_op(
-            omega_1=np.array(-3.0),
+            omega_1=np.array(-6.0),
             omega_2=np.array(-3.0),
             omega_input=np.log(1e-4),
             rho_1=np.array(0.0),
@@ -279,7 +275,7 @@ class TestPyMC(TestCase):
 
     def test_aesara_grad_logp(self):
         """Test the aesara gradient hgf_logp op."""
-        
+
         ##################
         # Continuous HGF #
         ##################

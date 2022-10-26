@@ -5,6 +5,7 @@ from typing import Dict, Optional, Tuple, Union
 import jax.numpy as jnp
 from jax import jit
 from jax.interpreters.xla import DeviceArray
+from jax.lax import cond
 
 from ghgf.continuous import continuous_node_update
 from ghgf.typing import NodeType, ParametersType, ParentsType
@@ -262,31 +263,14 @@ def binary_input_update(
         # 2. Compute surprise
         # -------------------
         eta0: DeviceArray = input_node_parameters["eta0"]
-        eta1: DeviceArray = input_node_parameters["eta1"]
+        eta1: DeviceArray = input_node_parameters["eta1"]     
 
-        # Likelihood under eta1
-        und1 = jnp.exp(jnp.subtract(0, pihat) / 2 * (jnp.subtract(value, eta1)) ** 2)
-
-        # Likelihood under eta0
-        und0 = jnp.exp(jnp.subtract(0, pihat) / 2 * (jnp.subtract(value, eta0)) ** 2)
-
-        # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
-        mu_va_pa = muhat_va_pa * und1 / (muhat_va_pa * und1 + (1 - muhat_va_pa) * und0)
-        pi_va_pa = 1 / (mu_va_pa * (1 - mu_va_pa))
-
-        # Surprise
-        surprise = -jnp.log(
-            muhat_va_pa * gaussian_density(value, eta1, pihat)
-            + (1 - muhat_va_pa) * gaussian_density(value, eta0, pihat)
-        )
-
-        # 3. Special case if pihat==inf
-        # Just pass the value through in the absence of noise
-        mu_va_pa = jnp.where(pihat == jnp.inf, value, mu_va_pa)
-        pi_va_pa = jnp.where(pihat == jnp.inf, jnp.inf, pi_va_pa)
-        surprise = jnp.where(
-            pihat == jnp.inf, binary_surprise(value, muhat_va_pa), surprise
-        )
+        mu_va_pa, pi_va_pa, surprise = cond(
+            pihat==jnp.inf, 
+            input_surprise_inf, 
+            input_surprise_reg, 
+            (pihat, value, eta1, eta0, muhat_va_pa)
+            )
 
         # Update value parent's parameters
         va_pa_node_parameters["pihat"] = pihat_va_pa
@@ -400,3 +384,38 @@ def loop_binary_inputs(
     res = new_node_structure, {"time": new_time, "value": value, "surprise": surprise}
 
     return res, res  # ("carryover", "accumulated")
+
+
+def input_surprise_inf(op):
+    """Special case if pihat==inf, just pass the value through in the absence
+    of noise"""
+    (pihat, value, eta1, eta0, muhat_va_pa) = op
+    mu_va_pa = value
+    pi_va_pa = jnp.inf
+    surprise = binary_surprise(value, muhat_va_pa)
+
+    return mu_va_pa, pi_va_pa, surprise
+
+
+def input_surprise_reg(op):
+    """Compute the surprise, mu_va_pa and pi_va_pa if pihat!=inf"""
+    
+    (pihat, value, eta1, eta0, muhat_va_pa) = op
+
+    # Likelihood under eta1
+    und1 = jnp.exp(jnp.subtract(0, pihat) / 2 * (jnp.subtract(value, eta1)) ** 2)
+
+    # Likelihood under eta0
+    und0 = jnp.exp(jnp.subtract(0, pihat) / 2 * (jnp.subtract(value, eta0)) ** 2)
+
+    # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
+    mu_va_pa = muhat_va_pa * und1 / (muhat_va_pa * und1 + (1 - muhat_va_pa) * und0)
+    pi_va_pa = 1 / (mu_va_pa * (1 - mu_va_pa))
+
+    # Surprise
+    surprise = -jnp.log(
+        muhat_va_pa * gaussian_density(value, eta1, pihat)
+        + (1 - muhat_va_pa) * gaussian_density(value, eta0, pihat)
+    )
+    
+    return mu_va_pa, pi_va_pa, surprise

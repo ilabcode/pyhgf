@@ -205,7 +205,7 @@ class TestCompareBackends(TestCase):
             kappas={"1": None, "2": 1.0},
             eta0=0.0,
             eta1=1.0,
-            pihat = jnp.inf,
+            pihat=jnp.inf,
         )
         jaxhgf.input_data(input_data=data)
 
