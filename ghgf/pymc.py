@@ -22,13 +22,13 @@ def hgf_logp(
     pi_2: float,
     mu_1: float,
     mu_2: float,
-    kappa_1: float = 1.0,
-    bias: float = 0.0,
-    data: np.ndarray = np.array(0.0),
-    response_function: Optional[Callable] = None,
+    kappa_1: float,
+    bias: float,
+    data: np.ndarray,
+    response_function: Callable,
+    model_type: str,
+    n_levels: int,
     response_function_parameters: Tuple = (),
-    model_type: str = "continuous",
-    n_levels: int = 2,
 ) -> jnp.DeviceArray:
     """Compute the log probability from the HGF model given the data and parameters.
 
@@ -43,13 +43,13 @@ def hgf_logp(
     response_function : callable
         The response function to use to compute the model surprise.
     response_function_parameters : tuple
-        (Optional) Additional parameters to the response function.    
+        Additional parameters to the response function.    
     model_type : str
         The model type to use (can be "continuous" or "binary").
     n_levels : int
         The number of hierarchies in the perceptual model (can be `2` or `3`). If
         `None`, the nodes hierarchy is not created and might be provided afterward
-        using `add_nodes()`. Default sets to `2`.
+        using `add_nodes()`.
 
     """
 
@@ -70,8 +70,11 @@ def hgf_logp(
             rho=rho,
             kappas=kappas,
             bias=bias,
-            verbose=False,
             n_levels=n_levels,
+            eta0=0.0,
+            eta1=1.0,
+            pihat=jnp.inf,
+            verbose=False,
         )
         .input_data(data)
         .surprise(
