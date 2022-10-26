@@ -7,10 +7,10 @@ The exact computations of the **UPDATE** depend on the nature of the coupling wi
 If Node~$i$ is the value parent of Node $i-1$, then the following update equations apply to Node~$i$:
 
 $$
-\begin{align*}
+\begin{align}
 \pi_i^{(k)} &= \hat{\pi}_i^{(k)} + \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}\\
 \mu_i^{(k)} &= \hat{\mu}_i^{(k)} + \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}} {\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)} + \hat{\pi}_{i}^{(k)}} \delta_{i-1}^{(k)}
-\end{align*}
+\end{align}
 $$
 
 We note here that we can let the update of the precision happen first, and therefore use it for the update of the mean:

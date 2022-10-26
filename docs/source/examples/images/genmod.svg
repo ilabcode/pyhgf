@@ -14,7 +14,7 @@
    id="svg8"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
    sodipodi:docname="genmod.svg"
-   inkscape:export-filename="C:\Users\au646069\Downloads\logo.png"
+   inkscape:export-filename="C:\Users\au646069\Downloads\genmod.png"
    inkscape:export-xdpi="300"
    inkscape:export-ydpi="300">
   <defs
@@ -232,10 +232,10 @@
      inkscape:current-layer="text835"
      inkscape:document-rotation="0"
      showgrid="false"
-     inkscape:window-width="3200"
-     inkscape:window-height="1711"
-     inkscape:window-x="2391"
-     inkscape:window-y="733"
+     inkscape:window-width="2560"
+     inkscape:window-height="1351"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
      inkscape:window-maximized="1"
      showguides="true"
      inkscape:guide-bbox="true" />
@@ -329,14 +329,14 @@
          y="-82.599388"
          transform="rotate(45)" />
       <path
-         style="fill:none;stroke:#333333;stroke-width:0.626345;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#DotL)"
+         style="fill:none;stroke:#333333;stroke-width:0.62634498;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.62634498,0.62634498;stroke-opacity:1;marker-end:url(#DotL);stroke-dashoffset:0"
          d="m 82.197471,-34.615703 c 4.826441,0.351533 9.653211,0.703089 13.184378,1.902671 3.531168,1.199581 5.766351,3.247078 8.001561,5.294604"
          id="path866"
          inkscape:path-effect="#path-effect868"
          inkscape:original-d="m 82.197471,-34.615703 c 4.82641,0.351954 9.65318,0.703509 14.48027,1.054667 2.23492,2.047974 4.470099,4.095472 6.705669,6.142608"
          sodipodi:nodetypes="ccc" />
       <path
-         style="fill:none;stroke:#333333;stroke-width:0.626345;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1218)"
+         style="fill:none;stroke:#333333;stroke-width:0.62634498;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.62634498,0.62634498;stroke-opacity:1;marker-end:url(#marker1218);stroke-dashoffset:0"
          d="m 141.69181,2.2737346 c -4.82644,0.3515363 -9.65321,0.7030966 -13.18438,1.9026808 -3.53117,1.1995842 -5.76635,3.2470864 -8.00156,5.2946077"
          id="path1212"
          inkscape:path-effect="#path-effect1214"
@@ -498,7 +498,7 @@
            transform="rotate(45)" />
       </g>
       <path
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:84.0967px;line-height:1.25;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.626345;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1218-2)"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:84.0967px;line-height:1.25;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.62599999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.62599999,0.62599999;stroke-opacity:1;marker-end:url(#marker1218-2);stroke-dashoffset:0"
          d="m 184.62099,-52.340116 c -4.82644,0.351536 -9.65321,0.703097 -13.18438,1.902681 -3.53117,1.199584 -5.76635,3.247086 -8.00156,5.294608"
          id="path1212-2"
          inkscape:path-effect="#path-effect1661"
