@@ -11,7 +11,7 @@ from ghgf.binary import binary_surprise, loop_binary_inputs
 from ghgf.continuous import loop_continuous_inputs
 from ghgf.plots import plot_correlations, plot_trajectories
 from ghgf.response import gaussian_surprise
-from ghgf.typing import ParametersType, node_validation
+from ghgf.typing import ParametersType
 
 
 class HGF(object):
@@ -32,7 +32,7 @@ class HGF(object):
         After oberving the data using the `input_data` method, the output of the model
         are stored in the `hgf_results` dictionary.
     bias : float
-        Input bias (only relevant is `model_type="continuous"`).
+        Input bias (only relevant if `model_type="continuous"`).
 
     """
 
@@ -217,14 +217,16 @@ class HGF(object):
 
     def add_nodes(self, nodes: Tuple):
         """Add a custom node structure.
+
         Parameters
         ----------
         nodes : tuple
             The input node embeding the node hierarchy that will be updated during
             model fit.
+
         """
-        node_validation(nodes, input_node=True)
         self.input_node = nodes  # type: ignore
+        return self
 
     def input_data(
         self,

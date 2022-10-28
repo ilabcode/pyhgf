@@ -52,36 +52,48 @@ def hgf_logp(
         using `add_nodes()`.
 
     """
+    
+    # Broadcast inputs to an array with length n>=1
+    omega_1, omega_2, omega_input, rho_1, rho_2, pi_1, pi_2, mu_1, mu_2, \
+        kappa_1, bias, _ = jnp.broadcast_arrays(
+            omega_1, omega_2, omega_input, rho_1, rho_2, 
+            pi_1, pi_2, mu_1, mu_2, kappa_1, bias, jnp.zeros([len(data)])
+            )
+    
+    surprise = 0.0
 
-    # Format HGF parameters
-    initial_mu: Dict[str, Optional[float]] = {"1": mu_1, "2": mu_2}
-    initial_pi: Dict[str, Optional[float]] = {"1": pi_1, "2": pi_2}
-    omega: Dict[str, Optional[float]] = {"1": omega_1, "2": omega_2}
-    rho: Dict[str, Optional[float]] = {"1": rho_1, "2": rho_2}
-    kappas: Dict[str, Optional[float]] = {"1": kappa_1}
+    # Fitting n HGF models to the n datasets
+    for i in range(len(data)):
 
-    surprise = (
-        HGF(
-            model_type=model_type,
-            initial_mu=initial_mu,
-            initial_pi=initial_pi,
-            omega=omega,
-            omega_input=omega_input,
-            rho=rho,
-            kappas=kappas,
-            bias=bias,
-            n_levels=n_levels,
-            eta0=0.0,
-            eta1=1.0,
-            pihat=jnp.inf,
-            verbose=False,
+        # Format HGF parameters
+        initial_mu: Dict[str, Optional[float]] = {"1": mu_1[i], "2": mu_2[i]}
+        initial_pi: Dict[str, Optional[float]] = {"1": pi_1[i], "2": pi_2[i]}
+        omega: Dict[str, Optional[float]] = {"1": omega_1[i], "2": omega_2[i]}
+        rho: Dict[str, Optional[float]] = {"1": rho_1[i], "2": rho_2[i]}
+        kappas: Dict[str, Optional[float]] = {"1": kappa_1[i]}
+
+        surprise = surprise + (
+            HGF(
+                initial_mu=initial_mu,
+                initial_pi=initial_pi,
+                omega=omega,
+                omega_input=omega_input[i],
+                rho=rho,
+                kappas=kappas,
+                bias=bias[i],
+                model_type=model_type,
+                n_levels=n_levels,
+                eta0=0.0,
+                eta1=1.0,
+                pihat=jnp.inf,
+                verbose=False,
+            )
+            .input_data(data[i])
+            .surprise(
+                response_function=response_function,
+                response_function_parameters=response_function_parameters,
+            )
         )
-        .input_data(data)
-        .surprise(
-            response_function=response_function,
-            response_function_parameters=response_function_parameters,
-        )
-    )
 
     # Return the sum of the log probabilities (negative surprise)
     return -surprise

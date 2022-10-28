@@ -21,16 +21,16 @@ class Testmodel(TestCase):
         jaxhgf = HGF(
             n_levels=2,
             model_type="continuous",
-            initial_mu={"1": 1.04, "2": 1.0},
+            initial_mu={"1": data[0, 0], "2": 0.0},
             initial_pi={"1": 1e4, "2": 1e1},
-            omega={"1": -13.0, "2": -2.0},
+            omega={"1": -3.0, "2": -3.0},
             rho={"1": 0.0, "2": 0.0},
             kappas={"1": 1.0},
         )
         jaxhgf.input_data(input_data=data)
 
         surprise = jaxhgf.surprise()  # Sum the surprise for this model
-        assert jnp.isclose(surprise, -1922.2264)
+        assert jnp.isclose(surprise, -1938.0101)
 
 
 if __name__ == "__main__":

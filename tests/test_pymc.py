@@ -30,11 +30,12 @@ class TestPyMC(TestCase):
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
+
         jax_logp = jit(
             Partial(
                 hgf_logp,
                 n_levels=2,
-                data=input_data,
+                data=[input_data],
                 response_function=gaussian_surprise,
                 model_type="continuous",
                 response_function_parameters=None,
@@ -42,17 +43,17 @@ class TestPyMC(TestCase):
         )
 
         logp = jax_logp(
-            omega_1=jnp.array(-3.0),
-            omega_2=jnp.array(-3.0),
-            omega_input=jnp.log(1e-4),
-            rho_1=jnp.array(0.0),
-            rho_2=jnp.array(0.0),
-            pi_1=jnp.array(1e4),
-            pi_2=jnp.array(1e1),
-            mu_1=jnp.array(input_data[0][0]),
-            mu_2=jnp.array(0.0),
-            kappa_1=jnp.array(1.0),
-            bias=jnp.array(0.0),
+            omega_1=-3.0,
+            omega_2=-3.0,
+            omega_input=np.log(1e-4),
+            rho_1=0.0,
+            rho_2=0.0,
+            pi_1=1e4,
+            pi_2=1e1,
+            mu_1=input_data[0][0],
+            mu_2=0.0,
+            kappa_1=1.0,
+            bias=0.0,
         )
         assert jnp.isclose(logp, 1938.0101)
 
@@ -70,7 +71,7 @@ class TestPyMC(TestCase):
             Partial(
                 hgf_logp,
                 n_levels=2,
-                data=input_data,
+                data=[input_data],
                 response_function=binary_surprise,
                 model_type="binary",
                 response_function_parameters=None,
@@ -78,9 +79,9 @@ class TestPyMC(TestCase):
         )
 
         logp = jax_logp(
-            omega_1=None,
+            omega_1=jnp.inf,
             omega_2=jnp.array(-6.0),
-            omega_input=None,
+            omega_input=jnp.inf,
             rho_1=jnp.array(0.0),
             rho_2=jnp.array(0.0),
             pi_1=jnp.array(0.0),
@@ -100,8 +101,6 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-
-        # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
@@ -111,7 +110,7 @@ class TestPyMC(TestCase):
                 Partial(
                     hgf_logp,
                     n_levels=2,
-                    data=input_data,
+                    data=[input_data],
                     response_function=gaussian_surprise,
                     model_type="continuous",
                     response_function_parameters=None,
@@ -154,8 +153,6 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-
-        # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
@@ -166,7 +163,7 @@ class TestPyMC(TestCase):
                 Partial(
                     hgf_logp,
                     n_levels=2,
-                    data=input_data,
+                    data=[input_data],
                     response_function=binary_surprise,
                     model_type="binary",
                     response_function_parameters=None,
@@ -196,7 +193,7 @@ class TestPyMC(TestCase):
                 np.array(0.0),
         )
 
-        assert jnp.isclose(omega_1, 0.47931308)
+        assert jnp.isclose(omega_2, -23.445244)
 
     def test_aesara_logp(self):
         """Test the aesara hgf_logp op."""
@@ -207,14 +204,12 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-
-        # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
         hgf_logp_op = HGFDistribution(
-            data=input_data,
+            data=[input_data],
             model_type="continuous",
             n_levels=2,
             response_function=gaussian_surprise,
@@ -243,14 +238,12 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-
-        # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
         hgf_logp_op = HGFDistribution(
-            data=input_data,
+            data=[input_data],
             model_type="binary",
             n_levels=2,
             response_function=binary_surprise,
@@ -258,20 +251,20 @@ class TestPyMC(TestCase):
         )
 
         logp = hgf_logp_op(
-            omega_1=np.array(-6.0),
-            omega_2=np.array(-3.0),
-            omega_input=np.log(1e-4),
-            rho_1=np.array(0.0),
-            rho_2=np.array(0.0),
-            pi_1=np.array(1e4),
-            pi_2=np.array(1e1),
-            mu_1=np.array(input_data[0][0]),
-            mu_2=np.array(0.0),
-            kappa_1=np.array(1.0),
-            bias=np.array(0.0),
+            omega_1=np.inf,
+            omega_2=-6.0,
+            omega_input=np.inf,
+            rho_1=0.0,
+            rho_2=0.0,
+            pi_1=0.0,
+            pi_2=1e4,
+            mu_1=np.inf,
+            mu_2=0.5,
+            kappa_1=1.0,
+            bias=np.inf,
         ).eval()
 
-        #assert jnp.isclose(logp, -300.68566895)
+        assert jnp.isclose(logp, -237.23080444)
 
     def test_aesara_grad_logp(self):
         """Test the aesara gradient hgf_logp op."""
@@ -290,24 +283,24 @@ class TestPyMC(TestCase):
 
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="continuous",
-            data=input_data,
+            data=[input_data],
             n_levels=2,
             response_function=gaussian_surprise,
             response_function_parameters=None,
         )
 
         omega_1 = hgf_logp_grad_op(
-            omega_1=np.array(-3.0),
-            omega_2=np.array(-3.0),
+            omega_1=-3.0,
+            omega_2=-3.0,
             omega_input=np.log(1e-4),
-            rho_1=np.array(0.0),
-            rho_2=np.array(0.0),
-            pi_1=np.array(1e4),
-            pi_2=np.array(1e1),
-            mu_1=np.array(input_data[0, 0]),
-            mu_2=np.array(0.0),
-            kappa_1=np.array(1.0),
-            bias=np.array(0.0),
+            rho_1=0.0,
+            rho_2=0.0,
+            pi_1=1e4,
+            pi_2=1e1,
+            mu_1=input_data[0, 0],
+            mu_2=0.0,
+            kappa_1=1.0,
+            bias=0.0,
         )[0].eval()
 
         assert jnp.isclose(omega_1, 0.47931308)
@@ -327,27 +320,27 @@ class TestPyMC(TestCase):
 
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="binary",
-            data=input_data,
+            data=[input_data],
             n_levels=2,
             response_function=binary_surprise,
             response_function_parameters=None,
         )
 
-        omega_1 = hgf_logp_grad_op(
-            omega_1=np.array(-3.0),
-            omega_2=np.array(-3.0),
-            omega_input=np.log(1e-4),
-            rho_1=np.array(0.0),
-            rho_2=np.array(0.0),
-            pi_1=np.array(1e4),
-            pi_2=np.array(1e1),
-            mu_1=np.array(input_data[0, 0]),
-            mu_2=np.array(0.0),
-            kappa_1=np.array(1.0),
-            bias=np.array(0.0),
-        )[0].eval()
+        omega_2 = hgf_logp_grad_op(
+            omega_1=np.inf,
+            omega_2=-6.0,
+            omega_input=np.inf,
+            rho_1=0.0,
+            rho_2=0.0,
+            pi_1=0.0,
+            pi_2=1e4,
+            mu_1=np.inf,
+            mu_2=0.5,
+            kappa_1=1.0,
+            bias=np.inf,
+        )[1].eval()
 
-        assert jnp.isclose(omega_1, 0.)
+        assert jnp.isclose(omega_2, -8.976405)
 
     def test_pymc_sampling(self):
         """Test the aesara hgf_logp op."""
@@ -358,15 +351,13 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-
-        # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
 
         hgf_logp_op = HGFDistribution(
             n_levels=2,
-            data=input_data,
+            data=[input_data],
             response_function=gaussian_surprise,
             response_function_parameters=(np.array(1), 1),
         )
@@ -410,8 +401,6 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-
-        # Repeate the input time series 3 time to test for multiple models
         input_data = np.array(
             [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
         ).T
@@ -419,43 +408,43 @@ class TestPyMC(TestCase):
         hgf_logp_op = HGFDistribution(
             n_levels=2,
             model_type="binary",
-            data=input_data,
+            data=[input_data],
             response_function=binary_surprise,
             response_function_parameters=(np.array(1), 1),
         )
 
-        # with pm.Model() as model:
+        with pm.Model() as model:
 
-        #     omega_2 = pm.Normal("omega_2", -11.0, 2)
+            omega_2 = pm.Normal("omega_2", -11.0, 2)
 
-        #     pm.Potential(
-        #         "hhgf_loglike",
-        #         hgf_logp_op(
-        #             omega_1=np.array(0.0),
-        #             omega_2=omega_2,
-        #             omega_input=np.log(1e-4),
-        #             rho_1=np.array(0.0),
-        #             rho_2=np.array(0.0),
-        #             pi_1=np.array(1e4),
-        #             pi_2=np.array(1e1),
-        #             mu_1=np.array(input_data[0, 0]),
-        #             mu_2=np.array(0.0),
-        #             kappa_1=np.array(1.0),
-        #             bias=np.array(0.0),
-        #         ),
-        #     )
+            pm.Potential(
+                "hhgf_loglike",
+                hgf_logp_op(
+                    omega_1=np.inf,
+                    omega_2=omega_2,
+                    omega_input=np.inf,
+                    rho_1=0.0,
+                    rho_2=0.0,
+                    pi_1=0.0,
+                    pi_2=1e4,
+                    mu_1=np.inf,
+                    mu_2=0.5,
+                    kappa_1=1.0,
+                    bias=0.0,
+                ),
+            )
 
-        # initial_point = model.initial_point()
+        initial_point = model.initial_point()
 
-        # pointslogs = model.point_logps(initial_point)
-        # assert pointslogs["omega_2"] == -1.61
-        # assert pointslogs["hhgf_loglike"] == -225.69
+        pointslogs = model.point_logps(initial_point)
+        assert pointslogs["omega_2"] == -1.61
+        assert pointslogs["hhgf_loglike"] == -228.67
 
-        # with model:
-        #     idata = pm.sample(chains=4, cores=4, tune=1000)
+        with model:
+            idata = pm.sample(chains=4, cores=4, tune=1000)
 
-        # assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
-        # assert az.summary(idata)["r_hat"].values[0] == 1
+        assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
+        assert az.summary(idata)["r_hat"].values[0] == 1
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)
