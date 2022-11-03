@@ -101,8 +101,6 @@ least the HGF instance as input after observation and returning surprise.
 
    gaussian_surprise
    binary_surprise
-   hrd_behaviors
-   hrd_ideal_oberver
 
 Typing
 ------

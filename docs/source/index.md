@@ -105,7 +105,7 @@ This implementation of the Hierarchical Gaussian Filter was largely inspired by 
 hidden:
 ---
 Theory <theory.md>
-Guide <user_guide.md>
+Tutorials <tutorials.md>
 API <api.rst>
 Cite <cite.md>
 References <references.md>

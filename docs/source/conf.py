@@ -25,12 +25,6 @@ release = ghgf.__version__
 
 image_scrapers = ("matplotlib",)
 
-sphinx_gallery_conf = {
-    "examples_dirs": "./examples/",
-    "backreferences_dir": "api",
-    "image_scrapers": image_scrapers,
-}
-
 bibtex_bibfiles = ['refs.bib']
 bibtex_reference_style = "author_year"
 bibtex_default_style = "unsrt"
@@ -48,13 +42,11 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
-    "sphinx_gallery.gen_gallery",
     "matplotlib.sphinxext.plot_directive",
     "numpydoc",
     "jupyter_sphinx",
     "sphinx_panels",
     "myst_nb",
-    "sphinx_gallery.load_style",
     "sphinxcontrib.bibtex"
 ]
 
@@ -85,7 +77,6 @@ exclude_patterns = []
 
 # -- Options for HTML output -------------------------------------------------
 
-html_static_path = ['_static']
 html_logo = "images/logo_small.svg"
 html_favicon = "images/logo_small.svg"
 

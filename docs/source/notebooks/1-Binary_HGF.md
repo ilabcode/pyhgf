@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-(continuous_hgf)=
+(binary_hgf)=
 # The binary Hierarchical Gaussian Filter
 
 ```{code-cell} ipython3
@@ -20,8 +20,6 @@ import jax.numpy as jnp
 from ghgf.model import HGF
 from ghgf import load_data
 import seaborn as sns
-
-sns.set_context('talk')
 ```
 
 ## Imports
@@ -93,4 +91,8 @@ three_levels_hgf = three_levels_hgf.input_data(data)
 
 ```{code-cell} ipython3
 three_levels_hgf.plot_trajectories()
+```
+
+```{code-cell} ipython3
+
 ```
