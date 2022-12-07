@@ -1,4 +1,4 @@
-<img src="docs/source/images/logo.png" align="center" alt="hgf" VSPACE=30>
+![png](./images/logo.png)
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/LegrandNico/metadPy/blob/master/LICENSE) [![travis](https://travis-ci.com/LegrandNico/ghgf.svg?branch=master)](https://travis-ci.com/LegandNico/ghgf) [![codecov](https://codecov.io/gh/LegrandNico/ghgf/branch/master/graph/badge.svg)](https://codecov.io/gh/LegrandNico/ghgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
@@ -21,8 +21,6 @@ The Hierarchical Gaussian Filter consists of a hierarchy of interdependent nodes
 1. A `parameter` dictionary containing the node parameters (value, precision and parameters controlling the dependencies from values and variability parents).
 2. A value parent (optional).
 3. A volatility parent (optional).
-
-![Figure1](./docs/source/examples/images/genmod.png)
 
 Value parent (`vapa`) and volatility (`vopa`) parent are nodes themself and are organized following the same principle.
 
@@ -67,13 +65,8 @@ Fitting the continuous Hierarchical Gaussian Filter (JAX) with 2 levels.
 `
 
 ```python
-%%timeit
 jaxhgf.input_data(input_data=data)
 ```
-
-`
-3.08 ms ± 104 µs per loop (mean ± std. dev. of 7 runs, 1 loop each)
-`
 
 Get the surprise associated with this model.
 
@@ -91,7 +84,7 @@ Plot the beliefs trajectories.
 jaxhgf.plot_trajectories()
 ```
 
-![png](./docs/source/images/trajectories.png)
+![png](./images/trajectories.png)
 
 ## Tutorials
 
@@ -107,8 +100,13 @@ You can find detailled introduction to different version of the Hierarchical Gau
 
 This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab implementation](https://translationalneuromodeling.github.io/tapas). A Julia implementation can be found [here](https://github.com/ilabcode/HGF.jl).
 
-## References
-
-1. Mathys, C. (2011). A Bayesian foundation for individual learning under uncertainty. In Frontiers in Human Neuroscience (Vol. 5). Frontiers Media SA. https://doi.org/10.3389/fnhum.2011.00039
-2. Mathys, C. D., Lomakina, E. I., Daunizeau, J., Iglesias, S., Brodersen, K. H., Friston, K. J., & Stephan, K. E. (2014). Uncertainty in perception and the hierarchical Gaussian filter. Frontiers in Human Neuroscience, 8. https://doi.org/10.3389/fnhum.2014.00825
-3. Powers, A. R., Mathys, C., & Corlett, P. R. (2017). Pavlovian conditioning-induced hallucinations result from overweighting of perceptual priors. Science (New York, N.Y.), 357(6351), 596–600. https://doi.org/10.1126/science.aan3458
+```{toctree}
+---
+hidden:
+---
+Theory <theory.md>
+Tutorials <tutorials.md>
+API <api.rst>
+Cite <cite.md>
+References <references.md>
+```

@@ -1,0 +1,36 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - ecg
+  pull_request:
+    branches:
+      - ecg
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+
+      - name: Build
+        run: |
+          pip install git+https://github.com/embodied-computation-group/systole.git@dev
+          pip install .
+          pip install -r requirements-docs.txt
+          sphinx-build -b html docs/source docs/build/html
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/build/html
+          BRANCH: gh-pages

@@ -1,0 +1,7 @@
+numpy>=1.17
+numba>=0.51.2
+matplotlib>=3.4.3
+arviz>=0.12.0
+pymc>=4.0.0
+jax
+jaxlib
