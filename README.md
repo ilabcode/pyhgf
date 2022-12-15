@@ -7,8 +7,8 @@
 GHGF is the Python version of the generalized and nodalized Hierarchical Gaussian Filter implemented [JAX](https://github.com/google/jax), which allows just-it-time compilation and autograd. The package provides a low-level interface for models creation that can be optimized and embedded in multilevel graphical probabilistic models.
 
 📖 [Documentation](https://ilabcode.github.io/ghgf/)  
-🎓 [Theory](https://ilabcode.github.io/ghgf/theory.html)
-✏️ [Examples](https://ilabcode.github.io/ghgf/tutorials.html)
+🎓 [Theory](https://ilabcode.github.io/ghgf/theory.html)  
+✏️ [Examples](https://ilabcode.github.io/ghgf/tutorials.html)  
 
 ## Getting started
 

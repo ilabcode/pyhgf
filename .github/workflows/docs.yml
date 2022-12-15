@@ -3,10 +3,10 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - ecg
+      - master
   pull_request:
     branches:
-      - ecg
+      - master
 permissions:
   contents: write
 
