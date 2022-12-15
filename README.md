@@ -4,29 +4,35 @@
 
 # The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
-**GHGF** is a Python library that implements the generalized and nodalized Hierarchical Gaussian Filter in Python. It is built on the to of [JAX](https://jax.readthedocs.io/en/latest/jax.html) and [Numba](http://numba.pydata.org/) and can easily be embedded in any [PyMC](https://www.pymc.io/welcome.html) probabilisic model for MCMC sampling.
+GHGF is the Python version of the generalized and nodalized Hierarchical Gaussian Filter implemented [JAX](https://github.com/google/jax), which allows just-it-time compilation and autograd. The package provides a low-level interface for models creation that can be optimized and embedded in multilevel graphical probabilistic models.
+
+📖 [Documentation](https://ilabcode.github.io/ghgf/)  
+🎓 [Theory](https://ilabcode.github.io/ghgf/theory.html)
+✏️ [Examples](https://ilabcode.github.io/ghgf/tutorials.html)
 
 ## Getting started
 
 ### Installation
 
-The latest release of **HGF** can be installed from the GitHub folder:
+The latest version of **ghgf** can be installed from the GitHub folder:
 
-`pip install “git+https://github.com/ilabcode/ghgf.git@ecg”`
+`pip install “git+https://github.com/ilabcode/ghgf.git”`
 
 ### How does it works?
 
-The Hierarchical Gaussian Filter consists of a hierarchy of interdependent nodes that are being updated after observing input data. The value of a node depends on the value of its value and volatility parents. A node is formally defined as a Python tuple containing 3 variables:
+A Hierarchical Gaussian Filter is a hierarchy of interdependent nodes. Each node can (optionnaly) inherite its values and/or variability for other node higer in the hierarchy. The observation of an input data in the entry node at the lower part of the hierarchy trigger a recursuve update of the nodes values.
+
+A node is formally defined as a Python tuple containing 3 variables:
 
 1. A `parameter` dictionary containing the node parameters (value, precision and parameters controlling the dependencies from values and variability parents).
 2. A value parent (optional).
 3. A volatility parent (optional).
 
-![Figure1](./docs/source/examples/images/genmod.png)
+![Figure1](https://github.com/ilabcode/HierarchicalGaussianFiltering.jl/raw/main/docs/src/theory/images/genmod.png)
 
-Value parent (`vapa`) and volatility (`vopa`) parent are nodes themself and are organized following the same principle.
+Value parent (`vapa`) and volatility parent (`vopa`) are also nodes that can have value and/or volatility parents.
 
-The node structure consists of nodes embedding other nodes hierarchically (i.e. tuples embedding other tuples). A generalization of the standard Hierarchical Gaussian Filter can build a hierarchical structure containing an arbitrary number of nodes, inputs and non-linear transformation between nodes. The structure continues as long as a given node has value or volatility parents. Well-known special cases of such hierarchies are the 2-level and 3-level Hierarchical Gaussian Filters.
+The node structure consists of nodes embedding other nodes hierarchically (i.e. here tuples containing other tuples). A generalization of the "standard" Hierarchical Gaussian Filter is any hierarchical structure containing an arbitrary number of nodes, inputs and (linear or non-linear) transformation between nodes. The structure ends when a top-level node is declared (a node that has no value and no volatility parents). Well-known special cases of such hierarchies are the 2-level and 3-level Hierarchical Gaussian Filters for continuous and/or binary inputs.
 
 ### Example
 
@@ -49,63 +55,56 @@ data = jnp.array(
         ]
     ).T
 
-# This is where we define all the model parameters - You can control the value of
-# different variables at different levels using the corresponding dictionary.
+# The HGF function will automatically create the stardards 2-3 levels continuous-binary 
+# HGF with recommended parameters and configurations. Here, we define custom model
+# parameters - You can control the value of different variables at different levels
+# using the corresponding dictionary, the nuber indicate the level in the hierarchy.
 hgf_model = HGF(
     n_levels=3,
     initial_mu={"1": 1.04, "2": 1.0, "3": 1.0},
     initial_pi={"1": 1e4, "2": 1e1, "3": 1.0},
     omega={"1": -13.0, "2": -2.0, "3": -2.0},
-    rho={"1": 0.0, "2": 0.0},
+    rho={"1": 0.0, "2": 0.0, "3": 0.0},
     kappas={"1": 1.0, "2": 1.0},
 )
 
 ```
 
 `
-Fitting the continuous Hierarchical Gaussian Filter (JAX) with 2 levels.
+Creating a continuous Hierarchical Gaussian Filter with 3 levels (JAX backend).
 `
 
+Add observations to the model.
+
 ```python
-%%timeit
-jaxhgf.input_data(input_data=data)
+hgf_model.add_input(data)
 ```
 
 `
-3.08 ms ± 104 µs per loop (mean ± std. dev. of 7 runs, 1 loop each)
+Add 614 new continuous observations.
 `
 
-Get the surprise associated with this model.
+Get the surprise associated with this model. By default, the action model will be the Gaussian Surprise for a continuous HGF, and a Binary Surprise for a binary HGF.
 
 ```python
-jaxhgf.surprise()
+hgf_model.surprise()
 ```
 
 `
-DeviceArray(-1922.2267, dtype=float32)
+DeviceArray(-1914.5474, dtype=float32)
 `
 
 Plot the beliefs trajectories.
 
 ```python
-jaxhgf.plot_trajectories()
+hgf_model.plot_trajectories()
 ```
 
 ![png](./docs/source/images/trajectories.png)
 
-## Tutorials
-
-You can find detailled introduction to different version of the Hierarchical Gaussian Filter applied to binary or continuous dataset in the following notebooks:
-
-| Notebook | Colab | nbViewer |
-| --- | ---| --- |
-| Binary HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/1-Binary%20HGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/1-Binary%20HGF.ipynb)
-| Continuous HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/2-Continuous%20HGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/2-Continuous%20HGF.ipynb)
-| Hierarchical HGF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb) |  [![View the notebook](https://img.shields.io/badge/render-nbviewer-orange.svg)](https://nbviewer.jupyter.org/github/ilabcode/ghgf/raw/ecg/notebooks/3-HierarchicalHGF.ipynb)
-
 # Acknoledgements
 
-This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab implementation](https://translationalneuromodeling.github.io/tapas). A Julia implementation can be found [here](https://github.com/ilabcode/HGF.jl).
+This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab version](https://translationalneuromodeling.github.io/tapas) and by the more recent [Julia implementation](https://github.com/ilabcode/HGF.jl).
 
 ## References
 
