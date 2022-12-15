@@ -126,7 +126,7 @@ three_levels_hgf.input_data(input_data=input_data)
 three_levels_hgf.plot_trajectories()
 ```
 
-## Surprise minimization
+# Parameters optimization using MCMC sampling
 
 The variety of parameters that are embedded in the Hierarchical Gaussian Filter can all influence the model fit, here measured using the gaussian surprise. One key question is then to estimate the parameters values that are more likely to minimise surprise, given the observations already made by the model. Because the HGF models we use here are all written in [JAX](https://github.com/google/jax), it is straightforward to embed this code into a computational graph, such as the ones build by [Aesara](https://aesara.readthedocs.io/en/latest/) in order to use MCMC sampling (e.g. NUST) to estimate the probability density for each of our parameters of interest. Here, we are going to use [PyMC](https://www.pymc.io/welcome.html) to perform this step.
 
@@ -139,10 +139,14 @@ from ghgf.response import gaussian_surprise
 
 We first import the `HGFDistribution`, that encapsulate a custom log_probability function of the HG (and its gradient). We also load the `gaussian_surprise` function from the `response` module. This function define how the agent is getting its insight on the model fit (here the surprise simply comes from observing a new value).
 
++++
+
+## Creating the model
+
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
     n_levels=2,
-    data=input_data,
+    data=[input_data],
     response_function=gaussian_surprise,
     response_function_parameters=(np.array(1), 1),
 )
@@ -172,6 +176,10 @@ with pm.Model() as two_level_hgf:
             bias=np.array(0.0),
         ),
     )
+```
+
+```{code-cell} ipython3
+pm.model_to_graphviz(two_level_hgf)
 ```
 
 ```{code-cell} ipython3

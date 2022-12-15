@@ -32,7 +32,7 @@ A node is formally defined as a Python tuple containing 3 variables:
 
 Value parent (`vapa`) and volatility parent (`vopa`) are also nodes that can have value and/or volatility parents.
 
-The node structure consists of nodes embedding other nodes hierarchically (i.e. here tuples containing other tuples). A generalization of the "standard" Hierarchical Gaussian Filter is any hierarchical structure containing an arbitrary number of nodes, inputs and (linear or non-linear) transformation between nodes. The structure ends when a top-level node is declared (a node that has no value and no volatility parents). Well-known special cases of such hierarchies are the 2-level and 3-level Hierarchical Gaussian Filters for continuous and/or binary inputs.
+The node structure consists of nodes embedding other nodes hierarchically (i.e. here tuples containing other tuples). A generalization of the "standard" Hierarchical Gaussian Filter is any hierarchical structure containing an arbitrary number of nodes, inputs and (linear or non-linear) transformation between nodes. The structure ends when a an orphean node is declared (a node that has no value and no volatility parents). Well-known special cases of such hierarchies are the 2-level and 3-level Hierarchical Gaussian Filters for continuous and/or binary inputs.
 
 ### Example
 

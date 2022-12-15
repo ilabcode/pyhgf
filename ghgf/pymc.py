@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple, List
 
 import aesara.tensor as at
 import jax.numpy as jnp
@@ -24,7 +24,7 @@ def hgf_logp(
     mu_2: float,
     kappa_1: float,
     bias: float,
-    data: np.ndarray,
+    data: List[np.ndarray],
     response_function: Callable,
     model_type: str,
     n_levels: int,
@@ -37,9 +37,9 @@ def hgf_logp(
     omega_1, omega_2, omega_3, rho_1, rho_2, rho_3, pi_1, pi_2, pi_3, mu_1, mu_2,
     mu_3, kappa_1, kappa_2, bias : DeviceArray
         The HGD parameters (see py:class:`ghgf.model.HGF` for details).
-    data : np.ndarray
-        The input data. If `model_type` is `"continuous"`, the data should be two times
-        series (time and values).
+    data : list
+        List of input data. If `model_type` is `"continuous"`, the data should be two
+        times series (time and values).
     response_function : callable
         The response function to use to compute the model surprise.
     response_function_parameters : tuple
@@ -255,7 +255,7 @@ class HGFDistribution(Op):
 
     def __init__(
         self,
-        data: np.ndarray = np.array(0.0),
+        data: List[np.array] = [],
         model_type: str = "continuous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
