@@ -17,7 +17,7 @@ kernelspec:
 
 ```{code-cell} ipython3
 from numpy import loadtxt
-from ghgf.pymc import hgf_logp, HGFDistribution
+from ghgf.distribution import hgf_logp, HGFDistribution
 from ghgf import load_data
 import jax.numpy as jnp
 import numpy as np
@@ -73,7 +73,7 @@ hgf_logp(
 
 +++
 
-Here, we are goingin to estimate the group-level value of the `omega_1` parameter. The dataset consist in 3 time series derived from the classic USD-SWF conversion rate example. Every time series will be fitted to an HGF model where the `omega_1` parameter has to be estimated and the other parameters are fixed. 
+Here, we are goingin to estimate the group-level value of the `omega_1` parameter. The dataset consist in 3 time series derived from the classic USD-SWF conversion rate example. Every time series will be fitted to an HGF model where the `omega_1` parameter has to be estimated and the other parameters are fixed.
 
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(

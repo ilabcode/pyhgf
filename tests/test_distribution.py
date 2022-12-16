@@ -12,7 +12,7 @@ from jax import grad, jit
 from jax.tree_util import Partial
 
 from ghgf import load_data
-from ghgf.pymc import HGFDistribution, HGFLogpGradOp, hgf_logp
+from ghgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
 from ghgf.response import gaussian_surprise, binary_surprise
 
 

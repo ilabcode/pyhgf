@@ -2,10 +2,10 @@
 
 from typing import Callable, Dict, Optional, Tuple, List
 
-import aesara.tensor as at
+import pytensor.tensor as pt
 import jax.numpy as jnp
 import numpy as np
-from aesara.graph import Apply, Op
+from pytensor.graph import Apply, Op
 from jax import grad, jit
 from jax.tree_util import Partial
 
@@ -140,17 +140,17 @@ class HGFLogpGradOp(Op):
 
         # Convert our inputs to symbolic variables
         inputs = [
-            at.as_tensor_variable(omega_1),
-            at.as_tensor_variable(omega_2),
-            at.as_tensor_variable(omega_input),
-            at.as_tensor_variable(rho_1),
-            at.as_tensor_variable(rho_2),
-            at.as_tensor_variable(pi_1),
-            at.as_tensor_variable(pi_2),
-            at.as_tensor_variable(mu_1),
-            at.as_tensor_variable(mu_2),
-            at.as_tensor_variable(kappa_1),
-            at.as_tensor_variable(bias),
+            pt.as_tensor_variable(omega_1),
+            pt.as_tensor_variable(omega_2),
+            pt.as_tensor_variable(omega_input),
+            pt.as_tensor_variable(rho_1),
+            pt.as_tensor_variable(rho_2),
+            pt.as_tensor_variable(pi_1),
+            pt.as_tensor_variable(pi_2),
+            pt.as_tensor_variable(mu_1),
+            pt.as_tensor_variable(mu_2),
+            pt.as_tensor_variable(kappa_1),
+            pt.as_tensor_variable(bias),
         ]
         # This `Op` will return one gradient per input. For simplicity, we assume
         # each output is of the same type as the input. In practice, you should use
@@ -310,20 +310,20 @@ class HGFDistribution(Op):
 
         # Convert our inputs to symbolic variables
         inputs = [
-            at.as_tensor_variable(omega_1),
-            at.as_tensor_variable(omega_2),
-            at.as_tensor_variable(omega_input),
-            at.as_tensor_variable(rho_1),
-            at.as_tensor_variable(rho_2),
-            at.as_tensor_variable(pi_1),
-            at.as_tensor_variable(pi_2),
-            at.as_tensor_variable(mu_1),
-            at.as_tensor_variable(mu_2),
-            at.as_tensor_variable(kappa_1),
-            at.as_tensor_variable(bias),
+            pt.as_tensor_variable(omega_1),
+            pt.as_tensor_variable(omega_2),
+            pt.as_tensor_variable(omega_input),
+            pt.as_tensor_variable(rho_1),
+            pt.as_tensor_variable(rho_2),
+            pt.as_tensor_variable(pi_1),
+            pt.as_tensor_variable(pi_2),
+            pt.as_tensor_variable(mu_1),
+            pt.as_tensor_variable(mu_2),
+            pt.as_tensor_variable(kappa_1),
+            pt.as_tensor_variable(bias),
         ]
         # Define the type of the output returned by the wrapped JAX function
-        outputs = [at.dscalar()]
+        outputs = [pt.dscalar()]
         return Apply(self, inputs, outputs)
 
     def perform(self, node, inputs, outputs):
