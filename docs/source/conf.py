@@ -108,6 +108,8 @@ html_theme_options = {
     }
 }
 
+myst_enable_extensions = ["dollarmath"]
+
 html_sidebars = {
   "api": [],
   "changelog": [],
