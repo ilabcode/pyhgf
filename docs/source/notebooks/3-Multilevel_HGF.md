@@ -30,7 +30,7 @@ In this tutorial, we are going to estimate the group-level probability density d
 +++
 
 ## Using the automated broadcasting for models creation
-Estimating group-level parameters in the context of a graphical probabilistic model require to fit multiple models at the same time, either on different input data, or on the same data with different parameters, or on different datasets with different parameters. This steps is handled natively both by the `:py:class:ghgf.pymc.hgf_logp` class and the `:py:class:ghgf.pymc.HGFDistribution` class through automated [broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html).
+Estimating group-level parameters in the context of a graphical probabilistic model require to fit multiple models at the same time, either on different input data, or on the same data with different parameters, or on different datasets with different parameters. This steps is handled natively both by the `:py:class:ghgf.distribution.hgf_logp` class and the `:py:class:ghgf.distribution.HGFDistribution` class through automated [broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html).
 
 ```{code-cell} ipython3
 # Create an example dataset using inverted copies of the original time series

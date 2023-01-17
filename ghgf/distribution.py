@@ -200,7 +200,7 @@ class HGFDistribution(Op):
     >>> import pymc as pm
     >>> from math import log
     >>> from ghgf import load_data
-    >>> from ghgf.pymc import HGFDistribution
+    >>> from ghgf.distribution import HGFDistribution
     >>> from ghgf.response import gaussian_surprise
 
     Create the data (value and time vectors)
@@ -209,8 +209,8 @@ class HGFDistribution(Op):
     >>>     [timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]
     >>> ).T
 
-    We create the PyMC distribution here, specifying the type of model and
-    response function we want to use (i.e simple gaussian surprise).
+    We create the PyMC distribution here, specifying the type of model and response 
+    function we want to use (i.e simple gaussian surprise).
     >>> hgf_logp_op = HGFDistribution(
     >>>     n_levels=2,
     >>>     data=input_data,
