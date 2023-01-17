@@ -14,11 +14,15 @@ class Testmodel(TestCase):
     def test_HGF(self):
         """Test the model class"""
 
+        ##############
+        # Continuous #
+        ##############
+
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
         data = np.array([timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]).T
 
-        jaxhgf = HGF(
+        two_levels_continuous_hgf = HGF(
             n_levels=2,
             model_type="continuous",
             initial_mu={"1": data[0, 0], "2": 0.0},
@@ -27,10 +31,38 @@ class Testmodel(TestCase):
             rho={"1": 0.0, "2": 0.0},
             kappas={"1": 1.0},
         )
-        jaxhgf.input_data(input_data=data)
+        two_levels_continuous_hgf.input_data(input_data=data)
 
-        surprise = jaxhgf.surprise()  # Sum the surprise for this model
+        surprise = two_levels_continuous_hgf.surprise()  # Sum the surprise for this model
         assert jnp.isclose(surprise, -1938.0101)
+
+
+        ##########
+        # Binary #
+        ##########
+
+        timeserie = load_data("binary")
+
+        # Format the data input accordingly (a value column and a time column)
+        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+
+        two_levels_binary_hgf = HGF(
+            n_levels=2,
+            model_type="binary",
+            initial_mu={"1": .0, "2": .5},
+            initial_pi={"1": .0, "2": 1e4},
+            omega={"1": None, "2": -6.0},
+            rho={"1": None, "2": 0.0},
+            kappas={"1": None},
+            eta0=0.0,
+            eta1=1.0,
+            pihat = jnp.inf,
+        )
+
+        # Provide new observations
+        two_levels_binary_hgf = two_levels_binary_hgf.input_data(data)
+        surprise = two_levels_binary_hgf.surprise()
+        assert jnp.isclose(surprise, 237.2308)
 
 
 if __name__ == "__main__":

@@ -7,10 +7,10 @@ import jax.numpy as jnp
 import numpy as np
 from jax.lax import scan
 
-from ghgf.binary import binary_surprise, loop_binary_inputs
+from ghgf.binary import loop_binary_inputs
 from ghgf.continuous import loop_continuous_inputs
 from ghgf.plots import plot_correlations, plot_trajectories
-from ghgf.response import gaussian_surprise
+from ghgf.response import gaussian_surprise, binary_surprise
 from ghgf.typing import ParametersType
 
 
