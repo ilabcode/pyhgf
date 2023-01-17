@@ -1,30 +1,44 @@
 ![png](./images/logo.png)
 
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/LegrandNico/metadPy/blob/master/LICENSE) [![travis](https://travis-ci.com/LegrandNico/ghgf.svg?branch=master)](https://travis-ci.com/LegandNico/ghgf) [![codecov](https://codecov.io/gh/LegrandNico/ghgf/branch/master/graph/badge.svg)](https://codecov.io/gh/LegrandNico/ghgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/ilabcode/ghgf/blob/master/LICENSE) [![codecov](https://codecov.io/gh/ilabcode/ghgf/branch/master/graph/badge.svg)](https://codecov.io/gh/ilabcode/ghgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
 # The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
-**GHGF** is a Python library that implements the generalized and nodalized Hierarchical Gaussian Filter in Python. It is built on the to of [JAX](https://jax.readthedocs.io/en/latest/jax.html) and [Numba](http://numba.pydata.org/) and can easily be embedded in any [PyMC](https://www.pymc.io/welcome.html) probabilisic model for MCMC sampling.
+gHGF is a library for generalized and nodalized Hierarchical Gaussian Filters for predictive coding written in [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library consists in a set of function to create graphs of interconnected nodes and recursively update them using prediction errors under new observations. The codebase is also compatible with other JAX libraries to perform Hamiltonian Monte Carlo ([PyMC](https://www.pymc.io/welcome.html), [Blackjax](https://blackjax-devs.github.io/blackjax/)) or gradient descent for parameters estimation.
+
+📖 [Documentation](https://ilabcode.github.io/ghgf/)  
+🎓 [Theory](https://ilabcode.github.io/ghgf/theory.html)  
+✏️ [Examples](https://ilabcode.github.io/ghgf/tutorials.html)  
 
 ## Getting started
 
 ### Installation
 
-The latest release of **HGF** can be installed from the GitHub folder:
+The latest release of gHGF can be installed from the GitHub folder:
 
-`pip install “git+https://github.com/ilabcode/ghgf.git@ecg”`
+`pip install ghgf`
+
+The latest development version of the codebase can be installed from the GitHub folder:
+
+`pip install “git+https://github.com/ilabcode/ghgf”`
 
 ### How does it works?
 
-The Hierarchical Gaussian Filter consists of a hierarchy of interdependent nodes that are being updated after observing input data. The value of a node depends on the value of its value and volatility parents. A node is formally defined as a Python tuple containing 3 variables:
+A Hierarchical Gaussian Filter is a hierarchy of interdependent nodes. Each node can (optionnaly) inherite its values and/or variability for other node higer in the hierarchy. The observation of an input data in the entry node at the lower part of the hierarchy trigger a recursuve update of the nodes values.
+
+A node is formally defined as a Python tuple containing 3 variables:
 
 1. A `parameter` dictionary containing the node parameters (value, precision and parameters controlling the dependencies from values and variability parents).
 2. A value parent (optional).
 3. A volatility parent (optional).
 
-Value parent (`vapa`) and volatility (`vopa`) parent are nodes themself and are organized following the same principle.
+![Figure1](./images/genmod.png)
 
-The node structure consists of nodes embedding other nodes hierarchically (i.e. tuples embedding other tuples). A generalization of the standard Hierarchical Gaussian Filter can build a hierarchical structure containing an arbitrary number of nodes, inputs and non-linear transformation between nodes. The structure continues as long as a given node has value or volatility parents. Well-known special cases of such hierarchies are the 2-level and 3-level Hierarchical Gaussian Filters.
+Value parent (`vapa`) and volatility parent (`vopa`) are also nodes that can have value and/or volatility parents.
+
+The node structure consists of nodes embedding other nodes hierarchically (i.e. here tuples containing other tuples). A generalization of the "standard" Hierarchical Gaussian Filter is any hierarchical structure containing an arbitrary number of nodes, inputs and (linear or non-linear) transformation between nodes. The structure ends when a an orphean node is declared (a node that has no value and no volatility parents).
+
+Well-known special cases of such hierarchies are the 2-level and 3-level Hierarchical Gaussian Filters for binary of continuous inputs.
 
 ### Example
 
@@ -98,7 +112,7 @@ You can find detailled introduction to different version of the Hierarchical Gau
 
 # Acknoledgements
 
-This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab implementation](https://translationalneuromodeling.github.io/tapas). A Julia implementation can be found [here](https://github.com/ilabcode/HGF.jl).
+This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab version](https://translationalneuromodeling.github.io/tapas). A Julia implementation is also available [here](https://github.com/ilabcode/HGF.jl).
 
 ```{toctree}
 ---

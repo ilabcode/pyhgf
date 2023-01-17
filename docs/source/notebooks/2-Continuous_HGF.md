@@ -20,6 +20,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ghgf import load_data
 from ghgf.model import HGF
+import seaborn as sns
+
+sns.set_context("talk")
 ```
 
 In this example, we will use the exchange rate of the US Dollar to the Swiss Franc during much of 2010 and 2011 as a time series that the Hierarchical Gaussian Filter is going to predict.
@@ -238,8 +241,13 @@ hgf_mcmc.surprise()
 
 Looking at the volatility (ie, the second) level, we see that there are two salient events in our time series where volatility shoots up. The first is in April 2010 when the currency markets react to the news that Greece is effectively broke. This leads to a flight into the US dollar (green dots rising very quickly), sending the volatility higher. The second is an accelarating increase in the value of the Swiss Franc in Augutst and September 2011, as the Euro crisis drags on. The point where the Swiss central bank intervened and put a floor under how far the Euro could fall with respect to the Franc is clearly visible in the Franc's valuation against the dollar. This surprising intervention shows up as another spike in volatitlity.
 
-```{code-cell} ipython3
++++
 
+# System configuration
+
+```{code-cell} ipython3
+%load_ext watermark
+%watermark -n -u -v -iv -w -p ghgf,jax,jaxlib
 ```
 
 ```{code-cell} ipython3
