@@ -22,6 +22,7 @@ copyright = u"2022-{}, Nicolas Legrand".format(time.strftime("%Y"))
 author = "Nicolas Legrand"
 release = ghgf.__version__
 
+nb_execution_timeout = 300
 
 image_scrapers = ("matplotlib",)
 
