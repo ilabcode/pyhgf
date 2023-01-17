@@ -46,7 +46,6 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
     "numpydoc",
     "jupyter_sphinx",
-    "sphinx_panels",
     "myst_nb",
     "sphinxcontrib.bibtex"
 ]
