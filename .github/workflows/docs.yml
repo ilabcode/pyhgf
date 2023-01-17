@@ -24,6 +24,7 @@ jobs:
 
       - name: Build
         run: |
+          sudo apt-get install graphviz
           pip install git+https://github.com/embodied-computation-group/systole.git@dev
           pip install .
           pip install -r requirements-docs.txt
