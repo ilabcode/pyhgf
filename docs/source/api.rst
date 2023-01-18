@@ -78,10 +78,10 @@ The Herarchical Gaussian Filter as a PyMC distribution. This distribution can be
 embedded in a PyMC model and the free paramters will be estimated e.g. using MCMC
 sampling.
 
-.. currentmodule:: ghgf.pymc
+.. currentmodule:: ghgf.distribution
 
 .. autosummary::
-   :toctree: generated/ghgf.pymc
+   :toctree: generated/ghgf.distribution
 
    hgf_logp
    HGFLogpGradOp
