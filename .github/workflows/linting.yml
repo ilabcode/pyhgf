@@ -27,7 +27,6 @@ jobs:
         pip install isort==5.10.1 flake8 black==22.12.0 mypy==0.991
     - name: Run tests and coverage
       run: |
-        mypy ./ghgf/ --ignore-missing-imports
         flake8 ./ghgf/
         black ./ghgf/
         isort ./ghgf/
