@@ -24,11 +24,12 @@ def hgf_logp(
     mu_2: float,
     kappa_1: float,
     bias: float,
-    data: List[np.ndarray],
+    input_data: List[np.ndarray],
     response_function: Callable,
     model_type: str,
     n_levels: int,
     response_function_parameters: Tuple = (),
+    time: Optional[List] = None,
 ) -> jnp.DeviceArray:
     """Compute the log probability from the HGF model given the data and parameters.
 
@@ -52,18 +53,28 @@ def hgf_logp(
         using `add_nodes()`.
 
     """
+
+    # number of models
+    n = len(input_data)
     
     # Broadcast inputs to an array with length n>=1
     omega_1, omega_2, omega_input, rho_1, rho_2, pi_1, pi_2, mu_1, mu_2, \
         kappa_1, bias, _ = jnp.broadcast_arrays(
             omega_1, omega_2, omega_input, rho_1, rho_2, 
-            pi_1, pi_2, mu_1, mu_2, kappa_1, bias, jnp.zeros([len(data)])
+            pi_1, pi_2, mu_1, mu_2, kappa_1, bias, jnp.zeros(n)
             )
+    
+    # if no time vecors provided, set it to None (will defaults to integers vectors)
+    # otherwise check consistency with the input data
+    if time is None:
+        time = [None] * n
+    else:
+        assert len(time) == n
     
     surprise = 0.0
 
     # Fitting n HGF models to the n datasets
-    for i in range(len(data)):
+    for i in range(n):
 
         # Format HGF parameters
         initial_mu: Dict[str, Optional[float]] = {"1": mu_1[i], "2": mu_2[i]}
@@ -88,7 +99,7 @@ def hgf_logp(
                 pihat=jnp.inf,
                 verbose=False,
             )
-            .input_data(data[i])
+            .input_data(input_data=input_data[i], time=time[i])
             .surprise(
                 response_function=response_function,
                 response_function_parameters=response_function_parameters,
@@ -102,7 +113,8 @@ def hgf_logp(
 class HGFLogpGradOp(Op):
     def __init__(
         self,
-        data: np.ndarray = np.array(0.0),
+        input_data: List = [],
+        time: Optional[List] = None,
         model_type: str = "continous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
@@ -114,7 +126,8 @@ class HGFLogpGradOp(Op):
                 Partial(
                     hgf_logp,
                     n_levels=n_levels,
-                    data=data,
+                    input_data=input_data,
+                    time=time,
                     response_function=response_function,
                     model_type=model_type,
                     response_function_parameters=response_function_parameters,
@@ -188,7 +201,7 @@ class HGFLogpGradOp(Op):
 
 
 class HGFDistribution(Op):
-    """The HGF distribution to be used in the context of a PyMC 4.0 model.
+    """The HGF distribution PyMC >= 5.0 compatible.
 
     Examples
     --------
@@ -205,15 +218,12 @@ class HGFDistribution(Op):
 
     Create the data (value and time vectors)
     >>> timeserie = load_data("continuous")
-    >>> input_data = np.array(
-    >>>     [timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]
-    >>> ).T
 
     We create the PyMC distribution here, specifying the type of model and response 
     function we want to use (i.e simple gaussian surprise).
     >>> hgf_logp_op = HGFDistribution(
     >>>     n_levels=2,
-    >>>     data=input_data,
+    >>>     input_data=timeserie,
     >>>     response_function=gaussian_surprise,
     >>> )
 
@@ -234,7 +244,7 @@ class HGFDistribution(Op):
     >>>             rho_2=0.0,
     >>>             pi_1=1e4,
     >>>             pi_2=1e1,
-    >>>             mu_1=input_data[0, 0],
+    >>>             mu_1=timeserie[0],
     >>>             mu_2=0.0,
     >>>             kappa_1=1.0,
     >>>             bias=0.0,
@@ -255,7 +265,8 @@ class HGFDistribution(Op):
 
     def __init__(
         self,
-        data: List[np.array] = [],
+        input_data: List[np.array] = [],
+        time: Optional[List] = None,
         model_type: str = "continuous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
@@ -265,7 +276,8 @@ class HGFDistribution(Op):
 
         Parameters
         ----------
-        data : DeviceArray
+        data : list
+        time : list
         model_type : str
         n_levels : int
         response_function : callable (optional)
@@ -277,7 +289,8 @@ class HGFDistribution(Op):
             Partial(
                 hgf_logp,
                 n_levels=n_levels,
-                data=data,
+                input_data=input_data,
+                time=time,
                 response_function=response_function,
                 model_type=model_type,
                 response_function_parameters=response_function_parameters,
@@ -286,7 +299,8 @@ class HGFDistribution(Op):
 
         # The gradient function
         self.hgf_logp_grad_op = HGFLogpGradOp(
-            data=data,
+            input_data=input_data,
+            time=time,
             model_type=model_type,
             n_levels=n_levels,
             response_function=response_function,

@@ -35,19 +35,6 @@ In this example, we will use the exchange rate of the US Dollar to the Swiss Fra
 timeserie = load_data("continuous")
 ```
 
-```{code-cell} ipython3
-# Format the data input accordingly (a value column and a time column)
-input_data = np.array(
-    [
-        timeserie, 
-        np.arange(1, len(timeserie) + 1, dtype=float)]
-).T
-```
-
-```{code-cell} ipython3
-input_data
-```
-
 ## Using a two-levels model
 
 ```{code-cell} ipython3
@@ -61,7 +48,7 @@ two_levels_hgf = HGF(
     omega={"1": -13.0, "2": -6.0},
     rho={"1": 0.0, "2": 0.0},
     kappas={"1": 1.0}).input_data(
-        input_data=input_data
+        input_data=timeserie
     )
 ```
 
@@ -90,7 +77,7 @@ hgf_high_omega = HGF(
     omega={"1": -2.0, "2": -1.0},
     rho={"1": 0.0, "2": 0.0},
     kappas={"1": 1.0}).input_data(
-        input_data=input_data
+        input_data=timeserie
     )
 ```
 
@@ -120,7 +107,7 @@ three_levels_hgf = HGF(
 
 ```{code-cell} ipython3
 # Provide new observations
-three_levels_hgf.input_data(input_data=input_data)
+three_levels_hgf.input_data(input_data=timeserie)
 ```
 
 ### Plot trajectories
@@ -149,7 +136,7 @@ We first import the `HGFDistribution`, that encapsulate a custom log_probability
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
     n_levels=2,
-    data=[input_data]
+    input_data=[timeserie]
 )
 ```
 
@@ -164,6 +151,7 @@ with pm.Model() as two_level_hgf:
     
     # Mus priors
     mu_1 = pm.Normal("mu_1", 0, 10)
+    mu_2 = pm.Normal("mu_2", 0, 10)
 
     # Omegas priors
     omega_1 = pm.Normal("omega_1", -6.0, 2)
@@ -181,7 +169,7 @@ with pm.Model() as two_level_hgf:
             pi_1=np.array(1e4),
             pi_2=np.array(1e1),
             mu_1=mu_1,
-            mu_2=np.array(0.0),
+            mu_2=mu_2,
             kappa_1=np.array(1.0),
             bias=np.array(0.0),
         ),
@@ -202,32 +190,29 @@ with two_level_hgf:
 ```
 
 ```{code-cell} ipython3
-az.plot_trace(two_level_hgf_idata, var_names=["omega_1", "omega_2", "mu_1"]);
+az.plot_trace(two_level_hgf_idata, var_names=["omega_1", "omega_2", "mu_1", "mu_2"]);
 plt.tight_layout()
 ```
 
 ## Visualizing the most likely model
 
-+++
-
-We can see that the most probables values are not exactly the ones we tried in the first instance. We can then refit a new model from scratch using the most probable ones.
-
 ```{code-cell} ipython3
 omega_1 = az.summary(two_level_hgf_idata)["mean"]["omega_1"]
 omega_2 = az.summary(two_level_hgf_idata)["mean"]["omega_2"]
 mu_1 = az.summary(two_level_hgf_idata)["mean"]["mu_1"]
+mu_2 = az.summary(two_level_hgf_idata)["mean"]["mu_2"]
 ```
 
 ```{code-cell} ipython3
 hgf_mcmc = HGF(
     n_levels=2,
     model_type="continuous",
-    initial_mu={"1": mu_1, "2": 0.0},
+    initial_mu={"1": mu_1, "2": mu_2},
     initial_pi={"1": 1e4, "2": 1e1},
     omega={"1": omega_1, "2": omega_2},
     rho={"1": 0.0, "2": 0.0},
     kappas={"1": 1.0}).input_data(
-        input_data=input_data
+        input_data=timeserie
     )
 ```
 

@@ -35,16 +35,8 @@ Estimating group-level parameters in the context of a graphical probabilistic mo
 ```{code-cell} ipython3
 # Create an example dataset using inverted copies of the original time series
 timeserie = load_data("continuous")
-time = jnp.arange(1, len(timeserie) + 1, dtype=float)
 
-data = []
-for i in range(6):
-    data.append(jnp.array(
-        [
-            timeserie[i*100:i*100+100], 
-            jnp.arange(1, len(timeserie[i*100:i*100+100]) + 1, dtype=float)
-        ]
-    ).T)
+data = [timeserie[i*100:i*100+100] for i in range(6)]
 ```
 
 ```{code-cell} ipython3
@@ -60,7 +52,7 @@ hgf_logp(
     mu_2 = 0.0,
     kappa_1 = 1.0,
     bias = 0.0,
-    data = data,
+    input_data = data,
     model_type = "continuous",
     n_levels = 2,
     response_function = None
@@ -78,7 +70,7 @@ Here, we are goingin to estimate the group-level value of the `omega_1` paramete
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
     n_levels=2,
-    data=data,
+    input_data=data,
 )
 ```
 

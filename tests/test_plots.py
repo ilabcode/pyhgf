@@ -25,17 +25,16 @@ class Testsdt(TestCase):
 
         # Read USD-CHF data
         timeserie = load_data("continuous")
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         # Feed input
-        hgf.input_data(input_data=data)
+        hgf.input_data(input_data=timeserie)
 
         # Plot
         hgf.plot_trajectories()
 
         # Read binary input
         timeserie = load_data("binary")
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+
         three_levels_hgf = HGF(
             n_levels=3,
             model_type="binary",
@@ -50,7 +49,7 @@ class Testsdt(TestCase):
         )
         
         # Feed input
-        three_levels_hgf = three_levels_hgf.input_data(data)
+        three_levels_hgf = three_levels_hgf.input_data(timeserie)
         
         # Plot
         three_levels_hgf.plot_trajectories()
@@ -75,10 +74,9 @@ class Testsdt(TestCase):
 
         # Read USD-CHF data
         timeserie = load_data("continuous")
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         # Feed input
-        hgf.input_data(input_data=data)
+        hgf.input_data(input_data=timeserie)
 
         # Plot
         hgf.plot_correlations()
@@ -89,7 +87,7 @@ class Testsdt(TestCase):
 
         # Read binary input
         timeserie = load_data("binary")
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+
         three_levels_hgf = HGF(
             n_levels=3,
             model_type="binary",
@@ -104,7 +102,7 @@ class Testsdt(TestCase):
         )
         
         # Feed input
-        three_levels_hgf = three_levels_hgf.input_data(data)
+        three_levels_hgf = three_levels_hgf.input_data(timeserie)
         
         # Plot
         three_levels_hgf.plot_correlations()

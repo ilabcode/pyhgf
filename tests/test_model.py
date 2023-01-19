@@ -4,7 +4,6 @@ import unittest
 from unittest import TestCase
 
 import jax.numpy as jnp
-import numpy as np
 
 from ghgf import load_data
 from ghgf.model import HGF
@@ -20,18 +19,17 @@ class Testmodel(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-        data = np.array([timeserie, np.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         two_levels_continuous_hgf = HGF(
             n_levels=2,
             model_type="continuous",
-            initial_mu={"1": data[0, 0], "2": 0.0},
+            initial_mu={"1": timeserie[0], "2": 0.0},
             initial_pi={"1": 1e4, "2": 1e1},
             omega={"1": -3.0, "2": -3.0},
             rho={"1": 0.0, "2": 0.0},
             kappas={"1": 1.0},
         )
-        two_levels_continuous_hgf.input_data(input_data=data)
+        two_levels_continuous_hgf.input_data(input_data=timeserie)
 
         surprise = two_levels_continuous_hgf.surprise()  # Sum the surprise for this model
         assert jnp.isclose(surprise, -1938.0101)
@@ -42,9 +40,6 @@ class Testmodel(TestCase):
         ##########
 
         timeserie = load_data("binary")
-
-        # Format the data input accordingly (a value column and a time column)
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         two_levels_binary_hgf = HGF(
             n_levels=2,
@@ -60,7 +55,7 @@ class Testmodel(TestCase):
         )
 
         # Provide new observations
-        two_levels_binary_hgf = two_levels_binary_hgf.input_data(data)
+        two_levels_binary_hgf = two_levels_binary_hgf.input_data(timeserie)
         surprise = two_levels_binary_hgf.surprise()
         assert jnp.isclose(surprise, 237.2308)
 

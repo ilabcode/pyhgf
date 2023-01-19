@@ -18,8 +18,7 @@ class TestCompareBackends(TestCase):
 
         np.random.seed(123)
 
-        timeserie = load_data("continuous")
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+        timeseries = load_data("continuous")
 
         ################
         # 2-levels HGF #
@@ -34,7 +33,7 @@ class TestCompareBackends(TestCase):
             rho={"1": 0.0, "2": 0.0},
             kappas={"1": 1.0},
         )
-        jaxhgf.input_data(input_data=data)
+        jaxhgf.input_data(input_data=timeseries)
 
         node, results = jaxhgf.hgf_results["final"]
         jax_surprise = results["surprise"].sum()
@@ -48,7 +47,7 @@ class TestCompareBackends(TestCase):
             rho={"1": 0.0, "2": 0.0},
             kappas={"1": 1.0},
         )
-        stdhgf.input(timeserie)
+        stdhgf.input(timeseries)
         std_surprise = stdhgf.surprise()
 
         assert jnp.isclose(jax_surprise, -1922.2264)
@@ -101,7 +100,7 @@ class TestCompareBackends(TestCase):
             rho={"1": 0.0, "2": 0.0, "3": 0.0},
             kappas={"1": 1.0, "2": 1.0},
         )
-        jaxhgf.input_data(input_data=data)
+        jaxhgf.input_data(input_data=timeseries)
 
         node, results = jaxhgf.hgf_results["final"]
         jax_surprise = results["surprise"].sum()
@@ -115,7 +114,7 @@ class TestCompareBackends(TestCase):
             rho={"1": 0.0, "2": 0.0, "3": 0.0},
             kappas={"1": 1.0, "2": 1.0},
         )
-        stdhgf.input(timeserie)
+        stdhgf.input(timeseries)
         std_surprise = stdhgf.surprise()
 
         assert jnp.isclose(jax_surprise, -1915.0765)
@@ -179,7 +178,7 @@ class TestCompareBackends(TestCase):
         """Compare the JAX and pure Python implementation of the HGF."""
 
         np.random.seed(123)
-        timeserie = load_data("binary")
+        timeseries = load_data("binary")
 
         stdhgf = StandardBinaryHGF(
             initial_mu2=.5,
@@ -190,10 +189,8 @@ class TestCompareBackends(TestCase):
             omega3=-2,
             kappa2=1,
         )
-        stdhgf.input(timeserie)
+        stdhgf.input(timeseries)
         assert stdhgf.surprise() == 238.39214186480842
-
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
         jaxhgf = HGF(
             n_levels=3,
@@ -207,7 +204,7 @@ class TestCompareBackends(TestCase):
             eta1=1.0,
             pihat=jnp.inf,
         )
-        jaxhgf.input_data(input_data=data)
+        jaxhgf.input_data(input_data=timeseries)
 
         node, results = jaxhgf.hgf_results["final"]
         jax_surprise = results["surprise"].sum()
@@ -256,4 +253,3 @@ class TestCompareBackends(TestCase):
         plt.legend()
 
         assert sum(stdhgf.x3.mus[2:]) - sum(node[1][0][1][0][2][0][0]["mu"]) < .04
-

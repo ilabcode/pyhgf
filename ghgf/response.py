@@ -30,7 +30,7 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
 
     # Fill surprises with zeros if invalid input
     this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf_results["data"][1:, :]), axis=1), 0.0, results["surprise"]
+        jnp.any(jnp.isnan(hgf_results["data"][1:]), axis=0), 0.0, results["surprise"]
     )
 
     # Return an infinite surprise if the model cannot fit
@@ -67,7 +67,7 @@ def binary_surprise(hgf_results: Dict, response_function_parameters):
 
     # Fill surprises with zeros if invalid input
     this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf_results["data"][1:, :]), axis=1), 0.0, results["surprise"]
+        jnp.any(jnp.isnan(hgf_results["data"][1:]), axis=0), 0.0, results["surprise"]
     )
 
     # Return an infinite surprise if the model cannot fit

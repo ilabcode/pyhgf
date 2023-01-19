@@ -1,7 +1,8 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
 from math import log
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple, List, Union
+from jax.interpreters.xla import DeviceArray
 
 import jax.numpy as jnp
 import numpy as np
@@ -230,26 +231,48 @@ class HGF(object):
 
     def input_data(
         self,
-        input_data: np.ndarray,
+        input_data: Union[List, np.ndarray, DeviceArray],
+        time: Optional[np.ndarray] = None,
     ):
+        """Add new observations.
+
+        Paraneters
+        ----------
+        input_data : np.ndarray
+            The new observations.
+        time : np.ndarray | None
+            Time vector (optional). If `None`, the time vector will defaults to 
+            `np.arange(0, len(input_data))`.
+
+        """
+        input_data = jnp.asarray(input_data)
+
         if self.verbose:
             print((f"Add {input_data.shape[0]} new {self.model_type} observations."))
+        if time is None:
+            # create a time vector (starting at 1 as time 0 already exists by default)
+            time = jnp.arange(0.0, len(input_data))
+        else:
+            assert len(input_data) == len(time)
 
         # Initialise the first values
         res_init = (
             self.input_node,
             {
-                "time": input_data[0, 1],
-                "value": input_data[0, 0] + self.bias,
+                "time": time[0],
+                "value": input_data[0] + self.bias,
                 "surprise": jnp.array(0.0),
             },
         )
 
+        # create the main data array (data, time)
+        data = jnp.array([input_data, time], dtype=float).T
+
         # This is where the HGF functions are used to scan the input time series
         if self.model_type == "continuous":
-            last, final = scan(loop_continuous_inputs, res_init, input_data[1:, :])
+            last, final = scan(loop_continuous_inputs, res_init, data[1:, :])
         elif self.model_type == "binary":
-            last, final = scan(loop_binary_inputs, res_init, input_data[1:, :])
+            last, final = scan(loop_binary_inputs, res_init, data[1:, :])
 
         # Save results in the HGF dictionary
         self.hgf_results = {}

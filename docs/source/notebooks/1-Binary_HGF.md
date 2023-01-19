@@ -31,9 +31,6 @@ We import a time series of binary responses from the decision task described in 
 
 ```{code-cell} ipython3
 timeserie = load_data("binary")
-
-# Format the data input accordingly (a value column and a time column)
-data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 ```
 
 ## Using a two-levels Hierarchical Gaussian Filter
@@ -60,7 +57,7 @@ two_levels_hgf = HGF(
 
 ```{code-cell} ipython3
 # Provide new observations
-two_levels_hgf = two_levels_hgf.input_data(data)
+two_levels_hgf = two_levels_hgf.input_data(input_data=timeserie)
 ```
 
 ### Plot trajectories
@@ -96,7 +93,7 @@ three_levels_hgf = HGF(
 ### Add data
 
 ```{code-cell} ipython3
-three_levels_hgf = three_levels_hgf.input_data(data)
+three_levels_hgf = three_levels_hgf.input_data(input_data=timeserie)
 ```
 
 ### Plot trajectories

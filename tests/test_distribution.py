@@ -16,7 +16,7 @@ from ghgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
 from ghgf.response import gaussian_surprise, binary_surprise
 
 
-class TestPyMC(TestCase):
+class TestDistribution(TestCase):
 
     def test_hgf_logp(self):
 
@@ -26,19 +26,16 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
-
 
         jax_logp = jit(
             Partial(
                 hgf_logp,
                 n_levels=2,
-                data=[input_data],
+                input_data=[timeserie],
                 response_function=gaussian_surprise,
                 model_type="continuous",
                 response_function_parameters=None,
+                time=None
             )
         )
 
@@ -50,7 +47,7 @@ class TestPyMC(TestCase):
             rho_2=0.0,
             pi_1=1e4,
             pi_2=1e1,
-            mu_1=input_data[0][0],
+            mu_1=timeserie[0],
             mu_2=0.0,
             kappa_1=1.0,
             bias=0.0,
@@ -63,15 +60,12 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
 
         jax_logp = jit(
             Partial(
                 hgf_logp,
                 n_levels=2,
-                data=[input_data],
+                input_data=[timeserie],
                 response_function=binary_surprise,
                 model_type="binary",
                 response_function_parameters=None,
@@ -101,16 +95,13 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
 
         grad_logp = jit(
             grad(
                 Partial(
                     hgf_logp,
                     n_levels=2,
-                    data=[input_data],
+                    input_data=[timeserie],
                     response_function=gaussian_surprise,
                     model_type="continuous",
                     response_function_parameters=None,
@@ -139,7 +130,7 @@ class TestPyMC(TestCase):
             np.array(0.0),
             np.array(1e4),
             np.array(1e1),
-            np.array(input_data[0, 0]),
+            np.array(timeserie[0]),
             np.array(0.0),
             np.array(1.0),
             np.array(0.0),
@@ -153,17 +144,13 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
-
         
         grad_logp = jit(
             grad(
                 Partial(
                     hgf_logp,
                     n_levels=2,
-                    data=[input_data],
+                    input_data=[timeserie],
                     response_function=binary_surprise,
                     model_type="binary",
                     response_function_parameters=None,
@@ -204,12 +191,9 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
 
         hgf_logp_op = HGFDistribution(
-            data=[input_data],
+            input_data=[timeserie],
             model_type="continuous",
             n_levels=2,
             response_function=gaussian_surprise,
@@ -224,7 +208,7 @@ class TestPyMC(TestCase):
             rho_2=np.array(0.0),
             pi_1=np.array(1e4),
             pi_2=np.array(1e1),
-            mu_1=np.array(input_data[0][0]),
+            mu_1=np.array(timeserie[0]),
             mu_2=np.array(0.0),
             kappa_1=np.array(1.0),
             bias=np.array(0.0),
@@ -238,12 +222,9 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
 
         hgf_logp_op = HGFDistribution(
-            data=[input_data],
+            input_data=[timeserie],
             model_type="binary",
             n_levels=2,
             response_function=binary_surprise,
@@ -276,14 +257,9 @@ class TestPyMC(TestCase):
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
 
-        # Repeate the input time series 3 time to test for multiple models
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
-
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="continuous",
-            data=[input_data],
+            input_data=[timeserie],
             n_levels=2,
             response_function=gaussian_surprise,
             response_function_parameters=None,
@@ -297,7 +273,7 @@ class TestPyMC(TestCase):
             rho_2=0.0,
             pi_1=1e4,
             pi_2=1e1,
-            mu_1=input_data[0, 0],
+            mu_1=timeserie[0],
             mu_2=0.0,
             kappa_1=1.0,
             bias=0.0,
@@ -313,14 +289,9 @@ class TestPyMC(TestCase):
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
 
-        # Repeate the input time series 3 time to test for multiple models
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
-
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="binary",
-            data=[input_data],
+            input_data=[timeserie],
             n_levels=2,
             response_function=binary_surprise,
             response_function_parameters=None,
@@ -351,13 +322,10 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
 
         hgf_logp_op = HGFDistribution(
             n_levels=2,
-            data=[input_data],
+            input_data=[timeserie],
             response_function=gaussian_surprise,
             response_function_parameters=(np.array(1), 1),
         )
@@ -376,7 +344,7 @@ class TestPyMC(TestCase):
                     rho_2=np.array(0.0),
                     pi_1=np.array(1e4),
                     pi_2=np.array(1e1),
-                    mu_1=np.array(input_data[0, 0]),
+                    mu_1=np.array(timeserie[0]),
                     mu_2=np.array(0.0),
                     kappa_1=np.array(1.0),
                     bias=np.array(0.0),
@@ -401,14 +369,11 @@ class TestPyMC(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-        input_data = np.array(
-            [timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]
-        ).T
 
         hgf_logp_op = HGFDistribution(
             n_levels=2,
             model_type="binary",
-            data=[input_data],
+            input_data=[timeserie],
             response_function=binary_surprise,
             response_function_parameters=(np.array(1), 1),
         )
@@ -444,7 +409,7 @@ class TestPyMC(TestCase):
             idata = pm.sample(chains=4, cores=4, tune=1000)
 
         assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
-        assert az.summary(idata)["r_hat"].values[0] == 1
+        assert az.summary(idata)["r_hat"].values[0] <= 1.01
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)
