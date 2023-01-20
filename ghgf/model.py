@@ -1,17 +1,17 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
 from math import log
-from typing import Callable, Dict, Optional, Tuple, List, Union
-from jax.interpreters.xla import DeviceArray
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
+from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
 
 from ghgf.binary import loop_binary_inputs
 from ghgf.continuous import loop_continuous_inputs
 from ghgf.plots import plot_correlations, plot_trajectories
-from ghgf.response import gaussian_surprise, binary_surprise
+from ghgf.response import binary_surprise, gaussian_surprise
 from ghgf.typing import ParametersType
 
 
@@ -125,7 +125,7 @@ class HGF(object):
             print(
                 (
                     f"Creating a {self.model_type} Hierarchical Gaussian Filter "
-                    f"with {self.n_levels} levels (JAX backend)."
+                    f"with {self.n_levels} levels."
                 )
             )
 
@@ -241,7 +241,7 @@ class HGF(object):
         input_data : np.ndarray
             The new observations.
         time : np.ndarray | None
-            Time vector (optional). If `None`, the time vector will defaults to 
+            Time vector (optional). If `None`, the time vector will defaults to
             `np.arange(0, len(input_data))`.
 
         """
@@ -314,7 +314,11 @@ class HGF(object):
 
         """
         if response_function is None:
-            response_function = gaussian_surprise if self.model_type == "continuous" else binary_surprise
+            response_function = (
+                gaussian_surprise
+                if self.model_type == "continuous"
+                else binary_surprise
+            )
 
         return response_function(
             hgf_results=self.hgf_results,
