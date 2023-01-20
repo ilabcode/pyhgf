@@ -1404,7 +1404,7 @@ def gaussian_surprise(x: float, muhat: float, pihat: float):
     return 0.5 * (log(2 * np.pi) - log(pihat) + pihat * (x - muhat) ** 2)
 
 
-def binary_surprise(x: float, muhat: float):
+def binary_surprise(x: int, muhat: float):
     """Surprise at a binary outcome"""
     if x == 1:
         return -log(1 - muhat)

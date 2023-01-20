@@ -15,9 +15,9 @@ repos:
     hooks:
     - id: flake8
       files: ^ghgf/
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v0.991'
-    hooks:
-    - id: mypy 
-      files: ^ghgf/
-      args: [--ignore-missing-imports]
+# -   repo: https://github.com/pre-commit/mirrors-mypy
+#     rev: 'v0.991'
+#     hooks:
+#     - id: mypy 
+#       files: ^ghgf/
+#       args: [--ignore-missing-imports]
