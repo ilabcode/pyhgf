@@ -10,7 +10,7 @@ from matplotlib.axes import Axes
 
 
 def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) -> Axes:
-    """Plot perceptual HGF parameters time series.
+    """Plot perceptual HGF parameters trajectores.
 
     Parameters
     ----------
@@ -19,12 +19,13 @@ def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) 
     ci : bool
         Show the uncertainty aroud the values estimates (standard deviation).
     figsize : tuple
-        The width and height of the figure.
+        The width and height of the figure. Defaults to `(18, 9)` for a 2-levels model,
+        or to `(18, 12)` for a 3-levels model.
 
     Returns
     -------
     axs : :class:`matplotlib.axes.Axes`
-        The Matplotlib ax instance containing the parameters trajectories.
+        The Matplotlib axis instance plotting the parameters trajectories.
 
     """
 
@@ -95,12 +96,14 @@ def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) 
     elif hgf.model_type == "binary":
         mu = node[1][0][0]["muhat"]
         axs[hgf.n_levels - 1].plot(time, mu, label=r"$\mu_1$", color="#55a868")
-        
+
         axs[hgf.n_levels - 1].scatter(
             time,
             hgf.hgf_results["final"][1]["value"],
             label="Input",
             color="#4c72b0",
+            alpha=0.4,
+            edgecolors="k",
         )
     axs[hgf.n_levels - 1].legend()
 
@@ -141,10 +144,26 @@ def plot_correlations(hgf) -> Axes:
     nu_1 = node[1][0][0]["nu"]
 
     # Level 2
-    mu_2 = node[1][0][2][0][0]["mu"] if hgf.model_type == "continuous" else node[1][0][1][0][0]["mu"]
-    pi_2 = node[1][0][2][0][0]["pi"] if hgf.model_type == "continuous" else node[1][0][1][0][0]["pi"]
-    pihat_2 = node[1][0][2][0][0]["pihat"] if hgf.model_type == "continuous" else node[1][0][1][0][0]["pihat"]
-    muhat_2 = node[1][0][2][0][0]["muhat"] if hgf.model_type == "continuous" else node[1][0][1][0][0]["muhat"]
+    mu_2 = (
+        node[1][0][2][0][0]["mu"]
+        if hgf.model_type == "continuous"
+        else node[1][0][1][0][0]["mu"]
+    )
+    pi_2 = (
+        node[1][0][2][0][0]["pi"]
+        if hgf.model_type == "continuous"
+        else node[1][0][1][0][0]["pi"]
+    )
+    pihat_2 = (
+        node[1][0][2][0][0]["pihat"]
+        if hgf.model_type == "continuous"
+        else node[1][0][1][0][0]["pihat"]
+    )
+    muhat_2 = (
+        node[1][0][2][0][0]["muhat"]
+        if hgf.model_type == "continuous"
+        else node[1][0][1][0][0]["muhat"]
+    )
 
     # Time series of the model beliefs
     df = pd.DataFrame(
@@ -160,7 +179,7 @@ def plot_correlations(hgf) -> Axes:
             r"$\hat{pi}_{2}$": pihat_2,
         }
     )
-    
+
     if hgf.n_levels == 3:
         if hgf.model_type == "continuous":
             df[r"$\mu_{3}$"] = node[1][0][2][0][2][0][0]["mu"]
