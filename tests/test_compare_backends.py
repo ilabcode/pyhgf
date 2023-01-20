@@ -190,7 +190,7 @@ class TestCompareBackends(TestCase):
             kappa2=1,
         )
         stdhgf.input(timeseries)
-        assert stdhgf.surprise() == 238.39214186480842
+        assert stdhgf.surprise() == 215.5906767857954
 
         jaxhgf = HGF(
             n_levels=3,
@@ -209,8 +209,8 @@ class TestCompareBackends(TestCase):
         node, results = jaxhgf.hgf_results["final"]
         jax_surprise = results["surprise"].sum()
 
-        assert jnp.isclose(jax_surprise, 237.24913)
-        assert jnp.isclose(stdhgf.surprise(), 238.39214186480842)
+        assert jnp.isclose(jax_surprise, 215.11488)
+        assert jnp.isclose(stdhgf.surprise(), 215.5906767857954)
 
         ############
         # Surprise #

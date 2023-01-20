@@ -85,7 +85,7 @@ class TestDistribution(TestCase):
             kappa_1=jnp.array(1.0),
             bias=jnp.inf,
         )
-        assert jnp.isclose(logp, -237.2308)
+        assert jnp.isclose(logp, -215.11276)
 
     def test_grad_logp(self):
 
@@ -180,7 +180,7 @@ class TestDistribution(TestCase):
                 np.array(0.0),
         )
 
-        assert jnp.isclose(omega_2, -23.445244)
+        assert jnp.isclose(omega_2, -3.3864107)
 
     def test_aesara_logp(self):
         """Test the aesara hgf_logp op."""
@@ -245,7 +245,7 @@ class TestDistribution(TestCase):
             bias=np.inf,
         ).eval()
 
-        assert jnp.isclose(logp, -237.23080444)
+        assert jnp.isclose(logp, -215.11276245)
 
     def test_aesara_grad_logp(self):
         """Test the aesara gradient hgf_logp op."""
@@ -311,7 +311,7 @@ class TestDistribution(TestCase):
             bias=np.inf,
         )[1].eval()
 
-        assert jnp.isclose(omega_2, -8.976405)
+        assert jnp.isclose(omega_2, 2.6229846)
 
     def test_pymc_sampling(self):
         """Test the aesara hgf_logp op."""
@@ -403,12 +403,12 @@ class TestDistribution(TestCase):
 
         pointslogs = model.point_logps(initial_point)
         assert pointslogs["omega_2"] == -1.61
-        assert pointslogs["hhgf_loglike"] == -228.67
+        assert pointslogs["hhgf_loglike"] == -230.72
 
         with model:
             idata = pm.sample(chains=4, cores=4, tune=1000)
 
-        assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
+        assert -4 < round(az.summary(idata)["mean"].values[0]) < -2
         assert az.summary(idata)["r_hat"].values[0] <= 1.01
 
 if __name__ == "__main__":

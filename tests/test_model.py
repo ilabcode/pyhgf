@@ -57,7 +57,7 @@ class Testmodel(TestCase):
         # Provide new observations
         two_levels_binary_hgf = two_levels_binary_hgf.input_data(timeserie)
         surprise = two_levels_binary_hgf.surprise()
-        assert jnp.isclose(surprise, 237.2308)
+        assert jnp.isclose(surprise, 215.11276)
 
 
 if __name__ == "__main__":

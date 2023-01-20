@@ -263,14 +263,14 @@ def binary_input_update(
         # 2. Compute surprise
         # -------------------
         eta0: DeviceArray = input_node_parameters["eta0"]
-        eta1: DeviceArray = input_node_parameters["eta1"]     
+        eta1: DeviceArray = input_node_parameters["eta1"]
 
         mu_va_pa, pi_va_pa, surprise = cond(
-            pihat==jnp.inf, 
-            input_surprise_inf, 
-            input_surprise_reg, 
-            (pihat, value, eta1, eta0, muhat_va_pa)
-            )
+            pihat == jnp.inf,
+            input_surprise_inf,
+            input_surprise_reg,
+            (pihat, value, eta1, eta0, muhat_va_pa),
+        )
 
         # Update value parent's parameters
         va_pa_node_parameters["pihat"] = pihat_va_pa
@@ -341,7 +341,7 @@ def binary_surprise(x: DeviceArray, muhat: DeviceArray):
         The surprise.
 
     """
-    return jnp.where(x, -jnp.log(jnp.array(1.0) - muhat), -jnp.log(muhat))
+    return jnp.where(x, -jnp.log(muhat), -jnp.log(jnp.array(1.0) - muhat))
 
 
 @jit
@@ -399,7 +399,7 @@ def input_surprise_inf(op):
 
 def input_surprise_reg(op):
     """Compute the surprise, mu_va_pa and pi_va_pa if pihat!=inf"""
-    
+
     (pihat, value, eta1, eta0, muhat_va_pa) = op
 
     # Likelihood under eta1
@@ -417,5 +417,5 @@ def input_surprise_reg(op):
         muhat_va_pa * gaussian_density(value, eta1, pihat)
         + (1 - muhat_va_pa) * gaussian_density(value, eta0, pihat)
     )
-    
+
     return mu_va_pa, pi_va_pa, surprise

@@ -1406,9 +1406,9 @@ def gaussian_surprise(x: float, muhat: float, pihat: float):
 
 def binary_surprise(x: int, muhat: float):
     """Surprise at a binary outcome"""
-    if x == 1:
-        return -log(1 - muhat)
     if x == 0:
+        return -log(1 - muhat)
+    if x == 1:
         return -log(muhat)
     else:
         raise OutcomeValueError("Outcome needs to be either 0 or 1.")
