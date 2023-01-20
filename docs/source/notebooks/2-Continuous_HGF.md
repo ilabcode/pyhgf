@@ -116,9 +116,10 @@ three_levels_hgf.input_data(input_data=timeserie)
 three_levels_hgf.plot_trajectories()
 ```
 
-# Parameters optimization using MCMC sampling
+## Learning parameters with MCMC sampling
+In the previous section, we assumed we knew the parameters of the HGF models that were used to filter the input data. This can give us information on how an agent using these values would behave when presented with these inputs. We can also adopt a different perspective and consider that we want to learn these parameters from the data. Here, we are going to set some of the parameters free and use Hamiltonian Monte Carlo methods (NUTS) to sample their probability density.
 
-The variety of parameters that are embedded in the Hierarchical Gaussian Filter can all influence the quality of the model prediction, here measured using the gaussian surprise. One key question is then to estimate the parameters values that are more likely to minimise surprise, given the observations already made by the model. Because the HGF models we use here are all written in [JAX](https://github.com/google/jax), it is straightforward to embed this code into a computational graph, such as the ones build by [Aesara](https://aesara.readthedocs.io/en/latest/), now forked as [PyTensor](https://pytensor.readthedocs.io/en/latest/), in order to use MCMC sampling (e.g. NUST) to estimate the probability density for each of our parameters of interest. Here, we are going to use [PyMC](https://www.pymc.io/welcome.html) to perform this step.
+Because the HGF classes are built on the top of [JAX](https://github.com/google/jax), they are natively differentiable and compatible with optimisation libraries or can be embedded as regular distributions in the context of a Bayesian network. Here, we are using this approach, and we are going to use [PyMC](https://www.pymc.io/welcome.html) to perform this step. PyMC can use any log probability function (here the negative surprise of the model) as a building block for a new distribution by wrapping it in its underlying tensor library [Aesara](https://aesara.readthedocs.io/en/latest/), now forked as [PyTensor](https://pytensor.readthedocs.io/en/latest/). This PyMC-compatible distribution can be found in the :py:`ghgf.distribution` sub-module.
 
 ```{code-cell} ipython3
 import pymc as pm
@@ -127,11 +128,7 @@ from ghgf.distribution import HGFDistribution
 from ghgf.response import gaussian_surprise
 ```
 
-We first import the `HGFDistribution`, that encapsulate a custom log_probability function of the HG (and its gradient). We also load the `gaussian_surprise` function from the `response` module. This function define how the agent is getting its insight on the model fit (here the surprise simply comes from observing a new value).
-
-+++
-
-## Creating the model
+### Creating the model
 
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
@@ -143,7 +140,7 @@ hgf_logp_op = HGFDistribution(
 This log probabilit function can then be embedded in a PyMC model using the same API. Here, we are going to set `omega_1`, `omega_2` and `mu_1` as free parameters. The other parameters are fixed.
 
 ```{note}
-The $\omega$ parameters are real numbers that are defined from -$\infty$ to +$\infty$. However, as learning rates expressed in log spaces, values higher than 2 are extremely unlikely and could create abberant fits to the data. Therefore, here we are constraining the parameter space using a censored normal distribution (see [pm.Censored](https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.Censored.html)) that exclude any value higher that 2.0.
+The data is being passed to the distribution when the instance is created.
 ```
 
 ```{code-cell} ipython3
@@ -176,13 +173,19 @@ with pm.Model() as two_level_hgf:
     )
 ```
 
-## Visualizing the model
+```{note}
+The $\omega$ parameters are real numbers that are defined from -$\infty$ to +$\infty$. However, as learning rates expressed in log spaces, values higher than 2 are extremely unlikely and could create abberant fits to the data. Therefore, here we are constraining the parameter space using a censored normal distribution (see [pm.Censored](https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.Censored.html)) that exclude any value higher that 2.0.
+```
+
++++
+
+### Visualizing the model
 
 ```{code-cell} ipython3
 pm.model_to_graphviz(two_level_hgf)
 ```
 
-## Sampling
+### Sampling
 
 ```{code-cell} ipython3
 with two_level_hgf:
@@ -194,7 +197,7 @@ az.plot_trace(two_level_hgf_idata, var_names=["omega_1", "omega_2", "mu_1", "mu_
 plt.tight_layout()
 ```
 
-## Visualizing the most likely model
+### Visualizing the most likely model
 
 ```{code-cell} ipython3
 omega_1 = az.summary(two_level_hgf_idata)["mean"]["omega_1"]
@@ -228,7 +231,7 @@ Looking at the volatility (ie, the second) level, we see that there are two sali
 
 +++
 
-# System configuration
+## System configuration
 
 ```{code-cell} ipython3
 %load_ext watermark

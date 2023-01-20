@@ -71,8 +71,8 @@ observing new data.
    plot_correlations
 
 
-PyMC
-----
+Distribution
+------------
 
 The Herarchical Gaussian Filter as a PyMC distribution. This distribution can be
 embedded in a PyMC model and the free paramters will be estimated e.g. using MCMC
