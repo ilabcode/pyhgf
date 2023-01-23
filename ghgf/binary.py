@@ -335,8 +335,8 @@ def binary_surprise(x: DeviceArray, muhat: DeviceArray):
     muhat : jnp.DeviceArray
         The mean of the Bernouilli distribution.
 
-    Return
-    ------
+    Returns
+    -------
     surprise : jnp.DeviceArray
         The surprise.
 

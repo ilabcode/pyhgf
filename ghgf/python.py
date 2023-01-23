@@ -367,12 +367,7 @@ class StandardHGF(Model):
 
 # Standard 3-level HGF for binary inputs
 class StandardBinaryHGF(Model):
-    """The standard 3-level HGF for binary inputs
-
-    Parameters
-    ----------
-
-    """
+    """The standard 3-level HGF for binary inputs."""
 
     def __init__(
         self,

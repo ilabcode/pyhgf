@@ -236,7 +236,7 @@ class HGF(object):
     ):
         """Add new observations.
 
-        Paraneters
+        Parameters
         ----------
         input_data : np.ndarray
             The new observations.
