@@ -42,14 +42,19 @@ class TestDistribution(TestCase):
         logp = jax_logp(
             omega_1=-3.0,
             omega_2=-3.0,
+            omega_3=jnp.nan,
             omega_input=np.log(1e-4),
             rho_1=0.0,
             rho_2=0.0,
+            rho_3=jnp.nan,
             pi_1=1e4,
             pi_2=1e1,
+            pi_3=jnp.nan,
             mu_1=timeserie[0],
             mu_2=0.0,
+            mu_3=jnp.nan,
             kappa_1=1.0,
+            kappa_2=jnp.nan,
             bias=0.0,
         )
         assert jnp.isclose(logp, 1938.0101)
@@ -75,14 +80,19 @@ class TestDistribution(TestCase):
         logp = jax_logp(
             omega_1=jnp.inf,
             omega_2=jnp.array(-6.0),
+            omega_3=jnp.nan,
             omega_input=jnp.inf,
             rho_1=jnp.array(0.0),
             rho_2=jnp.array(0.0),
+            rho_3=jnp.nan,
             pi_1=jnp.array(0.0),
             pi_2=jnp.array(1e4),
+            pi_3=jnp.nan,
             mu_1=jnp.inf,
             mu_2=jnp.array(0.5),
+            mu_3=jnp.nan,
             kappa_1=jnp.array(1.0),
+            kappa_2=jnp.nan,
             bias=jnp.inf,
         )
         assert jnp.isclose(logp, -215.11276)
@@ -106,33 +116,43 @@ class TestDistribution(TestCase):
                     model_type="continuous",
                     response_function_parameters=None,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
             ),
         )
 
         (
             omega_1,
             omega_2,
+            omega_3,
             omega_input,
             rho_1,
             rho_2,
+            rho_3,
             pi_1,
             pi_2,
+            pi_3,
             mu_1,
             mu_2,
+            mu_3,
             kappa_1,
+            kappa_2,
             bias,
         ) = grad_logp(
             np.array(-3.0),
             np.array(-3.0),
+            np.array(0.0),
             np.log(1e-4),
+            np.array(0.0),
             np.array(0.0),
             np.array(0.0),
             np.array(1e4),
             np.array(1e1),
+            np.array(0.0),
             np.array(timeserie[0]),
             np.array(0.0),
+            np.array(0.0),
             np.array(1.0),
+            np.array(0.0),
             np.array(0.0),
         )
 
@@ -155,17 +175,27 @@ class TestDistribution(TestCase):
                     model_type="binary",
                     response_function_parameters=None,
                 ),
-                argnums=[1, 3, 4, 6, 8, 9],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
             ),
         )
 
         (
+            omega_1,
             omega_2,
+            omega_3,
+            omega_input,
             rho_1,
             rho_2,
+            rho_3,
+            pi_1,
             pi_2,
+            pi_3,
+            mu_1,
             mu_2,
-            kappa_1
+            mu_3,
+            kappa_1,
+            kappa_2,
+            bias,
         ) = grad_logp(
                 np.array(0.0),
                 np.array(-2.0),
@@ -173,9 +203,14 @@ class TestDistribution(TestCase):
                 np.array(0.0),
                 np.array(0.0),
                 np.array(0.0),
+                np.array(0.0),
+                np.array(0.0),
                 np.array(1e4),
                 np.array(0.0),
+                np.array(0.0),
                 np.array(0.5),
+                np.array(0.0),
+                np.array(1.0),
                 np.array(1.0),
                 np.array(0.0),
         )
@@ -203,14 +238,19 @@ class TestDistribution(TestCase):
         logp = hgf_logp_op(
             omega_1=np.array(-3.0),
             omega_2=np.array(-3.0),
+            omega_3=np.array(0.0),
             omega_input=np.log(1e-4),
             rho_1=np.array(0.0),
             rho_2=np.array(0.0),
+            rho_3=np.array(0.0),
             pi_1=np.array(1e4),
             pi_2=np.array(1e1),
+            pi_3=np.array(0.0),
             mu_1=np.array(timeserie[0]),
             mu_2=np.array(0.0),
+            mu_3=np.array(0.0),
             kappa_1=np.array(1.0),
+            kappa_2=np.array(0.0),
             bias=np.array(0.0),
         ).eval()
 
@@ -234,14 +274,19 @@ class TestDistribution(TestCase):
         logp = hgf_logp_op(
             omega_1=np.inf,
             omega_2=-6.0,
+            omega_3=np.inf,
             omega_input=np.inf,
             rho_1=0.0,
             rho_2=0.0,
+            rho_3=np.inf,
             pi_1=0.0,
             pi_2=1e4,
+            pi_3=np.inf,
             mu_1=np.inf,
             mu_2=0.5,
+            mu_3=np.inf,
             kappa_1=1.0,
+            kappa_2=np.inf,
             bias=np.inf,
         ).eval()
 
@@ -315,7 +360,7 @@ class TestDistribution(TestCase):
 
     def test_pymc_sampling(self):
         """Test the aesara hgf_logp op."""
-        
+
         ##############
         # Continuous #
         ##############
@@ -348,6 +393,11 @@ class TestDistribution(TestCase):
                     mu_2=np.array(0.0),
                     kappa_1=np.array(1.0),
                     bias=np.array(0.0),
+                    omega_3=np.nan,
+                    rho_3=np.nan,
+                    pi_3=np.nan,
+                    mu_3=np.nan,
+                    kappa_2=np.nan,
                 ),
             )
 
@@ -396,6 +446,11 @@ class TestDistribution(TestCase):
                     mu_2=0.5,
                     kappa_1=1.0,
                     bias=0.0,
+                    omega_3=np.nan,
+                    rho_3=np.nan,
+                    pi_3=np.nan,
+                    mu_3=np.nan,
+                    kappa_2=np.nan,
                 ),
             )
 

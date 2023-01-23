@@ -1,13 +1,13 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Callable, Dict, Optional, Tuple, List
+from typing import Callable, Dict, List, Optional, Tuple
 
-import pytensor.tensor as pt
 import jax.numpy as jnp
 import numpy as np
-from pytensor.graph import Apply, Op
+import pytensor.tensor as pt
 from jax import grad, jit
 from jax.tree_util import Partial
+from pytensor.graph import Apply, Op
 
 from ghgf.model import HGF
 
@@ -15,14 +15,19 @@ from ghgf.model import HGF
 def hgf_logp(
     omega_1: float,
     omega_2: float,
+    omega_3: float,
     omega_input: float,
     rho_1: float,
     rho_2: float,
+    rho_3: float,
     pi_1: float,
     pi_2: float,
+    pi_3: float,
     mu_1: float,
     mu_2: float,
+    mu_3: float,
     kappa_1: float,
+    kappa_2: float,
     bias: float,
     input_data: List[np.ndarray],
     response_function: Callable,
@@ -44,7 +49,7 @@ def hgf_logp(
     response_function : callable
         The response function to use to compute the model surprise.
     response_function_parameters : tuple
-        Additional parameters to the response function.    
+        Additional parameters to the response function.
     model_type : str
         The model type to use (can be "continuous" or "binary").
     n_levels : int
@@ -56,32 +61,76 @@ def hgf_logp(
 
     # number of models
     n = len(input_data)
-    
+
     # Broadcast inputs to an array with length n>=1
-    omega_1, omega_2, omega_input, rho_1, rho_2, pi_1, pi_2, mu_1, mu_2, \
-        kappa_1, bias, _ = jnp.broadcast_arrays(
-            omega_1, omega_2, omega_input, rho_1, rho_2, 
-            pi_1, pi_2, mu_1, mu_2, kappa_1, bias, jnp.zeros(n)
-            )
-    
+    (
+        omega_1,
+        omega_2,
+        omega_3,
+        omega_input,
+        rho_1,
+        rho_2,
+        rho_3,
+        pi_1,
+        pi_2,
+        pi_3,
+        mu_1,
+        mu_2,
+        mu_3,
+        kappa_1,
+        kappa_2,
+        bias,
+        _,
+    ) = jnp.broadcast_arrays(
+        omega_1,
+        omega_2,
+        omega_3,
+        omega_input,
+        rho_1,
+        rho_2,
+        rho_3,
+        pi_1,
+        pi_2,
+        pi_3,
+        mu_1,
+        mu_2,
+        mu_3,
+        kappa_1,
+        kappa_2,
+        bias,
+        jnp.zeros(n),
+    )
+
     # if no time vecors provided, set it to None (will defaults to integers vectors)
     # otherwise check consistency with the input data
     if time is None:
         time = [None] * n
     else:
         assert len(time) == n
-    
+
     surprise = 0.0
 
     # Fitting n HGF models to the n datasets
     for i in range(n):
 
         # Format HGF parameters
-        initial_mu: Dict[str, Optional[float]] = {"1": mu_1[i], "2": mu_2[i]}
-        initial_pi: Dict[str, Optional[float]] = {"1": pi_1[i], "2": pi_2[i]}
-        omega: Dict[str, Optional[float]] = {"1": omega_1[i], "2": omega_2[i]}
-        rho: Dict[str, Optional[float]] = {"1": rho_1[i], "2": rho_2[i]}
-        kappas: Dict[str, Optional[float]] = {"1": kappa_1[i]}
+        initial_mu: Dict[str, Optional[float]] = {
+            "1": mu_1[i],
+            "2": mu_2[i],
+            "3": mu_3[i],
+        }
+        initial_pi: Dict[str, Optional[float]] = {
+            "1": pi_1[i],
+            "2": pi_2[i],
+            "3": pi_3[i],
+        }
+        omega: Dict[str, Optional[float]] = {
+            "1": omega_1[i],
+            "2": omega_2[i],
+            "3": omega_3[i],
+        }
+        rho: Dict[str, Optional[float]] = {"1": rho_1[i], "2": rho_2[i], "3": rho_3[i]}
+        kappas: Dict[str, Optional[float]] = {"1": kappa_1[i], "2": kappa_2[i]}
 
         surprise = surprise + (
             HGF(
@@ -132,7 +181,7 @@ class HGFLogpGradOp(Op):
                     model_type=model_type,
                     response_function_parameters=response_function_parameters,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
             )
         )
 
@@ -140,14 +189,19 @@ class HGFLogpGradOp(Op):
         self,
         omega_1=np.array(-3.0),
         omega_2=np.array(-3.0),
+        omega_3=np.array(0.0),
         omega_input=np.log(1e-4),
         rho_1=np.array(0.0),
         rho_2=np.array(0.0),
+        rho_3=np.array(0.0),
         pi_1=np.array(1e4),
         pi_2=np.array(1e1),
+        pi_3=np.array(0.0),
         mu_1=np.array(0.0),
         mu_2=np.array(0.0),
+        mu_3=np.array(0.0),
         kappa_1=np.array(1.0),
+        kappa_2=np.array(0.0),
         bias=np.array(0.0),
     ):
 
@@ -155,14 +209,19 @@ class HGFLogpGradOp(Op):
         inputs = [
             pt.as_tensor_variable(omega_1),
             pt.as_tensor_variable(omega_2),
+            pt.as_tensor_variable(omega_3),
             pt.as_tensor_variable(omega_input),
             pt.as_tensor_variable(rho_1),
             pt.as_tensor_variable(rho_2),
+            pt.as_tensor_variable(rho_3),
             pt.as_tensor_variable(pi_1),
             pt.as_tensor_variable(pi_2),
+            pt.as_tensor_variable(pi_3),
             pt.as_tensor_variable(mu_1),
             pt.as_tensor_variable(mu_2),
+            pt.as_tensor_variable(mu_3),
             pt.as_tensor_variable(kappa_1),
+            pt.as_tensor_variable(kappa_2),
             pt.as_tensor_variable(bias),
         ]
         # This `Op` will return one gradient per input. For simplicity, we assume
@@ -176,28 +235,38 @@ class HGFLogpGradOp(Op):
         (
             grad_omega_1,
             grad_omega_2,
+            grad_omega_3,
             grad_omega_input,
             grad_rho_1,
             grad_rho_2,
+            grad_rho_3,
             grad_pi_1,
             grad_pi_2,
+            grad_pi_3,
             grad_mu_1,
             grad_mu_2,
+            grad_mu_3,
             grad_kappa_1,
+            grad_kappa_2,
             grad_bias,
         ) = self.grad_logp(*inputs)
 
         outputs[0][0] = np.asarray(grad_omega_1, dtype=node.outputs[0].dtype)
         outputs[1][0] = np.asarray(grad_omega_2, dtype=node.outputs[1].dtype)
-        outputs[2][0] = np.asarray(grad_omega_input, dtype=node.outputs[2].dtype)
-        outputs[3][0] = np.asarray(grad_rho_1, dtype=node.outputs[3].dtype)
-        outputs[4][0] = np.asarray(grad_rho_2, dtype=node.outputs[4].dtype)
-        outputs[5][0] = np.asarray(grad_pi_1, dtype=node.outputs[5].dtype)
-        outputs[6][0] = np.asarray(grad_pi_2, dtype=node.outputs[6].dtype)
-        outputs[7][0] = np.asarray(grad_mu_1, dtype=node.outputs[7].dtype)
-        outputs[8][0] = np.asarray(grad_mu_2, dtype=node.outputs[8].dtype)
-        outputs[9][0] = np.asarray(grad_kappa_1, dtype=node.outputs[9].dtype)
-        outputs[10][0] = np.asarray(grad_bias, dtype=node.outputs[10].dtype)
+        outputs[2][0] = np.asarray(grad_omega_3, dtype=node.outputs[2].dtype)
+        outputs[3][0] = np.asarray(grad_omega_input, dtype=node.outputs[3].dtype)
+        outputs[4][0] = np.asarray(grad_rho_1, dtype=node.outputs[4].dtype)
+        outputs[5][0] = np.asarray(grad_rho_2, dtype=node.outputs[5].dtype)
+        outputs[6][0] = np.asarray(grad_rho_3, dtype=node.outputs[6].dtype)
+        outputs[7][0] = np.asarray(grad_pi_1, dtype=node.outputs[7].dtype)
+        outputs[8][0] = np.asarray(grad_pi_2, dtype=node.outputs[8].dtype)
+        outputs[9][0] = np.asarray(grad_pi_3, dtype=node.outputs[9].dtype)
+        outputs[10][0] = np.asarray(grad_mu_1, dtype=node.outputs[10].dtype)
+        outputs[11][0] = np.asarray(grad_mu_2, dtype=node.outputs[11].dtype)
+        outputs[12][0] = np.asarray(grad_mu_3, dtype=node.outputs[12].dtype)
+        outputs[13][0] = np.asarray(grad_kappa_1, dtype=node.outputs[13].dtype)
+        outputs[14][0] = np.asarray(grad_kappa_2, dtype=node.outputs[14].dtype)
+        outputs[15][0] = np.asarray(grad_bias, dtype=node.outputs[15].dtype)
 
 
 class HGFDistribution(Op):
@@ -219,7 +288,7 @@ class HGFDistribution(Op):
     Create the data (value and time vectors)
     >>> timeserie = load_data("continuous")
 
-    We create the PyMC distribution here, specifying the type of model and response 
+    We create the PyMC distribution here, specifying the type of model and response
     function we want to use (i.e simple gaussian surprise).
     >>> hgf_logp_op = HGFDistribution(
     >>>     n_levels=2,
@@ -276,7 +345,7 @@ class HGFDistribution(Op):
 
         Parameters
         ----------
-        data : list
+        input_data : list
         time : list
         model_type : str
         n_levels : int
@@ -311,14 +380,19 @@ class HGFDistribution(Op):
         self,
         omega_1,
         omega_2,
+        omega_3,
         omega_input,
         rho_1,
         rho_2,
+        rho_3,
         pi_1,
         pi_2,
+        pi_3,
         mu_1,
         mu_2,
+        mu_3,
         kappa_1,
+        kappa_2,
         bias,
     ):
 
@@ -326,14 +400,19 @@ class HGFDistribution(Op):
         inputs = [
             pt.as_tensor_variable(omega_1),
             pt.as_tensor_variable(omega_2),
+            pt.as_tensor_variable(omega_3),
             pt.as_tensor_variable(omega_input),
             pt.as_tensor_variable(rho_1),
             pt.as_tensor_variable(rho_2),
+            pt.as_tensor_variable(rho_3),
             pt.as_tensor_variable(pi_1),
             pt.as_tensor_variable(pi_2),
+            pt.as_tensor_variable(pi_3),
             pt.as_tensor_variable(mu_1),
             pt.as_tensor_variable(mu_2),
+            pt.as_tensor_variable(mu_3),
             pt.as_tensor_variable(kappa_1),
+            pt.as_tensor_variable(kappa_2),
             pt.as_tensor_variable(bias),
         ]
         # Define the type of the output returned by the wrapped JAX function
@@ -348,14 +427,19 @@ class HGFDistribution(Op):
         (
             grad_omega_1,
             grad_omega_2,
+            grad_omega_3,
             grad_omega_input,
             grad_rho_1,
             grad_rho_2,
+            grad_rho_3,
             grad_pi_1,
             grad_pi_2,
+            grad_pi_3,
             grad_mu_1,
             grad_mu_2,
+            grad_mu_3,
             grad_kappa_1,
+            grad_kappa_2,
             grad_bias,
         ) = self.hgf_logp_grad_op(*inputs)
         # If there are inputs for which the gradients will never be needed or cannot
@@ -365,13 +449,18 @@ class HGFDistribution(Op):
         return [
             output_gradient * grad_omega_1,
             output_gradient * grad_omega_2,
+            output_gradient * grad_omega_3,
             output_gradient * grad_omega_input,
             output_gradient * grad_rho_1,
             output_gradient * grad_rho_2,
+            output_gradient * grad_rho_3,
             output_gradient * grad_pi_1,
             output_gradient * grad_pi_2,
+            output_gradient * grad_pi_3,
             output_gradient * grad_mu_1,
             output_gradient * grad_mu_2,
+            output_gradient * grad_mu_3,
             output_gradient * grad_kappa_1,
+            output_gradient * grad_kappa_2,
             output_gradient * grad_bias,
         ]
