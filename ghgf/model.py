@@ -296,7 +296,7 @@ class HGF(object):
         response_function_parameters: Tuple = (),
     ):
         """Surprise (negative log probability) under new observations.
-        
+
         The surprise depends on the input data, the model parameters, the response
         function and its additional parameters(optional).
 

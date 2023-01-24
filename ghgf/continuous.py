@@ -17,7 +17,7 @@ def continuous_node_update(
     new_time: Union[float, DeviceArray],
 ) -> NodeType:
     """Update the value and volatility parents of a continuous node.
-    
+
     If the parents have value and/or volatility parents, they will be updated
     recursively.
 
@@ -484,7 +484,7 @@ def gaussian_surprise(
 @jit
 def loop_continuous_inputs(res: Tuple, el: Tuple) -> Tuple[Tuple, Tuple]:
     """Update the node structure after observing one new data point.
-    
+
     One time step updating node structure and returning the new node structure with
     time, value and surprise.
 

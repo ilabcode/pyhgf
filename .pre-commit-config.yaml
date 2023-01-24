@@ -15,7 +15,6 @@ repos:
     hooks:
     - id: flake8
       files: ^ghgf/
-repos:
 -   repo: https://github.com/pycqa/pydocstyle
     rev: 6.3.0
     hooks:
