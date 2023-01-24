@@ -16,8 +16,10 @@ def continuous_node_update(
     old_time: Union[float, DeviceArray],
     new_time: Union[float, DeviceArray],
 ) -> NodeType:
-    """Update the value and volatility parents of a continuous node. If the parents have
-    value and/or volatility parents, they will be updated recursively.
+    """Update the value and volatility parents of a continuous node.
+    
+    If the parents have value and/or volatility parents, they will be updated
+    recursively.
 
     Updating the node's parents is a two step process:
         1. Update value parent(s) and their parents (if provided).
@@ -56,7 +58,7 @@ def continuous_node_update(
     new_time : DeviceArray
         The previous time stamp.
 
-    See also
+    See Also
     --------
     update_continuous_input_parents, update_binary_input_parents
 
@@ -242,8 +244,7 @@ def continuous_input_update(
     new_time: DeviceArray,
     old_time: DeviceArray,
 ) -> Optional[Tuple[DeviceArray, NodeType]]:
-    """Update the input node structure given one value for a time interval and return
-    gaussian surprise.
+    """Update the input node structure.
 
     This function is the entry level of the model fitting. It update the partents of
     the input node and then call py:func:`ghgf.jax.continuous_node_update` recursively
@@ -269,7 +270,7 @@ def continuous_input_update(
     new_input_node : tuple
         The input node structure after recursively updating all the nodes.
 
-    See also
+    See Also
     --------
     continuous_node_update, update_binary_input_parents
 
@@ -482,8 +483,10 @@ def gaussian_surprise(
 
 @jit
 def loop_continuous_inputs(res: Tuple, el: Tuple) -> Tuple[Tuple, Tuple]:
-    """The HGF function to be scanned by JAX. One time step updating node structure and
-    returning the new node structure with time, value and surprise.
+    """Update the node structure after observing one new data point.
+    
+    One time step updating node structure and returning the new node structure with
+    time, value and surprise.
 
     Parameters
     ----------
@@ -496,7 +499,6 @@ def loop_continuous_inputs(res: Tuple, el: Tuple) -> Tuple[Tuple, Tuple]:
         and values (i.e. the input time series).
 
     """
-
     # Extract the current iteration variables values and time
     value, new_time = el
 

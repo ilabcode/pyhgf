@@ -32,7 +32,6 @@ def load_data(dataset: str):
     519–530). Elsevier BV. https://doi.org/10.1016/j.neuron.2013.09.009
 
     """
-
     if dataset == "continuous":
         data = loadtxt(pkg_resources.resource_filename("ghgf", "/data/usdchf.dat"))
     elif dataset == "binary":

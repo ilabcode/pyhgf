@@ -16,8 +16,7 @@ ParentsType = Optional[Tuple[NodeType]]
 
 
 def node_validation(node: Tuple):
-    """ "Verify that the node structure is valid."""
-
+    """Verify that the node structure is valid."""
     assert len(node) == 3
     assert isinstance(node[0], Dict)
     if node[1] is not None:

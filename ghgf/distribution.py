@@ -36,29 +36,82 @@ def hgf_logp(
     response_function_parameters: Tuple = (),
     time: Optional[List] = None,
 ) -> jnp.DeviceArray:
-    """Compute the log probability from the HGF model given the data and parameters.
+    r"""Compute the log probability from the HGF model given the data and parameters.
 
     Parameters
     ----------
-    omega_1, omega_2, omega_3, rho_1, rho_2, rho_3, pi_1, pi_2, pi_3, mu_1, mu_2,
-    mu_3, kappa_1, kappa_2, bias : DeviceArray
+    omega_1 : float
+        The $\omega$ parameter, or *evolution rate*, at the first level of the HGF. This
+        parameter represents the tonic part of the variance (the part that is not
+        inherited from parents nodes). 
+    omega_2 : float
+        The $\omega$ parameter, or *evolution rate*, at the second level of the HGF.
+        This parameter represents the tonic part of the variance (the part that is not
+        inherited from parents nodes).
+    omega_3 : float
+        The $\omega$ parameter, or *evolution rate*, at the third level of the HGF. This
+        parameter represents the tonic part of the variance (the part that is not
+        inherited from parents nodes). The value of this parameter will be ignored when
+        using a 2-levels HGF (`n_levels=2`).
+    omega_input : float
+        Represent the noise associated with the input observation.
+    rho_1 : float
+        The $\rho$ parameter at the first level of the HGF. This parameter represents
+        the drift of the random walk.
+    rho_2 : float
+        The $\rho$ parameter at the second level of the HGF. This parameter represents
+            the drift of the random walk.
+    rho_3 : float
+        The $\rho$ parameter at the first level of the HGF. This parameter represents
+        the drift of the random walk. The value of this parameter will be ignored when
+        using a 2-levels HGF (`n_levels=2`).
+    pi_1 : float
+        The $\pi$ parameter, or *precision*, at the first level of the HGF.
+    pi_2 : float
+        The $\pi$ parameter, or *precision*, at the second level of the HGF.
+    pi_3 : float
+        The $\pi$ parameter, or *precision*, at the third level of the HGF.The value of
+        this parameter will be ignored when using a 2-levels HGF (`n_levels=2`).
+    mu_1 : float
+        The $\mu$ parameter, or *mean*, at the first level of the HGF.
+    mu_2 : float
+        The $\mu$ parameter, or *mean*, at the second level of the HGF.
+    mu_3 : float
+        The $\mu$ parameter, or *mean*, at the third level of the HGF. The value of this
+        parameter will be ignored when using a 2-levels HGF (`n_levels=2`).
+    kappa_1 : float
+        The value of the $\kappa$ parameter at the first level of the HGF. Kappa
+        represents the phasic part of the variance (the part that is affected by the
+        parents nodes) and will defines the strenght of the connection between the node
+        and the parent node. Often fixed to `1`.   
+    kappa_2 : float
+        The value of the $\kappa$ parameter at the second level of the HGF. Kappa
+        represents the phasic part of the variance (the part that is affected by the
+        parents nodes) and will defines the strenght of the connection between the node
+        and the parent node. Often fixed to `1`. The value of this parameter will be
+        ignored when using a 2-levels HGF (`n_levels=2`).
+    bias : float
         The HGD parameters (see py:class:`ghgf.model.HGF` for details).
-    data : list
-        List of input data. If `model_type` is `"continuous"`, the data should be two
-        times series (time and values).
+    input_data : list
+        List of input data. When `n` models should be fitted, the list contains `n` 1d
+        Numpy arrays. By default, the associated time vector is the integers vector
+        starting at `0`. A different time vector can be passed to the `time` argument.
     response_function : callable
         The response function to use to compute the model surprise.
-    response_function_parameters : tuple
-        Additional parameters to the response function.
     model_type : str
         The model type to use (can be "continuous" or "binary").
     n_levels : int
         The number of hierarchies in the perceptual model (can be `2` or `3`). If
         `None`, the nodes hierarchy is not created and might be provided afterward
         using `add_nodes()`.
+    response_function_parameters : tuple
+        Additional parameters to the response function.
+    time : list | optional
+        List of 1d Numpy arrays containing the time vectors for each input time series.
+        If one of the list item is `None`, or if `None` is provided instead, the time
+        vector will defaults to integers vector starting at 0.
 
     """
-
     # number of models
     n = len(input_data)
 
@@ -160,6 +213,8 @@ def hgf_logp(
 
 
 class HGFLogpGradOp(Op):
+    """Gradient Op for the HGF distribution."""
+
     def __init__(
         self,
         input_data: List = [],
@@ -169,7 +224,31 @@ class HGFLogpGradOp(Op):
         response_function: Optional[Callable] = None,
         response_function_parameters: Tuple = (),
     ):
+        """Initialize function.
 
+        Parameters
+        ----------
+        input_data : list
+            List of input data. When `n` models should be fitted, the list contains `n`
+            1d Numpy arrays. By default, the associated time vector is the integers
+            vector starting at `0`. A different time vector can be passed to the `time`
+            argument.
+        time : list | optional
+            List of 1d Numpy arrays containing the time vectors for each input time
+            series. If one of the list item is `None`, or if `None` is provided instead,
+            the time vector will defaults to integers vector starting at 0.
+        model_type : str
+            The model type to use (can be "continuous" or "binary").
+        n_levels : int
+            The number of hierarchies in the perceptual model (can be `2` or `3`). If
+            `None`, the nodes hierarchy is not created and might be provided afterward
+            using `add_nodes()`.
+        response_function : callable
+            The response function to use to compute the model surprise.
+        response_function_parameters : tuple
+            Additional parameters to the response function.
+
+        """
         self.grad_logp = jit(
             grad(
                 Partial(
@@ -204,7 +283,7 @@ class HGFLogpGradOp(Op):
         kappa_2=np.array(0.0),
         bias=np.array(0.0),
     ):
-
+        """Initialize node structure."""
         # Convert our inputs to symbolic variables
         inputs = [
             pt.as_tensor_variable(omega_1),
@@ -232,6 +311,7 @@ class HGFLogpGradOp(Op):
         return Apply(self, inputs, outputs)
 
     def perform(self, node, inputs, outputs):
+        """Perform node operations."""
         (
             grad_omega_1,
             grad_omega_2,
@@ -341,16 +421,29 @@ class HGFDistribution(Op):
         response_function: Optional[Callable] = None,
         response_function_parameters: Tuple = (),
     ):
-        """
+        """Distribution initialization.
 
         Parameters
         ----------
         input_data : list
-        time : list
+            List of input data. When `n` models should be fitted, the list contains `n`
+            1d Numpy arrays. By default, the associated time vector is the integers
+            vector starting at `0`. A different time vector can be passed to the `time`
+            argument.
+        time : list | optional
+            List of 1d Numpy arrays containing the time vectors for each input time
+            series. If one of the list item is `None`, or if `None` is provided instead,
+            the time vector will defaults to integers vector starting at 0.
         model_type : str
+            The model type to use (can be "continuous" or "binary").
         n_levels : int
-        response_function : callable (optional)
-        response_function_parameters : Tuple
+            The number of hierarchies in the perceptual model (can be `2` or `3`). If
+            `None`, the nodes hierarchy is not created and might be provided afterward
+            using `add_nodes()`.
+        response_function : callable
+            The response function to use to compute the model surprise.
+        response_function_parameters : tuple
+            Additional parameters to the response function.
 
         """
         # The value function
@@ -395,8 +488,7 @@ class HGFDistribution(Op):
         kappa_2,
         bias,
     ):
-
-        # Convert our inputs to symbolic variables
+        """Convert inputs to symbolic variables."""
         inputs = [
             pt.as_tensor_variable(omega_1),
             pt.as_tensor_variable(omega_2),
@@ -420,10 +512,12 @@ class HGFDistribution(Op):
         return Apply(self, inputs, outputs)
 
     def perform(self, node, inputs, outputs):
+        """Run the function forward."""
         result = self.hgf_logp(*inputs)
         outputs[0][0] = np.asarray(result, dtype=node.outputs[0].dtype)
 
     def grad(self, inputs, output_gradients):
+        """Gradient of the function."""
         (
             grad_omega_1,
             grad_omega_2,

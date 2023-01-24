@@ -28,7 +28,6 @@ def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) 
         The Matplotlib axis instance plotting the parameters trajectories.
 
     """
-
     nrows = hgf.n_levels + 1
     time = hgf.hgf_results["final"][1]["time"]
     node, results = hgf.hgf_results["final"]
@@ -131,7 +130,6 @@ def plot_correlations(hgf) -> Axes:
         correlation.
 
     """
-
     node, results = hgf.hgf_results["final"]
 
     results["surprise"]

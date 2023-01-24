@@ -6,7 +6,7 @@ import jax.numpy as jnp
 
 
 def gaussian_surprise(hgf_results: Dict, response_function_parameters):
-    """The sum of the gaussian surprise along the time series (continuous HGF).
+    """Sum of the gaussian surprise along the time series (continuous HGF).
 
     .. note::
       The Gaussian Surprise is the default method to compute surprise when
@@ -43,7 +43,7 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
 
 
 def binary_surprise(hgf_results: Dict, response_function_parameters):
-    """The sum of the binary surprise along the time series (binary HGF).
+    """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
       The Gaussian Surprise is the default method to compute surprise when

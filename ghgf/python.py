@@ -8,17 +8,20 @@ from numba import jit
 
 
 class Model(object):
-    """Generic HGF model"""
+    """Generic HGF model."""
 
     def __init__(self):
+        """Initialize to empty list."""
         self._nodes = []
 
     @property
     def nodes(self):
+        """The model's nodes."""
         return self._nodes
 
     @property
     def input_nodes(self):
+        """The input nodes."""
         input_nodes = []
         for node in self.nodes:
             if isinstance(node, InputNode) or isinstance(node, BinaryInputNode):
@@ -27,6 +30,7 @@ class Model(object):
 
     @property
     def params(self):
+        """Model parameters."""
         params = []
         for node in self.nodes:
             params.extend(node.params)
@@ -34,6 +38,7 @@ class Model(object):
 
     @property
     def var_params(self):
+        """Variables parameters."""
         var_params = []
         for param in self.params:
             tpp = param.trans_prior_precision
@@ -43,37 +48,45 @@ class Model(object):
 
     @property
     def param_values(self):
+        """Parameters values."""
         return [param.value for param in self.params]
 
     @param_values.setter
     def param_values(self, values):
+        """Parameters values."""
         for i, param in enumerate(self.params):
             param.value = values[i]
 
     @property
     def var_param_values(self):
+        """Variables parameters values."""
         return [var_param.value for var_param in self.var_params]
 
     @var_param_values.setter
     def var_param_values(self, values):
+        """Variables parameters values."""
         for i, var_param in enumerate(self.var_params):
             var_param.value = values[i]
 
     @property
     def param_trans_values(self):
+        """Parameters transient values."""
         return [param.trans_value for param in self.params]
 
     @param_trans_values.setter
     def param_trans_values(self, trans_values):
+        """Parameters transient values."""
         for i, param in enumerate(self.params):
             param.trans_value = trans_values[i]
 
     @property
     def var_param_trans_values(self):
+        """Parameters transient values."""
         return [var_param.trans_value for var_param in self.var_params]
 
     @var_param_trans_values.setter
     def var_param_trans_values(self, trans_values):
+        """Variables parameters transient values."""
         for i, var_param in enumerate(self.var_params):
             var_param.trans_value = trans_values[i]
 
@@ -87,7 +100,7 @@ class Model(object):
         m: float = 0.0,
         omega: float = 0.0,
     ):
-
+        """Add a state node."""
         node = StateNode(
             initial_mu=initial_mu,
             initial_pi=initial_pi,
@@ -101,11 +114,13 @@ class Model(object):
         return node
 
     def add_binary_node(self):
+        """Add a binary node."""
         node = BinaryNode()
         self._nodes.append(node)
         return node
 
     def add_input_node(self, *, omega: float = 0):
+        """Add an input node."""
         node = InputNode(omega=omega)
         self._nodes.append(node)
         return node
@@ -113,29 +128,35 @@ class Model(object):
     def add_binary_input_node(
         self, *, pihat: float = np.inf, eta0: float = 0, eta1: float = 1
     ):
+        """Add a binary input node."""
         node = BinaryInputNode(pihat=pihat, eta0=eta0, eta1=eta1)
         self._nodes.append(node)
         return node
 
     def reset(self):
+        """Reset the model hierarchy."""
         for input_node in self.input_nodes:
             input_node.reset_hierarchy()
 
     def undo_last_reset(self):
+        """Undo the last model reset."""
         for input_node in self.input_nodes:
             input_node.undo_last_reset_hierarchy()
 
     def recalculate(self):
+        """Recalculate input nodes."""
         for input_node in self.input_nodes:
             input_node.recalculate()
 
     def surprise(self):
+        """Compute the model's surprise."""
         surprise = 0
         for input_node in self.input_nodes:
             surprise += sum(input_node.surprises)
         return surprise
 
     def log_prior(self):
+        """Log prior density."""
         if self.var_params:
             log_prior = 0
             for var_param in self.var_params:
@@ -145,9 +166,11 @@ class Model(object):
             raise ModelConfigurationError("No variable (i.e., non-fixed) parameters.")
 
     def log_joint(self):
+        """Log joint probability density."""
         return -self.surprise() + self.log_prior()
 
     def neg_log_joint_function(self):
+        """Negative log joint probability density."""
         def f(trans_values):
             trans_values_backup = self.var_param_trans_values
             self.var_param_trans_values = trans_values
@@ -203,7 +226,7 @@ class StandardHGF(Model):
         Dictionary containing the initial values for the `kappa` parameter at
         different levels of the hierarchy. Kappa represents the phasic part of the
         variance (the part that is affected by the parents nodes) and will defines the
-        strenght of the connection between the nod eand the parent node. Often fixed
+        strenght of the connection between the node and the parent node. Often fixed
         to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only required when
         `process_type="GRW"`.
     phi : dict | None
@@ -249,6 +272,7 @@ class StandardHGF(Model):
         m: Dict[str, float] = None,
         verbose: bool = True,
     ):
+        """Initialize a continuous HGF model."""
         self.verbose = verbose
         print("Continuous Hierarchical Gaussian Filter")
         self.n_levels = n_levels
@@ -362,6 +386,7 @@ class StandardHGF(Model):
 
     # Input method
     def input(self, inputs):
+        """Add new observations."""
         self.xU.input(inputs)
 
 
@@ -389,7 +414,7 @@ class StandardBinaryHGF(Model):
         phi3: float = 0,
         m3: float = 0,
     ):
-
+        """Initialize the binary HGF."""
         # Superclass initialization
         super().__init__()
 
@@ -419,15 +444,16 @@ class StandardBinaryHGF(Model):
 
     # Input method
     def input(self, inputs):
+        """Add new observation."""
         self.xU.input(inputs)
 
 
 # HGF continuous state node
 class StateNode(object):
-    """HGF continuous state node"""
+    """HGF continuous state node."""
 
     def __init__(self, *, initial_mu, initial_pi, rho=0, phi=0, m=0, omega=0):
-
+        """Initialize state node."""
         # Sanity check
         if rho and phi:
             raise NodeConfigurationError(
@@ -459,6 +485,7 @@ class StateNode(object):
 
     @property
     def parents(self):
+        """Parents nodes."""
         parents = []
         parents.extend(self.va_pas)
         parents.extend(self.vo_pas)
@@ -466,6 +493,7 @@ class StateNode(object):
 
     @property
     def params(self):
+        """Node parameters."""
         params = [
             self.initial_mu,
             self.initial_pi,
@@ -481,6 +509,7 @@ class StateNode(object):
         return params
 
     def reset(self):
+        """Reset to default values."""
         self._times_backup = self.times
         self.times = [0]
 
@@ -500,6 +529,7 @@ class StateNode(object):
         self.nus = [None]
 
     def undo_last_reset(self):
+        """Undo last reset."""
         self.times = self._times_backup
         self.pihats = self._pihats_backup
         self.pis = self._pis_backup
@@ -508,24 +538,29 @@ class StateNode(object):
         self.nus = self._nus_backup
 
     def reset_hierarchy(self):
+        """Reset model's hierarchy."""
         self.reset()
         for pa in self.parents:
             pa.reset_hierarchy()
 
     def undo_last_reset_hierarchy(self):
+        """Undo the last reset of the model's hierarchy."""
         self.undo_last_reset()
         for pa in self.parents:
             pa.undo_last_reset_hierarchy()
 
     def add_value_parent(self, *, parent, psi):
+        """Add a value parent."""
         self.va_pas.append(parent)
         self.psis.append(Parameter(value=psi))
 
     def add_volatility_parent(self, *, parent, kappa):
+        """Add a volatility parent."""
         self.vo_pas.append(parent)
         self.kappas.append(Parameter(value=kappa, space="log"))
 
     def new_muhat(self, time):
+        """Conpute a new muhat."""
         t = time - self.times[-1]
         driftrate = self.rho.value
         for i, _ in enumerate(self.va_pas):
@@ -533,6 +568,7 @@ class StateNode(object):
         return self.mus[-1] + t * driftrate
 
     def _new_nu(self, time):
+        """Conpute a new nu."""
         t = time - self.times[-1]
         logvol = self.omega.value
         for i, _ in enumerate(self.vo_pas):
@@ -547,13 +583,16 @@ class StateNode(object):
             )
 
     def new_pihat_nu(self, time):
+        """Compute a new pihat and nu."""
         new_nu = self._new_nu(time)
         return [1 / (1 / self.pis[-1] + new_nu), new_nu]
 
     def vape(self):
+        """Value prediction error."""
         return self.mus[-1] - self.muhats[-1]
 
     def vope(self):
+        """Volatility prediction error."""
         return (1 / self.pis[-1] + self.vape() ** 2) * self.pihats[-1] - 1
 
     @staticmethod
@@ -561,6 +600,7 @@ class StateNode(object):
     def numba_update_value_parent(
         i: int, va_pa: List, time: List, psis: List, pihat: List, vape: List
     ):
+        """Update the value parents (Numba)."""
         pihat_pa, nu_pa = va_pa.new_pihat_nu(time)  # type: ignore
         pi_pa = pihat_pa + psis[i].value ** 2 * pihat
         muhat_pa = va_pa.new_muhat(time)  # type: ignore
@@ -569,6 +609,7 @@ class StateNode(object):
         return pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa
 
     def update_parents(self, time):
+        """Update the parents structure."""
         va_pas = self.va_pas
         vo_pas = self.vo_pas
 
@@ -609,6 +650,7 @@ class StateNode(object):
             vo_pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
     def update(self, time, pihat, pi, muhat, mu, nu):
+        """Update the model after one observation."""
         self.times.append(time)
         self.pihats.append(pihat)
         self.pis.append(pi)
@@ -621,10 +663,10 @@ class StateNode(object):
 
 # HGF binary state node
 class BinaryNode(object):
-    """HGF binary state node"""
+    """HGF binary state node."""
 
     def __init__(self):
-
+        """Initialize binary node."""
         # Initialize parent
         self.pa = None
 
@@ -637,6 +679,7 @@ class BinaryNode(object):
 
     @property
     def parents(self):
+        """The model's parents."""
         parents = []
         if self.pa:
             parents.append(self.pa)
@@ -644,9 +687,11 @@ class BinaryNode(object):
 
     @property
     def params(self):
+        """The model's parameters."""
         return []
 
     def reset(self):
+        """Undo the the model to default values."""
         self._times_backup = self.times
         self.times = [0]
 
@@ -663,6 +708,7 @@ class BinaryNode(object):
         self.mus = [None]
 
     def undo_last_reset(self):
+        """Undo the last reset of the model."""
         self.times = self._times_backup
         self.pihats = self._pihats_backup
         self.pis = self._pis_backup
@@ -670,28 +716,34 @@ class BinaryNode(object):
         self.mus = self._mus_backup
 
     def reset_hierarchy(self):
+        """Reset the model's hierarchy."""
         self.reset()
         for pa in self.parents:
             pa.reset_hierarchy()
 
     def undo_last_reset_hierarchy(self):
+        """Undo the last reset of the hierarchy."""
         self.undo_last_reset()
         for pa in self.parents:
             pa.undo_last_reset_hierarchy()
 
     def set_parent(self, *, parent):
+        """Create a parent node."""
         self.pa = parent
 
     def new_muhat_pihat(self, time):
+        """Compute new muhat and pihat."""
         muhat_pa = self.pa.new_muhat(time)
         muhat = sgm(muhat_pa)
         pihat = 1 / (muhat * (1 - muhat))
         return [muhat, pihat]
 
     def vape(self):
+        """Value prediction error."""
         return self.mus[-1] - self.muhats[-1]
 
     def update_parent(self, time):
+        """Update parents."""
         pa = self.pa
 
         if not pa:
@@ -711,6 +763,7 @@ class BinaryNode(object):
         pa.update(time, pihat_pa, pi_pa, muhat_pa, mu_pa, nu_pa)
 
     def update(self, time, pihat, pi, muhat, mu):
+        """Update the model after observing one new data point."""
         self.times.append(time)
         self.pihats.append(pihat)
         self.pis.append(pi),
@@ -722,10 +775,10 @@ class BinaryNode(object):
 
 # HGF continuous input nodes
 class InputNode(object):
-    """An HGF node that receives input on a continuous scale"""
+    """An HGF node that receives input on a continuous scale."""
 
     def __init__(self, *, omega):
-
+        """Input node initialization."""
         # Incorporate parameter attributes
         self.omega = Parameter(value=omega)
         self.kappa = None
@@ -742,6 +795,7 @@ class InputNode(object):
 
     @property
     def parents(self):
+        """Model's parents."""
         parents = []
         if self.va_pa:
             parents.append(self.va_pa)
@@ -751,6 +805,7 @@ class InputNode(object):
 
     @property
     def params(self):
+        """Model's parameters."""
         params = [self.omega]
 
         if self.kappa is not None:
@@ -759,6 +814,7 @@ class InputNode(object):
         return params
 
     def reset(self):
+        """Reset model to default values."""
         self._times_backup = self.times
         self.times = [0]
 
@@ -772,22 +828,26 @@ class InputNode(object):
         self.surprises = [0]
 
     def undo_last_reset(self):
+        """Undo the last model rest."""
         self.times = self._times_backup
         self.inputs = self.inputs_backup
         self.inputs_with_times = self.inputs_with_times_backup
         self.surprises = self._surprises_backup
 
     def reset_hierarchy(self):
+        """Reset the hierarchy."""
         self.reset()
         for pa in self.parents:
             pa.reset_hierarchy()
 
     def undo_last_reset_hierarchy(self):
+        """Undo the last hierarchy reset."""
         self.undo_last_reset()
         for pa in self.parents:
             pa.undo_last_reset_hierarchy()
 
     def recalculate(self):
+        """Recalculate models' hierarchy."""
         iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
         try:
@@ -797,14 +857,17 @@ class InputNode(object):
             raise e
 
     def set_value_parent(self, *, parent):
+        """Add value parents."""
         self.va_pa = parent
 
     def set_volatility_parent(self, *, parent, kappa):
+        """Add volatility parents."""
         self.vo_pa = parent
         self.kappa = Parameter(value=kappa, space="log")
 
     # Update parents and return surprise
     def update_parents(self, value, time):
+        """Update parent nodes."""
         va_pa = self.va_pa
         vo_pa = self.vo_pa
 
@@ -885,30 +948,22 @@ class InputNode(object):
 
 
 class BinaryInputNode(object):
-    """An HGF node that receives binary input.
-
-    Parameters
-    ----------
-    pihat : float
-    eta0 : float
-    eta1 : float
-
-    Attributes
-    ----------
-    pihat
-    eta0
-    eta1
-    pa : None
-        Parent nodes.
-    times : list
-    iputs : list
-    inputs_with_time : list
-    surprises : list
-
-    """
+    """An HGF node that receives binary input."""
 
     def __init__(self, *, pihat: float = np.inf, eta0: float = 0.0, eta1: float = 1.0):
+        """Initialize the binary input node.
 
+        Parameters
+        ----------
+        pihat : float
+            The expected precision of the binary input. The default value is usually set
+            to `np.inf`.
+        eta0 : float
+            The first categorical value of the binary node. Defaults to `0.0`.
+        eta1 : float
+            The second categorical value of the binary node. Defaults to `0.0`.
+
+        """
         # Incorporate parameter attributes
         self.pihat = Parameter(value=pihat, space="log")
         self.eta0 = Parameter(value=eta0)
@@ -925,6 +980,7 @@ class BinaryInputNode(object):
 
     @property
     def parents(self):
+        """Model parents."""
         parents = []
         if self.pa is not None:
             parents.append(self.pa)
@@ -932,9 +988,11 @@ class BinaryInputNode(object):
 
     @property
     def params(self):
+        """Model parameters."""
         return [self.pihat, self.eta0, self.eta1]
 
     def reset(self):
+        """Reset the model."""
         self._times_backup = self.times
         self.times = [0]
 
@@ -948,22 +1006,26 @@ class BinaryInputNode(object):
         self.surprises = [0]
 
     def undo_last_reset(self):
+        """Undo last reset."""
         self.times = self._times_backup
         self.inputs = self.inputs_backup
         self.inputs_with_times = self.inputs_with_times_backup
         self.surprises = self._surprises_backup
 
     def reset_hierarchy(self):
+        """Reset hierarchy."""
         self.reset()
         for pa in self.parents:
             pa.reset_hierarchy()
 
     def undo_last_reset_hierarchy(self):
+        """Undo the las reset of the hierarchy."""
         self.undo_last_reset()
         for pa in self.parents:
             pa.undo_last_reset_hierarchy()
 
     def recalculate(self):
+        """Recalculate the HGF hierarchy."""
         iwt = list(self.inputs_with_times[1:])
         self.reset_hierarchy()
         try:
@@ -973,9 +1035,11 @@ class BinaryInputNode(object):
             raise e
 
     def set_parent(self, *, parent):
+        """Set parent nodes."""
         self.pa = parent
 
     def update_parent(self, value, time):
+        """Update the parent nodes."""
         pa = self.pa
         if not pa:
             return
@@ -1012,12 +1076,14 @@ class BinaryInputNode(object):
         return surprise
 
     def _single_input(self, value, time):
+        """Single input data point."""
         self.times.append(time)
         self.inputs.append(value)
         self.inputs_with_times.append((value, time))
         self.surprises.append(self.update_parent(value, time))
 
     def input(self, inputs):
+        """Input data."""
         try:
             for this_input in inputs:
                 try:
@@ -1035,28 +1101,7 @@ class BinaryInputNode(object):
 
 
 class Parameter(object):
-    """Parameters of nodes.
-
-    Parameters
-    ----------
-    space: string
-        Default sets to `"native"`.
-    lower_bound : float or None
-        Default sets to `None`.
-    upper_bound : float or None
-        Default sets to `None`.
-    value : float or None
-        Default sets to `None`.
-    trans_value : float or None
-        Default sets to `None`.
-    prior_mean : float or None
-        Default sets to `None`.
-    trans_prior_mean : float or None
-        Default sets to `None`.
-    trans_prior_precision : float or None
-        Default sets to `None`.
-
-    """
+    """Parameters of nodes."""
 
     def __init__(
         self,
@@ -1070,7 +1115,28 @@ class Parameter(object):
         trans_prior_mean: Optional[float] = None,
         trans_prior_precision: Optional[float] = None,
     ):
+        """Parameters initialization.
 
+        Parameters
+        ----------
+        space: string
+            Default sets to `"native"`.
+        lower_bound : float or None
+            Default sets to `None`.
+        upper_bound : float or None
+            Default sets to `None`.
+        value : float or None
+            Default sets to `None`.
+        trans_value : float or None
+            Default sets to `None`.
+        prior_mean : float or None
+            Default sets to `None`.
+        trans_prior_mean : float or None
+            Default sets to `None`.
+        trans_prior_precision : float or None
+            Default sets to `None`.
+
+        """
         # Initialize attributes
         self.space = space
 
@@ -1114,10 +1180,12 @@ class Parameter(object):
 
     @property
     def space(self):
+        """Set space."""
         return self._space
 
     @space.setter
     def space(self, space: str):
+        """Set space."""
         if space == "native":
             self._space = space
             self._lower_bound = None
@@ -1148,10 +1216,12 @@ class Parameter(object):
 
     @property
     def lower_bound(self):
+        """Lower bound."""
         return self._lower_bound
 
     @lower_bound.setter
     def lower_bound(self, lower_bound: Optional[int]):
+        """Lower bound."""
         space = self.space
         if lower_bound is not None and space == "native":
             raise ParameterConfigurationError(
@@ -1180,10 +1250,12 @@ class Parameter(object):
 
     @property
     def upper_bound(self):
+        """Upper bound."""
         return self._upper_bound
 
     @upper_bound.setter
     def upper_bound(self, upper_bound: Optional[int]):
+        """Upper bound."""
         space = self.space
         if upper_bound is not None and space == "native":
             raise ParameterConfigurationError(
@@ -1212,10 +1284,12 @@ class Parameter(object):
 
     @property
     def value(self):
+        """Value."""
         return self._value
 
     @value.setter
     def value(self, value: Optional[float]):
+        """Value."""
         if self.lower_bound is not None and value < self.lower_bound:
             raise ParameterConfigurationError(
                 "value may not be less than current lower_bound"
@@ -1241,10 +1315,12 @@ class Parameter(object):
 
     @property
     def trans_value(self):
+        """Transient value."""
         return self._trans_value
 
     @trans_value.setter
     def trans_value(self, trans_value: Optional[float]):
+        """Transient value."""
         self._trans_value = trans_value
 
         space = self.space
@@ -1261,10 +1337,12 @@ class Parameter(object):
 
     @property
     def prior_mean(self):
+        """Prior mean."""
         return self._prior_mean
 
     @prior_mean.setter
     def prior_mean(self, prior_mean: Optional[float]):
+        """Prior mean."""
         self._prior_mean: Optional[float] = prior_mean
 
         if prior_mean is not None:
@@ -1289,10 +1367,12 @@ class Parameter(object):
 
     @property
     def trans_prior_mean(self):
+        """Transient prior mean."""
         return self._trans_prior_mean
 
     @trans_prior_mean.setter
     def trans_prior_mean(self, trans_prior_mean: Optional[float]):
+        """Transient prior mean."""
         self._trans_prior_mean = trans_prior_mean  # type: ignore
 
         if trans_prior_mean is not None:
@@ -1317,10 +1397,12 @@ class Parameter(object):
 
     @property
     def trans_prior_precision(self):
+        """Transient prior precision."""
         return self._trans_prior_precision
 
     @trans_prior_precision.setter
     def trans_prior_precision(self, trans_prior_precision: Optional[float]):
+        """Transient prior precision."""
         self._trans_prior_precision = trans_prior_precision
 
         if trans_prior_precision is None:
@@ -1328,6 +1410,7 @@ class Parameter(object):
             self._trans_prior_mean = None  # type: ignore
 
     def log_prior(self):
+        """Log probability."""
         try:
             return -gaussian_surprise(
                 self.trans_value, self.trans_prior_mean, self.trans_prior_precision
@@ -1341,7 +1424,7 @@ class Parameter(object):
 
 
 def exp_shift_mirror(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
-    """The (shifted and mirrored) exponential function"""
+    """Exponential function (shifted and mirrored)."""
     if upper_bound is not None:
         return -exp(x) + upper_bound
     else:
@@ -1349,7 +1432,7 @@ def exp_shift_mirror(x, *, lower_bound: float = 0, upper_bound: Optional[float] 
 
 
 def log_shift_mirror(x, *, lower_bound: float = 0, upper_bound: Optional[float] = None):
-    """The (shifted and mirrored) natural logarithm"""
+    """Natural logarithm (shifted and mirrored)."""
     if upper_bound is not None:
         if x > upper_bound:
             raise LogArgumentError(
@@ -1369,12 +1452,12 @@ def log_shift_mirror(x, *, lower_bound: float = 0, upper_bound: Optional[float] 
 
 
 def sgm(x, *, lower_bound: float = 0, upper_bound: float = 1):
-    """The logistic sigmoid function"""
+    """Logistic sigmoid function."""
     return (upper_bound - lower_bound) / (1 + exp(-x)) + lower_bound
 
 
 def logit(x, *, lower_bound: float = 0, upper_bound: float = 1):
-    """The logistic function"""
+    """Logistic function."""
     if x < lower_bound:
         raise LogitArgumentError("Logit argmument may not be less than `lower_bound`.")
     elif x > upper_bound:
@@ -1390,17 +1473,17 @@ def logit(x, *, lower_bound: float = 0, upper_bound: float = 1):
 
 
 def gaussian(x: float, mu: float, pi: float):
-    """The Gaussian density as defined by mean and precision"""
+    """Gaussian density as defined by mean and precision."""
     return pi / sqrt(2 * np.pi) * exp(-pi / 2 * (x - mu) ** 2)
 
 
 def gaussian_surprise(x: float, muhat: float, pihat: float):
-    """Surprise at an outcome under a Gaussian prediction"""
+    """Surprise at an outcome under a Gaussian prediction."""
     return 0.5 * (log(2 * np.pi) - log(pihat) + pihat * (x - muhat) ** 2)
 
 
 def binary_surprise(x: int, muhat: float):
-    """Surprise at a binary outcome"""
+    """Surprise at a binary outcome."""
     if x == 0:
         return -log(1 - muhat)
     if x == 1:

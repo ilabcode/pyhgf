@@ -18,8 +18,10 @@ def binary_node_update(
     old_time: Union[float, DeviceArray],
     new_time: Union[float, DeviceArray],
 ) -> NodeType:
-    """Update the value and volatility parents of a binary node. If the parents have
-    value and/or volatility parents, they will be updated recursively.
+    """Update the value and volatility parents of a binary node.
+    
+    If the parents have value and/or volatility parents, they will be updated
+    recursively.
 
     Updating the node's parents is a two step process:
         1. Update value parent(s) and their parents (if provided).
@@ -47,7 +49,7 @@ def binary_node_update(
     Returns
     -------
     node_parameters : dict
-        The new node parameters containing the following keys:
+        The new node parameters. It contains the following keys:
         `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"`.
     value_parents : tuple | None
         The new value parent (optional).
@@ -176,8 +178,7 @@ def binary_input_update(
     new_time: DeviceArray,
     old_time: DeviceArray,
 ) -> Optional[Tuple[DeviceArray, NodeType]]:
-    """Update the input node structure given one value for a time interval and return
-    gaussian surprise.
+    """Update the input node structure given one observation.
 
     This function is the entry level of the model fitting. It update the partents of
     the input node and then call py:func:`ghgf.binary.binary_node_update` to update the
@@ -203,7 +204,7 @@ def binary_input_update(
     new_input_node : tuple
         The input node structure after recursively updating all the nodes.
 
-    See also
+    See Also
     --------
     update_continuous_parents, update_continuous_input_parents
 
@@ -308,7 +309,7 @@ def binary_input_update(
 def gaussian_density(
     x: DeviceArray, mu: DeviceArray, pi: DeviceArray
 ) -> jnp.DeviceArray:
-    """The Gaussian density as defined by mean and precision."""
+    """Gaussian density as defined by mean and precision."""
     return (
         pi
         / jnp.sqrt(2 * jnp.pi)
@@ -321,7 +322,7 @@ def sgm(
     lower_bound: DeviceArray = jnp.array(0.0),
     upper_bound: DeviceArray = jnp.array(1.0),
 ):
-    """The logistic sigmoid function"""
+    """Logistic sigmoid function."""
     return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound
 
 
@@ -350,7 +351,9 @@ def loop_binary_inputs(
 ) -> Tuple[
     Tuple[NodeType, Dict[str, DeviceArray]], Tuple[NodeType, Dict[str, DeviceArray]]
 ]:
-    """The HGF function to be scanned by JAX. One time step updating node structure and
+    """Add new observation and update the node structures.
+    
+    The HGF function to be scanned by JAX. One time step updating node structure and
     returning the new node structure with time, value and surprise.
 
     Parameters
@@ -364,7 +367,6 @@ def loop_binary_inputs(
         and values (i.e. the input time series).
 
     """
-
     # Extract the current iteration variables values and time
     value, new_time = el
 
@@ -387,8 +389,7 @@ def loop_binary_inputs(
 
 
 def input_surprise_inf(op):
-    """Special case if pihat==inf, just pass the value through in the absence
-    of noise"""
+    """Apply special case if pihat is `jnp.inf` (just pass the value through)."""
     (pihat, value, eta1, eta0, muhat_va_pa) = op
     mu_va_pa = value
     pi_va_pa = jnp.inf
@@ -398,8 +399,7 @@ def input_surprise_inf(op):
 
 
 def input_surprise_reg(op):
-    """Compute the surprise, mu_va_pa and pi_va_pa if pihat!=inf"""
-
+    """Compute the surprise, mu_va_pa and pi_va_pa if pihat is not `jnp.inf`."""
     (pihat, value, eta1, eta0, muhat_va_pa) = op
 
     # Likelihood under eta1

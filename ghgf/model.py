@@ -53,7 +53,6 @@ class HGF(object):
         bias: float = 0.0,
         verbose: bool = True,
     ):
-
         """Parameterization of the HGF model.
 
         Parameters
@@ -95,14 +94,14 @@ class HGF(object):
             fixed to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only
             required when `model_type="GRW"`.
         eta0 : float
-            This value is used by the binary input node. Defaults to `0.0`. Only
+            The first categorical value of the binary node. Defaults to `0.0`. Only
             relevant if `model_type="binary"`.
         eta1 : float
-            This value is used by the binary input node. Default to `1.0`. Only relevant
-            if `model_type="binary"`.
-        pihat : float
-            This value is used by the binary input node. Default to `jnp.inf`. Only
+            The second categorical value of the binary node. Defaults to `0.0`. Only
             relevant if `model_type="binary"`.
+        pihat : float
+            The precision of the binary input node. Default to `jnp.inf`. Only relevant
+            if `model_type="binary"`.
         bias : DeviceArray
             The bias introduced in the perception of the input signal. This value is
             added to the input time serie before model fitting.
@@ -115,7 +114,6 @@ class HGF(object):
             If `model_type` is not `"continuous"` or `"binary"`.
 
         """
-
         self.model_type = model_type
         self.verbose = verbose
         self.n_levels = n_levels
@@ -285,9 +283,11 @@ class HGF(object):
         return self
 
     def plot_trajectories(self, **kwargs):
+        """Plot the parameters trajectories."""
         plot_trajectories(hgf=self, **kwargs)
 
     def plot_correlations(self):
+        """Plot the heatmap of cross-trajectories correlation."""
         plot_correlations(hgf=self)
 
     def surprise(
@@ -295,8 +295,10 @@ class HGF(object):
         response_function: Optional[Callable] = None,
         response_function_parameters: Tuple = (),
     ):
-        """Returns the model surprise (negative log probability) given the input data
-        and a response function and additional parameters to the response function.
+        """Surprise (negative log probability) under new observations.
+        
+        The surprise depends on the input data, the model parameters, the response
+        function and its additional parameters(optional).
 
         Parameters
         ----------

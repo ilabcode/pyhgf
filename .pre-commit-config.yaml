@@ -15,6 +15,13 @@ repos:
     hooks:
     - id: flake8
       files: ^ghgf/
+repos:
+-   repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+    -   id: pydocstyle
+        args: ['--ignore', 'D213,D100,D203,D104']
+        files: ^ghgf/
 # -   repo: https://github.com/pre-commit/mirrors-mypy
 #     rev: 'v0.991'
 #     hooks:
