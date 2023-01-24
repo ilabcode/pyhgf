@@ -171,6 +171,7 @@ class Model(object):
 
     def neg_log_joint_function(self):
         """Negative log joint probability density."""
+
         def f(trans_values):
             trans_values_backup = self.var_param_trans_values
             self.var_param_trans_values = trans_values

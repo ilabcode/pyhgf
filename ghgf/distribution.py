@@ -43,7 +43,7 @@ def hgf_logp(
     omega_1 : float
         The $\omega$ parameter, or *evolution rate*, at the first level of the HGF. This
         parameter represents the tonic part of the variance (the part that is not
-        inherited from parents nodes). 
+        inherited from parents nodes).
     omega_2 : float
         The $\omega$ parameter, or *evolution rate*, at the second level of the HGF.
         This parameter represents the tonic part of the variance (the part that is not
@@ -83,7 +83,7 @@ def hgf_logp(
         The value of the $\kappa$ parameter at the first level of the HGF. Kappa
         represents the phasic part of the variance (the part that is affected by the
         parents nodes) and will defines the strenght of the connection between the node
-        and the parent node. Often fixed to `1`.   
+        and the parent node. Often fixed to `1`.
     kappa_2 : float
         The value of the $\kappa$ parameter at the second level of the HGF. Kappa
         represents the phasic part of the variance (the part that is affected by the

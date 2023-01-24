@@ -19,7 +19,7 @@ def binary_node_update(
     new_time: Union[float, DeviceArray],
 ) -> NodeType:
     """Update the value and volatility parents of a binary node.
-    
+
     If the parents have value and/or volatility parents, they will be updated
     recursively.
 
@@ -352,7 +352,7 @@ def loop_binary_inputs(
     Tuple[NodeType, Dict[str, DeviceArray]], Tuple[NodeType, Dict[str, DeviceArray]]
 ]:
     """Add new observation and update the node structures.
-    
+
     The HGF function to be scanned by JAX. One time step updating node structure and
     returning the new node structure with time, value and surprise.
 
