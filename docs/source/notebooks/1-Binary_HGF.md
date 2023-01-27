@@ -61,7 +61,7 @@ two_levels_hgf = HGF(
     model_type="binary",
     initial_mu={"1": .0, "2": .5},
     initial_pi={"1": .0, "2": 1e4},
-    omega={"1": None, "2": -6.0},
+    omega={"1": None, "2": -3.0},
     rho={"1": None, "2": 0.0},
     kappas={"1": None},
     eta0=0.0,
@@ -116,7 +116,7 @@ three_levels_hgf = HGF(
     model_type="binary",
     initial_mu={"1": .0, "2": .5, "3": 0.},
     initial_pi={"1": .0, "2": 1e4, "3": 1e1},
-    omega={"1": None, "2": -6.0, "3": -2.0},
+    omega={"1": None, "2": -3.0, "3": -2.0},
     rho={"1": None, "2": 0.0, "3": 0.0},
     kappas={"1": None, "2": 1.0},
     eta0=0.0,
@@ -168,7 +168,7 @@ The data is being passed to the distribution when the instance is created.
 ```{code-cell} ipython3
 with pm.Model() as two_levels_binary_hgf:
 
-    omega_2 = pm.Normal("omega_2", -11.0, 2)
+    omega_2 = pm.Uniform("omega_2", -3.5, 0.0)
 
     pm.Potential(
         "hgf_loglike",
@@ -259,7 +259,7 @@ The data is being passed to the distribution when the instance is created.
 ```{code-cell} ipython3
 with pm.Model() as three_levels_binary_hgf:
 
-    omega_2 = pm.Normal("omega_2", -11.0, 2)
+    omega_2 = pm.Uniform("omega_2", -4.0, 0.0)
     omega_3 = pm.Normal("omega_3", -11.0, 2)
 
     pm.Potential(

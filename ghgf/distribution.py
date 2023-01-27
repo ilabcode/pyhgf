@@ -154,7 +154,7 @@ def hgf_logp(
         jnp.zeros(n),
     )
 
-    # if no time vecors provided, set it to None (will defaults to integers vectors)
+    # if no time vectors provided, set it to None (will defaults to integers vectors)
     # otherwise check consistency with the input data
     if time is None:
         time = [None] * n

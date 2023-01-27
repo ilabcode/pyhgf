@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Tuple
+from typing import List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +9,12 @@ import seaborn as sns
 from matplotlib.axes import Axes
 
 
-def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) -> Axes:
+def plot_trajectories(
+    hgf,
+    ci: bool = True,
+    figsize: Tuple[int, int] = (18, 9),
+    axs: Optional[Union[List, Axes]] = None,
+) -> Axes:
     """Plot perceptual HGF parameters trajectores.
 
     Parameters
@@ -21,6 +26,8 @@ def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) 
     figsize : tuple
         The width and height of the figure. Defaults to `(18, 9)` for a 2-levels model,
         or to `(18, 12)` for a 3-levels model.
+    axs : :class:`matplotlib.axes.Axes` list or None
+        Where to draw the plot. Default is `None` (create a new figure).
 
     Returns
     -------
@@ -32,7 +39,8 @@ def plot_trajectories(hgf, ci: bool = True, figsize: Tuple[int, int] = (18, 9)) 
     time = hgf.hgf_results["final"][1]["time"]
     node, results = hgf.hgf_results["final"]
 
-    _, axs = plt.subplots(nrows=nrows, figsize=figsize, sharex=True)
+    if axs is None:
+        _, axs = plt.subplots(nrows=nrows, figsize=figsize, sharex=True)
 
     # Level 3
     #########

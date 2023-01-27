@@ -13,7 +13,7 @@ kernelspec:
 ---
 
 (continuous_hgf)=
-# The continuous Hirarchical Gaussian Filter
+# The continuous Hierarchical Gaussian Filter
 
 ```{code-cell} ipython3
 import jax.numpy as jnp
@@ -262,7 +262,7 @@ with two_level_hgf:
 ```
 
 ```{code-cell} ipython3
-az.plot_trace(two_level_hgf_idata, var_names=["omega_1", "omega_2", "mu_1", "mu_2"]);
+az.plot_trace(two_level_hgf_idata, var_names=["omega_1", "omega_2", "mu_1"]);
 plt.tight_layout()
 ```
 
