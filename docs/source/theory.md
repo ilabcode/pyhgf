@@ -1,23 +1,54 @@
+---
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.14.1
+kernelspec:
+  display_name: Python 3 (ipykernel)
+  language: python
+  name: python3
+---
+
+(=theory)
 # The Hierarchical Gaussian Filter
+In this notebook, we are going to introduce the basic concepts on which the Hierarchical Gaussian Filter (HGF) is based. We introduce the main equations and illustrate some of the examples with Python code. We start with the generative model of the HGF, which can be seen as the structure creating the sensory inputs that the agent tries to use to produce behaviours. This can be seen as the process occurring in the environment. Next, we show how this model can be "inverted" and used by an agent to infer parameter values that generated the sensory inputs. From there, we discuss the notion of prediction error and how derivations of the model can be used to infer probability densities given observed behavioural outcomes.
 
-```{toctree}
----
-hidden:
-glob:
----
++++
 
-theory/*.md
+## The generative model of the HGF
 
+In this section we will use the two-level HGF as an example (see also the tutorial {ref}`continuous_hgf`). The generative model that underpine the continuous HGF can be seen as a generalisation of the [Gaussian Random Walk](https://en.wikipedia.org/wiki/Random_walk#Gaussian_random_walk) (GRW). Put simply, a GRW generate a new observation $x_1^{(k)}$ at each time step $k$ from a normal distribution and using the previous observation $x_1^{(k-1)}$ such as:
+
+$$
+x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \sigma^2)
+$$
+
+where $\sigma^2$ is the variance of the distribution. In the example below, we use $\sigma^2 = 1$ and $x_1^{(0)} = 0$.
+
+```{code-cell} ipython3
+:tags: [hide-cell]
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# random walk
+x_1 = np.cumsum(np.random.normal(loc=0, scale=1, size=100))
+
+plt.figure(figsize=(12, 3))
+plt.plot(x_1, "o-");
 ```
 
-## The generative model of the HGF: Volatility vs. value coupling
+This simple process will be our first building block. Importantly here, the variability of the sensory input is constant across time: even if we don't know exactly in which direction the time series is going to move in the future, we know that is is unlikely to make certain kind of big jumps, which is controlled by the variance $\sigma^2$. The HGF generalize this idea by letting the variance $\sigma^2$ being controlled by another random walk, in a higher level of the hierarchie, which is defined as *volatility coupling* (see below). This lead us to the generative model of the HGF, which can be seen as a hierarchical Gaussian Random Walk, where (hidden) states of the world perform Gaussian random walks in time and produce outcomes which are perceived by an observer as inputs.
 
-In the generative model of the HGF, (hidden) states of the world perform Gaussian random walks in time and can produce outcomes which are perceived by an observer as inputs. States can influence each other via volatility coupling or via value coupling.
+States can influence each other via volatility coupling or via value coupling.
 
 In the classical 3-level binary HGF as presented in {cite:p}`2011:mathys`, the two states of interest, $x_2$ and $x_3$, are coupled to each other via volatility coupling, which means that for state $x_2$, the mean of the Gaussian random walk on trial $k$ is given by its previous value $x_2^{(k-1)}$, while the step size (or variance) depends on the current value of the higher level state, $x_3^{(k)}$:
 
 $$
-    x_2^{(k)} \sim \mathcal{N}(x_2^{(k)} | x_2^{(k-1)}, \, f(x_3^{(k)})),
+x_2^{(k)} \sim \mathcal{N}(x_2^{(k)} | x_2^{(k-1)}, \, f(x_3^{(k)})),
 $$
 
 where the exact dependency is of the form
@@ -37,6 +68,8 @@ which means constant step size, or
 $$
     x_2^{(k)} \sim \mathcal{N}(x_2^{(k)} | x_2^{(k-1)} + \alpha_{4,2} x_4^{(k)}, \, \exp(\kappa_2 x_3^{(k)} + \omega_2)).
 $$
+
+## Volatility vs. value coupling
 
 In other words, any given state in the world can be modelled as having a volatility parent state, a value parent state, or both, or none (in which case it evolves as a Gaussian random walk around its previous value with fixed step size). Consequently, when inferring on the evolution of these states, the exact belief update equations (which include the computation of new predictions, posterior values, and prediction errors, and represent an approximate inversion of this generative model, see {cite:p}`2011:mathys` depend on the nature of the coupling of a given state with its parent and children states. In particular, the nodes that implement the belief updates will communicate with their value parents via value prediction errors, or **VAPE**s, and via volatility prediction errors, or **VOPE**s, with their volatility parents.
 
@@ -63,6 +96,8 @@ x_3^{(k)}           &\sim \mathcal{N}(x_3^{(k)} | x_3^{(k-1)}, \, \exp(\kappa_3 
 $$
 
 Note that in this example, all states that are value parents of other states (or outcomes) have their own volatility parent, while states that are volatility parents to other nodes either have a value parent (as state $\check{x}_1$), or no parents (as states $\check{x}_2$ and $\check{x}_3$). This is deliberately so, and we will see these two motifs - every state of a hierarchy has its own volatility estimation, and volatility states only have value parents - reappear in the following chapters.
+
++++
 
 ## Belief updates in the HGF: Computations of nodes
 
@@ -293,3 +328,11 @@ $$
 Thus, the prediction for trial $k+1$ depends again only on receiving the posterior mean of Node $i+1$ on trial $k$, and knowing the Node's own posteriors.
 
 Note that if Node~$i$ additionally has a **VAPE** parent node, the prediction of the new mean, $\hat{\mu}_i^{k+1}$ would also depend on the posterior mean of that value parent (cf. **PREDICTION step** for **VAPE** coupling).
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
