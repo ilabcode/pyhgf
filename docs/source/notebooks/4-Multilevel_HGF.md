@@ -13,10 +13,11 @@ kernelspec:
 ---
 
 (multilevel_hgf)=
-# The multilevel Hierarchical Gaussian Filter
+# Multilevel embeding of Hierarchical Gaussian Filters
 
 ```{code-cell} ipython3
 from numpy import loadtxt
+import numpy as np
 from ghgf.distribution import hgf_logp, HGFDistribution
 from ghgf import load_data
 from ghgf.response import binary_surprise
@@ -43,16 +44,37 @@ Estimating group-level parameters in the context of a graphical probabilistic mo
 ### Simulate a dataset
 
 ```{code-cell} ipython3
-# simulate an example dataset comprising 10 time series
-# each time serie is a random walk with length 10000
-n_data = 4
-#timeserie = load_data("continuous")
-#data = [timeserie] * n_data
-data = [np.cumsum([np.random.normal(loc=0, scale=.1) for _ in range(1000)]) for _ in range(n_data)]
+n_data = 6
+dataset = []
+for participant in range(n_data):
+    input_data = []
+    kappa_1 = 1.0
+    omega_1 = -10.0
+    omega_2 = -10.0
+    mu_1 = 0.0
+    mu_2 = 0.0
+    pi_1 = 1e4
+    pi_2 = 1e1
+
+    for i in range(100):
+        
+        # x2
+        pi_2 = np.exp(omega_2)
+        mu_2 = np.random.normal(mu_2, pi_2**.5)
+
+        # x1
+        pi_1 = np.exp(kappa_1 * mu_2 + omega_1)
+        mu_1 = np.random.normal(mu_1, pi_1**.5)
+        
+        # input node
+        u = np.random.normal(mu_1, 1e-4**.5)
+        input_data.append(u)
+
+    dataset.append(input_data)
 ```
 
 ```{code-cell} ipython3
-for rw in data:
+for rw in dataset:
     plt.plot(rw)
 ```
 
@@ -68,7 +90,7 @@ Here, we are goingin to estimate the group-level value of the `omega_1` paramete
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="continuous",
-    input_data=data,
+    input_data=dataset,
 )
 ```
 
@@ -77,19 +99,22 @@ with pm.Model() as model:
     
     # Hypterpriors
     #-------------
-    mu_omega = pm.Normal("mu_omega", mu=-10.0, sigma=1.0)
-    sigma_omega_2 = pm.HalfNormal("sigma_omega_2", 1.0)
+    #mu_omega_1 = pm.Normal("mu_omega_1", mu=.0, sigma=1.0)
+    #sigma_omega_1 = pm.Uniform("sigma_omega_1", .5, 10)
     
     # Priors
     #-------
-    normal_dist = pm.Normal.dist(mu=mu_omega, sigma=sigma_omega_2, shape=n_data)
-    omega_2 = pm.Censored("omega_2", normal_dist, lower=-20.0, upper=0.0, shape=n_data)
+    #normal_dist = pm.Normal.dist(mu=-5, sigma=2, shape=n_data)
+    #omega_2 = pm.Censored("omega_2", normal_dist, lower=-20.0, upper=0.0, shape=n_data)
+    #omega_1 = pm.Normal("omega_1", mu=mu_omega_1, sigma=sigma_omega_1, shape=n_data)
+    omega_1 = pm.Normal("omega_1", mu=0.0, sigma=2.0, shape=n_data)
+    #omega_1 = pm.Deterministic("omega_1", norm * sigma_omega_1 + mu_omega_1)
 
     pm.Potential(
         "hgf_loglike",
         hgf_logp_op(
-            omega_1=-6.0,
-            omega_2=omega_2,
+            omega_1=omega_1,
+            omega_2=-10.0,
             omega_input=np.log(1e-4),
             rho_1=0.0,
             rho_2=0.0,
@@ -134,10 +159,26 @@ az.summary(idata)
 
 ```{code-cell} ipython3
 n_data = 10
-# a sequence of probabilities of events
-probs = [.8] * 40 + [0.5] * 40 + [0.2] * 40 + [.8] * 40
+dataset = []
+for participant in range(n_data):
+    input_data = []
+    omega_2 = -1.0
+    mu_2 = -1.0
 
-data = [np.random.binomial(p=probs, n=1) for _ in range(n_data)]
+    for i in range(1000):
+        
+        # x2
+        pi_2 = np.exp(omega_2)
+        mu_2 = np.random.normal(mu_2, pi_2**.5)
+        if mu_2%100 == 0:
+            mu_2 = 1.0 if mu_2/100%2 else -1.0
+
+        # x1
+        s2 = 1/(1+np.exp(-mu_2))  # sigmoid function
+        u = np.random.binomial(n=1, p=s2)       
+        input_data.append(u)
+
+    dataset.append(input_data)
 ```
 
 +++ {"tags": []}
@@ -148,7 +189,7 @@ data = [np.random.binomial(p=probs, n=1) for _ in range(n_data)]
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
-    input_data=data,
+    input_data=dataset,
     response_function=binary_surprise,
 )
 ```
@@ -169,7 +210,7 @@ with pm.Model() as two_levels_binary_hgf:
             pi_1=0.0,
             pi_2=1e4,
             mu_1=jnp.nan,
-            mu_2=0.5,
+            mu_2=0.0,
             kappa_1=1.0,
             bias=0.0,
             omega_3=jnp.nan,
