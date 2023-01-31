@@ -25,8 +25,9 @@ jobs:
       - name: Build
         run: |
           sudo apt-get install graphviz
-          pip install .
+          pip install -r requirements.txt
           pip install -r requirements-docs.txt
+          pip install .
           sphinx-build -b html docs/source docs/build/html
 
       - name: Deploy 🚀
