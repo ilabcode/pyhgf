@@ -6,3 +6,4 @@ pymc>=5.0.0
 jax<=0.4.1
 jaxlib<=0.4.1
 setuptools>=38.4
+packaging
