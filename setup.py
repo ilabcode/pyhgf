@@ -3,6 +3,12 @@ import os
 
 from setuptools import setup
 
+PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+REQUIREMENTS_FILE = os.path.join(PROJECT_ROOT, "requirements.txt")
+
+def get_requirements():
+    with codecs.open(REQUIREMENTS_FILE) as buff:
+        return buff.read().splitlines()
 
 # Get the package's version number of the __init__.py file
 def read(rel_path):
@@ -31,11 +37,7 @@ DESCRIPTION = "The generalized, nodalized HGF for predictive coding."
 DISTNAME = "ghgf"
 AUTHOR = "ILAB"
 MAINTAINER = "Nicolas Legrand"
-MAINTAINER_EMAIL = "nicolas.legrand@cfin.au.dk"
-INSTALL_REQUIRES = [
-    "jax>=0.3.13",
-    "jaxlib>=0.3.10",
-]
+MAINTAINER_EMAIL = "nicolas.legrand@cas.au.dk"
 PACKAGES = ["ghgf"]
 
 
@@ -53,7 +55,7 @@ if __name__ == "__main__":
         long_description_content_type="text/x-rst",
         license="GPL-3.0",
         version=get_version("ghgf/__init__.py"),
-        install_requires=INSTALL_REQUIRES,
+        install_requires=get_requirements(),
         include_package_data=True,
         package_data={"": ["ghgf/ghgf/data/*.dat"]},
         packages=PACKAGES,
