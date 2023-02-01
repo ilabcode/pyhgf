@@ -16,7 +16,10 @@ from ghgf.typing import ParametersType
 
 
 class HGF(object):
-    """The standard 2 or 3 levels HGF for continuous or binary inputs.
+    r"""The two-level and three-level Hierarchical Gaussian Filters (HGF).
+
+    This class use pre-made nodes structures that corresponds to the most widely used
+    HGF. The inputs can be continuous or binary.
 
     Attributes
     ----------
@@ -53,46 +56,47 @@ class HGF(object):
         bias: float = 0.0,
         verbose: bool = True,
     ):
-        """Parameterization of the HGF model.
+        r"""Parameterization of the HGF model.
 
         Parameters
         ----------
         n_levels : int | None
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
             `None`, the nodes hierarchy is not created and might be provided afterward
-            using `add_nodes()`. Defaults to `2` for a 2-levels HGF.
+            using `add_nodes()`. Defaults to `2` for a 2-level HGF.
         model_type : str
-            The model type to use (can be "continuous" or "binary").
+            The model type to use (can be `"continuous"` or `"binary"`).
         initial_mu : dict
-            Dictionary containing the initial values for the `initial_mu` parameter at
+            Dictionary containing the initial values for the :math:`\\mu` parameter at
             different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
-            for a 2-levels model.
+            for a 2-level model for continuous inputs.
         initial_pi : dict
-            Dictionary containing the initial values for the `initial_pi` parameter at
+            Dictionary containing the initial values for the :math:`\\pi` parameter at
             different levels of the hierarchy. Pis values encode the precision of the
             values at each level (Var = 1/pi) Defaults set to `{"1": 1.0, "2": 1.0}` for
-            a 2-levels model.
+            a 2-level model.
         omega : dict
-            Dictionary containing the initial values for the `omega` parameter at
-            different levels of the hierarchy. Omegas represent the tonic part of the
-            variance (the part that is not affected by the parent node). Defaults set to
-            `{"1": -10.0, "2": -10.0}` for a 2-levels model. This parameters only when
-            `model_type="GRW"`.
+            Dictionary containing the initial values for the :math:`\\omega` parameter
+            at different levels of the hierarchy. :math:`\\omega` represents the tonic
+            part of the variance (the part that is not affected by the parent node).
+            Defaults set to `{"1": -10.0, "2": -10.0}` for a 2-level model for
+            continuous inputs. This parameter is only required for Gaussian Random Walk
+            nodes.
         omega_input : float
             Default value sets to `log(1e-4)`. Represents the noise associated with
             the input.
         rho : dict
-            Dictionary containing the initial values for the `rho` parameter at
+            Dictionary containing the initial values for the :math:`\\rho` parameter at
             different levels of the hierarchy. Rho represents the drift of the random
-            walk. Only required when `model_type="GRW"`. Defaults set all entries to
-            `0` according to the number of required levels.
+            walk. This parameter is only required for Gaussian Random Walk nodes.
+            Defaults set all entries to `0` according to the number of required levels.
         kappas : dict
-            Dictionary containing the initial values for the `kappa` parameter at
-            different levels of the hierarchy. Kappa represents the phasic part of the
-            variance (the part that is affected by the parents nodes) and will defines
-            the strenght of the connection between the node and the parent node. Often
-            fixed to 1. Defaults set to `{"1": 1.0}` for a 2-levels model. Only
-            required when `model_type="GRW"`.
+            Dictionary containing the initial values for the :math:`\\kappa` parameter
+            at different levels of the hierarchy. Kappa represents the phasic part of
+            the variance (the part that is affected by the parents nodes) and will
+            defines the strenght of the connection between the node and the parent
+            node. Often fixed to `1`. Defaults set to `{"1": 1.0}` for a 2-level model.
+            This parameter is only required for Gaussian Random Walk nodes.
         eta0 : float
             The first categorical value of the binary node. Defaults to `0.0`. Only
             relevant if `model_type="binary"`.
@@ -106,7 +110,7 @@ class HGF(object):
             The bias introduced in the perception of the input signal. This value is
             added to the input time serie before model fitting.
         verbose : bool
-            Default is `True`.
+            Verbosity of the methods for model creation and fitting. Defaults to `True`.
 
         Raises
         ------
