@@ -1,7 +1,10 @@
-numpy>=1.17
-numba>=0.51.2
-matplotlib>=3.4.3
+numpy>=1.18,<=1.23
+numba>=0.56.4
+matplotlib>=3.0.2
+seaborn>=0.9.0
 arviz>=0.12.0
 pymc>=5.0.0
 jax<=0.4.1
 jaxlib<=0.4.1
+setuptools>=38.4
+packaging
