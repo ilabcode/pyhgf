@@ -1,7 +1,7 @@
 import codecs
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 REQUIREMENTS_FILE = os.path.join(PROJECT_ROOT, "requirements.txt")
@@ -38,8 +38,6 @@ DISTNAME = "ghgf"
 AUTHOR = "ILAB"
 MAINTAINER = "Nicolas Legrand"
 MAINTAINER_EMAIL = "nicolas.legrand@cas.au.dk"
-PACKAGES = ["ghgf"]
-
 
 
 if __name__ == "__main__":
@@ -58,5 +56,5 @@ if __name__ == "__main__":
         install_requires=get_requirements(),
         include_package_data=True,
         package_data={"": ["ghgf/ghgf/data/*.dat"]},
-        packages=PACKAGES,
+        packages=find_packages(),
     )
