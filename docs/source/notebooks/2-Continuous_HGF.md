@@ -57,7 +57,7 @@ timeserie = load_data("continuous")
 +++
 
 ```{note}
-The response function used is the Guassian surprise at each time points(:py:func:``ghgf.response.gaussian_surprise`). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next observation in the continuous domain. See also [this tutorial](#custom_response_function) to see how to create custom response function.
+The response function used is the Guassian surprise at each time points(:py:func:`ghgf.response.gaussian_surprise`). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next observation in the continuous domain. See also [this tutorial](#custom_response_function) to see how to create custom response function.
 ```
 
 ```{code-cell} ipython3
