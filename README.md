@@ -78,9 +78,9 @@ print(f"Model's surprise = {surprise}")
 hgf.plot_trajectories()
 ```
 
-Creating a binary Hierarchical Gaussian Filter with 2 levels.  
-Add 320 new binary observations.  
-Model's surprise = 203.29249572753906
+`Creating a binary Hierarchical Gaussian Filter with 2 levels.`  
+`Add 320 new binary observations.`  
+`Model's surprise = 203.29249572753906`
 
 ![png](./docs/source/images/trajectories.png)
 

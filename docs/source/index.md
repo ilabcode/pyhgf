@@ -36,7 +36,7 @@ Value parent and volatility parent are nodes themself and are built from the sam
 
 ### The Hierarchical Gaussian Filter
 
-The Hierarchical Gaussian Filter for binary and continuous inputs as it was described in {citep}`mathys:2014,mathys:2011`, and later implemented in the Matlab Tapas toolbox {citep}`frassle:2021`, can be seen as a special case of this node structure such as:
+The Hierarchical Gaussian Filter for binary and continuous inputs as it was described in {cite:p}`mathys:2014,mathys:2011`, and later implemented in the Matlab Tapas toolbox {cite:p}`frassle:2021`, can be seen as a special case of this node structure such as:
 
 ![Figure2](./docs/source/images/hgf.png)
 
@@ -44,7 +44,7 @@ The ghgf package includes pre-implemented standard HGF models that can be used t
 
 ### Model fitting
 
-Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcome from {citep}`iglesias:2013`.
+Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcome from {cite:p}`iglesias:2013`.
 
 ```python
 from ghgf.model import HGF
@@ -78,9 +78,9 @@ print(f"Model's surprise = {surprise}")
 hgf.plot_trajectories()
 ```
 
-Creating a binary Hierarchical Gaussian Filter with 2 levels.  
-Add 320 new binary observations.  
-Model's surprise = 203.29249572753906
+`Creating a binary Hierarchical Gaussian Filter with 2 levels.`  
+`Add 320 new binary observations.`  
+`Model's surprise = 203.29249572753906`
 
 ![png](./docs/source/images/trajectories.png)
 

@@ -80,6 +80,8 @@ $$
 The model described above can be implemented in Python as the following:
 
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 np.random.seed(123)
 kappa_1 = 1.0
 omega_1 = -6.0
@@ -126,6 +128,8 @@ $$
 where $\alpha$ is the value coupling between the two nodes.
 
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 np.random.seed(123)
 alpha_1 = 1.0
 omega_1, omega_2 = 4.0, -6.0
@@ -164,6 +168,8 @@ x_3^{(k)}          \sim \mathcal{N}(x_3^{(k)} | x_3^{(k-1)}, \, \exp(\omega_3)) 
 $$
 
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 np.random.seed(123)
 alpha_1 = 1.0
 kappa_1 = 1.0
@@ -207,12 +213,10 @@ sns.despine()
 Based on these principles, any given state in the world can be modelled as having a volatility parent state, a value parent state, both, or none. When the node is orpean, it evolves as a Gaussian random walk around its previous value with fixed step size. Consequently, when inferring on the evolution of these states, the exact belief update equations (which include the computation of new predictions, posterior values, and prediction errors, and represent an approximate inversion of this generative model, see {cite:p}`2011:mathys` depend on the nature of the coupling of a given state with its parent and children states. In particular, the nodes that implement the belief updates will communicate with their value parents via value prediction errors, or **VAPE**s, and via volatility prediction errors, or **VOPE**s, with their volatility parents.
 
 :::{figure-md} fig1
-<img src="./images/genmod.svg" alt="fishy" class="bg-primary mb-1">
+<img src="./images/hgf.png" alt="hgf" class="bg-primary mb-1">
 
-An example of a generative model of sensory inputs with six hidden states. Volatility coupling is depicted with dashed lines, value coupling with straight lines.
+An example of standard Hierarchical Gaussian Filters as described in {cite:p}`mathys:2014,mathys:2011`. Volatility coupling is depicted with dashed lines, value coupling with straight lines.
 :::
-
-In [](fig1) we have drawn an example setup with six different environmental states and one outcome. Here, we have denoted states that function as value parents for other states as $x_i$, and states that function as volatility parents as $\check{x}_i$. Volatility coupling is depicted by curvy arrows, value coupling by straight arrows, and observable outcomes are linked to their hidden states via double arrows.
 
 +++
 
