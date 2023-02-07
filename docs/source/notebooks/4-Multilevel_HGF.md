@@ -30,33 +30,46 @@ import matplotlib.pyplot as plt
 np.random.seed(123)
 ```
 
-In the previous tutorials, we interoduced the binary and continuous Hierarchical Gaussian Filters (HGF) with 2 or 3 levels of volatility. Those models are operating at the agent level (i.e. the observations and the parameters being estimated are the observations and the parameters of one agent operating in the environment). However, mode concret use cases of the HGF could require to make inference at the group-level (e.g. comparing the hyper-parameters of different group of participants undergoing the same task). Such example are standard practice in Bayesian cognitive modelling {cite:p}`2014:lee` and require to embede the fitting of HGF model in a Bayesian networks. This is partially what we have been doing in the previous tutorials when we estimated the model's parameters using MCMC sampling. Here, we are going to extend this principle and and fit many models (i.e. many participant) at a time and estimate both parameters and hyper-parameters posterior densities.
+In the previous tutorials, we discussed the use of binary and continuous Hierarchical Gaussian Filters (HGF) with 2 or 3 levels of volatility. The way we presented those models was by operating at the agent level (i.e. the observations were made by one agent, and we estimated the posterior density distribution of parameters for that agent). However, many situations in computational psychiatry and cognitive modelling will require making inferences at the population level, therefore fitting many models at the same time and estimating the density distribution of hyper-priors (see for example case studies from {cite:p}`2014:lee`). 
+
+Luckily, we already have all the components in place to do that. We have already embedded the HGF model in a Bayesian network, where prior distributions were set over some parameters of interest. We just need to extend this approach a bit, and explicitly state that we want to fit many models (participants) at the same time, and draw their parameter values from a hyper-prior (i.e. the group-level distribution).
 
 +++
 
-```{note} Automatic broadcasting of model parameters
-Estimating group-level parameters in the context of a graphical probabilistic model require to fit multiple models at the same time, either on different input data, or on the same data with different parameters, or on different datasets with different parameters. This steps is handled natively both by the `:py:class:ghgf.distribution.hgf_logp` class and the `:py:class:ghgf.distribution.HGFDistribution` class through an automated [broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) approach. When a list of *n* input time series is provided, the function will automatically apply *n* models using the provided parameters. If for some parameters an array of length *n* is provided, each model will use the n-th value as parameter.
+```{hint} Using automatic broadcasting
+To estimate group-level parameters, we will have to fit multiple models at the same time, either on different input data, or on the same data with different parameters, or on different datasets with different parameters. This steps is handled natively both by the [log probability function](ghgf.distribution.hgf_logp) and the [HGFDistribution class](ghgf.distribution.HGFDistribution) using a pseudo [broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) approach. When a list of *n* input time series is provided, the function will automatically apply *n* models using the provided parameters. If for some parameters an array of length *n* is provided, each model will use the n-th value as parameter. Here, we are going to rely on this feature to compute the log probability of *n* model, using *n* time series as input and *n* different parameters to test.
 ```
 
 +++
 
-## Continuous HGF
+## A multilevel continuous HGF
 ### Simulate a dataset
 
+Using the example of a hierarchical Gaussian Random Walk that we depicted in the {ref}`theory` section, we are going to us this generative model to simulate 8 random walks using known parameters and infer afterhand the group-level value of $\omega_1$ from this dataset. The generative model is given by:
+
+$$
+\omega_1, \omega_2 = -10.0  \\
+\mu_1, \mu_2 = 0.0  \\
+u^{(k)} \sim \mathcal{N}(x_1^{(k)} , 1e-4) \\
+x_1^{(k)} \sim \mathcal{N}(x_1^{(k)} | x_1^{(k-1)}, \exp(\kappa_1 x_2^{(k)} + \omega_1)) \\
+x_2^{(k)} \sim \mathcal{N}(x_2^{(k)} | x_2^{(k-1)}, \exp(\omega_2)) \\
+$$
+
+```{note}
+Here we are usig a noisy input node.
+```
+
 ```{code-cell} ipython3
-n_data = 6
+np.random.seed(123)
+n_data = 8
 dataset = []
 for participant in range(n_data):
     input_data = []
     kappa_1 = 1.0
-    omega_1 = -10.0
-    omega_2 = -10.0
-    mu_1 = 0.0
-    mu_2 = 0.0
-    pi_1 = 1e4
-    pi_2 = 1e1
+    omega_1, omega_2 = -10.0, -10.0
+    mu_1, mu_2 = 0.0, 0.0
 
-    for i in range(100):
+    for i in range(1000):
         
         # x2
         pi_2 = np.exp(omega_2)
@@ -74,17 +87,33 @@ for participant in range(n_data):
 ```
 
 ```{code-cell} ipython3
+_, axs = plt.subplots(figsize=(12, 3))
 for rw in dataset:
-    plt.plot(rw)
+    axs.plot(rw, alpha=.6, linewidth=1)
 ```
 
 +++ {"tags": []}
 
-## Embedding a serie of HGFs in a graphical model
+### Model
 
 +++
 
-Here, we are goingin to estimate the group-level value of the `omega_1` parameter. The dataset consist in 3 time series derived from the classic USD-SWF conversion rate example. Every time series will be fitted to an HGF model where the `omega_1` parameter has to be estimated and the other parameters are fixed.
+Here, we want to estimate the group-level value of $\omega_1$ parameter. For each *participant*, the value will be drawn from a hyper-prior using this structure:
+
+$$
+\mu_1 \sim \mathcal{N}(\mu=0.0, \sigma=10.0)  \\
+\sigma_1 \sim \mathcal{HalfCauchy}(\beta=2.0)  \\
+\lambda \sim \mathcal{N}(\mu=0.0, \sigma=1.0) \\
+\omega_i = \mu_1 + \sigma_1 * \lambda  \\
+u_{i} \sim \mathcal{HGF}(\omega_1=\omega_i, \omega_2=-10.0)
+$$
+with $i \in {1,...,8}$.
+
++++
+
+```{note}
+We are using a non-centered parametriztion to avoid invalid samples caused by [Neal's funnel](https://num.pyro.ai/en/stable/examples/funnel.html) {cite}`neal:2003`.
+```
 
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
@@ -99,16 +128,13 @@ with pm.Model() as model:
     
     # Hypterpriors
     #-------------
-    #mu_omega_1 = pm.Normal("mu_omega_1", mu=.0, sigma=1.0)
-    #sigma_omega_1 = pm.Uniform("sigma_omega_1", .5, 10)
+    mu_omega_1 = pm.Normal("mu_omega_1", mu=0, sigma=10.0)
+    sigma_omega_1 = pm.HalfCauchy("sigma_omega_1", 2)
     
     # Priors
     #-------
-    #normal_dist = pm.Normal.dist(mu=-5, sigma=2, shape=n_data)
-    #omega_2 = pm.Censored("omega_2", normal_dist, lower=-20.0, upper=0.0, shape=n_data)
-    #omega_1 = pm.Normal("omega_1", mu=mu_omega_1, sigma=sigma_omega_1, shape=n_data)
-    omega_1 = pm.Normal("omega_1", mu=0.0, sigma=2.0, shape=n_data)
-    #omega_1 = pm.Deterministic("omega_1", norm * sigma_omega_1 + mu_omega_1)
+    offset = pm.Normal("offset", 0, 1, shape=n_data)
+    omega_1 = pm.Deterministic("omega_1", mu_omega_1 + offset * sigma_omega_1)
 
     pm.Potential(
         "hgf_loglike",
@@ -143,35 +169,34 @@ with model:
 ```
 
 ```{code-cell} ipython3
-az.plot_trace(idata);
+az.plot_posterior(idata, var_names=["mu_omega_1", "sigma_omega_1"], figsize=(13, 5));
 plt.tight_layout()
 ```
 
-```{code-cell} ipython3
-az.summary(idata)
-```
+As expected, the highest density aroud the group-level mean estimate inlcude `10.0`, the real value.
 
-## Binary HGF
++++
+
+## A multilevel binary HGF
 
 +++
 
 ### Simulate a dataset
 
 ```{code-cell} ipython3
-n_data = 10
+np.random.seed(123)
+n_data = 5
 dataset = []
 for participant in range(n_data):
     input_data = []
-    omega_2 = -1.0
-    mu_2 = -1.0
+    omega_2 = -2.0
+    mu_2 = 0.0
 
-    for i in range(1000):
+    for i in range(500):
         
         # x2
         pi_2 = np.exp(omega_2)
         mu_2 = np.random.normal(mu_2, pi_2**.5)
-        if mu_2%100 == 0:
-            mu_2 = 1.0 if mu_2/100%2 else -1.0
 
         # x1
         s2 = 1/(1+np.exp(-mu_2))  # sigmoid function
@@ -195,9 +220,19 @@ hgf_logp_op = HGFDistribution(
 ```
 
 ```{code-cell} ipython3
-with pm.Model() as two_levels_binary_hgf:
+from pymc.math import clip
 
-    omega_2 = pm.Uniform("omega_2", -5.0, 0.0, shape=n_data)
+with pm.Model() as two_levels_binary_hgf:
+    
+    # Hypterpriors
+    #-------------
+    mu_omega_1 = pm.Uniform("mu_omega_1", -5, 2)
+    sigma_omega_1 = pm.HalfCauchy("sigma_omega_1", 2)
+    
+    # Priors
+    #-------
+    offset = pm.Normal("offset", 0, 1, shape=n_data)
+    omega_2 = pm.Deterministic("omega_2", mu_omega_1 + offset * sigma_omega_1)
 
     pm.Potential(
         "hgf_loglike",
@@ -238,80 +273,4 @@ with two_levels_binary_hgf:
 ```{code-cell} ipython3
 az.plot_trace(two_level_hgf_idata);
 plt.tight_layout()
-```
-
-```{code-cell} ipython3
-az.summary(two_level_hgf_idata)
-```
-
-+++ {"tags": []}
-
-### With hyper-priors
-
-```{code-cell} ipython3
-hgf_logp_op = HGFDistribution(
-    n_levels=2,
-    model_type="binary",
-    input_data=data,
-    response_function=binary_surprise,
-)
-```
-
-```{code-cell} ipython3
-with pm.Model() as two_levels_binary_hgf:
-
-    # hyper-parameters
-    mu_omega = pm.Uniform("mu_omega", -3.0, 0.0)
-    sigma_omega = pm.Uniform("sigma_omega", .2, 10.0)
-    
-    # parameters
-    omega_2 = pm.Normal("omega_2", mu_omega, sigma_omega, shape=n_data)
-
-    pm.Potential(
-        "hgf_loglike",
-        hgf_logp_op(
-            omega_1=jnp.nan,
-            omega_2=omega_2,
-            omega_input=jnp.nan,
-            rho_1=0.0,
-            rho_2=0.0,
-            pi_1=0.0,
-            pi_2=1e4,
-            mu_1=jnp.nan,
-            mu_2=0.5,
-            kappa_1=1.0,
-            bias=0.0,
-            omega_3=jnp.nan,
-            rho_3=jnp.nan,
-            pi_3=jnp.nan,
-            mu_3=jnp.nan,
-            kappa_2=jnp.nan
-        ),
-    )
-```
-
-#### Visualizing the model
-
-```{code-cell} ipython3
-pm.model_to_graphviz(two_levels_binary_hgf)
-```
-
-#### Sampling
-
-```{code-cell} ipython3
-with two_levels_binary_hgf:
-    two_level_hgf_idata = pm.sample(chains=4)
-```
-
-```{code-cell} ipython3
-az.plot_trace(two_level_hgf_idata);
-plt.tight_layout()
-```
-
-```{code-cell} ipython3
-az.summary(two_level_hgf_idata)
-```
-
-```{code-cell} ipython3
-
 ```

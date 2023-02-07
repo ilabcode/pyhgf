@@ -36,56 +36,68 @@ def hgf_logp(
     response_function_parameters: Tuple = (),
     time: Optional[List] = None,
 ) -> jnp.DeviceArray:
-    r"""Compute the log probability from the HGF model given the data and parameters.
+    r"""Log probability from HGF model(s) given input data and parameter(s).
+
+    This function support broadcasting along the first axis:
+    * If the input data contains many time series, the function will automatically
+    create the corresponding number of HGF models and fit them separately.
+    * If a single input data is provided but some parameters have array-like inputs, the
+    number of HGF models will match the length of the arrays, using the value *i*
+    for the *i*th model. When floats are provided for some parameters, the same value
+    will be used for all HGF models.
+    * If multiple input data are provided with array-like inputs for some parameter, the
+    function will create and fit the models separately using the value *i* for the
+    *i*th model.
 
     Parameters
     ----------
     omega_1 : float
-        The $\omega$ parameter, or *evolution rate*, at the first level of the HGF. This
-        parameter represents the tonic part of the variance (the part that is not
-        inherited from parents nodes).
+        The :math:`\\omega` parameter, or *evolution rate*, at the first level of the
+        HGF. This parameter represents the tonic part of the variance (the part that is
+        not inherited from parents nodes).
     omega_2 : float
-        The $\omega$ parameter, or *evolution rate*, at the second level of the HGF.
-        This parameter represents the tonic part of the variance (the part that is not
-        inherited from parents nodes).
+        The :math:`\\omega` parameter, or *evolution rate*, at the second level of the
+        HGF. This parameter represents the tonic part of the variance (the part that is
+        not inherited from parents nodes).
     omega_3 : float
-        The $\omega$ parameter, or *evolution rate*, at the third level of the HGF. This
-        parameter represents the tonic part of the variance (the part that is not
-        inherited from parents nodes). The value of this parameter will be ignored when
-        using a 2-levels HGF (`n_levels=2`).
+        The :math:`\\omega` parameter, or *evolution rate*, at the third level of the
+        HGF. This parameter represents the tonic part of the variance (the part that is
+        not inherited from parents nodes). The value of this parameter will be ignored
+        when using a 2-levels HGF (`n_levels=2`).
     omega_input : float
         Represent the noise associated with the input observation.
     rho_1 : float
-        The $\rho$ parameter at the first level of the HGF. This parameter represents
-        the drift of the random walk.
+        The :math:`\\rho` parameter at the first level of the HGF. This parameter
+        represents the drift of the random walk.
     rho_2 : float
-        The $\rho$ parameter at the second level of the HGF. This parameter represents
-            the drift of the random walk.
+        The :math:`\\rho` parameter at the second level of the HGF. This parameter
+        represents the drift of the random walk.
     rho_3 : float
-        The $\rho$ parameter at the first level of the HGF. This parameter represents
-        the drift of the random walk. The value of this parameter will be ignored when
-        using a 2-levels HGF (`n_levels=2`).
+        The :math:`\\rho` parameter at the first level of the HGF. This parameter
+        represents the drift of the random walk. The value of this parameter will be
+        ignored when using a 2-levels HGF (`n_levels=2`).
     pi_1 : float
-        The $\pi$ parameter, or *precision*, at the first level of the HGF.
+        The :math:`\\pi` parameter, or *precision*, at the first level of the HGF.
     pi_2 : float
-        The $\pi$ parameter, or *precision*, at the second level of the HGF.
+        The :math:`\\pi` parameter, or *precision*, at the second level of the HGF.
     pi_3 : float
-        The $\pi$ parameter, or *precision*, at the third level of the HGF.The value of
-        this parameter will be ignored when using a 2-levels HGF (`n_levels=2`).
+        The :math:`\\pi` parameter, or *precision*, at the third level of the HGF. The
+        value of this parameter will be ignored when using a 2-levels HGF
+        (`n_levels=2`).
     mu_1 : float
-        The $\mu$ parameter, or *mean*, at the first level of the HGF.
+        The :math:`\\mu` parameter, or *mean*, at the first level of the HGF.
     mu_2 : float
-        The $\mu$ parameter, or *mean*, at the second level of the HGF.
+        The :math:`\\mu` parameter, or *mean*, at the second level of the HGF.
     mu_3 : float
-        The $\mu$ parameter, or *mean*, at the third level of the HGF. The value of this
-        parameter will be ignored when using a 2-levels HGF (`n_levels=2`).
+        The :math:`\\mu` parameter, or *mean*, at the third level of the HGF. The value
+        of this parameter will be ignored when using a 2-levels HGF (`n_levels=2`).
     kappa_1 : float
-        The value of the $\kappa$ parameter at the first level of the HGF. Kappa
+        The value of the :math:`\\kappa` parameter at the first level of the HGF. Kappa
         represents the phasic part of the variance (the part that is affected by the
         parents nodes) and will defines the strenght of the connection between the node
         and the parent node. Often fixed to `1`.
     kappa_2 : float
-        The value of the $\kappa$ parameter at the second level of the HGF. Kappa
+        The value of the :math:`\\kappa` parameter at the second level of the HGF. Kappa
         represents the phasic part of the variance (the part that is affected by the
         parents nodes) and will defines the strenght of the connection between the node
         and the parent node. Often fixed to `1`. The value of this parameter will be
@@ -110,6 +122,11 @@ def hgf_logp(
         List of 1d Numpy arrays containing the time vectors for each input time series.
         If one of the list item is `None`, or if `None` is provided instead, the time
         vector will defaults to integers vector starting at 0.
+
+    Returns
+    -------
+    log_prob : DeviceArray
+        The sum of the log-probabilities (or negative surprise).
 
     """
     # number of models

@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-(multilevel_hgf)=
+(parameters_recovery)=
 # Parameters recovery, prior predictive and posterior predictive sampling
 
 ```{code-cell} ipython3
