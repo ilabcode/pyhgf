@@ -23,20 +23,24 @@ class HGF(object):
 
     Attributes
     ----------
-    verbose : bool
-        Verbosity level.
-    n_levels : int
-        The number of hierarchies in the model, including the input vector. Cannot be
-        less than 2.
-    model_type : str
-        The model implemented (can be `"continous"` or `"binary"`).
-    nodes : tuple
-        A tuple of tuples representing the nodes hierarchy.
+    bias : float
+        Input bias (only relevant if `model_type="continuous"`).
     hgf_results : dict
         After oberving the data using the `input_data` method, the output of the model
         are stored in the `hgf_results` dictionary.
-    bias : float
-        Input bias (only relevant if `model_type="continuous"`).
+    model_type : str
+        The model implemented (can be `"continous"` or `"binary"`).
+    n_levels : int
+        The number of hierarchies in the model, including the input vector. Cannot be
+        less than 2.
+    node_structure : tuple
+        A tuple of tuples representing the nodes hierarchy.
+    node_trajectories : tuples
+        The node structure updated at each new observation.
+    results :
+        Time, values inputs and overall surprise of the model.
+    verbose : bool
+        Verbosity level.
 
     """
 
@@ -201,7 +205,7 @@ class HGF(object):
                 "bias": self.bias,
             }
 
-            self.input_node = input_node_parameters, x1, None
+            self.node_structure = input_node_parameters, x1, None
 
         elif model_type == "binary":
 
@@ -213,7 +217,7 @@ class HGF(object):
                 "eta0": eta0,
                 "eta1": eta1,
             }
-            self.input_node = input_node_parameters, x1, None
+            self.node_structure = input_node_parameters, x1, None
 
         else:
             raise ValueError("model_type should be 'continuous' or 'binary'")
@@ -228,7 +232,7 @@ class HGF(object):
             model fit.
 
         """
-        self.input_node = nodes  # type: ignore
+        self.node_structure = nodes  # type: ignore
         return self
 
     def input_data(
@@ -259,7 +263,7 @@ class HGF(object):
 
         # Initialise the first values
         res_init = (
-            self.input_node,
+            self.node_structure,
             {
                 "time": time[0],
                 "value": input_data[0] + self.bias,
@@ -267,22 +271,21 @@ class HGF(object):
             },
         )
 
-        # create the main data array (data, time)
+        # create the input array (data, time)
         data = jnp.array([input_data, time], dtype=float).T
 
-        # This is where the HGF functions are used to scan the input time series
+        # this is where the model loop over the input time series
+        # at each input the node structure is traversed and beliefs are updated
+        # using precision-weighted prediction errors
         if self.model_type == "continuous":
-            last, final = scan(loop_continuous_inputs, res_init, data[1:, :])
+            _, scan_updates = scan(loop_continuous_inputs, res_init, data[1:, :])
         elif self.model_type == "binary":
-            last, final = scan(loop_binary_inputs, res_init, data[1:, :])
+            _, scan_updates = scan(loop_binary_inputs, res_init, data[1:, :])
 
-        # Save results in the HGF dictionary
-        self.hgf_results = {}
-        self.hgf_results["last"] = last  # The last tuple returned
-        self.hgf_results[
-            "final"
-        ] = final  # The commulative update of the nodes and results
-        self.hgf_results["data"] = input_data  # type: ignore
+        self.node_trajectories = scan_updates[
+            0
+        ]  # the node structure at each value update
+        self.results = scan_updates[1]  # time, values and surprise
 
         return self
 
@@ -327,6 +330,6 @@ class HGF(object):
             )
 
         return response_function(
-            hgf_results=self.hgf_results,
+            hgf=self,
             response_function_parameters=response_function_parameters,
         )

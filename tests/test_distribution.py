@@ -26,7 +26,6 @@ class TestDistribution(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-
         jax_logp = jit(
             Partial(
                 hgf_logp,
@@ -65,7 +64,6 @@ class TestDistribution(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-
         jax_logp = jit(
             Partial(
                 hgf_logp,
@@ -105,7 +103,6 @@ class TestDistribution(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("continuous")
-
         grad_logp = jit(
             grad(
                 Partial(

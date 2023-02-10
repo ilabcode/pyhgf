@@ -1,11 +1,14 @@
 # Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
 
-from typing import Dict
+from typing import TYPE_CHECKING
 
 import jax.numpy as jnp
 
+if TYPE_CHECKING:
+    from ghgf.model import HGF
 
-def gaussian_surprise(hgf_results: Dict, response_function_parameters):
+
+def gaussian_surprise(hgf: "HGF", response_function_parameters):
     """Sum of the gaussian surprise along the time series (continuous HGF).
 
     .. note::
@@ -15,8 +18,8 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
 
     Parameters
     ----------
-    hgf_results : dict
-        Dictionary containing the HGF results.
+    hgf : :py:class`ghgf.model.HGF`
+        Instance of the HGF model.
     response_function_parameters : None
         No additional parameters are required.
 
@@ -26,11 +29,11 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
         The model surprise given the input data.
 
     """
-    _, results = hgf_results["final"]
-
     # Fill surprises with zeros if invalid input
     this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf_results["data"][1:]), axis=0), 0.0, results["surprise"]
+        jnp.any(jnp.isnan(hgf.results["value"][1:]), axis=0),
+        0.0,
+        hgf.results["surprise"],
     )
 
     # Return an infinite surprise if the model cannot fit
@@ -42,7 +45,7 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
     return surprise
 
 
-def binary_surprise(hgf_results: Dict, response_function_parameters):
+def binary_surprise(hgf: "HGF", response_function_parameters):
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
@@ -52,8 +55,8 @@ def binary_surprise(hgf_results: Dict, response_function_parameters):
 
     Parameters
     ----------
-    hgf_results : dict
-        Dictionary containing the HGF results.
+    hgf : :py:class`ghgf.model.HGF`
+        Instance of the HGF model.
     response_function_parameters : None
         No additional parameters are required.
 
@@ -63,11 +66,11 @@ def binary_surprise(hgf_results: Dict, response_function_parameters):
         The model surprise given the input data.
 
     """
-    _, results = hgf_results["final"]
-
     # Fill surprises with zeros if invalid input
     this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf_results["data"][1:]), axis=0), 0.0, results["surprise"]
+        jnp.any(jnp.isnan(hgf.results["value"][1:]), axis=0),
+        0.0,
+        hgf.results["surprise"],
     )
 
     # Return an infinite surprise if the model cannot fit

@@ -17,13 +17,11 @@ class TestCompareBackends(TestCase):
         """Compare the JAX and pure Python implementation of the HGF."""
 
         np.random.seed(123)
-
         timeseries = load_data("continuous")
 
         ################
         # 2-levels HGF #
         ################
-
         jaxhgf = HGF(
             n_levels=2,
             model_type="continuous",
@@ -34,9 +32,7 @@ class TestCompareBackends(TestCase):
             kappas={"1": 1.0},
         )
         jaxhgf.input_data(input_data=timeseries)
-
-        node, results = jaxhgf.hgf_results["final"]
-        jax_surprise = results["surprise"].sum()
+        jax_surprise = jaxhgf.results["surprise"].sum()
 
         stdhgf = StandardHGF(
             n_levels=2,
@@ -53,14 +49,14 @@ class TestCompareBackends(TestCase):
         assert jnp.isclose(jax_surprise, -1922.2264)
         assert jnp.isclose(std_surprise, -1924.5794736619316)
         assert len(stdhgf.input_nodes[0].surprises) == 615
-        assert len(results["surprise"]) == 613
+        assert len(jaxhgf.results["surprise"]) == 613
 
         ############
         # Surprise #
         ############
         plt.figure(figsize=(12, 6))
         plt.plot(stdhgf.input_nodes[0].surprises[1:], label="Standard HGF")
-        plt.plot(results["surprise"], label="JAX HGF")
+        plt.plot(jaxhgf.results["surprise"], label="JAX HGF")
         plt.legend()
 
         ##############
@@ -68,7 +64,7 @@ class TestCompareBackends(TestCase):
         ##############
         plt.figure(figsize=(12, 6))
         plt.plot(stdhgf.x1.mus, label="Standard HGF")
-        plt.plot(node[1][0][0]["mu"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][0]["mu"], label="JAX HGF")
         plt.legend()
 
         ###############
@@ -76,7 +72,7 @@ class TestCompareBackends(TestCase):
         ###############
         plt.figure(figsize=(12, 6))
         plt.plot(stdhgf.x2.mus, label="Standard HGF")
-        plt.plot(node[1][0][2][0][0]["mu"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][2][0][0]["mu"], label="JAX HGF")
         plt.legend()
 
         ###############
@@ -84,13 +80,12 @@ class TestCompareBackends(TestCase):
         ###############
         plt.figure(figsize=(12, 6))
         plt.plot(stdhgf.x2.pis, label="Standard HGF")
-        plt.plot(node[1][0][2][0][0]["pi"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][2][0][0]["pi"], label="JAX HGF")
         plt.legend()
 
         ################
         # 3-levels HGF #
         ################
-
         jaxhgf = HGF(
             n_levels=3,
             model_type="continuous",
@@ -101,9 +96,7 @@ class TestCompareBackends(TestCase):
             kappas={"1": 1.0, "2": 1.0},
         )
         jaxhgf.input_data(input_data=timeseries)
-
-        node, results = jaxhgf.hgf_results["final"]
-        jax_surprise = results["surprise"].sum()
+        jax_surprise = jaxhgf.results["surprise"].sum()
 
         stdhgf = StandardHGF(
             n_levels=3,
@@ -119,15 +112,13 @@ class TestCompareBackends(TestCase):
 
         assert jnp.isclose(jax_surprise, -1915.0765)
         assert jnp.isclose(std_surprise, -1914.917339132975)
-        len(stdhgf.input_nodes[0].surprises)
-        len(results["surprise"])
 
         ############
         # Surprise #
         ############
         plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.input_nodes[0].surprises[2:], label="Standard HGF")
-        plt.plot(results["surprise"], label="JAX HGF")
+        plt.plot(jaxhgf.results["surprise"], label="JAX HGF")
         plt.title("Surprise")
         plt.legend()
 
@@ -136,7 +127,7 @@ class TestCompareBackends(TestCase):
         ##############
         plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.x1.mus[2:], label="Standard HGF")
-        plt.plot(node[1][0][0]["mu"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][0]["mu"], label="JAX HGF")
         plt.title(r"$\mu_1$")
         plt.legend()
 
@@ -145,7 +136,7 @@ class TestCompareBackends(TestCase):
         ###############
         plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.x2.mus[2:], label="Standard HGF")
-        plt.plot(node[1][0][2][0][0]["mu"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][2][0][0]["mu"], label="JAX HGF")
         plt.title(r"$\mu_2$")
         plt.legend()
 
@@ -154,7 +145,7 @@ class TestCompareBackends(TestCase):
         ###############
         plt.figure(figsize=(12, 6))
         plt.plot(stdhgf.x2.pis, label="Standard HGF")
-        plt.plot(node[1][0][2][0][0]["pi"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][2][0][0]["pi"], label="JAX HGF")
         plt.legend()
 
         ##############
@@ -162,7 +153,7 @@ class TestCompareBackends(TestCase):
         ##############
         plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.x3.mus[2:], label="Standard HGF")
-        plt.plot(node[1][0][2][0][2][0][0]["mu"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][2][0][2][0][0]["mu"], label="JAX HGF")
         plt.title(r"$\mu_3$")
         plt.legend()
 
@@ -171,7 +162,7 @@ class TestCompareBackends(TestCase):
         ##############
         plt.figure(figsize=(12, 6))
         plt.plot(stdhgf.x3.pis, label="Standard HGF")
-        plt.plot(node[1][0][2][0][2][0][0]["pi"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][2][0][2][0][0]["pi"], label="JAX HGF")
         plt.legend()
 
     def test_compare_backends_binary(self):
@@ -205,9 +196,7 @@ class TestCompareBackends(TestCase):
             pihat=jnp.inf,
         )
         jaxhgf.input_data(input_data=timeseries)
-
-        node, results = jaxhgf.hgf_results["final"]
-        jax_surprise = results["surprise"].sum()
+        jax_surprise = jaxhgf.results["surprise"].sum()
 
         assert jnp.isclose(jax_surprise, 215.11488)
         assert jnp.isclose(stdhgf.surprise(), 215.5906767857954)
@@ -217,7 +206,7 @@ class TestCompareBackends(TestCase):
         ############
         plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.input_nodes[0].surprises[2:], label="Binary HGF - Python")
-        plt.plot(results["surprise"], label="JAX HGF")
+        plt.plot(jaxhgf.results["surprise"], label="JAX HGF")
         plt.title("Surprise")
         plt.legend()
 
@@ -226,30 +215,30 @@ class TestCompareBackends(TestCase):
         ##############
         plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.x1.mus[2:], label="Binary HGF - Python")
-        plt.plot(node[1][0][0]["mu"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][0]["mu"], label="JAX HGF")
         plt.title(r"$\mu_1$")
         plt.legend()
         
-        assert sum(stdhgf.x1.mus[2:]) - sum(node[1][0][0]["mu"]) == 0
+        assert sum(stdhgf.x1.mus[2:]) - sum(jaxhgf.node_trajectories[1][0][0]["mu"]) == 0
 
         ###############
         # Second node #
         ###############
         plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.x2.mus[2:], label="Binary HGF - Python")
-        plt.plot(node[1][0][1][0][0]["mu"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][1][0][0]["mu"], label="JAX HGF")
         plt.title(r"$\mu_2$")
         plt.legend()
         
-        assert sum(stdhgf.x2.mus[2:]) - sum(node[1][0][1][0][0]["mu"]) < .6
+        assert sum(stdhgf.x2.mus[2:]) - sum(jaxhgf.node_trajectories[1][0][1][0][0]["mu"]) < .6
 
         ##############
         # Third node #
         ##############
         plt.figure(figsize=(12, 3))
         plt.plot(stdhgf.x3.mus[2:], label="Binary HGF - Python")
-        plt.plot(node[1][0][1][0][2][0][0]["mu"], label="JAX HGF")
+        plt.plot(jaxhgf.node_trajectories[1][0][1][0][2][0][0]["mu"], label="JAX HGF")
         plt.title(r"$\mu_3$")
         plt.legend()
 
-        assert sum(stdhgf.x3.mus[2:]) - sum(node[1][0][1][0][2][0][0]["mu"]) < .04
+        assert sum(stdhgf.x3.mus[2:]) - sum(jaxhgf.node_trajectories[1][0][1][0][2][0][0]["mu"]) < .04
