@@ -1,4 +1,4 @@
-# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 import unittest
 from unittest import TestCase
@@ -7,7 +7,7 @@ import jax.numpy as jnp
 from jax.lax import scan
 
 from ghgf import load_data
-from ghgf.typing import node_validation
+from ghgf.structure import structure_validation
 from ghgf.binary import (
     loop_binary_inputs,
     binary_input_update,
@@ -84,7 +84,7 @@ class Testbinary(TestCase):
         assert surprise == 0.12692808
 
         # Verify node structure
-        node_validation(output_node)
+        structure_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert isinstance(output_node[1], tuple)

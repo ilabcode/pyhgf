@@ -1,4 +1,4 @@
-# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from math import log
 from typing import Callable, Dict, List, Optional, Tuple, Union
@@ -12,6 +12,7 @@ from ghgf.binary import loop_binary_inputs
 from ghgf.continuous import loop_continuous_inputs
 from ghgf.plots import plot_correlations, plot_trajectories
 from ghgf.response import binary_surprise, gaussian_surprise
+from ghgf.structure import structure_as_dict
 from ghgf.typing import ParametersType
 
 
@@ -333,3 +334,7 @@ class HGF(object):
             hgf=self,
             response_function_parameters=response_function_parameters,
         )
+
+    def structure_to_dict(self):
+        """Export the node structure to a dictionary of nodes."""
+        return structure_as_dict(nodes=self.node_trajectories)

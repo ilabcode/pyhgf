@@ -1,4 +1,4 @@
-# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
@@ -40,7 +40,6 @@ def plot_trajectories(
     """
     nrows = hgf.n_levels + 1
     time = hgf.results["time"]
-    hgf.node_trajectories
 
     if axs is None:
         _, axs = plt.subplots(nrows=nrows, figsize=figsize, sharex=True)
