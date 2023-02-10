@@ -1,4 +1,4 @@
-# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 import unittest
 from unittest import TestCase

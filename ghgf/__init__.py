@@ -1,4 +1,4 @@
-# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 import pkg_resources  # type: ignore
 from numpy import loadtxt

@@ -1,4 +1,4 @@
-# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 import unittest
 from unittest import TestCase
@@ -13,7 +13,7 @@ from ghgf.continuous import (
     continuous_input_update,
     continuous_node_update,
 )
-from ghgf.typing import node_validation
+from ghgf.structure import structure_validation
 
 
 class Testcontinuous(TestCase):
@@ -47,7 +47,7 @@ class Testcontinuous(TestCase):
         )
 
         # Verify node structure
-        node_validation(output_node)
+        structure_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert output_node[1] is None
@@ -92,7 +92,7 @@ class Testcontinuous(TestCase):
         )
 
         # Verify node structure
-        node_validation(output_node)
+        structure_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert isinstance(output_node[1], tuple)
@@ -137,7 +137,7 @@ class Testcontinuous(TestCase):
         )
 
         # Verify node structure
-        node_validation(output_node)
+        structure_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert output_node[1] is None
@@ -181,7 +181,7 @@ class Testcontinuous(TestCase):
         )
 
         # Verify node structure
-        node_validation(output_node)
+        structure_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert isinstance(output_node[1], tuple)
@@ -266,7 +266,7 @@ class Testcontinuous(TestCase):
         )
 
         # Verify node structure
-        node_validation(output_node)
+        structure_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert isinstance(output_node[1], tuple)
@@ -283,7 +283,7 @@ class Testcontinuous(TestCase):
         )
 
         # Verify node structure
-        node_validation(output_node)
+        structure_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert output_node[1] is None
@@ -331,7 +331,7 @@ class Testcontinuous(TestCase):
         assert surprise == 2.1381817
 
         # Verify node structure
-        node_validation(output_node)
+        structure_validation(output_node)
         assert len(output_node) == 3
         assert isinstance(output_node[0], dict)
         assert isinstance(output_node[1], tuple)

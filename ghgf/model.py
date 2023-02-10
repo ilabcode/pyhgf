@@ -1,17 +1,19 @@
-# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from math import log
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
+import pandas as pd
 from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
 
 from ghgf.binary import loop_binary_inputs
-from ghgf.continuous import loop_continuous_inputs
+from ghgf.continuous import gaussian_surprise, loop_continuous_inputs
 from ghgf.plots import plot_correlations, plot_trajectories
-from ghgf.response import binary_surprise, gaussian_surprise
+from ghgf.response import total_binary_surprise, total_gaussian_surprise
+from ghgf.structure import structure_as_dict
 from ghgf.typing import ParametersType
 
 
@@ -23,20 +25,24 @@ class HGF(object):
 
     Attributes
     ----------
-    verbose : bool
-        Verbosity level.
-    n_levels : int
-        The number of hierarchies in the model, including the input vector. Cannot be
-        less than 2.
-    model_type : str
-        The model implemented (can be `"continous"` or `"binary"`).
-    nodes : tuple
-        A tuple of tuples representing the nodes hierarchy.
+    bias : float
+        Input bias (only relevant if `model_type="continuous"`).
     hgf_results : dict
         After oberving the data using the `input_data` method, the output of the model
         are stored in the `hgf_results` dictionary.
-    bias : float
-        Input bias (only relevant if `model_type="continuous"`).
+    model_type : str
+        The model implemented (can be `"continous"` or `"binary"`).
+    n_levels : int
+        The number of hierarchies in the model, including the input vector. Cannot be
+        less than 2.
+    node_structure : tuple
+        A tuple of tuples representing the nodes hierarchy.
+    node_trajectories : tuples
+        The node structure updated at each new observation.
+    results :
+        Time, values inputs and overall surprise of the model.
+    verbose : bool
+        Verbosity level.
 
     """
 
@@ -65,7 +71,7 @@ class HGF(object):
             `None`, the nodes hierarchy is not created and might be provided afterward
             using `add_nodes()`. Defaults to `2` for a 2-level HGF.
         model_type : str
-            The model type to use (can be `"continuous"` or `"binary"`).
+            The model type to use (can be `"continuous"`, `"binary"` or `"custom"`).
         initial_mu : dict
             Dictionary containing the initial values for the :math:`\\mu` parameter at
             different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
@@ -115,7 +121,7 @@ class HGF(object):
         Raises
         ------
         ValueError
-            If `model_type` is not `"continuous"` or `"binary"`.
+            If `model_type` is not `"continuous"`, `"binary"` or `"custom"`.
 
         """
         self.model_type = model_type
@@ -123,100 +129,111 @@ class HGF(object):
         self.n_levels = n_levels
         self.bias = bias
 
-        if self.verbose:
-            print(
-                (
-                    f"Creating a {self.model_type} Hierarchical Gaussian Filter "
-                    f"with {self.n_levels} levels."
-                )
+        if model_type not in ["continuous", "binary", "custom"]:
+            raise ValueError(
+                "Invalid model type. Should be continuous, binary or custom,"
             )
 
-        if self.n_levels == 2:
-
-            # Second level
-            x2_parameters = {
-                "mu": initial_mu["2"],
-                "muhat": jnp.nan,
-                "pi": initial_pi["2"],
-                "pihat": jnp.nan,
-                "kappas": None,
-                "nu": jnp.nan,
-                "psis": None,
-                "omega": omega["2"],
-                "rho": rho["2"],
-            }
-            x2 = ((x2_parameters, None, None),)
-
-        elif self.n_levels == 3:
-
-            # Third level
-            x3_parameters = {
-                "mu": initial_mu["3"],
-                "muhat": jnp.nan,
-                "pi": initial_pi["3"],
-                "pihat": jnp.nan,
-                "kappas": None,
-                "nu": jnp.nan,
-                "psis": None,
-                "omega": omega["3"],
-                "rho": rho["3"],
-            }
-            x3 = ((x3_parameters, None, None),)
-
-            # Second level
-            x2_parameters = {
-                "mu": initial_mu["2"],
-                "muhat": jnp.nan,
-                "pi": initial_pi["2"],
-                "pihat": jnp.nan,
-                "kappas": (kappas["2"],),  # type: ignore
-                "nu": jnp.nan,
-                "psis": None,
-                "omega": omega["2"],
-                "rho": rho["2"],
-            }
-            x2 = ((x2_parameters, None, x3),)
-
-        x1_parameters = {
-            "mu": initial_mu["1"],
-            "muhat": jnp.nan,
-            "pi": initial_pi["1"],
-            "pihat": jnp.nan,
-            "kappas": (kappas["1"],),
-            "nu": jnp.nan,
-            "psis": None,
-            "omega": omega["1"],
-            "rho": rho["1"],
-        }
-
-        if model_type == "continuous":
-
-            # First level (continuous node)
-            x1 = ((x1_parameters, None, x2),)
-
-            # Input node
-            input_node_parameters: ParametersType = {
-                "kappas": None,
-                "omega": omega_input,
-                "bias": self.bias,
-            }
-
-            self.input_node = input_node_parameters, x1, None
-
-        elif model_type == "binary":
-
-            # First level (binary node)
-            x1 = ((x1_parameters, x2, None),)
-
-            input_node_parameters: ParametersType = {
-                "pihat": pihat,
-                "eta0": eta0,
-                "eta1": eta1,
-            }
-            self.input_node = input_node_parameters, x1, None
-
+        if self.model_type == "custom":
+            if self.verbose:
+                print(
+                    (
+                        "Initializing a Hierarchical Gaussian Filter"
+                        " using a custom node structure"
+                    )
+                )
         else:
-            raise ValueError("model_type should be 'continuous' or 'binary'")
+            if self.verbose:
+                print(
+                    (
+                        f"Creating a {self.model_type} Hierarchical Gaussian Filter "
+                        f"with {self.n_levels} levels."
+                    )
+                )
+
+            if self.n_levels == 2:
+
+                # Second level
+                x2_parameters = {
+                    "mu": initial_mu["2"],
+                    "muhat": jnp.nan,
+                    "pi": initial_pi["2"],
+                    "pihat": jnp.nan,
+                    "kappas": None,
+                    "nu": jnp.nan,
+                    "psis": None,
+                    "omega": omega["2"],
+                    "rho": rho["2"],
+                }
+                x2 = ((x2_parameters, None, None),)
+
+            elif self.n_levels == 3:
+
+                # Third level
+                x3_parameters = {
+                    "mu": initial_mu["3"],
+                    "muhat": jnp.nan,
+                    "pi": initial_pi["3"],
+                    "pihat": jnp.nan,
+                    "kappas": None,
+                    "nu": jnp.nan,
+                    "psis": None,
+                    "omega": omega["3"],
+                    "rho": rho["3"],
+                }
+                x3 = ((x3_parameters, None, None),)
+
+                # Second level
+                x2_parameters = {
+                    "mu": initial_mu["2"],
+                    "muhat": jnp.nan,
+                    "pi": initial_pi["2"],
+                    "pihat": jnp.nan,
+                    "kappas": (kappas["2"],),  # type: ignore
+                    "nu": jnp.nan,
+                    "psis": None,
+                    "omega": omega["2"],
+                    "rho": rho["2"],
+                }
+                x2 = ((x2_parameters, None, x3),)
+
+            x1_parameters = {
+                "mu": initial_mu["1"],
+                "muhat": jnp.nan,
+                "pi": initial_pi["1"],
+                "pihat": jnp.nan,
+                "kappas": (kappas["1"],),
+                "nu": jnp.nan,
+                "psis": None,
+                "omega": omega["1"],
+                "rho": rho["1"],
+            }
+
+            if model_type == "continuous":
+
+                # First level (continuous node)
+                x1 = ((x1_parameters, None, x2),)
+
+                # Input node
+                input_node_parameters: ParametersType = {
+                    "kappas": None,
+                    "omega": omega_input,
+                    "bias": self.bias,
+                }
+
+                self.node_structure = input_node_parameters, x1, None
+
+            elif model_type == "binary":
+
+                # First level (binary node)
+                x1 = ((x1_parameters, x2, None),)
+
+                input_node_parameters: ParametersType = {
+                    "pihat": pihat,
+                    "eta0": eta0,
+                    "eta1": eta1,
+                }
+                self.node_structure = input_node_parameters, x1, None
 
     def add_nodes(self, nodes: Tuple):
         """Add a custom node structure.
@@ -228,7 +245,7 @@ class HGF(object):
             model fit.
 
         """
-        self.input_node = nodes  # type: ignore
+        self.node_structure = nodes  # type: ignore
         return self
 
     def input_data(
@@ -259,7 +276,7 @@ class HGF(object):
 
         # Initialise the first values
         res_init = (
-            self.input_node,
+            self.node_structure,
             {
                 "time": time[0],
                 "value": input_data[0] + self.bias,
@@ -267,22 +284,21 @@ class HGF(object):
             },
         )
 
-        # create the main data array (data, time)
+        # create the input array (data, time)
         data = jnp.array([input_data, time], dtype=float).T
 
-        # This is where the HGF functions are used to scan the input time series
+        # this is where the model loop over the input time series
+        # at each input the node structure is traversed and beliefs are updated
+        # using precision-weighted prediction errors
         if self.model_type == "continuous":
-            last, final = scan(loop_continuous_inputs, res_init, data[1:, :])
+            _, scan_updates = scan(loop_continuous_inputs, res_init, data[1:, :])
         elif self.model_type == "binary":
-            last, final = scan(loop_binary_inputs, res_init, data[1:, :])
+            _, scan_updates = scan(loop_binary_inputs, res_init, data[1:, :])
 
-        # Save results in the HGF dictionary
-        self.hgf_results = {}
-        self.hgf_results["last"] = last  # The last tuple returned
-        self.hgf_results[
-            "final"
-        ] = final  # The commulative update of the nodes and results
-        self.hgf_results["data"] = input_data  # type: ignore
+        self.node_trajectories = scan_updates[
+            0
+        ]  # the node structure at each value update
+        self.results = scan_updates[1]  # time, values and surprise
 
         return self
 
@@ -321,12 +337,47 @@ class HGF(object):
         """
         if response_function is None:
             response_function = (
-                gaussian_surprise
+                total_gaussian_surprise
                 if self.model_type == "continuous"
-                else binary_surprise
+                else total_binary_surprise
             )
 
         return response_function(
-            hgf_results=self.hgf_results,
+            hgf=self,
             response_function_parameters=response_function_parameters,
         )
+
+    def structure_to_dict(self):
+        """Export the node structure to a dictionary of nodes."""
+        return structure_as_dict(node_structure=self.node_trajectories)
+
+    def to_pandas(self) -> pd.DataFrame:
+        """Export the nodes trajectories and surprise as a Pandas data frame.
+
+        Returns
+        -------
+        structure_df : pd.DataFrame
+
+        """
+        node_dict = self.structure_to_dict()
+        structure_df = pd.DataFrame(
+            {
+                "time": self.results["time"],
+                "observation": self.results["value"],
+                "surprise": self.results["surprise"],
+            }
+        )
+        # loop over nodes and store sufficient statistics with surprise
+        for key in list(node_dict.keys())[1:]:
+            structure_df[f"{key}_mu"] = node_dict[key]["mu"]
+            structure_df[f"{key}_pi"] = node_dict[key]["pi"]
+            structure_df[f"{key}_muhat"] = node_dict[key]["muhat"]
+            structure_df[f"{key}_pihat"] = node_dict[key]["pihat"]
+            surprise = gaussian_surprise(
+                x=node_dict[key]["mu"][1:],
+                muhat=node_dict[key]["muhat"][:-1],
+                pihat=node_dict[key]["pihat"][:-1],
+            )
+            structure_df[f"{key}_surprise"] = np.insert(surprise, 0, np.nan)
+
+        return structure_df

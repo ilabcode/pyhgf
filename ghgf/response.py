@@ -1,22 +1,25 @@
-# Author: Nicolas Legrand <nicolas.legrand@cfin.au.dk>
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Dict
+from typing import TYPE_CHECKING
 
 import jax.numpy as jnp
 
+if TYPE_CHECKING:
+    from ghgf.model import HGF
 
-def gaussian_surprise(hgf_results: Dict, response_function_parameters):
+
+def total_gaussian_surprise(hgf: "HGF", response_function_parameters):
     """Sum of the gaussian surprise along the time series (continuous HGF).
 
     .. note::
-      The Gaussian Surprise is the default method to compute surprise when
+      The Gaussian surprise is the default method to compute surprise when
       `model_type=="continuous"`, therefore this method will only return the sum of
       valid time points, and `jnp.inf` if the model could not fit.
 
     Parameters
     ----------
-    hgf_results : dict
-        Dictionary containing the HGF results.
+    hgf : :py:class`ghgf.model.HGF`
+        Instance of the HGF model.
     response_function_parameters : None
         No additional parameters are required.
 
@@ -26,11 +29,11 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
         The model surprise given the input data.
 
     """
-    _, results = hgf_results["final"]
-
     # Fill surprises with zeros if invalid input
     this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf_results["data"][1:]), axis=0), 0.0, results["surprise"]
+        jnp.any(jnp.isnan(hgf.results["value"][1:]), axis=0),
+        0.0,
+        hgf.results["surprise"],
     )
 
     # Return an infinite surprise if the model cannot fit
@@ -42,18 +45,18 @@ def gaussian_surprise(hgf_results: Dict, response_function_parameters):
     return surprise
 
 
-def binary_surprise(hgf_results: Dict, response_function_parameters):
+def total_binary_surprise(hgf: "HGF", response_function_parameters):
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
-      The Gaussian Surprise is the default method to compute surprise when
-      `model_type=="continuous"`, therefore this method will only return the sum of
+      The binary surprise is the default method to compute surprise when
+      `model_type=="binary"`, therefore this method will only return the sum of
       valid time points, and `jnp.inf` if the model could not fit.
 
     Parameters
     ----------
-    hgf_results : dict
-        Dictionary containing the HGF results.
+    hgf : :py:class`ghgf.model.HGF`
+        Instance of the HGF model.
     response_function_parameters : None
         No additional parameters are required.
 
@@ -63,11 +66,11 @@ def binary_surprise(hgf_results: Dict, response_function_parameters):
         The model surprise given the input data.
 
     """
-    _, results = hgf_results["final"]
-
     # Fill surprises with zeros if invalid input
     this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf_results["data"][1:]), axis=0), 0.0, results["surprise"]
+        jnp.any(jnp.isnan(hgf.results["value"][1:]), axis=0),
+        0.0,
+        hgf.results["surprise"],
     )
 
     # Return an infinite surprise if the model cannot fit
