@@ -125,8 +125,8 @@ least the HGF instance as input after observation and returning surprise.
 .. autosummary::
    :toctree: generated/ghgf.response
 
-   gaussian_surprise
-   binary_surprise
+   total_gaussian_surprise
+   total_binary_surprise
 
 Structure
 ---------

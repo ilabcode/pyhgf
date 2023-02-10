@@ -8,11 +8,11 @@ if TYPE_CHECKING:
     from ghgf.model import HGF
 
 
-def gaussian_surprise(hgf: "HGF", response_function_parameters):
+def total_gaussian_surprise(hgf: "HGF", response_function_parameters):
     """Sum of the gaussian surprise along the time series (continuous HGF).
 
     .. note::
-      The Gaussian Surprise is the default method to compute surprise when
+      The Gaussian surprise is the default method to compute surprise when
       `model_type=="continuous"`, therefore this method will only return the sum of
       valid time points, and `jnp.inf` if the model could not fit.
 
@@ -45,12 +45,12 @@ def gaussian_surprise(hgf: "HGF", response_function_parameters):
     return surprise
 
 
-def binary_surprise(hgf: "HGF", response_function_parameters):
+def total_binary_surprise(hgf: "HGF", response_function_parameters):
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
-      The Gaussian Surprise is the default method to compute surprise when
-      `model_type=="continuous"`, therefore this method will only return the sum of
+      The binary surprise is the default method to compute surprise when
+      `model_type=="binary"`, therefore this method will only return the sum of
       valid time points, and `jnp.inf` if the model could not fit.
 
     Parameters

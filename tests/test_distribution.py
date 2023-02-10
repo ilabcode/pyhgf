@@ -13,7 +13,7 @@ from jax.tree_util import Partial
 
 from ghgf import load_data
 from ghgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
-from ghgf.response import gaussian_surprise, binary_surprise
+from ghgf.response import total_gaussian_surprise, total_binary_surprise
 
 
 class TestDistribution(TestCase):
@@ -31,7 +31,7 @@ class TestDistribution(TestCase):
                 hgf_logp,
                 n_levels=2,
                 input_data=[timeserie],
-                response_function=gaussian_surprise,
+                response_function=total_gaussian_surprise,
                 model_type="continuous",
                 response_function_parameters=None,
                 time=None
@@ -69,7 +69,7 @@ class TestDistribution(TestCase):
                 hgf_logp,
                 n_levels=2,
                 input_data=[timeserie],
-                response_function=binary_surprise,
+                response_function=total_binary_surprise,
                 model_type="binary",
                 response_function_parameters=None,
             )
@@ -109,7 +109,7 @@ class TestDistribution(TestCase):
                     hgf_logp,
                     n_levels=2,
                     input_data=[timeserie],
-                    response_function=gaussian_surprise,
+                    response_function=total_gaussian_surprise,
                     model_type="continuous",
                     response_function_parameters=None,
                 ),
@@ -168,7 +168,7 @@ class TestDistribution(TestCase):
                     hgf_logp,
                     n_levels=2,
                     input_data=[timeserie],
-                    response_function=binary_surprise,
+                    response_function=total_binary_surprise,
                     model_type="binary",
                     response_function_parameters=None,
                 ),
@@ -228,7 +228,7 @@ class TestDistribution(TestCase):
             input_data=[timeserie],
             model_type="continuous",
             n_levels=2,
-            response_function=gaussian_surprise,
+            response_function=total_gaussian_surprise,
             response_function_parameters=None,
         )
 
@@ -264,7 +264,7 @@ class TestDistribution(TestCase):
             input_data=[timeserie],
             model_type="binary",
             n_levels=2,
-            response_function=binary_surprise,
+            response_function=total_binary_surprise,
             response_function_parameters=None,
         )
 
@@ -303,7 +303,7 @@ class TestDistribution(TestCase):
             model_type="continuous",
             input_data=[timeserie],
             n_levels=2,
-            response_function=gaussian_surprise,
+            response_function=total_gaussian_surprise,
             response_function_parameters=None,
         )
 
@@ -335,7 +335,7 @@ class TestDistribution(TestCase):
             model_type="binary",
             input_data=[timeserie],
             n_levels=2,
-            response_function=binary_surprise,
+            response_function=total_binary_surprise,
             response_function_parameters=None,
         )
 
@@ -368,7 +368,7 @@ class TestDistribution(TestCase):
         hgf_logp_op = HGFDistribution(
             n_levels=2,
             input_data=[timeserie],
-            response_function=gaussian_surprise,
+            response_function=total_gaussian_surprise,
             response_function_parameters=(np.array(1), 1),
         )
 
@@ -421,7 +421,7 @@ class TestDistribution(TestCase):
             n_levels=2,
             model_type="binary",
             input_data=[timeserie],
-            response_function=binary_surprise,
+            response_function=total_binary_surprise,
             response_function_parameters=(np.array(1), 1),
         )
 

@@ -5,13 +5,14 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
+import pandas as pd
 from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
 
 from ghgf.binary import loop_binary_inputs
-from ghgf.continuous import loop_continuous_inputs
+from ghgf.continuous import gaussian_surprise, loop_continuous_inputs
 from ghgf.plots import plot_correlations, plot_trajectories
-from ghgf.response import binary_surprise, gaussian_surprise
+from ghgf.response import total_binary_surprise, total_gaussian_surprise
 from ghgf.structure import structure_as_dict
 from ghgf.typing import ParametersType
 
@@ -336,9 +337,9 @@ class HGF(object):
         """
         if response_function is None:
             response_function = (
-                gaussian_surprise
+                total_gaussian_surprise
                 if self.model_type == "continuous"
-                else binary_surprise
+                else total_binary_surprise
             )
 
         return response_function(
@@ -348,4 +349,35 @@ class HGF(object):
 
     def structure_to_dict(self):
         """Export the node structure to a dictionary of nodes."""
-        return structure_as_dict(structure_dict=self.node_trajectories)
+        return structure_as_dict(node_structure=self.node_trajectories)
+
+    def to_pandas(self) -> pd.DataFrame:
+        """Export the nodes trajectories and surprise as a Pandas data frame.
+
+        Returns
+        -------
+        structure_df : pd.DataFrame
+
+        """
+        node_dict = self.structure_to_dict()
+        structure_df = pd.DataFrame(
+            {
+                "time": self.results["time"],
+                "observation": self.results["value"],
+                "surprise": self.results["surprise"],
+            }
+        )
+        # loop over nodes and store sufficient statistics with surprise
+        for key in list(node_dict.keys())[1:]:
+            structure_df[f"{key}_mu"] = node_dict[key]["mu"]
+            structure_df[f"{key}_pi"] = node_dict[key]["pi"]
+            structure_df[f"{key}_muhat"] = node_dict[key]["muhat"]
+            structure_df[f"{key}_pihat"] = node_dict[key]["pihat"]
+            surprise = gaussian_surprise(
+                x=node_dict[key]["mu"][1:],
+                muhat=node_dict[key]["muhat"][:-1],
+                pihat=node_dict[key]["pihat"][:-1],
+            )
+            structure_df[f"{key}_surprise"] = np.insert(surprise, 0, np.nan)
+
+        return structure_df
