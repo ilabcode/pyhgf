@@ -70,7 +70,7 @@ class HGF(object):
             `None`, the nodes hierarchy is not created and might be provided afterward
             using `add_nodes()`. Defaults to `2` for a 2-level HGF.
         model_type : str
-            The model type to use (can be `"continuous"` or `"binary"`).
+            The model type to use (can be `"continuous"`, `"binary"` or `"custom"`).
         initial_mu : dict
             Dictionary containing the initial values for the :math:`\\mu` parameter at
             different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
@@ -120,7 +120,7 @@ class HGF(object):
         Raises
         ------
         ValueError
-            If `model_type` is not `"continuous"` or `"binary"`.
+            If `model_type` is not `"continuous"`, `"binary"` or `"custom"`.
 
         """
         self.model_type = model_type
@@ -128,100 +128,111 @@ class HGF(object):
         self.n_levels = n_levels
         self.bias = bias
 
-        if self.verbose:
-            print(
-                (
-                    f"Creating a {self.model_type} Hierarchical Gaussian Filter "
-                    f"with {self.n_levels} levels."
-                )
+        if model_type not in ["continuous", "binary", "custom"]:
+            raise ValueError(
+                "Invalid model type. Should be continuous, binary or custom,"
             )
 
-        if self.n_levels == 2:
-
-            # Second level
-            x2_parameters = {
-                "mu": initial_mu["2"],
-                "muhat": jnp.nan,
-                "pi": initial_pi["2"],
-                "pihat": jnp.nan,
-                "kappas": None,
-                "nu": jnp.nan,
-                "psis": None,
-                "omega": omega["2"],
-                "rho": rho["2"],
-            }
-            x2 = ((x2_parameters, None, None),)
-
-        elif self.n_levels == 3:
-
-            # Third level
-            x3_parameters = {
-                "mu": initial_mu["3"],
-                "muhat": jnp.nan,
-                "pi": initial_pi["3"],
-                "pihat": jnp.nan,
-                "kappas": None,
-                "nu": jnp.nan,
-                "psis": None,
-                "omega": omega["3"],
-                "rho": rho["3"],
-            }
-            x3 = ((x3_parameters, None, None),)
-
-            # Second level
-            x2_parameters = {
-                "mu": initial_mu["2"],
-                "muhat": jnp.nan,
-                "pi": initial_pi["2"],
-                "pihat": jnp.nan,
-                "kappas": (kappas["2"],),  # type: ignore
-                "nu": jnp.nan,
-                "psis": None,
-                "omega": omega["2"],
-                "rho": rho["2"],
-            }
-            x2 = ((x2_parameters, None, x3),)
-
-        x1_parameters = {
-            "mu": initial_mu["1"],
-            "muhat": jnp.nan,
-            "pi": initial_pi["1"],
-            "pihat": jnp.nan,
-            "kappas": (kappas["1"],),
-            "nu": jnp.nan,
-            "psis": None,
-            "omega": omega["1"],
-            "rho": rho["1"],
-        }
-
-        if model_type == "continuous":
-
-            # First level (continuous node)
-            x1 = ((x1_parameters, None, x2),)
-
-            # Input node
-            input_node_parameters: ParametersType = {
-                "kappas": None,
-                "omega": omega_input,
-                "bias": self.bias,
-            }
-
-            self.node_structure = input_node_parameters, x1, None
-
-        elif model_type == "binary":
-
-            # First level (binary node)
-            x1 = ((x1_parameters, x2, None),)
-
-            input_node_parameters: ParametersType = {
-                "pihat": pihat,
-                "eta0": eta0,
-                "eta1": eta1,
-            }
-            self.node_structure = input_node_parameters, x1, None
-
+        if self.model_type == "custom":
+            if self.verbose:
+                print(
+                    (
+                        "Initializing a Hierarchical Gaussian Filter"
+                        " using a custom node structure"
+                    )
+                )
         else:
-            raise ValueError("model_type should be 'continuous' or 'binary'")
+            if self.verbose:
+                print(
+                    (
+                        f"Creating a {self.model_type} Hierarchical Gaussian Filter "
+                        f"with {self.n_levels} levels."
+                    )
+                )
+
+            if self.n_levels == 2:
+
+                # Second level
+                x2_parameters = {
+                    "mu": initial_mu["2"],
+                    "muhat": jnp.nan,
+                    "pi": initial_pi["2"],
+                    "pihat": jnp.nan,
+                    "kappas": None,
+                    "nu": jnp.nan,
+                    "psis": None,
+                    "omega": omega["2"],
+                    "rho": rho["2"],
+                }
+                x2 = ((x2_parameters, None, None),)
+
+            elif self.n_levels == 3:
+
+                # Third level
+                x3_parameters = {
+                    "mu": initial_mu["3"],
+                    "muhat": jnp.nan,
+                    "pi": initial_pi["3"],
+                    "pihat": jnp.nan,
+                    "kappas": None,
+                    "nu": jnp.nan,
+                    "psis": None,
+                    "omega": omega["3"],
+                    "rho": rho["3"],
+                }
+                x3 = ((x3_parameters, None, None),)
+
+                # Second level
+                x2_parameters = {
+                    "mu": initial_mu["2"],
+                    "muhat": jnp.nan,
+                    "pi": initial_pi["2"],
+                    "pihat": jnp.nan,
+                    "kappas": (kappas["2"],),  # type: ignore
+                    "nu": jnp.nan,
+                    "psis": None,
+                    "omega": omega["2"],
+                    "rho": rho["2"],
+                }
+                x2 = ((x2_parameters, None, x3),)
+
+            x1_parameters = {
+                "mu": initial_mu["1"],
+                "muhat": jnp.nan,
+                "pi": initial_pi["1"],
+                "pihat": jnp.nan,
+                "kappas": (kappas["1"],),
+                "nu": jnp.nan,
+                "psis": None,
+                "omega": omega["1"],
+                "rho": rho["1"],
+            }
+
+            if model_type == "continuous":
+
+                # First level (continuous node)
+                x1 = ((x1_parameters, None, x2),)
+
+                # Input node
+                input_node_parameters: ParametersType = {
+                    "kappas": None,
+                    "omega": omega_input,
+                    "bias": self.bias,
+                }
+
+                self.node_structure = input_node_parameters, x1, None
+
+            elif model_type == "binary":
+
+                # First level (binary node)
+                x1 = ((x1_parameters, x2, None),)
+
+                input_node_parameters: ParametersType = {
+                    "pihat": pihat,
+                    "eta0": eta0,
+                    "eta1": eta1,
+                }
+                self.node_structure = input_node_parameters, x1, None
 
     def add_nodes(self, nodes: Tuple):
         """Add a custom node structure.
@@ -337,4 +348,4 @@ class HGF(object):
 
     def structure_to_dict(self):
         """Export the node structure to a dictionary of nodes."""
-        return structure_as_dict(nodes=self.node_trajectories)
+        return structure_as_dict(structure_dict=self.node_trajectories)
