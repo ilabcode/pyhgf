@@ -146,7 +146,7 @@ Because the HGF classes are built on the top of [JAX](https://github.com/google/
 import pymc as pm
 import arviz as az
 from ghgf.distribution import HGFDistribution
-from ghgf.response import binary_surprise
+from ghgf.response import total_binary_surprise
 ```
 
 ### 2-levels model
@@ -157,7 +157,7 @@ hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
     input_data=[timeserie],
-    response_function=binary_surprise,
+    response_function=total_binary_surprise,
 )
 ```
 
@@ -183,7 +183,6 @@ with pm.Model() as two_levels_binary_hgf:
             mu_1=jnp.inf,
             mu_2=0.5,
             kappa_1=1.0,
-            bias=0.0,
             omega_3=jnp.nan,
             rho_3=jnp.nan,
             pi_3=jnp.nan,
@@ -248,7 +247,7 @@ hgf_logp_op = HGFDistribution(
     n_levels=3,
     model_type="binary",
     input_data=[timeserie],
-    response_function=binary_surprise,
+    response_function=total_binary_surprise,
 )
 ```
 
@@ -280,7 +279,6 @@ with pm.Model() as three_levels_binary_hgf:
             mu_3=0.0,
             kappa_1=1.0,
             kappa_2=1.0,
-            bias=0.0,
         ),
     )
 ```

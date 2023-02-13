@@ -54,7 +54,6 @@ class TestDistribution(TestCase):
             mu_3=jnp.nan,
             kappa_1=1.0,
             kappa_2=jnp.nan,
-            bias=0.0,
         )
         assert jnp.isclose(logp, 1938.0101)
 
@@ -91,7 +90,6 @@ class TestDistribution(TestCase):
             mu_3=jnp.nan,
             kappa_1=jnp.array(1.0),
             kappa_2=jnp.nan,
-            bias=jnp.inf,
         )
         assert jnp.isclose(logp, -215.11276)
 
@@ -113,7 +111,7 @@ class TestDistribution(TestCase):
                     model_type="continuous",
                     response_function_parameters=None,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
             ),
         )
 
@@ -133,7 +131,6 @@ class TestDistribution(TestCase):
             mu_3,
             kappa_1,
             kappa_2,
-            bias,
         ) = grad_logp(
             np.array(-3.0),
             np.array(-3.0),
@@ -149,7 +146,6 @@ class TestDistribution(TestCase):
             np.array(0.0),
             np.array(0.0),
             np.array(1.0),
-            np.array(0.0),
             np.array(0.0),
         )
 
@@ -172,7 +168,7 @@ class TestDistribution(TestCase):
                     model_type="binary",
                     response_function_parameters=None,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
             ),
         )
 
@@ -192,7 +188,6 @@ class TestDistribution(TestCase):
             mu_3,
             kappa_1,
             kappa_2,
-            bias,
         ) = grad_logp(
                 np.array(0.0),
                 np.array(-2.0),
@@ -209,7 +204,6 @@ class TestDistribution(TestCase):
                 np.array(0.0),
                 np.array(1.0),
                 np.array(1.0),
-                np.array(0.0),
         )
 
         assert jnp.isclose(omega_2, -3.3864107)
@@ -248,7 +242,6 @@ class TestDistribution(TestCase):
             mu_3=np.array(0.0),
             kappa_1=np.array(1.0),
             kappa_2=np.array(0.0),
-            bias=np.array(0.0),
         ).eval()
 
         assert jnp.isclose(logp, 1938.01013184)
@@ -284,7 +277,6 @@ class TestDistribution(TestCase):
             mu_3=np.inf,
             kappa_1=1.0,
             kappa_2=np.inf,
-            bias=np.inf,
         ).eval()
 
         assert jnp.isclose(logp, -215.11276245)
@@ -318,7 +310,6 @@ class TestDistribution(TestCase):
             mu_1=timeserie[0],
             mu_2=0.0,
             kappa_1=1.0,
-            bias=0.0,
         )[0].eval()
 
         assert jnp.isclose(omega_1, 0.47931308)
@@ -350,7 +341,6 @@ class TestDistribution(TestCase):
             mu_1=np.inf,
             mu_2=0.5,
             kappa_1=1.0,
-            bias=np.inf,
         )[1].eval()
 
         assert jnp.isclose(omega_2, 2.6229846)
@@ -389,7 +379,6 @@ class TestDistribution(TestCase):
                     mu_1=np.array(timeserie[0]),
                     mu_2=np.array(0.0),
                     kappa_1=np.array(1.0),
-                    bias=np.array(0.0),
                     omega_3=np.nan,
                     rho_3=np.nan,
                     pi_3=np.nan,
@@ -442,7 +431,6 @@ class TestDistribution(TestCase):
                     mu_1=np.inf,
                     mu_2=0.5,
                     kappa_1=1.0,
-                    bias=0.0,
                     omega_3=np.nan,
                     rho_3=np.nan,
                     pi_3=np.nan,

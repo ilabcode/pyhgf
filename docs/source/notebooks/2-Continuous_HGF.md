@@ -188,7 +188,6 @@ Because the HGF classes are built on the top of [JAX](https://github.com/google/
 import pymc as pm
 import arviz as az
 from ghgf.distribution import HGFDistribution
-from ghgf.response import gaussian_surprise
 ```
 
 ### 2-levels model
@@ -232,7 +231,6 @@ with pm.Model() as two_level_hgf:
             mu_1=mu_1,
             mu_2=mu_2,
             kappa_1=1.0,
-            bias=0.0,
             omega_3=jnp.nan,
             rho_3=jnp.nan,
             pi_3=jnp.nan,
@@ -347,7 +345,6 @@ with pm.Model() as three_level_hgf:
             mu_3=mu_3,
             kappa_1=1.0,
             kappa_2=1.0,
-            bias=0.0,
         ),
     )
 ```
