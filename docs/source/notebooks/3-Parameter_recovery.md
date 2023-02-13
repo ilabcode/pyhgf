@@ -20,7 +20,7 @@ from numpy import loadtxt
 import numpy as np
 from ghgf.distribution import hgf_logp, HGFDistribution
 from ghgf import load_data
-from ghgf.response import binary_surprise
+from ghgf.response import total_binary_surprise
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
@@ -109,7 +109,6 @@ with pm.Model() as model:
             mu_1=0.0,
             mu_2=0.0,
             kappa_1=1.0,
-            bias=0.0,
             omega_3=jnp.nan,
             rho_3=jnp.nan,
             pi_3=jnp.nan,
@@ -174,7 +173,7 @@ hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
     input_data=dataset,
-    response_function=binary_surprise,
+    response_function=total_binary_surprise,
 )
 ```
 
@@ -196,7 +195,6 @@ with pm.Model() as two_levels_binary_hgf:
             mu_1=jnp.nan,
             mu_2=0.0,
             kappa_1=1.0,
-            bias=0.0,
             omega_3=jnp.nan,
             rho_3=jnp.nan,
             pi_3=jnp.nan,

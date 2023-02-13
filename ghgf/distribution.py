@@ -28,7 +28,6 @@ def hgf_logp(
     mu_3: float,
     kappa_1: float,
     kappa_2: float,
-    bias: float,
     input_data: List[np.ndarray],
     response_function: Callable,
     model_type: str,
@@ -102,8 +101,6 @@ def hgf_logp(
         parents nodes) and will defines the strenght of the connection between the node
         and the parent node. Often fixed to `1`. The value of this parameter will be
         ignored when using a 2-levels HGF (`n_levels=2`).
-    bias : float
-        The HGD parameters (see py:class:`ghgf.model.HGF` for details).
     input_data : list
         List of input data. When `n` models should be fitted, the list contains `n` 1d
         Numpy arrays. By default, the associated time vector is the integers vector
@@ -149,7 +146,6 @@ def hgf_logp(
         mu_3,
         kappa_1,
         kappa_2,
-        bias,
         _,
     ) = jnp.broadcast_arrays(
         omega_1,
@@ -167,7 +163,6 @@ def hgf_logp(
         mu_3,
         kappa_1,
         kappa_2,
-        bias,
         jnp.zeros(n),
     )
 
@@ -210,7 +205,6 @@ def hgf_logp(
                 omega_input=omega_input[i],
                 rho=rho,
                 kappas=kappas,
-                bias=bias[i],
                 model_type=model_type,
                 n_levels=n_levels,
                 eta0=0.0,
@@ -277,7 +271,7 @@ class HGFLogpGradOp(Op):
                     model_type=model_type,
                     response_function_parameters=response_function_parameters,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
             )
         )
 
@@ -298,7 +292,6 @@ class HGFLogpGradOp(Op):
         mu_3=np.array(0.0),
         kappa_1=np.array(1.0),
         kappa_2=np.array(0.0),
-        bias=np.array(0.0),
     ):
         """Initialize node structure."""
         # Convert our inputs to symbolic variables
@@ -318,7 +311,6 @@ class HGFLogpGradOp(Op):
             pt.as_tensor_variable(mu_3),
             pt.as_tensor_variable(kappa_1),
             pt.as_tensor_variable(kappa_2),
-            pt.as_tensor_variable(bias),
         ]
         # This `Op` will return one gradient per input. For simplicity, we assume
         # each output is of the same type as the input. In practice, you should use
@@ -345,7 +337,6 @@ class HGFLogpGradOp(Op):
             grad_mu_3,
             grad_kappa_1,
             grad_kappa_2,
-            grad_bias,
         ) = self.grad_logp(*inputs)
 
         outputs[0][0] = np.asarray(grad_omega_1, dtype=node.outputs[0].dtype)
@@ -363,7 +354,6 @@ class HGFLogpGradOp(Op):
         outputs[12][0] = np.asarray(grad_mu_3, dtype=node.outputs[12].dtype)
         outputs[13][0] = np.asarray(grad_kappa_1, dtype=node.outputs[13].dtype)
         outputs[14][0] = np.asarray(grad_kappa_2, dtype=node.outputs[14].dtype)
-        outputs[15][0] = np.asarray(grad_bias, dtype=node.outputs[15].dtype)
 
 
 class HGFDistribution(Op):
@@ -380,7 +370,7 @@ class HGFDistribution(Op):
     >>> from math import log
     >>> from ghgf import load_data
     >>> from ghgf.distribution import HGFDistribution
-    >>> from ghgf.response import gaussian_surprise
+    >>> from ghgf.response import total_gaussian_surprise
 
     Create the data (value and time vectors)
     >>> timeserie = load_data("continuous")
@@ -390,7 +380,7 @@ class HGFDistribution(Op):
     >>> hgf_logp_op = HGFDistribution(
     >>>     n_levels=2,
     >>>     input_data=timeserie,
-    >>>     response_function=gaussian_surprise,
+    >>>     response_function=total_gaussian_surprise,
     >>> )
 
     Create the PyMC model
@@ -413,7 +403,6 @@ class HGFDistribution(Op):
     >>>             mu_1=timeserie[0],
     >>>             mu_2=0.0,
     >>>             kappa_1=1.0,
-    >>>             bias=0.0,
     >>>         ),
     >>>     )
 
@@ -503,7 +492,6 @@ class HGFDistribution(Op):
         mu_3,
         kappa_1,
         kappa_2,
-        bias,
     ):
         """Convert inputs to symbolic variables."""
         inputs = [
@@ -522,7 +510,6 @@ class HGFDistribution(Op):
             pt.as_tensor_variable(mu_3),
             pt.as_tensor_variable(kappa_1),
             pt.as_tensor_variable(kappa_2),
-            pt.as_tensor_variable(bias),
         ]
         # Define the type of the output returned by the wrapped JAX function
         outputs = [pt.dscalar()]
@@ -551,7 +538,6 @@ class HGFDistribution(Op):
             grad_mu_3,
             grad_kappa_1,
             grad_kappa_2,
-            grad_bias,
         ) = self.hgf_logp_grad_op(*inputs)
         # If there are inputs for which the gradients will never be needed or cannot
         # be computed, `aesara.gradient.grad_not_implemented` should  be used as the
@@ -573,5 +559,4 @@ class HGFDistribution(Op):
             output_gradient * grad_mu_3,
             output_gradient * grad_kappa_1,
             output_gradient * grad_kappa_2,
-            output_gradient * grad_bias,
         ]

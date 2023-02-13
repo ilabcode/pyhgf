@@ -303,7 +303,6 @@ class Testcontinuous(TestCase):
         input_node_parameters = {
             "omega": jnp.array(1.0),
             "kappas": jnp.array(1.0),
-            "bias": jnp.array(0.0),
         }
 
         parent_parameters = {
@@ -351,7 +350,6 @@ class Testcontinuous(TestCase):
             "psis": jnp.array(1.0),
             "omega": jnp.array(1.0),
             "rho": jnp.array(1.0),
-            "bias": jnp.array(0.0),
         }
 
         parent_parameters = {
@@ -405,7 +403,6 @@ class Testcontinuous(TestCase):
             "psis": jnp.array(1.0),
             "omega": jnp.log(1e-4),
             "rho": jnp.array(0.0),
-            "bias": jnp.array(0.0),
         }
 
         parent_parameters = {

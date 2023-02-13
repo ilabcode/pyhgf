@@ -283,10 +283,6 @@ def continuous_input_update(
     # Time interval
     t = jnp.subtract(new_time, old_time)
 
-    # Add a bias to the input value
-    if input_node_parameters["bias"] is not None:
-        value = jnp.add(value, input_node_parameters["bias"])
-
     lognoise = input_node_parameters["omega"]
 
     if input_node_parameters["kappas"] is not None:

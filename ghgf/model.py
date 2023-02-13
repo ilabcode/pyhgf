@@ -25,8 +25,6 @@ class HGF(object):
 
     Attributes
     ----------
-    bias : float
-        Input bias (only relevant if `model_type="continuous"`).
     hgf_results : dict
         After oberving the data using the `input_data` method, the output of the model
         are stored in the `hgf_results` dictionary.
@@ -59,7 +57,6 @@ class HGF(object):
         eta1: float = 1.0,
         pihat: float = jnp.inf,
         rho: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0},
-        bias: float = 0.0,
         verbose: bool = True,
     ):
         r"""Parameterization of the HGF model.
@@ -112,9 +109,6 @@ class HGF(object):
         pihat : float
             The precision of the binary input node. Default to `jnp.inf`. Only relevant
             if `model_type="binary"`.
-        bias : DeviceArray
-            The bias introduced in the perception of the input signal. This value is
-            added to the input time serie before model fitting.
         verbose : bool
             Verbosity of the methods for model creation and fitting. Defaults to `True`.
 
@@ -127,7 +121,6 @@ class HGF(object):
         self.model_type = model_type
         self.verbose = verbose
         self.n_levels = n_levels
-        self.bias = bias
 
         if model_type not in ["continuous", "binary", "custom"]:
             raise ValueError(
@@ -218,7 +211,6 @@ class HGF(object):
                 input_node_parameters: ParametersType = {
                     "kappas": None,
                     "omega": omega_input,
-                    "bias": self.bias,
                 }
 
                 self.node_structure = input_node_parameters, x1, None
@@ -279,7 +271,7 @@ class HGF(object):
             self.node_structure,
             {
                 "time": time[0],
-                "value": input_data[0] + self.bias,
+                "value": input_data[0],
                 "surprise": jnp.array(0.0),
             },
         )
