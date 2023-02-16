@@ -21,7 +21,9 @@ def structure_validation(node: Tuple):
                 structure_validation(node[n][i])
 
 
-def structure_as_dict(node_structure, node_id: int = 0, structure_dict: Dict = {}):
+def structure_as_dict(
+    node_structure: Tuple, node_id: int = 0, structure_dict: Dict = {}
+):
     """Transform a HGF node structure into a dictionary of nodes for analysis.
 
     Parameters
@@ -47,5 +49,7 @@ def structure_as_dict(node_structure, node_id: int = 0, structure_dict: Dict = {
         if node_structure[i] is not None:
             # for each parent
             for n in node_structure[i]:
-                structure_dict = structure_as_dict(n, node_id, structure_dict)
+                structure_dict = structure_as_dict(
+                    node_structure=n, node_id=node_id, structure_dict=structure_dict
+                )
     return structure_dict

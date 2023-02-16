@@ -39,6 +39,9 @@ class HGF(object):
         The node structure updated at each new observation.
     results :
         Time, values inputs and overall surprise of the model.
+    structure_dict : dict
+        The node structure as a dictionary,
+        retrieved using :py:fun:`ghgf.structure.structure_as_dict`
     verbose : bool
         Verbosity level.
 
@@ -121,6 +124,7 @@ class HGF(object):
         self.model_type = model_type
         self.verbose = verbose
         self.n_levels = n_levels
+        self.structure_dict = None
 
         if model_type not in ["continuous", "binary", "custom"]:
             raise ValueError(
@@ -286,21 +290,23 @@ class HGF(object):
             _, scan_updates = scan(loop_continuous_inputs, res_init, data[1:, :])
         elif self.model_type == "binary":
             _, scan_updates = scan(loop_binary_inputs, res_init, data[1:, :])
+        else:
+            raise ValueError("This method only works with binary or continuous models")
 
-        self.node_trajectories = scan_updates[
-            0
-        ]  # the node structure at each value update
+        # the node structure at each value update
+        self.node_trajectories = scan_updates[0]
+
         self.results = scan_updates[1]  # time, values and surprise
 
         return self
 
     def plot_trajectories(self, **kwargs):
         """Plot the parameters trajectories."""
-        plot_trajectories(hgf=self, **kwargs)
+        return plot_trajectories(hgf=self, **kwargs)
 
     def plot_correlations(self):
         """Plot the heatmap of cross-trajectories correlation."""
-        plot_correlations(hgf=self)
+        return plot_correlations(hgf=self)
 
     def surprise(
         self,
@@ -339,9 +345,24 @@ class HGF(object):
             response_function_parameters=response_function_parameters,
         )
 
-    def structure_to_dict(self):
-        """Export the node structure to a dictionary of nodes."""
-        return structure_as_dict(node_structure=self.node_trajectories)
+    def structure_as_dict(self) -> Dict:
+        """Export the node structure to a dictionary of nodes.
+
+        Returns
+        -------
+        structure_dict : dict
+            The node structure as a dictionary, each node is a key in the dictionary,
+            from 1 (lower node) to **n**.
+
+        """
+        if self.structure_dict is None:
+            structure_dict = {}
+            self.structure_dict = structure_as_dict(
+                node_structure=self.node_trajectories,
+                node_id=0,
+                structure_dict=structure_dict,
+            )
+        return self.structure_dict
 
     def to_pandas(self) -> pd.DataFrame:
         """Export the nodes trajectories and surprise as a Pandas data frame.
@@ -349,9 +370,11 @@ class HGF(object):
         Returns
         -------
         structure_df : pd.DataFrame
+            Pandas data frame with the time series of the sufficient statistics and
+            surprise of each node in the structure.
 
         """
-        node_dict = self.structure_to_dict()
+        node_dict = self.structure_as_dict()
         structure_df = pd.DataFrame(
             {
                 "time": self.results["time"],
