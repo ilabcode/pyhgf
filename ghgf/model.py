@@ -29,7 +29,7 @@ class HGF(object):
         After oberving the data using the `input_data` method, the output of the model
         are stored in the `hgf_results` dictionary.
     model_type : str
-        The model implemented (can be `"continous"` or `"binary"`).
+        The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
     n_levels : int
         The number of hierarchies in the model, including the input vector. Cannot be
         less than 2.

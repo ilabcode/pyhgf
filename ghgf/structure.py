@@ -1,3 +1,5 @@
+# Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
+
 from typing import Dict, Tuple
 
 
