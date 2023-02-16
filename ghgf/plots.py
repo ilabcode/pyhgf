@@ -113,7 +113,11 @@ def plot_trajectories(
 
     """
     # get the sufficient statistics and surprise for each node in the structure
-    trajectories_df = hgf.to_pandas()
+    # we get a ValueError if the model cannot fit using the parameters
+    try:
+        trajectories_df = hgf.to_pandas()
+    except ValueError:
+        return
     n_nodes = trajectories_df.columns.str.contains("_muhat").sum()
     palette = itertools.cycle(sns.color_palette())
 
@@ -126,9 +130,11 @@ def plot_trajectories(
         axs[n_nodes - 1].scatter(
             trajectories_df.time,
             trajectories_df.observation,
-            s=4,
+            s=3,
             label="Input",
-            color="grey",
+            color="#2a2a2a",
+            zorder=10,
+            alpha=0.5,
         )
     elif hgf.model_type == "binary":
         axs[n_nodes - 1].scatter(
@@ -138,6 +144,7 @@ def plot_trajectories(
             color="#4c72b0",
             alpha=0.4,
             edgecolors="k",
+            zorder=10,
         )
 
     # loop over the node idexes
@@ -156,7 +163,12 @@ def plot_trajectories(
 
         # plotting mean
         axs[ax_i].plot(
-            trajectories_df.time, mu, label=r"$\hat{\mu}$", color=color, linewidth=0.5
+            trajectories_df.time,
+            mu,
+            label=r"$\hat{\mu}$",
+            color=color,
+            linewidth=0.5,
+            zorder=2,
         )
 
         # plotting standard deviation
@@ -171,6 +183,7 @@ def plot_trajectories(
                     y2=trajectories_df[f"node_{i}_muhat"] + sd,
                     alpha=0.4,
                     color=color,
+                    zorder=2,
                 )
 
         # plotting surprise
@@ -193,7 +206,7 @@ def plot_trajectories(
                 alpha=0.2,
                 zorder=-1,
             )
-            surprise_ax.set_ylabel(rf"Surprise (Node {i})")
+            surprise_ax.set_ylabel("Surprise")
         axs[ax_i].legend()
         axs[ax_i].set_ylabel(rf"$\mu_{i}$")
 
@@ -217,6 +230,7 @@ def plot_trajectories(
         label="Surprise",
     )
     axs[n_nodes].set_ylabel("Surprise")
+    axs[n_nodes].set_xlabel("Time")
 
     return axs
 

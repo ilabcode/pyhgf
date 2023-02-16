@@ -22,8 +22,6 @@ from ghgf import load_data
 from ghgf.model import HGF
 import seaborn as sns
 from math import log
-
-sns.set_context("talk")
 ```
 
 In this notebook, we demonstrate how to use the standard 2-levels and 3-level Hierarchical Gaussian Filters (HGF) for continuous inputs. This class of models differs from the previous example asw the input node can now accepts continuous input data. Fitting continuous data allows to use the HGF with any time series, which makes it especially suitable for the modelling of physiological signals (see also the case study on modelling heart rate variability using the Hierarchical Gaussian Filter).  The continuous version of the Hierarchical Gaussian Filter can take the following structures:
@@ -57,7 +55,7 @@ timeserie = load_data("continuous")
 +++
 
 ```{note}
-The response function used is the Guassian surprise at each time points(:py:func:`ghgf.response.gaussian_surprise`). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next observation in the continuous domain. See also [this tutorial](#custom_response_function) to see how to create custom response function.
+The response function used is the [sum of the Guassian surprise](ghgf.response.total_gaussian_surprise). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next observation in the continuous domain. See also [this tutorial on how to customise a response function](#custom_response_function).
 ```
 
 ```{code-cell} ipython3
@@ -67,7 +65,7 @@ two_levels_continuous_hgf = HGF(
     n_levels=2,
     model_type="continuous",
     initial_mu={"1": 1.04, "2": 0.0},
-    initial_pi={"1": 1e4, "2": 1e1},
+    initial_pi={"1": 1e2, "2": 1e1},
     omega={"1": -13.0, "2": -12.0},
     rho={"1": 0.0, "2": 0.0},
     kappas={"1": 1.0})
@@ -126,8 +124,8 @@ three_levels_continuous_hgf = HGF(
     n_levels=3,
     model_type="continuous",
     initial_mu={"1": 1.04, "2": 0.0, "3": 0.0},
-    initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
-    omega={"1": -13.0, "2": -12.0, "3": -12.0},
+    initial_pi={"1": 1e4, "2": .1, "3": .1},
+    omega={"1": -13.0, "2": -2.0, "3": -2.0},
     rho={"1": 0.0, "2": 0.0, "3": 0.0},
     kappas={"1": 1.0, "2": 1.0})
 ```
@@ -193,10 +191,17 @@ from ghgf.distribution import HGFDistribution
 ### 2-levels model
 #### Creating the model
 
++++
+
+```{note}
+The [HGF distribution class](ghgf.distribution.HGFDistribution) use the [toatal Gaussian surprise](ghgf.response.total_gaussian_surprise) as a default response function, so adding this argument here is optional but is passed here for clarity.
+```
+
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
     n_levels=2,
-    input_data=[timeserie]
+    input_data=[timeserie],
+    response_function=total_gaussian_surprise
 )
 ```
 
@@ -208,28 +213,22 @@ The data is being passed to the distribution when the instance is created.
 
 ```{code-cell} ipython3
 with pm.Model() as two_level_hgf:
-    
-    # mus priors
-    mu_1 = pm.Normal("mu_1", 0, 10)
-    mu_2 = pm.Normal("mu_2", 0, 10)
 
     # omegas priors
-    omega_1 = pm.Normal("omega_1", -6.0, 2)
-    normal_dist = pm.Normal.dist(mu=-2.0, sigma=2.0)
-    omega_2 = pm.Censored("omega_2", normal_dist, lower=-20.0, upper=2)
+    omega_1 = pm.Uniform("omega_1", -20, -2.0)
 
     pm.Potential(
         "hgf_loglike",
         hgf_logp_op(
             omega_1=omega_1,
-            omega_2=omega_2,
+            omega_2=-2.0,
             omega_input=log(1e-4),
             rho_1=0.0,
             rho_2=0.0,
             pi_1=1e4,
             pi_2=1e1,
-            mu_1=mu_1,
-            mu_2=mu_2,
+            mu_1=timeserie[0],
+            mu_2=0.0,
             kappa_1=1.0,
             omega_3=jnp.nan,
             rho_3=jnp.nan,
@@ -260,7 +259,7 @@ with two_level_hgf:
 ```
 
 ```{code-cell} ipython3
-az.plot_trace(two_level_hgf_idata, var_names=["omega_1", "omega_2", "mu_1"]);
+az.plot_trace(two_level_hgf_idata);
 plt.tight_layout()
 ```
 
@@ -268,18 +267,15 @@ plt.tight_layout()
 
 ```{code-cell} ipython3
 omega_1 = az.summary(two_level_hgf_idata)["mean"]["omega_1"]
-omega_2 = az.summary(two_level_hgf_idata)["mean"]["omega_2"]
-mu_1 = az.summary(two_level_hgf_idata)["mean"]["mu_1"]
-mu_2 = az.summary(two_level_hgf_idata)["mean"]["mu_2"]
 ```
 
 ```{code-cell} ipython3
 hgf_mcmc = HGF(
     n_levels=2,
     model_type="continuous",
-    initial_mu={"1": mu_1, "2": mu_2},
+    initial_mu={"1": timeserie[0], "2": -6.0},
     initial_pi={"1": 1e4, "2": 1e1},
-    omega={"1": omega_1, "2": omega_2},
+    omega={"1": omega_1, "2": -2.0},
     rho={"1": 0.0, "2": 0.0},
     kappas={"1": 1.0}).input_data(
         input_data=timeserie
@@ -312,27 +308,16 @@ The data is being passed to the distribution when the instance is created.
 
 ```{code-cell} ipython3
 with pm.Model() as three_level_hgf:
-    
-    # mus priors
-    mu_1 = pm.Normal("mu_1", 0, 10)
+
+    omega_2 = pm.Uniform("omega_2", -6.0, 0.0)
     mu_2 = pm.Normal("mu_2", 0, 10)
-    mu_3 = pm.Normal("mu_3", 0, 10)
-
-    # omegas priors
-    omega_1 = pm.Normal("omega_1", -6.0, 2)
-
-    normal_dist = pm.Normal.dist(mu=-2.0, sigma=2.0)
-    omega_2 = pm.Censored("omega_2", normal_dist, lower=-20.0, upper=2)
-
-    normal_dist2 = pm.Normal.dist(mu=-2.0, sigma=2.0)
-    omega_3 = pm.Censored("omega_3", normal_dist2, lower=-20.0, upper=2)
 
     pm.Potential(
         "hgf_loglike",
         hgf_logp_op(
             omega_1=omega_1,
             omega_2=omega_2,
-            omega_3=omega_3,
+            omega_3=-2.0,
             omega_input=log(1e-4),
             rho_1=0.0,
             rho_2=0.0,
@@ -340,9 +325,9 @@ with pm.Model() as three_level_hgf:
             pi_1=1e4,
             pi_2=1e1,
             pi_3=1e1,
-            mu_1=mu_1,
+            mu_1=timeserie[0],
             mu_2=mu_2,
-            mu_3=mu_3,
+            mu_3=0.0,
             kappa_1=1.0,
             kappa_2=1.0,
         ),
@@ -369,28 +354,24 @@ with three_level_hgf:
 ```
 
 ```{code-cell} ipython3
-az.plot_trace(three_level_hgf_idata, var_names=["omega_1", "omega_2", "omega_3", "mu_1", "mu_2", "mu_3"]);
+az.plot_trace(three_level_hgf_idata);
 plt.tight_layout()
 ```
 
 #### Using the learned parameters
 
 ```{code-cell} ipython3
-omega_1 = az.summary(three_level_hgf_idata)["mean"]["omega_1"]
 omega_2 = az.summary(three_level_hgf_idata)["mean"]["omega_2"]
-omega_3 = az.summary(three_level_hgf_idata)["mean"]["omega_3"]
-mu_1 = az.summary(three_level_hgf_idata)["mean"]["mu_1"]
 mu_2 = az.summary(three_level_hgf_idata)["mean"]["mu_2"]
-mu_3 = az.summary(three_level_hgf_idata)["mean"]["mu_3"]
 ```
 
 ```{code-cell} ipython3
 hgf_mcmc = HGF(
     n_levels=3,
     model_type="continuous",
-    initial_mu={"1": mu_1, "2": mu_2, "3": mu_3},
+    initial_mu={"1": timeserie[0], "2": mu_2, "3": 0.0},
     initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
-    omega={"1": omega_1, "2": omega_2, "3": omega_3},
+    omega={"1": omega_1, "2": omega_2, "3": -2.0},
     rho={"1": 0.0, "2": 0.0, "3": 0.0},
     kappas={"1": 1.0, "2": 0.0}).input_data(
         input_data=timeserie
@@ -398,7 +379,7 @@ hgf_mcmc = HGF(
 ```
 
 ```{code-cell} ipython3
-hgf_mcmc.plot_trajectories()
+hgf_mcmc.plot_trajectories(ci=False)
 ```
 
 ```{code-cell} ipython3
