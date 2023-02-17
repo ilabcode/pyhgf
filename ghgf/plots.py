@@ -112,12 +112,7 @@ def plot_trajectories(
         three_levels_hgf.plot_trajectories()
 
     """
-    # get the sufficient statistics and surprise for each node in the structure
-    # we get a ValueError if the model cannot fit using the parameters
-    try:
-        trajectories_df = hgf.to_pandas()
-    except ValueError:
-        return
+    trajectories_df = hgf.to_pandas()
     n_nodes = trajectories_df.columns.str.contains("_muhat").sum()
     palette = itertools.cycle(sns.color_palette())
 
@@ -236,7 +231,7 @@ def plot_trajectories(
 
 
 def plot_correlations(hgf: "HGF") -> Axes:
-    """Plot the heatmap correlation of beliefs trajectories.
+    """Plot the heatmap correlation of the sufficient statistics trajectories.
 
     Parameters
     ----------
@@ -250,63 +245,26 @@ def plot_correlations(hgf: "HGF") -> Axes:
         correlation.
 
     """
-    # Level 1
-    mu_1 = hgf.node_trajectories[1][0][0]["mu"]
-    pi_1 = hgf.node_trajectories[1][0][0]["pi"]
-    pihat_1 = hgf.node_trajectories[1][0][0]["pihat"]
-    muhat_1 = hgf.node_trajectories[1][0][0]["muhat"]
-    nu_1 = hgf.node_trajectories[1][0][0]["nu"]
-
-    # Level 2
-    mu_2 = (
-        hgf.node_trajectories[1][0][2][0][0]["mu"]
-        if hgf.model_type == "continuous"
-        else hgf.node_trajectories[1][0][1][0][0]["mu"]
-    )
-    pi_2 = (
-        hgf.node_trajectories[1][0][2][0][0]["pi"]
-        if hgf.model_type == "continuous"
-        else hgf.node_trajectories[1][0][1][0][0]["pi"]
-    )
-    pihat_2 = (
-        hgf.node_trajectories[1][0][2][0][0]["pihat"]
-        if hgf.model_type == "continuous"
-        else hgf.node_trajectories[1][0][1][0][0]["pihat"]
-    )
-    muhat_2 = (
-        hgf.node_trajectories[1][0][2][0][0]["muhat"]
-        if hgf.model_type == "continuous"
-        else hgf.node_trajectories[1][0][1][0][0]["muhat"]
+    trajectories_df = hgf.to_pandas()
+    trajectories_df = pd.concat(
+        [
+            trajectories_df[["time", "observation", "surprise"]],
+            trajectories_df.filter(regex="hat"),
+        ],
+        axis=1,
     )
 
-    # Time series of the model beliefs
-    df = pd.DataFrame(
-        {
-            r"$\nu_{1}$": nu_1,
-            r"$\mu_{1}$": mu_1,
-            r"$\pi_{1}$": pi_1,
-            r"$\mu_{2}$": mu_2,
-            r"$\pi_{2}$": pi_2,
-            r"$\hat{\mu}_{1}$": muhat_1,
-            r"$\hat{\pi}_{1}$": pihat_1,
-            r"$\hat{\mu}_{2}$": muhat_2,
-            r"$\hat{\pi}_{2}$": pihat_2,
-        }
-    )
+    # rename columns with LateX expressions
+    trajectories_df.columns = [
+        r"$\hat{\mu}_" + f"{c[5]}$" if "muhat" in c else c
+        for c in trajectories_df.columns
+    ]
+    trajectories_df.columns = [
+        r"$\hat{\pi}_" + f"{c[5]}$" if "pihat" in c else c
+        for c in trajectories_df.columns
+    ]
 
-    if hgf.n_levels == 3:
-        if hgf.model_type == "continuous":
-            df[r"$\mu_{3}$"] = hgf.node_trajectories[1][0][2][0][2][0][0]["mu"]
-            df[r"$\pi_{3}$"] = hgf.node_trajectories[1][0][2][0][2][0][0]["pi"]
-            df[r"$\hat{\mu}_{3}$"] = hgf.node_trajectories[1][0][2][0][2][0][0]["muhat"]
-            df[r"$\hat{\pi}_{3}$"] = hgf.node_trajectories[1][0][2][0][2][0][0]["pihat"]
-        elif hgf.model_type == "binary":
-            df[r"$\mu_{3}$"] = hgf.node_trajectories[1][0][1][0][2][0][0]["mu"]
-            df[r"$\pi_{3}$"] = hgf.node_trajectories[1][0][1][0][2][0][0]["pi"]
-            df[r"$\hat{\mu}_{3}$"] = hgf.node_trajectories[1][0][1][0][2][0][0]["muhat"]
-            df[r"$\hat{\pi}_{3}$"] = hgf.node_trajectories[1][0][1][0][2][0][0]["pihat"]
-
-    correlation_mat = df.corr()
+    correlation_mat = trajectories_df.corr()
     ax = sns.heatmap(
         correlation_mat,
         annot=True,
@@ -316,6 +274,6 @@ def plot_correlations(hgf: "HGF") -> Axes:
         linewidths=2,
         square=True,
     )
-    ax.set_title("Correlation between the model beliefs")
+    ax.set_title("Correlations between the model trajectories")
 
     return ax
