@@ -82,7 +82,7 @@ hgf.plot_trajectories()
 `Add 320 new binary observations.`  
 `Model's surprise = 203.29249572753906`
 
-![png](./docs/source/images/trajectories.png)
+![png](./images/trajectories.png)
 
 # Acknoledgements
 
