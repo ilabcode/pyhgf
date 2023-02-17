@@ -21,8 +21,6 @@ from ghgf.model import HGF
 from ghgf import load_data
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-sns.set_context("talk")
 ```
 
 In this notebook, we demonstrate how to create and fit the standard 2-levels and 3-level Hierarchical Gaussian Filters (HGF) for binary inputs. This class share a lot of similarities with its continuous counterpart described in the [next tutorial](continuous_hgf). Here, the difference is that the input node accepts binary data. Binary responses are widely used in decision-making neuroscience, and standard reinforcement learning algorithms like Rescorla-Wagner are tailored to learn outcomes probability under such configuration. Here, by using a Hierarchical Gaussian Filter, we want to be able to learn from the evolution of higher-level volatility, and the parameters that are influencing the strength of the coupling between lower-level nodes with their parents (i.e. $\omega$, or the `evolution rate` of the 1rst and 2nd levels nodes). The binary version of the Hierarchical Gaussian Filter can take the following structures:
@@ -324,7 +322,7 @@ hgf_mcmc = HGF(
 ```
 
 ```{code-cell} ipython3
-hgf_mcmc.plot_trajectories(ci=None)
+hgf_mcmc.plot_trajectories()
 ```
 
 ```{code-cell} ipython3

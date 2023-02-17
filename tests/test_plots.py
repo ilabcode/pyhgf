@@ -12,6 +12,9 @@ from ghgf.model import HGF
 class Testsdt(TestCase):
     def test_plot_trajectories(self):
 
+        # Continuous
+        # ----------
+
         # Set up standard 3-level HGF for continuous inputs
         hgf = HGF(
             n_levels=3,
@@ -31,6 +34,9 @@ class Testsdt(TestCase):
 
         # Plot
         hgf.plot_trajectories()
+
+        # Binary
+        # ------
 
         # Read binary input
         timeserie = load_data("binary")
