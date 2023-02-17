@@ -6,14 +6,14 @@ from unittest import TestCase
 import jax.numpy as jnp
 from jax.lax import scan
 
-from ghgf import load_data
-from ghgf.continuous import (
+from pyhgf import load_data
+from pyhgf.continuous import (
     gaussian_surprise,
     loop_continuous_inputs,
     continuous_input_update,
     continuous_node_update,
 )
-from ghgf.structure import structure_validation
+from pyhgf.structure import structure_validation
 
 
 class Testcontinuous(TestCase):

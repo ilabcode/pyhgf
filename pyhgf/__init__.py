@@ -33,10 +33,10 @@ def load_data(dataset: str):
 
     """
     if dataset == "continuous":
-        data = loadtxt(pkg_resources.resource_filename("ghgf", "/data/usdchf.dat"))
+        data = loadtxt(pkg_resources.resource_filename("pyhgf", "/data/usdchf.dat"))
     elif dataset == "binary":
         data = loadtxt(
-            pkg_resources.resource_filename("ghgf", "/data/binary_input.dat")
+            pkg_resources.resource_filename("pyhgf", "/data/binary_input.dat")
         )
     else:
         raise ValueError("Invalid dataset argument. Should be 'continous' or 'binary'.")

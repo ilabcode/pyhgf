@@ -3,27 +3,27 @@ repos:
     rev: v5.10.1
     hooks:
     - id: isort
-      files: ^ghgf/
+      files: ^pyhgf/
 -   repo: https://github.com/ambv/black
     rev: 22.12.0
     hooks:
     - id: black
       language_version: python3
-      files: ^ghgf/
+      files: ^pyhgf/
 -   repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
     - id: flake8
-      files: ^ghgf/
+      files: ^pyhgf/
 -   repo: https://github.com/pycqa/pydocstyle
     rev: 6.3.0
     hooks:
     -   id: pydocstyle
         args: ['--ignore', 'D213,D100,D203,D104']
-        files: ^ghgf/
+        files: ^pyhgf/
 # -   repo: https://github.com/pre-commit/mirrors-mypy
 #     rev: 'v0.991'
 #     hooks:
 #     - id: mypy 
-#       files: ^ghgf/
+#       files: ^pyhgf/
 #       args: [--ignore-missing-imports]

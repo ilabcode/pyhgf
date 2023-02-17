@@ -5,8 +5,8 @@ from unittest import TestCase
 
 import jax.numpy as jnp
 
-from ghgf import load_data
-from ghgf.model import HGF
+from pyhgf import load_data
+from pyhgf.model import HGF
 
 
 class Testsdt(TestCase):

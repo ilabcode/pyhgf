@@ -1,2 +1,2 @@
-include ghgf/data/usdchf.dat
-include ghgf/data/binary_input.dat
+include pyhgf/data/usdchf.dat
+include pyhgf/data/binary_input.dat

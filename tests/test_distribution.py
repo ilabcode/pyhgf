@@ -4,16 +4,16 @@ import unittest
 from unittest import TestCase
 
 import arviz as az
-from ghgf.binary import binary_surprise
+from pyhgf.binary import binary_surprise
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
 from jax import grad, jit
 from jax.tree_util import Partial
 
-from ghgf import load_data
-from ghgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
-from ghgf.response import total_gaussian_surprise, total_binary_surprise
+from pyhgf import load_data
+from pyhgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
+from pyhgf.response import total_gaussian_surprise, total_binary_surprise
 
 
 class TestDistribution(TestCase):

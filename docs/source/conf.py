@@ -12,15 +12,15 @@
 
 import time
 
-import ghgf
+import pyhgf
 import sphinx_bootstrap_theme
 
 # -- Project information -----------------------------------------------------
 
-project = "ghgf"
+project = "pyhgf"
 copyright = u"2022-{}, Nicolas Legrand".format(time.strftime("%Y"))
 author = "Nicolas Legrand"
-release = ghgf.__version__
+release = pyhgf.__version__
 
 nb_execution_timeout = 300
 
@@ -91,7 +91,7 @@ html_theme_options = {
     "icon_links": [
         dict(
             name="GitHub",
-            url="https://github.com/ilabcode/ghgf",
+            url="https://github.com/ilabcode/pyhgf",
             icon="fa-brands fa-square-github",
         ),
         dict(
@@ -101,7 +101,7 @@ html_theme_options = {
         ),
         dict(
             name="Pypi",
-            url="https://pypi.org/project/ghgf/",
+            url="https://pypi.org/project/pyhgf/",
             icon="fa-solid fa-box",
         ),
     ],

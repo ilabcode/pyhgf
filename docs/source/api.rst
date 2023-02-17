@@ -1,6 +1,6 @@
 .. _api_ref:
 
-.. currentmodule:: ghgf
+.. currentmodule:: pyhgf
 
 
 .. contents:: Table of Contents
@@ -14,10 +14,10 @@ Binary
 
 Core functionnalities to update *binary* node structures.
 
-.. currentmodule:: ghgf.binary
+.. currentmodule:: pyhgf.binary
 
 .. autosummary::
-   :toctree: generated/ghgf.binary
+   :toctree: generated/pyhgf.binary
 
     binary_node_update
     binary_input_update
@@ -32,10 +32,10 @@ Continuous
 
 Core functionnalities to update *continuous* node structures.
 
-.. currentmodule:: ghgf.continuous
+.. currentmodule:: pyhgf.continuous
 
 .. autosummary::
-   :toctree: generated/ghgf.continuous
+   :toctree: generated/pyhgf.continuous
 
     continuous_node_update
     continuous_input_update
@@ -48,10 +48,10 @@ Distribution
 The Herarchical Gaussian Filter as a PyMC distribution. This distribution can be
 embedded in a PyMC model (pymc>=5.0.0).
 
-.. currentmodule:: ghgf.distribution
+.. currentmodule:: pyhgf.distribution
 
 .. autosummary::
-   :toctree: generated/ghgf.distribution
+   :toctree: generated/pyhgf.distribution
 
    hgf_logp
    HGFLogpGradOp
@@ -64,10 +64,10 @@ The main class used to create a standard Hierarchical Gaussian Filter for binary
 continuous inputs, with two or three levels. This class wraps the previous JAX modules
 and create a standard node structure for these models.
 
-.. currentmodule:: ghgf.model
+.. currentmodule:: pyhgf.model
 
 .. autosummary::
-   :toctree: generated/ghgf.model
+   :toctree: generated/pyhgf.model
 
    HGF
 
@@ -77,10 +77,10 @@ Plots
 Plotting functionnalities to visualize parameters trajectories and correlations after
 observing new data.
 
-.. currentmodule:: ghgf.plots
+.. currentmodule:: pyhgf.plots
 
 .. autosummary::
-   :toctree: generated/ghgf.plots
+   :toctree: generated/pyhgf.plots
 
    plot_trajectories
    plot_correlations
@@ -93,10 +93,10 @@ continuous inputs, with two or three levels. This implementation is functionnall
 independent from the JAX implementation and is not required to run the code. It is
 currently used for testing. Will be depreciated in v0.0.2.
 
-.. currentmodule:: ghgf.python
+.. currentmodule:: pyhgf.python
 
 .. autosummary::
-   :toctree: generated/ghgf.python
+   :toctree: generated/pyhgf.python
 
    Model
    StandardHGF
@@ -120,10 +120,10 @@ Response
 A collection of responses functions. A response function is simply a callable taking at
 least the HGF instance as input after observation and returning surprise.
 
-.. currentmodule:: ghgf.response
+.. currentmodule:: pyhgf.response
 
 .. autosummary::
-   :toctree: generated/ghgf.response
+   :toctree: generated/pyhgf.response
 
    total_gaussian_surprise
    total_binary_surprise
@@ -133,10 +133,10 @@ Structure
 
 Utilities for testing and manipulating node structures.
 
-.. currentmodule:: ghgf.structure
+.. currentmodule:: pyhgf.structure
 
 .. autosummary::
-   :toctree: generated/ghgf.structure
+   :toctree: generated/pyhgf.structure
 
    structure_as_dict
    structure_validation

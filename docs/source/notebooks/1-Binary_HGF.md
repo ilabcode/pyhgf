@@ -17,8 +17,8 @@ kernelspec:
 
 ```{code-cell} ipython3
 import jax.numpy as jnp
-from ghgf.model import HGF
-from ghgf import load_data
+from pyhgf.model import HGF
+from pyhgf import load_data
 import seaborn as sns
 import matplotlib.pyplot as plt
 ```
@@ -50,7 +50,7 @@ timeserie = load_data("binary")
 The node structure corresponding to the 2-levels and 3-levels Hierarchical Gaussian Filters are automatically generated from `model_type` and `n_levels` using the nodes parameters provided in the dictionaries. Here we are not performing any optimization so thoses parameters are fixed to reasonnable values.
 
 ```{note}
-The response function used is the binary surprise at each time points(:py:func:``ghgf.response.binary_surprise`). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next binary observation. See also [this tutorial](custom_response_function) to see how to create custom response function.
+The response function used is the binary surprise at each time points(:py:func:``pyhgf.response.binary_surprise`). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next binary observation. See also [this tutorial](custom_response_function) to see how to create custom response function.
 ```
 
 ```{code-cell} ipython3
@@ -97,7 +97,7 @@ two_levels_hgf.surprise()
 ```
 
 ```{note}
-The surprise of a model under the observation of new data directly depends on the response function that was used. New response functions can be added and provided using different `response_function_parameters` and `response_function` in the py:func:`ghgf.model.HGF.surprise` method. The surprise is then defined as the negative log probability of new observations:
+The surprise of a model under the observation of new data directly depends on the response function that was used. New response functions can be added and provided using different `response_function_parameters` and `response_function` in the py:func:`pyhgf.model.HGF.surprise` method. The surprise is then defined as the negative log probability of new observations:
 
 $$surprise = -log(p)$$
 ```
@@ -106,7 +106,7 @@ $$surprise = -log(p)$$
 
 ### The 3-levels binary Hierarchical Gaussian Filter
 #### Create the model
-Here, we create a new :py:`ghgf.model.HGF` instance, setting the number of levels to `3`. Note that we are extending the size of the dictionaries accordingly.
+Here, we create a new :py:`pyhgf.model.HGF` instance, setting the number of levels to `3`. Note that we are extending the size of the dictionaries accordingly.
 
 ```{code-cell} ipython3
 three_levels_hgf = HGF(
@@ -138,13 +138,13 @@ three_levels_hgf.plot_trajectories()
 ## Learning parameters with MCMC sampling
 In the previous section, we assumed we knew the parameters of the HGF models that were used to filter the input data. This can give us information on how an agent using these values would behave when presented with these inputs. We can also adopt a different perspective and consider that we want to learn these parameters from the data. Here, we are going to set some of the parameters free and use Hamiltonian Monte Carlo methods (NUTS) to sample their probability density.
 
-Because the HGF classes are built on the top of [JAX](https://github.com/google/jax), they are natively differentiable and compatible with optimisation libraries or can be embedded as regular distributions in the context of a Bayesian network. Here, we are using this approach, and we are going to use [PyMC](https://www.pymc.io/welcome.html) to perform this step. PyMC can use any log probability function (here the negative surprise of the model) as a building block for a new distribution by wrapping it in its underlying tensor library [Aesara](https://aesara.readthedocs.io/en/latest/), now forked as [PyTensor](https://pytensor.readthedocs.io/en/latest/). This PyMC-compatible distribution can be found in the :py:`ghgf.distribution` sub-module.
+Because the HGF classes are built on the top of [JAX](https://github.com/google/jax), they are natively differentiable and compatible with optimisation libraries or can be embedded as regular distributions in the context of a Bayesian network. Here, we are using this approach, and we are going to use [PyMC](https://www.pymc.io/welcome.html) to perform this step. PyMC can use any log probability function (here the negative surprise of the model) as a building block for a new distribution by wrapping it in its underlying tensor library [Aesara](https://aesara.readthedocs.io/en/latest/), now forked as [PyTensor](https://pytensor.readthedocs.io/en/latest/). This PyMC-compatible distribution can be found in the :py:`pyhgf.distribution` sub-module.
 
 ```{code-cell} ipython3
 import pymc as pm
 import arviz as az
-from ghgf.distribution import HGFDistribution
-from ghgf.response import total_binary_surprise
+from pyhgf.distribution import HGFDistribution
+from pyhgf.response import total_binary_surprise
 ```
 
 ### 2-levels model
@@ -333,7 +333,7 @@ hgf_mcmc.surprise()
 
 ```{code-cell} ipython3
 %load_ext watermark
-%watermark -n -u -v -iv -w -p ghgf,jax,jaxlib
+%watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```
 
 ```{code-cell} ipython3

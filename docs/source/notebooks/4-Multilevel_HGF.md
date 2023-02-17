@@ -18,9 +18,9 @@ kernelspec:
 ```{code-cell} ipython3
 from numpy import loadtxt
 import numpy as np
-from ghgf.distribution import hgf_logp, HGFDistribution
-from ghgf import load_data
-from ghgf.response import total_binary_surprise
+from pyhgf.distribution import hgf_logp, HGFDistribution
+from pyhgf import load_data
+from pyhgf.response import total_binary_surprise
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
@@ -37,7 +37,7 @@ Luckily, we already have all the components in place to do that. We have already
 +++
 
 ```{hint} Using automatic broadcasting
-To estimate group-level parameters, we will have to fit multiple models at the same time, either on different input data, or on the same data with different parameters, or on different datasets with different parameters. This steps is handled natively both by the [log probability function](ghgf.distribution.hgf_logp) and the [HGFDistribution class](ghgf.distribution.HGFDistribution) using a pseudo [broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) approach. When a list of *n* input time series is provided, the function will automatically apply *n* models using the provided parameters. If for some parameters an array of length *n* is provided, each model will use the n-th value as parameter. Here, we are going to rely on this feature to compute the log probability of *n* model, using *n* time series as input and *n* different parameters to test.
+To estimate group-level parameters, we will have to fit multiple models at the same time, either on different input data, or on the same data with different parameters, or on different datasets with different parameters. This steps is handled natively both by the [log probability function](pyhgf.distribution.hgf_logp) and the [HGFDistribution class](pyhgf.distribution.HGFDistribution) using a pseudo [broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) approach. When a list of *n* input time series is provided, the function will automatically apply *n* models using the provided parameters. If for some parameters an array of length *n* is provided, each model will use the n-th value as parameter. Here, we are going to rely on this feature to compute the log probability of *n* model, using *n* time series as input and *n* different parameters to test.
 ```
 
 +++
