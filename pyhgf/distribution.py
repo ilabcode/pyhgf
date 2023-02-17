@@ -9,7 +9,7 @@ from jax import grad, jit
 from jax.tree_util import Partial
 from pytensor.graph import Apply, Op
 
-from ghgf.model import HGF
+from pyhgf.model import HGF
 
 
 def hgf_logp(
@@ -368,9 +368,9 @@ class HGFDistribution(Op):
     >>> import numpy as np
     >>> import pymc as pm
     >>> from math import log
-    >>> from ghgf import load_data
-    >>> from ghgf.distribution import HGFDistribution
-    >>> from ghgf.response import total_gaussian_surprise
+    >>> from pyhgf import load_data
+    >>> from pyhgf.distribution import HGFDistribution
+    >>> from pyhgf.response import total_gaussian_surprise
 
     Create the data (value and time vectors)
     >>> timeserie = load_data("continuous")

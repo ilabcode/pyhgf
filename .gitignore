@@ -9,7 +9,7 @@ docs/source/auto_examples/*
 htmlcov/
 .coverage
 .coverage.xml
-ghgf.egg-info
+pyhgf.egg-info
 build
 coverage.xm
 .mypy_cache

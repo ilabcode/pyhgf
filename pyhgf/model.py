@@ -9,12 +9,12 @@ import pandas as pd
 from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
 
-from ghgf.binary import loop_binary_inputs
-from ghgf.continuous import gaussian_surprise, loop_continuous_inputs
-from ghgf.plots import plot_correlations, plot_trajectories
-from ghgf.response import total_binary_surprise, total_gaussian_surprise
-from ghgf.structure import structure_as_dict
-from ghgf.typing import ParametersType
+from pyhgf.binary import loop_binary_inputs
+from pyhgf.continuous import gaussian_surprise, loop_continuous_inputs
+from pyhgf.plots import plot_correlations, plot_trajectories
+from pyhgf.response import total_binary_surprise, total_gaussian_surprise
+from pyhgf.structure import structure_as_dict
+from pyhgf.typing import ParametersType
 
 
 class HGF(object):
@@ -41,7 +41,7 @@ class HGF(object):
         Time, values inputs and overall surprise of the model.
     structure_dict : dict
         The node structure as a dictionary,
-        retrieved using :py:fun:`ghgf.structure.structure_as_dict`
+        retrieved using :py:fun:`pyhgf.structure.structure_as_dict`
     verbose : bool
         Verbosity level.
 

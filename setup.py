@@ -34,7 +34,7 @@ def get_version(rel_path):
 
 
 DESCRIPTION = "The generalized, nodalized HGF for predictive coding."
-DISTNAME = "ghgf"
+DISTNAME = "pyhgf"
 AUTHOR = "ILAB"
 MAINTAINER = "Nicolas Legrand"
 MAINTAINER_EMAIL = "nicolas.legrand@cas.au.dk"
@@ -52,9 +52,9 @@ if __name__ == "__main__":
         long_description=open("README.md").read(),
         long_description_content_type="text/x-rst",
         license="GPL-3.0",
-        version=get_version("ghgf/__init__.py"),
+        version=get_version("pyhgf/__init__.py"),
         install_requires=get_requirements(),
         include_package_data=True,
-        package_data={"": ["ghgf/ghgf/data/*.dat"]},
+        package_data={"": ["pyhgf/pyhgf/data/*.dat"]},
         packages=find_packages(),
     )

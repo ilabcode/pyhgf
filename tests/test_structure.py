@@ -3,9 +3,9 @@
 import unittest
 from unittest import TestCase
 
-from ghgf import load_data
-from ghgf.model import HGF
-from ghgf.structure import structure_as_dict, structure_validation
+from pyhgf import load_data
+from pyhgf.model import HGF
+from pyhgf.structure import structure_as_dict, structure_validation
 
 class TestStructure(TestCase):
 

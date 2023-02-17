@@ -10,7 +10,7 @@ import seaborn as sns
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
-    from ghgf.model import HGF
+    from pyhgf.model import HGF
 
 
 def plot_trajectories(
@@ -27,7 +27,7 @@ def plot_trajectories(
 
     Parameters
     ----------
-    hgf : class:`ghgf.model.HGF`
+    hgf : class:`pyhgf.model.HGF`
         Instance of the HGF model.
     ci : bool
         Show the uncertainty aroud the values estimates (standard deviation).
@@ -51,7 +51,7 @@ def plot_trajectories(
     -----
     The node structure can be a standard continuous or binary HGF, of a custom
     structure. The nodes are traversed and plotted from bottom to top using
-    :py:func:`ghgf.structure.structure_as_dict`.
+    :py:func:`pyhgf.structure.structure_as_dict`.
 
     Examples
     --------
@@ -59,8 +59,8 @@ def plot_trajectories(
 
     .. plot::
 
-        from ghgf import load_data
-        from ghgf.model import HGF
+        from pyhgf import load_data
+        from pyhgf.model import HGF
 
         # Set up standard 3-level HGF for continuous inputs
         hgf = HGF(
@@ -86,8 +86,8 @@ def plot_trajectories(
 
     .. plot::
 
-        from ghgf import load_data
-        from ghgf.model import HGF
+        from pyhgf import load_data
+        from pyhgf.model import HGF
 
         # Read binary input
         timeserie = load_data("binary")
@@ -235,7 +235,7 @@ def plot_correlations(hgf: "HGF") -> Axes:
 
     Parameters
     ----------
-    hgf : :py:class`ghgf.model.HGF`
+    hgf : :py:class`pyhgf.model.HGF`
         Instance of the HGF model.
 
     Returns

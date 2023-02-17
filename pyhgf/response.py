@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import jax.numpy as jnp
 
 if TYPE_CHECKING:
-    from ghgf.model import HGF
+    from pyhgf.model import HGF
 
 
 def total_gaussian_surprise(hgf: "HGF", response_function_parameters):
@@ -18,7 +18,7 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters):
 
     Parameters
     ----------
-    hgf : :py:class`ghgf.model.HGF`
+    hgf : :py:class`pyhgf.model.HGF`
         Instance of the HGF model.
     response_function_parameters : None
         No additional parameters are required.
@@ -55,7 +55,7 @@ def total_binary_surprise(hgf: "HGF", response_function_parameters):
 
     Parameters
     ----------
-    hgf : :py:class`ghgf.model.HGF`
+    hgf : :py:class`pyhgf.model.HGF`
         Instance of the HGF model.
     response_function_parameters : None
         No additional parameters are required.

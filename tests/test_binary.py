@@ -6,9 +6,9 @@ from unittest import TestCase
 import jax.numpy as jnp
 from jax.lax import scan
 
-from ghgf import load_data
-from ghgf.structure import structure_validation
-from ghgf.binary import (
+from pyhgf import load_data
+from pyhgf.structure import structure_validation
+from pyhgf.binary import (
     loop_binary_inputs,
     binary_input_update,
     binary_surprise,

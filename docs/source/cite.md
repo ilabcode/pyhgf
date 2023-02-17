@@ -1,6 +1,6 @@
 # How to cite?
 
-If you are using the *ghgf* package for your research, we ask you to cite the following paper in the final publication:
+If you are using the *pyhgf* package for your research, we ask you to cite the following paper in the final publication:
 
 * Mathys, C. (2011). A Bayesian foundation for individual learning under uncertainty. Frontiers in Human Neuroscience, 5. https://doi.org/10.3389/fnhum.2011.00039
 * Mathys, C. D., Lomakina, E. I., Daunizeau, J., Iglesias, S., Brodersen, K. H., Friston, K. J., & Stephan, K. E. (2014). Uncertainty in perception and the hierarchical Gaussian filter. Frontiers in Human Neuroscience, 8. https://doi.org/10.3389/fnhum.2014.00825

@@ -7,8 +7,8 @@ from jax import jit
 from jax.interpreters.xla import DeviceArray
 from jax.lax import cond
 
-from ghgf.continuous import continuous_node_update
-from ghgf.typing import NodeType, ParametersType, ParentsType
+from pyhgf.continuous import continuous_node_update
+from pyhgf.typing import NodeType, ParametersType, ParentsType
 
 
 def binary_node_update(
@@ -181,7 +181,7 @@ def binary_input_update(
     """Update the input node structure given one observation.
 
     This function is the entry level of the model fitting. It update the partents of
-    the input node and then call py:func:`ghgf.binary.binary_node_update` to update the
+    the input node and then call py:func:`pyhgf.binary.binary_node_update` to update the
     rest of the node structure.
 
     Parameters

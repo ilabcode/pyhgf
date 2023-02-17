@@ -25,9 +25,9 @@ from systole.plots import plot_raw
 ```{code-cell} ipython3
 from numpy import loadtxt
 import numpy as np
-from ghgf.distribution import hgf_logp, HGFDistribution
-from ghgf import load_data
-from ghgf.model import HGF
+from pyhgf.distribution import hgf_logp, HGFDistribution
+from pyhgf import load_data
+from pyhgf.model import HGF
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm

@@ -1,14 +1,14 @@
 ![png](./images/logo.svg)
 
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/ilabcode/ghgf/blob/master/LICENSE) [![codecov](https://codecov.io/gh/ilabcode/ghgf/branch/master/graph/badge.svg)](https://codecov.io/gh/ilabcode/ghgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/ilabcode/pyhgf/blob/master/LICENSE) [![codecov](https://codecov.io/gh/ilabcode/pyhgf/branch/master/graph/badge.svg)](https://codecov.io/gh/ilabcode/pyhgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
 # The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
-ghgf is a Python library for generalized and nodalized Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library consists in a set of function to create graphs of interconnected nodes and recursively update them from precision-weighted prediction errors under new observations. The codebase interface natively with other libraries in the JAX ecosystem or  probabilistic programming tools for Bayesian inference.
+pyhgf is a Python library for generalized and nodalized Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library consists in a set of function to create graphs of interconnected nodes and recursively update them from precision-weighted prediction errors under new observations. The codebase interface natively with other libraries in the JAX ecosystem or  probabilistic programming tools for Bayesian inference.
 
-* 🎓 [What is a Hierarchical Gaussian Filter?](https://ilabcode.github.io/ghgf/theory.html)  
-* 📖 [API Documentation](https://ilabcode.github.io/ghgf/)  
-* ✏️ [Tutorials and examples](https://ilabcode.github.io/ghgf/tutorials.html)  
+* 🎓 [What is a Hierarchical Gaussian Filter?](https://ilabcode.github.io/pyhgf/theory.html)  
+* 📖 [API Documentation](https://ilabcode.github.io/pyhgf/)  
+* ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/tutorials.html)  
 
 ## Getting started
 
@@ -16,11 +16,11 @@ ghgf is a Python library for generalized and nodalized Hierarchical Gaussian Fil
 
 The last official release can be download from PIP:
 
-`pip install ghgf`
+`pip install pyhgf`
 
 The current version under development can be installed from the master branch of the GitHub folder:
 
-`pip install “git+https://github.com/ilabcode/ghgf.git”`
+`pip install “git+https://github.com/ilabcode/pyhgf.git”`
 
 ### How does it works?
 
@@ -40,15 +40,15 @@ The Hierarchical Gaussian Filter for binary and continuous inputs as it was desc
 
 ![Figure2](./docs/source/images/hgf.png)
 
-The ghgf package includes pre-implemented standard HGF models that can be used together with other neural network libraries of Bayesian inference tools. It is also possible for the user to build custom network structures that would match specific needs.
+The pyhgf package includes pre-implemented standard HGF models that can be used together with other neural network libraries of Bayesian inference tools. It is also possible for the user to build custom network structures that would match specific needs.
 
 ### Model fitting
 
 Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcome from {cite:p}`iglesias:2013`.
 
 ```python
-from ghgf.model import HGF
-from ghgf import load_data
+from pyhgf.model import HGF
+from pyhgf import load_data
 
 # Load time series example data
 timeserie = load_data("binary")

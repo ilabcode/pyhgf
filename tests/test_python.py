@@ -6,8 +6,8 @@ from unittest import TestCase
 import numpy as np
 import pytest
 
-from ghgf import load_data
-from ghgf.python import (
+from pyhgf import load_data
+from pyhgf.python import (
     BinaryInputNode,
     BinaryNode,
     HgfUpdateError,

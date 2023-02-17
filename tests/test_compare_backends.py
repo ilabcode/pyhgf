@@ -6,9 +6,9 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ghgf import load_data
-from ghgf.model import HGF
-from ghgf.python import StandardHGF, StandardBinaryHGF
+from pyhgf import load_data
+from pyhgf.model import HGF
+from pyhgf.python import StandardHGF, StandardBinaryHGF
 
 
 class TestCompareBackends(TestCase):
