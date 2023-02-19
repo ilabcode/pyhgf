@@ -14,3 +14,4 @@ build
 coverage.xm
 .mypy_cache
 .pytest_cache
+dist/*
