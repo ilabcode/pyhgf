@@ -27,7 +27,6 @@ from math import log
 In this notebook, we demonstrate how to use the standard 2-levels and 3-level Hierarchical Gaussian Filters (HGF) for continuous inputs. This class of models differs from the previous example asw the input node can now accepts continuous input data. Fitting continuous data allows to use the HGF with any time series, which makes it especially suitable for the modelling of physiological signals (see also the case study on modelling heart rate variability using the Hierarchical Gaussian Filter). The continuous version of the Hierarchical Gaussian Filter can take the following structures:
 
 ```{figure} ../images/continuous.png
-
 ---
 name: continuous-hgf
 ---

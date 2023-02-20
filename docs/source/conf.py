@@ -68,8 +68,6 @@ plot_html_show_source_link = False
 
 source_suffix = ['.rst', '.md']
 
-numpydoc_validation_checks = {"all"}
-
 # The master toctree document.
 master_doc = "index"
 
