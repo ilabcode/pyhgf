@@ -4,7 +4,7 @@
 
 # The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
-pyhgf is a Python library for generalized and nodalized Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library consists in a set of function to create graphs of interconnected nodes and recursively update them from precision-weighted prediction errors under new observations. The codebase interface natively with other libraries in the JAX ecosystem or  probabilistic programming tools for Bayesian inference.
+pyhgf is a Python library for generalized and nodalized Hierarchical Gaussian Filters for predictive coding {cite:p}`2011:mathys,2014:mathys` written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library consists in a set of function to create graphs of interconnected nodes and recursively update them from precision-weighted prediction errors under new observations. The codebase interface natively with other libraries in the JAX ecosystem or  probabilistic programming tools for Bayesian inference.
 
 * 🎓 [What is a Hierarchical Gaussian Filter?](https://ilabcode.github.io/pyhgf/theory.html)  
 * 📖 [API Documentation](https://ilabcode.github.io/pyhgf/)  
@@ -36,9 +36,9 @@ Value parent and volatility parent are nodes themself and are built from the sam
 
 ### The Hierarchical Gaussian Filter
 
-The Hierarchical Gaussian Filter for binary and continuous inputs as it was described in {cite:p}`mathys:2014,mathys:2011`, and later implemented in the Matlab Tapas toolbox {cite:p}`frassle:2021`, can be seen as a special case of this node structure such as:
+The Hierarchical Gaussian Filter for binary and continuous inputs as it was described in {cite:p}`2014:mathys,2011:mathys`, and later implemented in the Matlab Tapas toolbox {cite:p}`frassle:2021`, can be seen as a special case of this node structure such as:
 
-![Figure2](./docs/source/images/hgf.png)
+![Figure2](./images/hgf.png)
 
 The pyhgf package includes pre-implemented standard HGF models that can be used together with other neural network libraries of Bayesian inference tools. It is also possible for the user to build custom network structures that would match specific needs.
 
