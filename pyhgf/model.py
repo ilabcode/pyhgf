@@ -41,7 +41,7 @@ class HGF(object):
         Time, values inputs and overall surprise of the model.
     structure_dict : dict
         The node structure as a dictionary,
-        retrieved using :py:fun:`pyhgf.structure.structure_as_dict`
+        retrieved using :py:func:`pyhgf.structure.structure_as_dict`
     verbose : bool
         Verbosity level.
 

@@ -88,6 +88,7 @@ def plot_trajectories(
 
         from pyhgf import load_data
         from pyhgf.model import HGF
+        import jax.numpy as jnp
 
         # Read binary input
         timeserie = load_data("binary")
