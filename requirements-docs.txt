@@ -10,3 +10,4 @@ numpydoc>=1.4.0
 myst-parser
 graphviz
 watermark
+systole
