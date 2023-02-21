@@ -247,7 +247,7 @@ def continuous_input_update(
     """Update the input node structure.
 
     This function is the entry level of the model fitting. It update the partents of
-    the input node and then call py:func:`pyhgf.jax.continuous_node_update` recursively
+    the input node and then call :py:func:`pyhgf.jax.continuous_node_update` recursively
     to update the rest of the node structure.
 
     Parameters

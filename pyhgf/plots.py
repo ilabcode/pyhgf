@@ -22,12 +22,12 @@ def plot_trajectories(
 ) -> Axes:
     r"""Plot the trajectories of the nodes' sufficient statistics and surprise.
 
-    This function will plot :math:`\\mu`, :math:`\\pi` (converted into standard
+    This function will plot :math:`\hat{mu}`, :math:`\¨hat{pi}` (converted into standard
     deviation) and the surprise at each level of the node structure.
 
     Parameters
     ----------
-    hgf : class:`pyhgf.model.HGF`
+    hgf : :py:class:`pyhgf.model.HGF`
         Instance of the HGF model.
     ci : bool
         Show the uncertainty aroud the values estimates (standard deviation).
@@ -236,7 +236,7 @@ def plot_correlations(hgf: "HGF") -> Axes:
 
     Parameters
     ----------
-    hgf : :py:class`pyhgf.model.HGF`
+    hgf : :py:class:`pyhgf.model.HGF`
         Instance of the HGF model.
 
     Returns

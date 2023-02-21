@@ -38,57 +38,58 @@ def hgf_logp(
     r"""Log probability from HGF model(s) given input data and parameter(s).
 
     This function support broadcasting along the first axis:
-    * If the input data contains many time series, the function will automatically
+
+    - If the input data contains many time series, the function will automatically
     create the corresponding number of HGF models and fit them separately.
-    * If a single input data is provided but some parameters have array-like inputs, the
+    - If a single input data is provided but some parameters have array-like inputs, the
     number of HGF models will match the length of the arrays, using the value *i*
-    for the *i*th model. When floats are provided for some parameters, the same value
+    for the *i* th model. When floats are provided for some parameters, the same value
     will be used for all HGF models.
-    * If multiple input data are provided with array-like inputs for some parameter, the
+    - If multiple input data are provided with array-like inputs for some parameter, the
     function will create and fit the models separately using the value *i* for the
-    *i*th model.
+    *i* th model.
 
     Parameters
     ----------
     omega_1 : float
-        The :math:`\\omega` parameter, or *evolution rate*, at the first level of the
+        The :math:`\omega` parameter, or *evolution rate*, at the first level of the
         HGF. This parameter represents the tonic part of the variance (the part that is
         not inherited from parents nodes).
     omega_2 : float
-        The :math:`\\omega` parameter, or *evolution rate*, at the second level of the
+        The :math:`\omega` parameter, or *evolution rate*, at the second level of the
         HGF. This parameter represents the tonic part of the variance (the part that is
         not inherited from parents nodes).
     omega_3 : float
-        The :math:`\\omega` parameter, or *evolution rate*, at the third level of the
+        The :math:`\omega` parameter, or *evolution rate*, at the third level of the
         HGF. This parameter represents the tonic part of the variance (the part that is
         not inherited from parents nodes). The value of this parameter will be ignored
         when using a 2-levels HGF (`n_levels=2`).
     omega_input : float
         Represent the noise associated with the input observation.
     rho_1 : float
-        The :math:`\\rho` parameter at the first level of the HGF. This parameter
+        The :math:`\rho` parameter at the first level of the HGF. This parameter
         represents the drift of the random walk.
     rho_2 : float
-        The :math:`\\rho` parameter at the second level of the HGF. This parameter
+        The :math:`\rho` parameter at the second level of the HGF. This parameter
         represents the drift of the random walk.
     rho_3 : float
-        The :math:`\\rho` parameter at the first level of the HGF. This parameter
+        The :math:`\rho` parameter at the first level of the HGF. This parameter
         represents the drift of the random walk. The value of this parameter will be
         ignored when using a 2-levels HGF (`n_levels=2`).
     pi_1 : float
-        The :math:`\\pi` parameter, or *precision*, at the first level of the HGF.
+        The :math:`\pi` parameter, or *precision*, at the first level of the HGF.
     pi_2 : float
-        The :math:`\\pi` parameter, or *precision*, at the second level of the HGF.
+        The :math:`\pi` parameter, or *precision*, at the second level of the HGF.
     pi_3 : float
-        The :math:`\\pi` parameter, or *precision*, at the third level of the HGF. The
+        The :math:`\pi` parameter, or *precision*, at the third level of the HGF. The
         value of this parameter will be ignored when using a 2-levels HGF
         (`n_levels=2`).
     mu_1 : float
-        The :math:`\\mu` parameter, or *mean*, at the first level of the HGF.
+        The :math:`\mu` parameter, or *mean*, at the first level of the HGF.
     mu_2 : float
-        The :math:`\\mu` parameter, or *mean*, at the second level of the HGF.
+        The :math:`\mu` parameter, or *mean*, at the second level of the HGF.
     mu_3 : float
-        The :math:`\\mu` parameter, or *mean*, at the third level of the HGF. The value
+        The :math:`\mu` parameter, or *mean*, at the third level of the HGF. The value
         of this parameter will be ignored when using a 2-levels HGF (`n_levels=2`).
     kappa_1 : float
         The value of the :math:`\\kappa` parameter at the first level of the HGF. Kappa
@@ -112,7 +113,7 @@ def hgf_logp(
     n_levels : int
         The number of hierarchies in the perceptual model (can be `2` or `3`). If
         `None`, the nodes hierarchy is not created and might be provided afterward
-        using `add_nodes()`.
+        using :py:meth:`pyhgf.model.HGF.add_nodes`.
     response_function_parameters : tuple
         Additional parameters to the response function.
     time : list | optional
@@ -373,10 +374,12 @@ class HGFDistribution(Op):
     >>> from pyhgf.response import total_gaussian_surprise
 
     Create the data (value and time vectors)
+
     >>> timeserie = load_data("continuous")
 
     We create the PyMC distribution here, specifying the type of model and response
     function we want to use (i.e simple gaussian surprise).
+
     >>> hgf_logp_op = HGFDistribution(
     >>>     n_levels=2,
     >>>     input_data=timeserie,
@@ -407,10 +410,12 @@ class HGFDistribution(Op):
     >>>     )
 
     Sample the model - Using 4 chain, 4 cores and 1000 warmups.
+
     >>> with model:
     >>>     hgf_samples = pm.sample(chains=4, cores=4, tune=1000)
 
     Print a summary of the results using Arviz
+
     >>> az.summary(hgf_samples, var_names="ω_2")
     ===  =======  =====  =======  =======  =====  =====  ====  ====  =
     ω_2  -12.846  1.305  -15.466  -10.675  0.038  0.027  1254  1726  1

@@ -181,8 +181,8 @@ def binary_input_update(
     """Update the input node structure given one observation.
 
     This function is the entry level of the model fitting. It update the partents of
-    the input node and then call py:func:`pyhgf.binary.binary_node_update` to update the
-    rest of the node structure.
+    the input node and then call :py:func:`pyhgf.binary.binary_node_update` to update
+    the rest of the node structure.
 
     Parameters
     ----------
