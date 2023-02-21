@@ -247,7 +247,7 @@ def continuous_input_update(
     """Update the input node structure.
 
     This function is the entry level of the model fitting. It update the partents of
-    the input node and then call py:func:`pyhgf.jax.continuous_node_update` recursively
+    the input node and then call :py:func:`pyhgf.jax.continuous_node_update` recursively
     to update the rest of the node structure.
 
     Parameters
@@ -469,7 +469,39 @@ def continuous_input_update(
 def gaussian_surprise(
     x: jnp.DeviceArray, muhat: jnp.DeviceArray, pihat: jnp.DeviceArray
 ) -> jnp.DeviceArray:
-    """Surprise at an outcome under a Gaussian prediction."""
+    r"""Surprise at an outcome under a Gaussian prediction.
+
+    The surprise ellicited by an observation :math:`x` under a Gaussian distribution
+    with expected mean :math:`\hat{\mu}` and expected precision :math:`\hat{\pi}` is
+    given by:
+
+    .. math::
+
+       \frac{1}{2} \log(2 \pi) - \log(\hat{\pi}) + \hat{\pi}\sqrt{x - \hat{\mu}}
+
+    where :math:`\pi` is the mathematical constant.
+
+    Parameters
+    ----------
+    x : jnp.DeviceArray
+        The outcome.
+    muhat : jnp.DeviceArray
+        The expected mean of the Gaussian distribution.
+    pihat : jnp.DeviceArray
+        The expected precision of the Gaussian distribution.
+
+    Returns
+    -------
+    surprise : jnp.DeviceArray
+        The Gaussian surprise.
+
+    Examples
+    --------
+    >>> from pyhgf.continuous import gaussian_surprise
+    >>> gaussian_surprise(x=2.0, muhat=0.0, pihat=1.0)
+    `Array(2.9189386, dtype=float32, weak_type=True)`
+
+    """
     return jnp.array(0.5) * (
         jnp.log(jnp.array(2.0) * jnp.pi)
         - jnp.log(pihat)

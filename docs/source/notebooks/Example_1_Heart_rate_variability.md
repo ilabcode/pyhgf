@@ -16,26 +16,24 @@ kernelspec:
 # Example 1: physiological volatility
 
 ```{code-cell} ipython3
-from systole.detection import ecg_peaks
-from systole.utils import input_conversion
-from systole import import_dataset1
-from systole.plots import plot_raw
+%%capture
+import sys
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf systole
 ```
 
 ```{code-cell} ipython3
-from numpy import loadtxt
-import numpy as np
-from pyhgf.distribution import hgf_logp, HGFDistribution
-from pyhgf import load_data
+from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
-import jax.numpy as jnp
 import numpy as np
 import pymc as pm
 import arviz as az
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-np.random.seed(123)
+from systole.detection import ecg_peaks
+from systole.utils import input_conversion
+from systole import import_dataset1
+from systole.plots import plot_raw
 ```
 
 In this examples, we will use a three-levels Hierarchical Gaussian Filter to predict the dynamics of heart rate and respiration of a participant that is presented with images of different emotional valence. We will then extract the surprise trajectories of each predictive node.
@@ -96,11 +94,11 @@ with pm.Model() as three_level_hgf:
             mu_1=rr[0],
             mu_2=0.0,
             kappa_1=1.0,
-            omega_3=jnp.nan,
-            rho_3=jnp.nan,
-            pi_3=jnp.nan,
-            mu_3=jnp.nan,
-            kappa_2=jnp.nan
+            omega_3=np.nan,
+            rho_3=np.nan,
+            pi_3=np.nan,
+            mu_3=np.nan,
+            kappa_2=np.nan
         ),
     )
 ```
@@ -142,6 +140,13 @@ hgf = HGF(
 
 ```{code-cell} ipython3
 hgf.plot_trajectories()
+```
+
+# System configuration
+
+```{code-cell} ipython3
+%load_ext watermark
+%watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```
 
 ```{code-cell} ipython3

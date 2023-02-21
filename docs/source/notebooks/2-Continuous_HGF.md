@@ -16,6 +16,15 @@ kernelspec:
 # The continuous Hierarchical Gaussian Filter
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
+
+%%capture
+import sys
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
+```
+
+```{code-cell} ipython3
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from pyhgf import load_data
@@ -24,10 +33,9 @@ import seaborn as sns
 from math import log
 ```
 
-In this notebook, we demonstrate how to use the standard 2-levels and 3-level Hierarchical Gaussian Filters (HGF) for continuous inputs. This class of models differs from the previous example asw the input node can now accepts continuous input data. Fitting continuous data allows to use the HGF with any time series, which makes it especially suitable for the modelling of physiological signals (see also the case study on modelling heart rate variability using the Hierarchical Gaussian Filter).  The continuous version of the Hierarchical Gaussian Filter can take the following structures:
+In this notebook, we demonstrate how to use the standard 2-levels and 3-level Hierarchical Gaussian Filters (HGF) for continuous inputs. This class of models differs from the previous example asw the input node can now accepts continuous input data. Fitting continuous data allows to use the HGF with any time series, which makes it especially suitable for the modelling of physiological signals (see also the case study on modelling heart rate variability using the Hierarchical Gaussian Filter). The continuous version of the Hierarchical Gaussian Filter can take the following structures:
 
-```{figure} ../images/continuous.svg
-
+```{figure} ../images/continuous.png
 ---
 name: continuous-hgf
 ---
@@ -186,6 +194,7 @@ Because the HGF classes are built on the top of [JAX](https://github.com/google/
 import pymc as pm
 import arviz as az
 from pyhgf.distribution import HGFDistribution
+from pyhgf.response import total_gaussian_surprise
 ```
 
 ### 2-levels model

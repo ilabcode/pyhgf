@@ -181,8 +181,8 @@ def binary_input_update(
     """Update the input node structure given one observation.
 
     This function is the entry level of the model fitting. It update the partents of
-    the input node and then call py:func:`pyhgf.binary.binary_node_update` to update the
-    rest of the node structure.
+    the input node and then call :py:func:`pyhgf.binary.binary_node_update` to update
+    the rest of the node structure.
 
     Parameters
     ----------
@@ -326,8 +326,18 @@ def sgm(
     return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound
 
 
-def binary_surprise(x: DeviceArray, muhat: DeviceArray):
-    """Surprise at a binary outcome.
+def binary_surprise(x: DeviceArray, muhat: DeviceArray) -> jnp.DeviceArray:
+    r"""Surprise at a binary outcome.
+
+    The surprise ellicited by a binary observation :math:`x` mean :math:`\hat{\mu}`
+    and expected probability :math:`\hat{\pi}` is given by:
+
+    .. math::
+
+       \begin{cases}
+            -\log(\hat{\mu}),& \text{if } x=1\\
+            -\log(1 - \hat{\mu}), & \text{if } x=0\\
+        \end{cases}
 
     Parameters
     ----------
@@ -339,7 +349,14 @@ def binary_surprise(x: DeviceArray, muhat: DeviceArray):
     Returns
     -------
     surprise : jnp.DeviceArray
-        The surprise.
+        The binary surprise.
+
+
+    Examples
+    --------
+    >>> from pyhgf.binary import binary_surprise
+    >>> binary_surprise(x=1.0, muhat=0.7)
+    `Array(0.35667497, dtype=float32, weak_type=True)`
 
     """
     return jnp.where(x, -jnp.log(muhat), -jnp.log(jnp.array(1.0) - muhat))

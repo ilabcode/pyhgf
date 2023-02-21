@@ -47,7 +47,8 @@ extensions = [
     "numpydoc",
     "jupyter_sphinx",
     "myst_nb",
-    "sphinxcontrib.bibtex"
+    "sphinxcontrib.bibtex",
+    "sphinx_proof"
 ]
 
 panels_add_bootstrap_css = False
@@ -56,6 +57,10 @@ panels_add_bootstrap_css = False
 autosummary_generate = True
 numpydoc_show_class_members = False
 
+# raise an error if the documentation does not build and exit the process
+# this should especially ensure that the notebooks run correctly
+#nb_execution_raise_on_error = True
+
 # Include the example source for plots in API docs
 plot_include_source = True
 plot_formats = [("png", 90)]
@@ -63,8 +68,6 @@ plot_html_show_formats = False
 plot_html_show_source_link = False
 
 source_suffix = ['.rst', '.md']
-
-numpydoc_validation_checks = {"all"}
 
 # The master toctree document.
 master_doc = "index"

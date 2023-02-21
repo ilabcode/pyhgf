@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from pyhgf.model import HGF
 
 
-def total_gaussian_surprise(hgf: "HGF", response_function_parameters):
+def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
     """Sum of the gaussian surprise along the time series (continuous HGF).
 
     .. note::
@@ -18,10 +18,10 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters):
 
     Parameters
     ----------
-    hgf : :py:class`pyhgf.model.HGF`
+    hgf : :py:class:`pyhgf.model.HGF`
         Instance of the HGF model.
     response_function_parameters : None
-        No additional parameters are required.
+        No additional parameters are required to compute the Gaussian surprise.
 
     Returns
     -------
@@ -45,7 +45,7 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters):
     return surprise
 
 
-def total_binary_surprise(hgf: "HGF", response_function_parameters):
+def total_binary_surprise(hgf: "HGF", response_function_parameters=None):
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
@@ -55,10 +55,10 @@ def total_binary_surprise(hgf: "HGF", response_function_parameters):
 
     Parameters
     ----------
-    hgf : :py:class`pyhgf.model.HGF`
+    hgf : :py:class:`pyhgf.model.HGF`
         Instance of the HGF model.
     response_function_parameters : None
-        No additional parameters are required.
+        No additional parameters are required to compute the binary surprise.
 
     Returns
     -------
