@@ -11,3 +11,4 @@ myst-parser
 graphviz
 watermark
 systole
+sphinx-proof

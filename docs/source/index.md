@@ -16,11 +16,15 @@ pyhgf is a Python library for generalized and nodalized Hierarchical Gaussian Fi
 
 The last official release can be download from PIP:
 
-`pip install pyhgf`
+```bash
+pip install pyhgf
+```
 
 The current version under development can be installed from the master branch of the GitHub folder:
 
-`pip install “git+https://github.com/ilabcode/pyhgf.git”`
+```bash
+pip install “git+https://github.com/ilabcode/pyhgf.git”
+```
 
 ### How does it works?
 
