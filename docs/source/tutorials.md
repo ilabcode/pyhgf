@@ -18,6 +18,7 @@ notebooks/*.md
 | {ref}`multilevel_hgf` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/4-Multilevel_HGF.ipynb)
 
 ## Use cases
+
 | {ref}`example_1` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)
 
 ## Interactive visualization

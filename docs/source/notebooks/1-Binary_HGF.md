@@ -16,6 +16,15 @@ kernelspec:
 # The binary Hierarchical Gaussian Filter
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
+
+%%capture
+import sys
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
+```
+
+```{code-cell} ipython3
 import jax.numpy as jnp
 from pyhgf.model import HGF
 from pyhgf import load_data

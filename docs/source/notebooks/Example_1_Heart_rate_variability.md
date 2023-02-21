@@ -16,6 +16,13 @@ kernelspec:
 # Example 1: physiological volatility
 
 ```{code-cell} ipython3
+%%capture
+import sys
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf systole
+```
+
+```{code-cell} ipython3
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
 import numpy as np

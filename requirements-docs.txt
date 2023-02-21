@@ -12,3 +12,4 @@ graphviz
 watermark
 systole
 sphinx-proof
+bokeh==2.3.2

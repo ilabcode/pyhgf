@@ -16,6 +16,15 @@ kernelspec:
 # The continuous Hierarchical Gaussian Filter
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
+
+%%capture
+import sys
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
+```
+
+```{code-cell} ipython3
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from pyhgf import load_data

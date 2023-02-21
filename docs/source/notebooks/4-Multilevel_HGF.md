@@ -16,6 +16,15 @@ kernelspec:
 # Multilevel embeding of Hierarchical Gaussian Filters
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
+
+%%capture
+import sys
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
+```
+
+```{code-cell} ipython3
 from numpy import loadtxt
 import numpy as np
 from pyhgf.distribution import hgf_logp, HGFDistribution
