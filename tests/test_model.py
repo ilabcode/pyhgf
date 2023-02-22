@@ -16,11 +16,11 @@ class Testmodel(TestCase):
         ##############
         # Continuous #
         ##############
-
-        # Create the data (value and time vectors)
         timeserie = load_data("continuous")
 
-        two_levels_continuous_hgf = HGF(
+        # two-level
+        # ---------
+        two_level_continuous_hgf = HGF(
             n_levels=2,
             model_type="continuous",
             initial_mu={"1": timeserie[0], "2": 0.0},
@@ -29,19 +29,36 @@ class Testmodel(TestCase):
             rho={"1": 0.0, "2": 0.0},
             kappas={"1": 1.0},
         )
-        two_levels_continuous_hgf.input_data(input_data=timeserie)
+        two_level_continuous_hgf.input_data(input_data=timeserie)
 
-        surprise = two_levels_continuous_hgf.surprise()  # Sum the surprise for this model
+        surprise = two_level_continuous_hgf.surprise()  # Sum the surprise for this model
         assert jnp.isclose(surprise, -1938.0101)
+        assert len(two_level_continuous_hgf.results["surprise"]) == 613
+
+        # three-level
+        # -----------
+        three_level_continuous_hgf = HGF(
+            n_levels=3,
+            model_type="continuous",
+            initial_mu={"1": 1.04, "2": 1.0, "3": 1.0},
+            initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
+            omega={"1": -13.0, "2": -2.0, "3": -2.0},
+            rho={"1": 0.0, "2": 0.0, "3": 0.0},
+            kappas={"1": 1.0, "2": 1.0},
+        )
+        three_level_continuous_hgf.input_data(input_data=timeserie)
+        surprise = three_level_continuous_hgf.surprise()
+        assert jnp.isclose(surprise, -1915.0765)
 
 
         ##########
         # Binary #
         ##########
+        timeseries = load_data("binary")
 
-        timeserie = load_data("binary")
-
-        two_levels_binary_hgf = HGF(
+        # two-level
+        # ---------
+        two_level_binary_hgf = HGF(
             n_levels=2,
             model_type="binary",
             initial_mu={"1": .0, "2": .5},
@@ -55,9 +72,27 @@ class Testmodel(TestCase):
         )
 
         # Provide new observations
-        two_levels_binary_hgf = two_levels_binary_hgf.input_data(timeserie)
-        surprise = two_levels_binary_hgf.surprise()
+        two_level_binary_hgf = two_level_binary_hgf.input_data(timeseries)
+        surprise = two_level_binary_hgf.surprise()
         assert jnp.isclose(surprise, 215.11276)
+
+        # three-level
+        # -----------
+        three_level_binary_hgf = HGF(
+            n_levels=3,
+            model_type="binary",
+            initial_mu={"1": .0, "2": .5, "3": 0.},
+            initial_pi={"1": .0, "2": 1e4, "3": 1e1},
+            omega={"1": None, "2": -6.0, "3": -2.0},
+            rho={"1": None, "2": 0.0, "3": 0.0},
+            kappas={"1": None, "2": 1.0},
+            eta0=0.0,
+            eta1=1.0,
+            pihat=jnp.inf,
+        )
+        three_level_binary_hgf.input_data(input_data=timeseries)
+        surprise = three_level_binary_hgf.results["surprise"].sum()
+        assert jnp.isclose(surprise, 215.11488)
 
 
 if __name__ == "__main__":
