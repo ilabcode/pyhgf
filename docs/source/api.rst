@@ -85,35 +85,6 @@ observing new data.
    plot_trajectories
    plot_correlations
 
-Python
-------
-
-The pure Python implementation of the Hierarchical Gaussian Filter for binary or
-continuous inputs, with two or three levels. This implementation is functionnally 
-independent from the JAX implementation and is not required to run the code. It is
-currently used for testing. Will be depreciated in v0.0.2.
-
-.. currentmodule:: pyhgf.python
-
-.. autosummary::
-   :toctree: generated/pyhgf.python
-
-   Model
-   StandardHGF
-   StandardBinaryHGF
-   StateNode
-   BinaryNode
-   InputNode
-   BinaryInputNode
-   Parameter
-   exp_shift_mirror
-   log_shift_mirror
-   sgm
-   logit
-   gaussian
-   gaussian_surprise
-   binary_surprise
-
 Response
 --------
 
