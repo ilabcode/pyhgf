@@ -9,7 +9,9 @@ ParametersType = Dict[
 ]
 NodeType = Tuple[
     ParametersType,
-    Optional[Tuple[Tuple[ParametersType, Optional[Tuple], Optional[Tuple]]]],
-    Optional[Tuple[Tuple[ParametersType, Optional[Tuple], Optional[Tuple]]]],
+    Optional[Tuple],
+    Optional[Tuple],
 ]
 ParentsType = Optional[Tuple[NodeType]]
+
+NodeStructure = Dict[str, NodeType]
