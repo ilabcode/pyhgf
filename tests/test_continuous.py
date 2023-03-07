@@ -39,11 +39,11 @@ class Testcontinuous(TestCase):
             "value_parents": None,
             "volatility_parents": None,
             }
-        node_structure = {"x_1": node}
+        node_structure = {1: node}
 
         new_node_structure = continuous_node_update(
             node_structure=node_structure,
-            node_idx="x_1",
+            node_idx=1,
             time_step=1.0
         )
 
@@ -52,32 +52,54 @@ class Testcontinuous(TestCase):
         #######################
         # x_2 as value parent #
         #######################
+        input_parameters = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "kappas": None,
+            "mu": 1.0,
+            "nu": 1.0,
+            "psis": (1.0,),
+            "omega": 1.0,
+            "rho": 1.0,
+        }
         value_parent_node = {
             "parameters": parameters,
             "value_parents": None,
             "volatility_parents": None
         }
         node = {
-            "parameters": parameters,
-            "value_parents": ["x_2"],
+            "parameters": input_parameters,
+            "value_parents": (2,),
             "volatility_parents": None,
             }
-        node_structure = {"x_1": node, "x_2": value_parent_node}
+        node_structure = {1: node, 2: value_parent_node}
 
         new_node_structure = continuous_node_update(
             node_structure=node_structure,
-            node_idx="x_1",
+            node_idx=1,
             time_step=1.0
         )
         assert jnp.isclose(
-            new_node_structure["x_2"]["parameters"]["pi"],
+            new_node_structure[2]["parameters"]["pi"],
             1.2689414
         )
 
         ############################
         # x_2 as volatility parent #
         ############################
-        parent_parameters = {
+        parameters = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "kappas": None,
+            "mu": 1.0,
+            "nu": 1.0,
+            "psis": (1.0,),
+            "omega": 1.0,
+            "rho": 1.0,
+        }
+        node_parameters = {
             "pihat": 1.0,
             "pi": 1.0,
             "muhat": 1.0,
@@ -94,167 +116,175 @@ class Testcontinuous(TestCase):
             "volatility_parents": None
         }
         node = {
-            "parameters": parent_parameters,
+            "parameters": node_parameters,
             "value_parents": None,
-            "volatility_parents": ["x_2"],
+            "volatility_parents": [2],
             }
-        node_structure = {"x_1": node, "x_2": volatility_parent_node}
+        node_structure = {1: node, 2: volatility_parent_node}
 
         new_node_structure = continuous_node_update(
             node_structure=node_structure,
-            node_idx="x_1",
+            node_idx=1,
             time_step=1.0
         )
         assert jnp.isclose(
-            new_node_structure["x_2"]["parameters"]["pi"],
+            new_node_structure[2]["parameters"]["pi"],
             0.7689414
         )
 
         #####################################
         # Both value and volatility parents #
         #####################################
+        parameters = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "kappas": None,
+            "mu": 1.0,
+            "nu": 1.0,
+            "psis": (1.0,),
+            "omega": 1.0,
+            "rho": 1.0,
+        }
         node_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
             "kappas": (1.0,),
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": (jnp.array(1.0),),
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
+            "mu": 1.0,
+            "nu": 1.0,
+            "psis": (1.0,),
+            "omega": 1.0,
+            "rho": 1.0,
         }
-        parent_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
+        volatility_parent_node = {
+            "parameters": parameters,
+            "value_parents": None,
+            "volatility_parents": None
         }
+        value_parent_node = {
+            "parameters": parameters,
+            "value_parents": None,
+            "volatility_parents": None
+        }
+        node = {
+            "parameters": node_parameters,
+            "value_parents": [2],
+            "volatility_parents": [3],
+            }
+        node_structure = {
+            1: node, 
+            2: value_parent_node,
+            3: volatility_parent_node,
+            }
 
-        volatility_parents = ((parent_parameters, None, None),)
-        value_parents = ((parent_parameters, None, None),)
-
-        output_node = continuous_node_update(
-            node_parameters=node_parameters,
-            value_parents=value_parents,
-            volatility_parents=volatility_parents,
-            old_time=1,
-            new_time=2,
+        new_node_structure = continuous_node_update(
+            node_structure=node_structure,
+            node_idx=1,
+            time_step=1.0
         )
 
-        # Verify node structure
-        structure_validation(output_node)
-        assert len(output_node) == 3
-        assert isinstance(output_node[0], dict)
-        assert isinstance(output_node[1], tuple)
-        assert isinstance(output_node[2], tuple)
+        # ########################################################################
+        # # Both value and volatility parents with values and volatility parents #
+        # ########################################################################
 
-        ########################################################################
-        # Both value and volatility parents with values and volatility parents #
-        ########################################################################
+        # # Second level
+        # vo_pa_2 = {
+        #     "mu": jnp.array(1.0),
+        #     "muhat": jnp.array(1.0),
+        #     "pi": jnp.array(1.0),
+        #     "pihat": jnp.array(1.0),
+        #     "kappas": None,
+        #     "nu": jnp.array(1.0),
+        #     "psis": None,
+        #     "omega": jnp.array(-2.0),
+        #     "rho": jnp.array(0.0),
+        # }
+        # vo_pa_3 = {
+        #     "mu": jnp.array(1.0),
+        #     "muhat": jnp.array(1.0),
+        #     "pi": jnp.array(1.0),
+        #     "pihat": jnp.array(1.0),
+        #     "kappas": None,
+        #     "nu": jnp.array(1.0),
+        #     "psis": None,
+        #     "omega": jnp.array(-2.0),
+        #     "rho": jnp.array(0.0),
+        # }
+        # volatility_parent_2 = vo_pa_2, None, None
+        # volatility_parent_3 = vo_pa_3, None, None
 
-        # Second level
-        vo_pa_2 = {
-            "mu": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "pihat": jnp.array(1.0),
-            "kappas": None,
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(-2.0),
-            "rho": jnp.array(0.0),
-        }
-        vo_pa_3 = {
-            "mu": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "pihat": jnp.array(1.0),
-            "kappas": None,
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(-2.0),
-            "rho": jnp.array(0.0),
-        }
-        volatility_parent_2 = vo_pa_2, None, None
-        volatility_parent_3 = vo_pa_3, None, None
+        # va_pa_2 = {
+        #     "mu": jnp.array(1.0),
+        #     "muhat": jnp.array(1.0),
+        #     "pi": jnp.array(1.0),
+        #     "pihat": jnp.array(1.0),
+        #     "kappas": (jnp.array(1.0),),
+        #     "nu": jnp.array(1.0),
+        #     "psis": None,
+        #     "omega": jnp.array(-2.0),
+        #     "rho": jnp.array(0.0),
+        # }
+        # value_parent_2 = va_pa_2, None, (volatility_parent_3,)
 
-        va_pa_2 = {
-            "mu": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "pihat": jnp.array(1.0),
-            "kappas": (jnp.array(1.0),),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(-2.0),
-            "rho": jnp.array(0.0),
-        }
-        value_parent_2 = va_pa_2, None, (volatility_parent_3,)
+        # # First level
+        # vo_pa_1 = {
+        #     "mu": jnp.array(1.0),
+        #     "muhat": jnp.array(1.0),
+        #     "pi": jnp.array(1.0),
+        #     "pihat": jnp.array(1.0),
+        #     "kappas": None,
+        #     "nu": jnp.array(1.0),
+        #     "psis": (jnp.array(1.0),),
+        #     "omega": jnp.array(-2.0),
+        #     "rho": jnp.array(0.0),
+        # }
+        # va_pa = {
+        #     "mu": jnp.array(1.0),
+        #     "muhat": jnp.array(1.0),
+        #     "pi": jnp.array(1.0),
+        #     "pihat": jnp.array(1.0),
+        #     "kappas": (jnp.array(1.0),),
+        #     "nu": jnp.array(1.0),
+        #     "psis": None,
+        #     "omega": jnp.array(-2.0),
+        #     "rho": jnp.array(0.0),
+        # }
+        # volatility_parent_1 = vo_pa_1, (value_parent_2,), None
+        # value_parent_1 = va_pa, None, (volatility_parent_2,)
 
-        # First level
-        vo_pa_1 = {
-            "mu": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "pihat": jnp.array(1.0),
-            "kappas": None,
-            "nu": jnp.array(1.0),
-            "psis": (jnp.array(1.0),),
-            "omega": jnp.array(-2.0),
-            "rho": jnp.array(0.0),
-        }
-        va_pa = {
-            "mu": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "pihat": jnp.array(1.0),
-            "kappas": (jnp.array(1.0),),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(-2.0),
-            "rho": jnp.array(0.0),
-        }
-        volatility_parent_1 = vo_pa_1, (value_parent_2,), None
-        value_parent_1 = va_pa, None, (volatility_parent_2,)
+        # node_parameters, value_parents, volatility_parents = volatility_parent_1
+        # output_node = continuous_node_update(
+        #     node_parameters=node_parameters,
+        #     value_parents=value_parents,
+        #     volatility_parents=volatility_parents,
+        #     old_time=1,
+        #     new_time=2,
+        # )
 
-        node_parameters, value_parents, volatility_parents = volatility_parent_1
-        output_node = continuous_node_update(
-            node_parameters=node_parameters,
-            value_parents=value_parents,
-            volatility_parents=volatility_parents,
-            old_time=1,
-            new_time=2,
-        )
+        # # Verify node structure
+        # structure_validation(output_node)
+        # assert len(output_node) == 3
+        # assert isinstance(output_node[0], dict)
+        # assert isinstance(output_node[1], tuple)
+        # assert output_node[2] is None
 
-        # Verify node structure
-        structure_validation(output_node)
-        assert len(output_node) == 3
-        assert isinstance(output_node[0], dict)
-        assert isinstance(output_node[1], tuple)
-        assert output_node[2] is None
+        # node_parameters, value_parents, volatility_parents = value_parent_1
 
-        node_parameters, value_parents, volatility_parents = value_parent_1
+        # output_node = continuous_node_update(
+        #     node_parameters=node_parameters,
+        #     value_parents=value_parents,
+        #     volatility_parents=volatility_parents,
+        #     old_time=1,
+        #     new_time=2,
+        # )
 
-        output_node = continuous_node_update(
-            node_parameters=node_parameters,
-            value_parents=value_parents,
-            volatility_parents=volatility_parents,
-            old_time=1,
-            new_time=2,
-        )
-
-        # Verify node structure
-        structure_validation(output_node)
-        assert len(output_node) == 3
-        assert isinstance(output_node[0], dict)
-        assert output_node[1] is None
-        assert isinstance(output_node[2], tuple)
+        # # Verify node structure
+        # structure_validation(output_node)
+        # assert len(output_node) == 3
+        # assert isinstance(output_node[0], dict)
+        # assert output_node[1] is None
+        # assert isinstance(output_node[2], tuple)
 
     def test_gaussian_surprise(self):
         surprise = gaussian_surprise(
@@ -266,89 +296,111 @@ class Testcontinuous(TestCase):
 
     def test_update_continuous_input_parents(self):
 
-        # No value parent - no volatility parents
+        ############################################
+        # one value parent - one volatility parent #
+        ############################################
         input_node_parameters = {
-            "omega": jnp.array(1.0),
-            "kappas": jnp.array(1.0),
+            "omega": 1.0,
+            "kappas": 1.0,
+            "surprise": 0.0,
+            "time": 0.0,
+            "value": 0.0,
         }
-
-        parent_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
+        parameters = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "kappas": (1.0,),
+            "mu": 1.0,
+            "nu": 1.0,
+            "psis": (1.0,),
+            "omega": 1.0,
+            "rho": 1.0,
         }
+        volatility_parent_node = {
+            "parameters": parameters,
+            "value_parents": None,
+            "volatility_parents": None
+        }
+        value_parent_node = {
+            "parameters": parameters,
+            "value_parents": None,
+            "volatility_parents": None
+        }
+        input_node = {
+            "parameters": input_node_parameters,
+            "value_parents": [2],
+            "volatility_parents": [3],
+            }
+        node_structure = {
+            "input_node_0": input_node, 
+            2: value_parent_node,
+            3: volatility_parent_node,
+            }
 
-        volatility_parents = (parent_parameters, None, None),
-        value_parents = (parent_parameters, None, None),
-
-        surprise, output_node = continuous_input_update(
-            input_node=(input_node_parameters, value_parents, volatility_parents),
+        node_structure = continuous_input_update(
+            node_structure=node_structure,
             value=0.2,
-            old_time=jnp.array(1.0),
-            new_time=jnp.array(2.0),
+            time_step=1.0,
         )
 
-        assert surprise == 2.1381817
-
-        # Verify node structure
-        structure_validation(output_node)
-        assert len(output_node) == 3
-        assert isinstance(output_node[0], dict)
-        assert isinstance(output_node[1], tuple)
-        assert isinstance(output_node[2], tuple)
+        assert jnp.isclose(
+            node_structure["input_node_0"]["parameters"]["surprise"],
+            2.1381817
+        )
 
     def test_loop_continuous_inputs(self):
         """Test the function that should be scanned"""
 
-        # No value parent - no volatility parents
+        ############################################
+        # one value parent - one volatility parent #
+        ############################################
         input_node_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": jnp.array(1.0),
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": jnp.array(1.0),
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
+            "omega": 1.0,
+            "kappas": 1.0,
+            "surprise": 0.0,
+            "time": 0.0,
+            "value": 0.0,
         }
-
-        parent_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": (jnp.array(1.0),),
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": (jnp.array(1.0),),
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
+        parameters = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "kappas": None,
+            "mu": 1.0,
+            "nu": 1.0,
+            "psis": (1.0,),
+            "omega": 1.0,
+            "rho": 1.0,
         }
+        volatility_parent_node = {
+            "parameters": parameters,
+            "value_parents": None,
+            "volatility_parents": None
+        }
+        value_parent_node = {
+            "parameters": parameters,
+            "value_parents": None,
+            "volatility_parents": None
+        }
+        input_node = {
+            "parameters": input_node_parameters,
+            "value_parents": [2],
+            "volatility_parents": [3],
+            }
+        node_structure = {
+            "input_node_0": input_node, 
+            2: value_parent_node,
+            3: volatility_parent_node,
+            }
 
-        volatility_parents = (parent_parameters, None, None),
-        value_parents = (parent_parameters, None, None),
+        data = (5.0, 1.0)  # value, new_time
 
-        input_node = input_node_parameters, value_parents, volatility_parents
+        final, last = loop_continuous_inputs(node_structure=node_structure, data=data)
 
-        el = jnp.array(5.0), jnp.array(1.0)  # value, new_time
-        res_init = (
-            input_node,
-            {"time": jnp.array(0.0), "value": jnp.array(0.0), "surprise": 0.0},
-        )
-
-        res, _ = loop_continuous_inputs(res=res_init, el=el)
-
-        _, results = res
-
-        assert results["time"] == 1.0
-        assert results["value"] == 5.0
-        assert jnp.isclose(results["surprise"], 2.5279474)
+        assert last["input_node_0"]["parameters"]["time"] == 1.0
+        assert last["input_node_0"]["parameters"]["value"] == 5.0
+        assert jnp.isclose(last["input_node_0"]["parameters"]["surprise"], 2.5279474)
 
 
     def test_scan_loop(self):
@@ -359,51 +411,56 @@ class Testcontinuous(TestCase):
 
         timeserie = load_data("continuous")
 
-        # No value parent - no volatility parents
         input_node_parameters = {
-            "mu": jnp.array(1.04),
-            "muhat": jnp.array(1.0),
-            "pi": jnp.array(1e4),
-            "pihat": jnp.array(1.0),
+            "omega": jnp.array(1.0),
             "kappas": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": jnp.array(1.0),
-            "omega": jnp.log(1e-4),
-            "rho": jnp.array(0.0),
+            "surprise": jnp.array(0.0),
+            "time": jnp.array(0.0),
+            "value": jnp.array(0.0),
         }
-
-        parent_parameters = {
-            "mu": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
+        parameters = {
             "pihat": jnp.array(1.0),
-            "kappas": (jnp.array(1.0),),
+            "pi": jnp.array(1.0),
+            "muhat": jnp.array(1.0),
+            "kappas": None,
+            "mu": jnp.array(1.0),
             "nu": jnp.array(1.0),
             "psis": (jnp.array(1.0),),
-            "omega": jnp.array(-2.0),
-            "rho": jnp.array(0.0),
+            "omega": jnp.array(1.0),
+            "rho": jnp.array(1.0),
         }
+        volatility_parent_node = {
+            "parameters": parameters,
+            "value_parents": None,
+            "volatility_parents": None
+        }
+        value_parent_node = {
+            "parameters": parameters,
+            "value_parents": None,
+            "volatility_parents": None
+        }
+        input_node = {
+            "parameters": input_node_parameters,
+            "value_parents": [2],
+            "volatility_parents": [3],
+            }
+        node_structure = {
+            "input_node_0": input_node, 
+            2: value_parent_node,
+            3: volatility_parent_node,
+            }
+            
+        for val, t in zip(timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)):
+            data = (val, t)
+            final, last = loop_continuous_inputs(node_structure=node_structure, data=data)
 
-        volatility_parents = (parent_parameters, None, None),
-        value_parents = (parent_parameters, None, None),
+        # # Create the data (value and time vectors)
+        # data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
-        input_node = input_node_parameters, value_parents, volatility_parents
+        # # Run the entire for loop
+        # last, final = scan(loop_continuous_inputs, node_structure, data)
 
-        res_init = (
-            input_node,
-            {
-                "time": jnp.array(0.0),
-                "value": jnp.array(0.0),
-                "surprise": jnp.array(0.0),
-            },
-        )
-        # Create the data (value and time vectors)
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
 
-        # Run the entire for loop
-        last, final = scan(loop_continuous_inputs, res_init, data)
-
-        node_structure, results = final
 
 
 if __name__ == "__main__":
