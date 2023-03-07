@@ -14,7 +14,6 @@ from pyhgf.continuous import gaussian_surprise, loop_continuous_inputs
 from pyhgf.plots import plot_correlations, plot_trajectories
 from pyhgf.response import total_binary_surprise, total_gaussian_surprise
 from pyhgf.structure import structure_as_dict
-from pyhgf.typing import ParametersType
 
 
 class HGF(object):
@@ -66,59 +65,54 @@ class HGF(object):
 
         Parameters
         ----------
-        n_levels : int | None
+        n_levels :
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
             `None`, the nodes hierarchy is not created and might be provided afterward
             using `add_nodes()`. Defaults to `2` for a 2-level HGF.
         model_type : str
-            The model type to use (can be `"continuous"`, `"binary"` or `"custom"`).
-        initial_mu : dict
+            The model type to use (can be `"continuous"` or `"binary"`).
+        initial_mu :
             Dictionary containing the initial values for the :math:`\\mu` parameter at
             different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
             for a 2-level model for continuous inputs.
-        initial_pi : dict
+        initial_pi :
             Dictionary containing the initial values for the :math:`\\pi` parameter at
             different levels of the hierarchy. Pis values encode the precision of the
             values at each level (Var = 1/pi) Defaults set to `{"1": 1.0, "2": 1.0}` for
             a 2-level model.
-        omega : dict
+        omega :
             Dictionary containing the initial values for the :math:`\\omega` parameter
             at different levels of the hierarchy. :math:`\\omega` represents the tonic
             part of the variance (the part that is not affected by the parent node).
             Defaults set to `{"1": -10.0, "2": -10.0}` for a 2-level model for
             continuous inputs. This parameter is only required for Gaussian Random Walk
             nodes.
-        omega_input : float
+        omega_input :
             Default value sets to `log(1e-4)`. Represents the noise associated with
             the input.
-        rho : dict
+        rho :
             Dictionary containing the initial values for the :math:`\\rho` parameter at
             different levels of the hierarchy. Rho represents the drift of the random
             walk. This parameter is only required for Gaussian Random Walk nodes.
             Defaults set all entries to `0` according to the number of required levels.
-        kappas : dict
+        kappas :
             Dictionary containing the initial values for the :math:`\\kappa` parameter
             at different levels of the hierarchy. Kappa represents the phasic part of
             the variance (the part that is affected by the parents nodes) and will
             defines the strenght of the connection between the node and the parent
             node. Often fixed to `1`. Defaults set to `{"1": 1.0}` for a 2-level model.
             This parameter is only required for Gaussian Random Walk nodes.
-        eta0 : float
+        eta0 :
             The first categorical value of the binary node. Defaults to `0.0`. Only
             relevant if `model_type="binary"`.
-        eta1 : float
+        eta1 :
             The second categorical value of the binary node. Defaults to `0.0`. Only
             relevant if `model_type="binary"`.
-        pihat : float
+        pihat :
             The precision of the binary input node. Default to `jnp.inf`. Only relevant
             if `model_type="binary"`.
-        verbose : bool
+        verbose :
             Verbosity of the methods for model creation and fitting. Defaults to `True`.
-
-        Raises
-        ------
-        ValueError
-            If `model_type` is not `"continuous"`, `"binary"` or `"custom"`.
 
         """
         self.model_type = model_type
@@ -126,20 +120,7 @@ class HGF(object):
         self.n_levels = n_levels
         self.structure_dict = None
 
-        if model_type not in ["continuous", "binary", "custom"]:
-            raise ValueError(
-                "Invalid model type. Should be continuous, binary or custom,"
-            )
-
-        if self.model_type == "custom":
-            if self.verbose:
-                print(
-                    (
-                        "Initializing a Hierarchical Gaussian Filter"
-                        " using a custom node structure"
-                    )
-                )
-        else:
+        if model_type in ["continuous", "binary"]:
             if self.verbose:
                 print(
                     (
@@ -148,101 +129,62 @@ class HGF(object):
                     )
                 )
 
-            if self.n_levels == 2:
-
-                # Second level
-                x2_parameters = {
-                    "mu": initial_mu["2"],
-                    "muhat": jnp.nan,
-                    "pi": initial_pi["2"],
-                    "pihat": jnp.nan,
-                    "kappas": None,
-                    "nu": jnp.nan,
-                    "psis": None,
-                    "omega": omega["2"],
-                    "rho": rho["2"],
-                }
-                x2 = ((x2_parameters, None, None),)
-
-            elif self.n_levels == 3:
-
-                # Third level
-                x3_parameters = {
-                    "mu": initial_mu["3"],
-                    "muhat": jnp.nan,
-                    "pi": initial_pi["3"],
-                    "pihat": jnp.nan,
-                    "kappas": None,
-                    "nu": jnp.nan,
-                    "psis": None,
-                    "omega": omega["3"],
-                    "rho": rho["3"],
-                }
-                x3 = ((x3_parameters, None, None),)
-
-                # Second level
-                x2_parameters = {
-                    "mu": initial_mu["2"],
-                    "muhat": jnp.nan,
-                    "pi": initial_pi["2"],
-                    "pihat": jnp.nan,
-                    "kappas": (kappas["2"],),  # type: ignore
-                    "nu": jnp.nan,
-                    "psis": None,
-                    "omega": omega["2"],
-                    "rho": rho["2"],
-                }
-                x2 = ((x2_parameters, None, x3),)
-
-            x1_parameters = {
-                "mu": initial_mu["1"],
-                "muhat": jnp.nan,
-                "pi": initial_pi["1"],
-                "pihat": jnp.nan,
-                "kappas": (kappas["1"],),
-                "nu": jnp.nan,
-                "psis": None,
-                "omega": omega["1"],
-                "rho": rho["1"],
-            }
-
+            #########
+            # Input #
+            #########
             if model_type == "continuous":
-
-                # First level (continuous node)
-                x1 = ((x1_parameters, None, x2),)
-
-                # Input node
-                input_node_parameters: ParametersType = {
-                    "kappas": None,
-                    "omega": omega_input,
-                }
-
-                self.node_structure = input_node_parameters, x1, None
-
+                self.add_input_node(kind="continuous", omega_input=omega_input)
             elif model_type == "binary":
+                self.add_input_node(kind="binary", eta0=eta0, eta1=eta1, pihat=pihat)
 
-                # First level (binary node)
-                x1 = ((x1_parameters, x2, None),)
+            #########
+            # x - 1 #
+            #########
+            self.add_value_parent(
+                children_idx=[0],
+                parent_idx=1,
+                mu=initial_mu["1"],
+                pi=initial_pi["1"],
+                omega=omega["1"],
+                rho=rho["1"],
+            )
 
-                input_node_parameters: ParametersType = {
-                    "pihat": pihat,
-                    "eta0": eta0,
-                    "eta1": eta1,
-                }
-                self.node_structure = input_node_parameters, x1, None
+            #########
+            # x - 2 #
+            #########
+            if model_type == "continuous":
+                self.add_volatility_parent(
+                    children_idx=[1],
+                    parent_idx=2,
+                    volatility_coupling=kappas["1"],
+                    mu=initial_mu["2"],
+                    pi=initial_pi["2"],
+                    omega=omega["2"],
+                    rho=rho["2"],
+                )
+            elif model_type == "binary":
+                self.add_value_coupling(
+                    children_idx=[1],
+                    parent_idx=2,
+                    mu=initial_mu["2"],
+                    pi=initial_pi["2"],
+                    omega=omega["2"],
+                    rho=rho["2"],
+                )
 
-    def add_nodes(self, nodes: Tuple):
-        """Add a custom node structure.
-
-        Parameters
-        ----------
-        nodes : tuple
-            The input node embeding the node hierarchy that will be updated during
-            model fit.
-
-        """
-        self.node_structure = nodes  # type: ignore
-        return self
+            #########
+            # x - 3 #
+            #########
+            if self.n_levels == 3:
+                self.add_volatility_parent(
+                    children_idx=[2],
+                    parent_idx=3,
+                    volatility_coupling=kappas["2"],
+                    mu=initial_mu["3"],
+                    pi=initial_pi["3"],
+                    omega=omega["3"],
+                    rho=rho["3"],
+                )
 
     def input_data(
         self,
@@ -253,9 +195,9 @@ class HGF(object):
 
         Parameters
         ----------
-        input_data : np.ndarray
+        input_data :
             The new observations.
-        time : np.ndarray | None
+        time :
             Time vector (optional). If `None`, the time vector will defaults to
             `np.arange(0, len(input_data))`.
 
@@ -320,16 +262,16 @@ class HGF(object):
 
         Parameters
         ----------
-        response_function : callable (optional)
+        response_function :
             The response function to use to compute the model surprise. If `None`
             (default), return the sum of gaussian surprise if `model_type=="continuous"`
             or the sum of the binary surprise if `model_type=="binary"`.
-        response_function_parameters : tuple (optional)
+        response_function_parameters :
             Additional parameters to the response function (optional) .
 
         Returns
         -------
-        surprise : float
+        surprise :
             The model surprise given the input data and the response function.
 
         """
@@ -350,7 +292,7 @@ class HGF(object):
 
         Returns
         -------
-        structure_dict : dict
+        structure_dict :
             The node structure as a dictionary, each node is a key in the dictionary,
             from 1 (lower node) to **n**.
 
@@ -369,7 +311,7 @@ class HGF(object):
 
         Returns
         -------
-        structure_df : pd.DataFrame
+        structure_df :
             Pandas data frame with the time series of the sufficient statistics and
             surprise of each node in the structure.
 
@@ -396,3 +338,162 @@ class HGF(object):
             structure_df[f"{key}_surprise"] = np.insert(surprise, 0, np.nan)
 
         return structure_df
+
+    def add_input_node(
+        self,
+        kind: str,
+        omega_input: float = log(1e-4),
+        pihat: float = jnp.inf,
+        eta0: float = 0.0,
+        eta1: float = 1.0,
+    ):
+        """Create an input node."""
+        if kind == "continuous":
+            input_node_parameters = {"kind": kind, "kappas": None, "omega": omega_input}
+        elif kind == "binary":
+            input_node_parameters = {
+                "kind": kind,
+                "pihat": pihat,
+                "eta0": eta0,
+                "eta1": eta1,
+            }
+        self.node_structure = {
+            0: {
+                "parameters": input_node_parameters,
+                "value_parents": None,
+                "volatility_parents": None,
+            }
+        }
+        return self
+
+    def add_value_parent(
+        self,
+        children_idxs: List,
+        value_coupling: float,
+        parent_idx: Optional[int] = None,
+        mu: float = 0.0,
+        mu_hat: float = jnp.nan,
+        pi: float = 1.0,
+        pi_hat: float = jnp.nan,
+        kappas: Optional[Tuple] = None,
+        nu: float = jnp.nan,
+        psis: Optional[Tuple] = None,
+        omega: float = jnp.nan,
+        rho: float = 0.0,
+    ):
+        """Add a value parent to node.
+
+        children_idxs :
+            The child(s) node index(s).
+        parent idx :
+            The new parent index.
+        value_coupling :
+            The value_coupling between the child and parent node. This is will be
+            appended to the `psis` parameters in the child node.
+        **kwargs :
+            Node parameters.
+
+        """
+        # how many nodes in structure
+        n_nodes = len(self.node_structure)
+
+        if parent_idx is None:
+            parent_idx = n_nodes + 1
+
+        # parent's parameter
+        node_parameters = {
+            "mu": mu,
+            "muhat": mu_hat,
+            "pi": pi,
+            "pihat": pi_hat,
+            "kappas": kappas,
+            "nu": nu,
+            "psis": psis,
+            "omega": omega,
+            "rho": rho,
+        }
+
+        # add a new node with parameters
+        self.node_structure[parent_idx] = {
+            "parameters": node_parameters,
+            "value_parents": None,
+            "volatility_parents": None,
+        }
+
+        for idx in children_idxs:
+            # add this node as parent and set value coupling
+            if self.node_structure[idx]["value_parents"] is not None:
+                self.node_structure[idx]["value_parents"] += (parent_idx,)
+                self.node_structure[idx]["parameters"]["psis"] += (value_coupling,)
+            else:
+                self.node_structure[idx]["value_parents"] = (parent_idx,)
+                self.node_structure[idx]["parameters"]["psis"] = (value_coupling,)
+
+        return self
+
+    def add_volatility_parent(
+        self,
+        children_idxs: List,
+        volatility_coupling: float,
+        parent_idx: Optional[int] = None,
+        mu: float = 0.0,
+        mu_hat: float = jnp.nan,
+        pi: float = 1.0,
+        pi_hat: float = jnp.nan,
+        kappas: Optional[Tuple] = None,
+        nu: float = jnp.nan,
+        psis: Optional[Tuple] = None,
+        omega: float = jnp.nan,
+        rho: float = 0.0,
+    ):
+        """Add a volatility parent to node.
+
+        node_idx :
+            The child node(s) index.
+        volatility_coupling :
+            The volatility coupling between the child and parent node. This is will be
+            appended to the `kappas` parameters in the child node.
+        **kwargs :
+            Node parameters.
+
+        """
+        # how many nodes in structure
+        n_nodes = len(self.node_structure)
+
+        if parent_idx is None:
+            parent_idx = n_nodes + 1
+
+        # parent's parameter
+        node_parameters = {
+            "mu": mu,
+            "muhat": mu_hat,
+            "pi": pi,
+            "pihat": pi_hat,
+            "kappas": kappas,
+            "nu": nu,
+            "psis": psis,
+            "omega": omega,
+            "rho": rho,
+        }
+
+        # add a new node with parameters
+        self.node_structure[parent_idx] = {
+            "parameters": node_parameters,
+            "value_parents": None,
+            "volatility_parents": None,
+        }
+
+        for idx in children_idxs:
+            # add this node as parent and set value coupling
+            if self.node_structure[idx]["value_parents"] is not None:
+                self.node_structure[idx]["value_parents"] += (parent_idx,)
+                self.node_structure[idx]["parameters"]["kappas"] += (
+                    volatility_coupling,
+                )
+            else:
+                self.node_structure[idx]["value_parents"] = (parent_idx,)
+                self.node_structure[idx]["parameters"]["kappas"] = (
+                    volatility_coupling,
+                )
+
+        return self
