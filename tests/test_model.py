@@ -29,6 +29,7 @@ class Testmodel(TestCase):
             rho={"1": 0.0, "2": 0.0},
             kappas={"1": 1.0},
         )
+        
         two_level_continuous_hgf.input_data(input_data=timeserie)
 
         surprise = two_level_continuous_hgf.surprise()  # Sum the surprise for this model

@@ -8,12 +8,17 @@ import numpy as np
 import pandas as pd
 from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
+from jax.tree_util import Partial
 
-from pyhgf.binary import loop_binary_inputs
-from pyhgf.continuous import gaussian_surprise, loop_continuous_inputs
+from pyhgf.binary import binary_input_update
+from pyhgf.continuous import (
+    continuous_input_update,
+    continuous_node_update,
+    gaussian_surprise,
+)
 from pyhgf.plots import plot_correlations, plot_trajectories
 from pyhgf.response import total_binary_surprise, total_gaussian_surprise
-from pyhgf.structure import structure_as_dict
+from pyhgf.structure import loop_inputs
 
 
 class HGF(object):
@@ -50,15 +55,15 @@ class HGF(object):
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
-        initial_mu: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0},
-        initial_pi: Dict[str, Optional[float]] = {"1": 1.0, "2": 1.0},
+        initial_mu: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0, "3": 0.0},
+        initial_pi: Dict[str, Optional[float]] = {"1": 1.0, "2": 1.0, "3": 1.0},
         omega_input: float = log(1e-4),
-        omega: Dict[str, Optional[float]] = {"1": -3.0, "2": -3.0},
-        kappas: Dict[str, Optional[float]] = {"1": 1.0},
+        omega: Dict[str, Optional[float]] = {"1": -3.0, "2": -3.0, "3": -3.0},
+        kappas: Dict[str, Optional[float]] = {"1": 1.0, "2": 0.0},
         eta0: float = 0.0,
         eta1: float = 1.0,
         pihat: float = jnp.inf,
-        rho: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0},
+        rho: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0, "3": 0.0},
         verbose: bool = True,
     ):
         r"""Parameterization of the HGF model.
@@ -73,20 +78,17 @@ class HGF(object):
             The model type to use (can be `"continuous"` or `"binary"`).
         initial_mu :
             Dictionary containing the initial values for the :math:`\\mu` parameter at
-            different levels of the hierarchy. Defaults set to `{"1": 0.0, "2": 0.0}`
-            for a 2-level model for continuous inputs.
+            different levels of the hierarchy. Defaults set to `0.0` at all levels.
         initial_pi :
             Dictionary containing the initial values for the :math:`\\pi` parameter at
             different levels of the hierarchy. Pis values encode the precision of the
-            values at each level (Var = 1/pi) Defaults set to `{"1": 1.0, "2": 1.0}` for
-            a 2-level model.
+            values at each level (Var = 1/pi) Defaults set to `1.0` at all levels.
         omega :
             Dictionary containing the initial values for the :math:`\\omega` parameter
             at different levels of the hierarchy. :math:`\\omega` represents the tonic
             part of the variance (the part that is not affected by the parent node).
-            Defaults set to `{"1": -10.0, "2": -10.0}` for a 2-level model for
-            continuous inputs. This parameter is only required for Gaussian Random Walk
-            nodes.
+            Defaults set to `-3.0` at all levels. This parameter is only required for
+            Gaussian Random Walk nodes.
         omega_input :
             Default value sets to `log(1e-4)`. Represents the noise associated with
             the input.
@@ -100,8 +102,7 @@ class HGF(object):
             at different levels of the hierarchy. Kappa represents the phasic part of
             the variance (the part that is affected by the parents nodes) and will
             defines the strenght of the connection between the node and the parent
-            node. Often fixed to `1`. Defaults set to `{"1": 1.0}` for a 2-level model.
-            This parameter is only required for Gaussian Random Walk nodes.
+            node. Often fixed to `1`. Defaults set to `1` at all levels.
         eta0 :
             The first categorical value of the binary node. Defaults to `0.0`. Only
             relevant if `model_type="binary"`.
@@ -141,8 +142,9 @@ class HGF(object):
             # x - 1 #
             #########
             self.add_value_parent(
-                children_idx=[0],
+                children_idxs=[0],
                 parent_idx=1,
+                value_coupling=1.0,
                 mu=initial_mu["1"],
                 pi=initial_pi["1"],
                 omega=omega["1"],
@@ -154,7 +156,7 @@ class HGF(object):
             #########
             if model_type == "continuous":
                 self.add_volatility_parent(
-                    children_idx=[1],
+                    children_idxs=[1],
                     parent_idx=2,
                     volatility_coupling=kappas["1"],
                     mu=initial_mu["2"],
@@ -163,9 +165,10 @@ class HGF(object):
                     rho=rho["2"],
                 )
             elif model_type == "binary":
-                self.add_value_coupling(
-                    children_idx=[1],
+                self.add_value_parent(
+                    children_idxs=[1],
                     parent_idx=2,
+                    value_coupling=1.0,
                     mu=initial_mu["2"],
                     pi=initial_pi["2"],
                     omega=omega["2"],
@@ -177,7 +180,7 @@ class HGF(object):
             #########
             if self.n_levels == 3:
                 self.add_volatility_parent(
-                    children_idx=[2],
+                    children_idxs=[2],
                     parent_idx=3,
                     volatility_coupling=kappas["2"],
                     mu=initial_mu["3"],
@@ -185,6 +188,9 @@ class HGF(object):
                     omega=omega["3"],
                     rho=rho["3"],
                 )
+
+            # get the update sequence from structure
+            self.update_sequence = self.get_update_sequence()
 
     def input_data(
         self,
@@ -207,38 +213,25 @@ class HGF(object):
         if self.verbose:
             print((f"Add {input_data.shape[0]} new {self.model_type} observations."))
         if time is None:
-            # create a time vector (starting at 1 as time 0 already exists by default)
-            time = jnp.arange(0.0, len(input_data))
+            # create a time step vector
+            time = jnp.ones(len(input_data), dtype=int)
         else:
             assert len(input_data) == len(time)
 
-        # Initialise the first values
-        res_init = (
-            self.node_structure,
-            {
-                "time": time[0],
-                "value": input_data[0],
-                "surprise": jnp.array(0.0),
-            },
-        )
+        # create the function that will be scaned
+        scan_fn = Partial(loop_inputs, self.update_sequence)
 
         # create the input array (data, time)
         data = jnp.array([input_data, time], dtype=float).T
 
+        # Run the entire for loop
         # this is where the model loop over the input time series
         # at each input the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
-        if self.model_type == "continuous":
-            _, scan_updates = scan(loop_continuous_inputs, res_init, data[1:, :])
-        elif self.model_type == "binary":
-            _, scan_updates = scan(loop_binary_inputs, res_init, data[1:, :])
-        else:
-            raise ValueError("This method only works with binary or continuous models")
+        _, node_trajectories = scan(scan_fn, self.node_structure, data)
 
         # the node structure at each value update
-        self.node_trajectories = scan_updates[0]
-
-        self.results = scan_updates[1]  # time, values and surprise
+        self.node_trajectories = node_trajectories
 
         return self
 
@@ -287,25 +280,6 @@ class HGF(object):
             response_function_parameters=response_function_parameters,
         )
 
-    def structure_as_dict(self) -> Dict:
-        """Export the node structure to a dictionary of nodes.
-
-        Returns
-        -------
-        structure_dict :
-            The node structure as a dictionary, each node is a key in the dictionary,
-            from 1 (lower node) to **n**.
-
-        """
-        if self.structure_dict is None:
-            structure_dict = {}
-            self.structure_dict = structure_as_dict(
-                node_structure=self.node_trajectories,
-                node_id=0,
-                structure_dict=structure_dict,
-            )
-        return self.structure_dict
-
     def to_pandas(self) -> pd.DataFrame:
         """Export the nodes trajectories and surprise as a Pandas data frame.
 
@@ -349,10 +323,10 @@ class HGF(object):
     ):
         """Create an input node."""
         if kind == "continuous":
-            input_node_parameters = {"kind": kind, "kappas": None, "omega": omega_input}
+            input_node_parameters = {"kind": 2, "kappas": None, "omega": omega_input}
         elif kind == "binary":
             input_node_parameters = {
-                "kind": kind,
+                "kind": 1,
                 "pihat": pihat,
                 "eta0": eta0,
                 "eta1": eta1,
@@ -485,15 +459,64 @@ class HGF(object):
 
         for idx in children_idxs:
             # add this node as parent and set value coupling
-            if self.node_structure[idx]["value_parents"] is not None:
-                self.node_structure[idx]["value_parents"] += (parent_idx,)
+            if self.node_structure[idx]["volatility_parents"] is not None:
+                self.node_structure[idx]["volatility_parents"] += (parent_idx,)
                 self.node_structure[idx]["parameters"]["kappas"] += (
                     volatility_coupling,
                 )
             else:
-                self.node_structure[idx]["value_parents"] = (parent_idx,)
+                self.node_structure[idx]["volatility_parents"] = (parent_idx,)
                 self.node_structure[idx]["parameters"]["kappas"] = (
                     volatility_coupling,
                 )
 
         return self
+
+    def get_update_sequence(
+        self, node_idx: int = 0, update_sequence: Tuple = ()
+    ) -> Tuple:
+        """Get update sequence from structure.
+
+        Parameters
+        ----------
+        node_idx :
+            The index of the current node.
+        update_sequence :
+            The current update sequence.
+
+        Returns
+        -------
+        update_sequence :
+            The update sequence.
+
+        """
+        # get value and volatility parents indexes
+        value_parent_idx = self.node_structure[node_idx]["value_parents"]
+        volatility_parent_idx = self.node_structure[node_idx]["volatility_parents"]
+
+        # select the update function
+        if node_idx == 0:
+            if self.node_structure[node_idx]["parameters"]["kind"] == 1:
+                update_fn = binary_input_update
+            elif self.node_structure[node_idx]["parameters"]["kind"] == 2:
+                update_fn = continuous_input_update
+        else:
+            update_fn = continuous_node_update
+
+        # create a new sequence step and add it to the list
+        new_sequence = node_idx, value_parent_idx, volatility_parent_idx, update_fn
+        update_sequence += (new_sequence,)
+
+        # search recursively for the nex update steps
+        if value_parent_idx is not None:
+            for idx in value_parent_idx:
+                update_sequence = self.get_update_sequence(
+                    node_idx=idx, update_sequence=update_sequence
+                )
+        if volatility_parent_idx is not None:
+            for idx in volatility_parent_idx:
+                update_sequence = self.get_update_sequence(
+                    node_idx=idx, update_sequence=update_sequence
+                )
+
+        return update_sequence

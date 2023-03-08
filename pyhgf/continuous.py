@@ -1,7 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import jax.numpy as jnp
 from jax import jit
@@ -62,8 +62,6 @@ def continuous_node_update(
     """
     # using the current node index, unwrap parameters and parents
     node_parameters = node_structure[node_idx]["parameters"]
-    # value_parents_idx = node_structure[node_idx]["value_parents"]
-    # volatility_parents_idx = node_structure[node_idx]["volatility_parents"]
 
     # return here if no parents node are provided
     if (value_parents_idx is None) and (volatility_parents_idx is None):
@@ -124,15 +122,6 @@ def continuous_node_update(
             node_structure[va_pa_idx]["parameters"]["muhat"] = muhat_pa
             node_structure[va_pa_idx]["parameters"]["mu"] = mu_pa
             node_structure[va_pa_idx]["parameters"]["nu"] = nu_pa
-
-            # if this parent has parent, update them recursively
-            node_structure = continuous_node_update(
-                node_structure=node_structure,
-                node_idx=va_pa_idx,
-                value_parents_idx=node_structure[va_pa_idx]["value_parents"],
-                volatility_parents_idx=node_structure[va_pa_idx]["volatility_parents"],
-                time_step=time_step,
-            )
 
     #############################
     # Update volatility parents #
@@ -195,15 +184,6 @@ def continuous_node_update(
             node_structure[vo_pa_idx]["parameters"]["mu"] = mu_pa
             node_structure[vo_pa_idx]["parameters"]["nu"] = nu_pa
 
-            # # if this parent has parent, update them recursively
-            # node_structure = continuous_node_update(
-            #     node_structure=node_structure,
-            #     node_idx=vo_pa_idx,
-            #     value_parents_idx=node_structure[vo_pa_idx]["value_parents"],
-            #     volatility_parents_idx=node_structure[vo_pa_idx]["volatility_parents"],
-            #     time_step=time_step
-            # )
-
     return node_structure
 
 
@@ -253,11 +233,7 @@ def continuous_input_update(
 
     """
     # using the current node index, unwrap parameters and parents
-    input_node_parameters = node_structure[0]["parameters"]
-    # value_parents_idx = node_structure[f"input_node_{node_idx}"]["value_parents"]
-    # volatility_parents_idx = node_structure[f"input_node_{node_idx}"][
-    #    "volatility_parents"
-    # ]
+    input_node_parameters = node_structure[node_idx]["parameters"]
 
     # return here if no parents node are provided
     if (value_parents_idx is None) and (volatility_parents_idx is None):
@@ -316,7 +292,7 @@ def continuous_input_update(
         if va_pa_value_parents_idx is not None:
             for va_pa_va_pa in va_pa_value_parents_idx:
                 driftrate += (
-                    va_pa_node_parameters["psi"]
+                    va_pa_node_parameters["psis"]
                     * node_structure[va_pa_va_pa]["parameters"]["mu"]
                 )
 
@@ -330,15 +306,6 @@ def continuous_input_update(
         node_structure[value_parents_idx[0]]["parameters"]["muhat"] = muhat_va_pa
         node_structure[value_parents_idx[0]]["parameters"]["mu"] = mu_va_pa
         node_structure[value_parents_idx[0]]["parameters"]["nu"] = nu_va_pa
-
-        # # Update node's parents recursively
-        # node_structure = continuous_node_update(
-        #     node_structure=node_structure,
-        #     node_idx=value_parents_idx[0],
-        #     value_parents_idx=node_structure[value_parents_idx[0]]["value_parents"],
-        #     volatility_parents_idx=node_structure[value_parents_idx[0]]["volatility_parents"],
-        #     time_step=time_step,
-        # )
 
     #############################
     # Update volatility parents #
@@ -406,17 +373,12 @@ def continuous_input_update(
         node_structure[volatility_parents_idx[0]]["parameters"]["mu"] = mu_vo_pa
         node_structure[volatility_parents_idx[0]]["parameters"]["nu"] = nu_vo_pa
 
-        # # Update node's parents recursively
-        # node_structure = continuous_node_update(
-        #     node_structure=node_structure,
-        #     node_idx=volatility_parents_idx[0],
-        #     time_step=time_step,
-        # )
-
-    # store input surprise in node's parameters
+    # store input surprise, value and timestep in the node's parameters
     node_structure[0]["parameters"]["surprise"] = gaussian_surprise(
         x=value, muhat=muhat_va_pa, pihat=pihat
     )
+    node_structure[0]["parameters"]["time_step"] = time_step
+    node_structure[0]["parameters"]["value"] = value
 
     return node_structure
 
@@ -462,62 +424,3 @@ def gaussian_surprise(
         - jnp.log(pihat)
         + pihat * jnp.square(jnp.subtract(x, muhat))
     )
-
-
-def loop_continuous_inputs(
-    node_structure: NodeStructure, data: Tuple
-) -> Tuple[Dict, Dict]:
-    """Update the node structure after observing one new data point.
-
-    One time step updating node structure and returning the new node structure with
-    time, value and surprise stored in the input node.
-
-    Parameters
-    ----------
-    node_structure :
-        The node structure.
-    data :
-        The current array element. Scan will iterate over a n x 2 DeviceArray with time
-        and values (i.e. the input time series).
-
-    """
-    # Extract the current iteration variables (value and time)
-    value, new_time = data
-
-    time_step = new_time - node_structure[0]["parameters"]["time"]
-
-    # Fit the model with the current time and value variables, given model structure
-    new_node_structure = continuous_input_update(
-        node_structure=node_structure,
-        value=value,
-        time_step=time_step,
-        node_idx=0,
-        value_parents_idx=node_structure[0]["value_parents"],
-        volatility_parents_idx=node_structure[0]["volatility_parents"],
-    )
-
-    node_structure[0]["parameters"]["time"] = new_time
-    node_structure[0]["parameters"]["value"] = value
-
-    return new_node_structure, new_node_structure  # ("carryover", "accumulated")
-
-
-@partial(jit, static_argnums=(1))
-def apply_sequence(
-    node_structure: NodeStructure,
-    update_sequence: Tuple,
-    time_step: Optional[float] = None,
-    value: Optional[float] = None,
-):
-    """Apply a predefinded update sequence to a node structure."""
-    for sequence in update_sequence:
-        node_idx, value_parents_idx, volatility_parents_idx, update_fn = sequence
-        node_structure = update_fn(
-            node_structure=node_structure,
-            node_idx=node_idx,
-            value_parents_idx=value_parents_idx,
-            volatility_parents_idx=volatility_parents_idx,
-            time_step=time_step,
-            value=value,
-        )
-    return node_structure

@@ -1,55 +1,62 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Dict, Tuple
+from functools import partial
+from typing import Dict, Optional, Tuple
+
+from jax import jit
+
+from pyhgf.typing import NodeStructure
 
 
-def structure_validation(node: Tuple):
-    """Verify that the node structure is valid."""
-    assert len(node) == 3
-    assert isinstance(node[0], Dict)
-    if node[1] is not None:
-        assert isinstance(node[1], tuple)
-    if node[2] is not None:
-        assert isinstance(node[2], tuple)
+def loop_inputs(
+    update_sequence: Tuple, node_structure: NodeStructure, data: Tuple
+) -> Tuple[Dict, Dict]:
+    """Update the node structure after observing one new data point.
 
-    for n in [1, 2]:
-        if node[n] is not None:
-            assert isinstance(node[n], tuple)
-            assert len(node[n]) > 0
-
-            for i in range(len(node[n])):
-                structure_validation(node[n][i])
-
-
-def structure_as_dict(
-    node_structure: Tuple, node_id: int = 0, structure_dict: Dict = {}
-):
-    """Transform a HGF node structure into a dictionary of nodes for analysis.
+    One time step updating node structure and returning the new node structure with
+    time, value and surprise stored in the input node.
 
     Parameters
     ----------
-    node_structure : tuple
-        A node structure comparible with the HGF updates.
-    node_id : int
-        The identifier for the current (starting) node.
-    structure_dict : dict
-        The node dictionary. Defaults is an empty dictionary.
-
-    Returns
-    -------
-    structure_dict : dict
-        A dictionary where every key is a node.
+    update_sequence :
+        The sequence of updates that will be applied to the node structure.
+    node_structure :
+        The node structure with the update sequence.
+    data :
+        The current array element. Scan will iterate over a n x 2 DeviceArray with time
+        and values (i.e. the input time series).
 
     """
-    structure_dict[f"node_{node_id}"] = node_structure[0]
-    node_id += 1
+    # Extract the current iteration variables (value and time)
+    value, time_step = data
 
-    # for values and volatility parents
-    for i in range(1, 3):
-        if node_structure[i] is not None:
-            # for each parent
-            for n in node_structure[i]:
-                structure_dict = structure_as_dict(
-                    node_structure=n, node_id=node_id, structure_dict=structure_dict
-                )
-    return structure_dict
+    # Fit the model with the current time and value variables, given model structure
+    new_node_structure = apply_sequence(
+        node_structure=node_structure,
+        update_sequence=update_sequence,
+        value=value,
+        time_step=time_step,
+    )
+
+    return new_node_structure, new_node_structure  # ("carryover", "accumulated")
+
+
+@partial(jit, static_argnums=(1))
+def apply_sequence(
+    node_structure: NodeStructure,
+    update_sequence: Tuple,
+    time_step: Optional[float] = None,
+    value: Optional[float] = None,
+):
+    """Apply a predefinded update sequence to a node structure."""
+    for sequence in update_sequence:
+        node_idx, value_parents_idx, volatility_parents_idx, update_fn = sequence
+        node_structure = update_fn(
+            node_structure=node_structure,
+            node_idx=node_idx,
+            value_parents_idx=value_parents_idx,
+            volatility_parents_idx=volatility_parents_idx,
+            time_step=time_step,
+            value=value,
+        )
+    return node_structure
