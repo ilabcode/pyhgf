@@ -55,7 +55,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
             kappa_2=jnp.nan,
         )
-        assert jnp.isclose(logp, 1938.0101)
+        assert jnp.isclose(logp, 1941.3623)
 
         ##############
         # Binary HGF #
@@ -91,7 +91,7 @@ class TestDistribution(TestCase):
             kappa_1=jnp.array(1.0),
             kappa_2=jnp.nan,
         )
-        assert jnp.isclose(logp, -215.11276)
+        assert jnp.isclose(logp, -215.58821)
 
     def test_grad_logp(self):
 
@@ -149,7 +149,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
         )
 
-        assert jnp.isclose(omega_1, 0.47931308)
+        assert jnp.isclose(omega_1, 0.48663694)
 
         ##############
         # Binary HGF #
@@ -206,7 +206,7 @@ class TestDistribution(TestCase):
                 np.array(1.0),
         )
 
-        assert jnp.isclose(omega_2, -3.3864107)
+        assert jnp.isclose(omega_2, -3.4070916)
 
     def test_aesara_logp(self):
         """Test the aesara hgf_logp op."""
@@ -244,7 +244,7 @@ class TestDistribution(TestCase):
             kappa_2=np.array(0.0),
         ).eval()
 
-        assert jnp.isclose(logp, 1938.01013184)
+        assert jnp.isclose(logp, 1941.36230469)
 
         ##############
         # Binary HGF #
@@ -279,7 +279,7 @@ class TestDistribution(TestCase):
             kappa_2=np.inf,
         ).eval()
 
-        assert jnp.isclose(logp, -215.11276245)
+        assert jnp.isclose(logp, -215.58821106)
 
     def test_aesara_grad_logp(self):
         """Test the aesara gradient hgf_logp op."""
@@ -312,7 +312,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
         )[0].eval()
 
-        assert jnp.isclose(omega_1, 0.47931308)
+        assert jnp.isclose(omega_1, 0.48663694)
         
         
         ##############
@@ -343,7 +343,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
         )[1].eval()
 
-        assert jnp.isclose(omega_2, 2.6229846)
+        assert jnp.isclose(omega_2, 2.6409647)
 
     def test_pymc_sampling(self):
         """Test the aesara hgf_logp op."""
@@ -391,7 +391,7 @@ class TestDistribution(TestCase):
 
         pointslogs = model.point_logps(initial_point)
         assert pointslogs["omega_2"] == -1.61
-        assert pointslogs["hhgf_loglike"] == 2149.04
+        assert pointslogs["hhgf_loglike"] == 2152.63
 
         with model:
             idata = pm.sample(chains=4, cores=4, tune=1000)
@@ -443,7 +443,7 @@ class TestDistribution(TestCase):
 
         pointslogs = model.point_logps(initial_point)
         assert pointslogs["omega_2"] == -1.61
-        assert pointslogs["hhgf_loglike"] == -230.72
+        assert pointslogs["hhgf_loglike"] == -231.19
 
         with model:
             idata = pm.sample(chains=4, cores=4, tune=1000)

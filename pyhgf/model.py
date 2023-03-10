@@ -10,7 +10,7 @@ from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
 from jax.tree_util import Partial
 
-from pyhgf.binary import binary_input_update
+from pyhgf.binary import binary_input_update, binary_node_update
 from pyhgf.continuous import (
     continuous_input_update,
     continuous_node_update,
@@ -568,6 +568,8 @@ class HGF(object):
                 update_fn = binary_input_update
             elif self.model_type == "continuous":
                 update_fn = continuous_input_update
+        elif (node_idx == 1) & (self.model_type == "binary"):
+            update_fn = binary_node_update
         else:
             update_fn = continuous_node_update
 

@@ -59,7 +59,7 @@ class Testcontinuous(TestCase):
         ###########################################
         sequence1 = 0, continuous_node_update
         update_sequence = (sequence1,)
-        new_node_structure = apply_sequence(
+        new_parameters_structure = apply_sequence(
             parameters_structure=parameters_structure, 
             time_step=1.0,
             node_structure=node_structure,
@@ -67,7 +67,7 @@ class Testcontinuous(TestCase):
             value=None
             )
 
-        assert node_structure == new_node_structure
+        assert parameters_structure == new_parameters_structure
 
         #######################
         # x_1 as value parent #

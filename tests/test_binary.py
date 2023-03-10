@@ -2,19 +2,23 @@
 
 import unittest
 from unittest import TestCase
+from jax.tree_util import Partial
 
 import jax.numpy as jnp
 from jax.lax import scan
 
 from pyhgf import load_data
-from pyhgf.structure import structure_validation
 from pyhgf.binary import (
-    loop_binary_inputs,
     binary_input_update,
+    binary_node_update,
     binary_surprise,
     gaussian_density,
     sgm
 )
+from pyhgf.continuous import continuous_node_update
+from pyhgf.structure import apply_sequence, loop_inputs
+from pyhgf.typing import Indexes
+
 
 
 class Testbinary(TestCase):
@@ -39,172 +43,74 @@ class Testbinary(TestCase):
         
     def test_update_binary_input_parents(self):
 
-        # One binary node and one continuous parent
+        ##########################
+        # three level binary HGF #
+        ##########################
         input_node_parameters = {
             "pihat": jnp.inf,
             "eta0": 0.0,
             "eta1": 1.0,
+            "surprise": 0.0,
+            "time_step": 0.0,
+            "value": 0.0,
+        }
+        node_parameters = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "kappas": (1.0,),
+            "mu": 1.0,
+            "nu": 1.0,
+            "psis": (1.0,),
+            "omega": 1.0,
+            "rho": 0.0,
         }
 
-        x2_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
-        }
-
-        x2 = (x2_parameters, None, None),
-
-        binary_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
-        }
-
-        binary_node = (binary_parameters, x2, None),
-
-        surprise, output_node = binary_input_update(
-            input_node=(input_node_parameters, binary_node, None),
-            value=1.0,
-            old_time=jnp.array(1.0),
-            new_time=jnp.array(2.0),
+        node_structure = (
+            Indexes((1,), None),
+            Indexes((2,), None),
+            Indexes(None, (3,)),
+            Indexes(None, None),
         )
-
-        assert surprise == 0.12692808
-
-        # Verify node structure
-        structure_validation(output_node)
-        assert len(output_node) == 3
-        assert isinstance(output_node[0], dict)
-        assert isinstance(output_node[1], tuple)
-        assert output_node[2] is None
-
-    def test_loop_binary_inputs(self):
-        """Test the function that should be scanned"""
-
-        # One binary node and one continuous parent
-        input_node_parameters = {
-            "pihat": 1e6,
-            "eta0": 0.0,
-            "eta1": 1.0,
-        }
-
-        x2_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
-        }
-
-        x2 = (x2_parameters, None, None),
-
-        binary_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
-        }
-
-        binary_node = (binary_parameters, x2, None),
+        parameters_structure = (
+            input_node_parameters,
+            node_parameters,
+            node_parameters,
+            node_parameters,
+        )
         
-        input_node=(input_node_parameters, binary_node, None)
+        # create update sequence
+        sequence1 = 0, binary_input_update
+        sequence2 = 1, binary_node_update
+        sequence3 = 2, continuous_node_update
+        update_sequence = (sequence1, sequence2, sequence3)
 
-        el = jnp.array(1.0), jnp.array(1.0)  # value, new_time
-        res_init = (
-            input_node,
-            {"time": jnp.array(0.0), "value": jnp.array(0.0), "surprise": 0.0},
-        )
+        # apply sequence
+        new_parameters_structure = apply_sequence(
+            node_structure=node_structure,
+            parameters_structure=parameters_structure,
+            update_sequence=update_sequence, 
+            time_step=1.0,
+            value=1.0
+            )
+        assert new_parameters_structure[0]["surprise"] == 0.31326166
 
-        res, _ = loop_binary_inputs(res=res_init, el=el)
-
-        _, results = res
-
-        assert results["time"] == 1.0
-        assert results["value"] == 1.0
-        assert jnp.isclose(results["surprise"], -12.769644)
-
-    def test_scan_loop(self):
-
-        ##############
-        # Binary HGF #
-        ##############
-
+        # use scan
         timeserie = load_data("binary")
 
-        # One binary node and one continuous parent
-        input_node_parameters = {
-            "pihat": jnp.inf,
-            "eta0": 0.0,
-            "eta1": 1.0,
-        }
+        # Create the data (value and time steps vectors)
+        data = jnp.array([timeserie, jnp.ones(len(timeserie), dtype=int)]).T
 
-        x2_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
-        }
 
-        x2 = (x2_parameters, None, None),
-
-        binary_parameters = {
-            "pihat": jnp.array(1.0),
-            "pi": jnp.array(1.0),
-            "muhat": jnp.array(1.0),
-            "kappas": None,
-            "mu": jnp.array(1.0),
-            "nu": jnp.array(1.0),
-            "psis": None,
-            "omega": jnp.array(1.0),
-            "rho": jnp.array(1.0),
-        }
-
-        binary_node = (binary_parameters, x2, None),
-        
-        input_node=(input_node_parameters, binary_node, None)
-
-        res_init = (
-            input_node,
-            {
-                "time": jnp.array(0.0),
-                "value": jnp.array(0.0),
-                "surprise": jnp.array(0.0),
-            },
-        )
-        # Create the data (value and time vectors)
-        data = jnp.array([timeserie, jnp.arange(1, len(timeserie) + 1, dtype=float)]).T
+        # create the function that will be scaned
+        scan_fn = Partial(
+            loop_inputs, 
+            update_sequence=update_sequence, 
+            node_structure=node_structure
+            )
 
         # Run the entire for loop
-        last, final = scan(loop_binary_inputs, res_init, data)
-
-        node_structure, results = final
-
+        last, final = scan(scan_fn, parameters_structure, data)
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)
