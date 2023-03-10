@@ -24,7 +24,6 @@ Core functionnalities to update *binary* node structures.
     gaussian_density
     sgm
     binary_surprise
-    loop_binary_inputs
 
 
 Continuous
@@ -40,7 +39,6 @@ Core functionnalities to update *continuous* node structures.
     continuous_node_update
     continuous_input_update
     gaussian_surprise
-    loop_continuous_inputs
 
 Distribution
 ------------
@@ -102,12 +100,12 @@ least the HGF instance as input after observation and returning surprise.
 Structure
 ---------
 
-Utilities for testing and manipulating node structures.
+Utilities for manipulating node structures and applying sequences.
 
 .. currentmodule:: pyhgf.structure
 
 .. autosummary::
    :toctree: generated/pyhgf.structure
 
-   structure_as_dict
-   structure_validation
+   loop_inputs
+   apply_sequence
