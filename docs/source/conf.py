@@ -59,7 +59,7 @@ numpydoc_show_class_members = False
 
 # raise an error if the documentation does not build and exit the process
 # this should especially ensure that the notebooks run correctly
-#nb_execution_raise_on_error = True
+nb_execution_raise_on_error = True
 
 # Include the example source for plots in API docs
 plot_include_source = True

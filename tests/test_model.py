@@ -29,11 +29,12 @@ class Testmodel(TestCase):
             rho={"1": 0.0, "2": 0.0},
             kappas={"1": 1.0},
         )
+        
         two_level_continuous_hgf.input_data(input_data=timeserie)
 
         surprise = two_level_continuous_hgf.surprise()  # Sum the surprise for this model
-        assert jnp.isclose(surprise, -1938.0101)
-        assert len(two_level_continuous_hgf.results["surprise"]) == 613
+        assert jnp.isclose(surprise, -1941.3623)
+        assert len(two_level_continuous_hgf.node_trajectories[0]["surprise"]) == 614
 
         # three-level
         # -----------
@@ -48,7 +49,7 @@ class Testmodel(TestCase):
         )
         three_level_continuous_hgf.input_data(input_data=timeserie)
         surprise = three_level_continuous_hgf.surprise()
-        assert jnp.isclose(surprise, -1915.0765)
+        assert jnp.isclose(surprise, -1918.408)
 
 
         ##########
@@ -74,7 +75,7 @@ class Testmodel(TestCase):
         # Provide new observations
         two_level_binary_hgf = two_level_binary_hgf.input_data(timeseries)
         surprise = two_level_binary_hgf.surprise()
-        assert jnp.isclose(surprise, 215.11276)
+        assert jnp.isclose(surprise, 215.58821)
 
         # three-level
         # -----------
@@ -91,8 +92,8 @@ class Testmodel(TestCase):
             pihat=jnp.inf,
         )
         three_level_binary_hgf.input_data(input_data=timeseries)
-        surprise = three_level_binary_hgf.results["surprise"].sum()
-        assert jnp.isclose(surprise, 215.11488)
+        surprise = three_level_binary_hgf.surprise()
+        assert jnp.isclose(surprise, 215.59067)
 
 
 if __name__ == "__main__":
