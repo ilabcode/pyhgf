@@ -49,7 +49,7 @@ if __name__ == "__main__":
         maintainer=MAINTAINER,
         maintainer_email=MAINTAINER_EMAIL,
         description=DESCRIPTION,
-        long_description=open("README.md").read(),
+        long_description=open("README.md", encoding='utf-8').read(),
         long_description_content_type="text/markdown",
         license="GPL-3.0",
         version=get_version("pyhgf/__init__.py"),
