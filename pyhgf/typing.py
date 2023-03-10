@@ -1,8 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Dict, NamedTuple, Optional, Tuple, Union
-
-from jax.interpreters.xla import DeviceArray
+from typing import Callable, NamedTuple, Optional, Tuple
 
 
 class Indexes(NamedTuple):
@@ -12,14 +10,6 @@ class Indexes(NamedTuple):
     volatility_parents: Optional[Tuple]
 
 
-ParametersType = Dict[
-    str, Optional[Union[DeviceArray, float, Tuple[DeviceArray, float]]]
-]
-NodeType = Tuple[
-    ParametersType,
-    Optional[Tuple],
-    Optional[Tuple],
-]
-ParentsType = Optional[Tuple[NodeType]]
+NodeStructure = Tuple[Indexes, ...]
 
-NodeStructure = Dict[str, NodeType]
+UpdateSequence = Tuple[Tuple[int, Callable], ...]

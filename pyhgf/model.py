@@ -1,12 +1,11 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from math import log
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple
 
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
-from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
 from jax.tree_util import Partial
 
@@ -19,7 +18,7 @@ from pyhgf.continuous import (
 from pyhgf.plots import plot_correlations, plot_trajectories
 from pyhgf.response import total_binary_surprise, total_gaussian_surprise
 from pyhgf.structure import loop_inputs
-from pyhgf.typing import Indexes
+from pyhgf.typing import Indexes, NodeStructure
 
 
 class HGF(object):
@@ -62,15 +61,15 @@ class HGF(object):
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
-        initial_mu: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0, "3": 0.0},
-        initial_pi: Dict[str, Optional[float]] = {"1": 1.0, "2": 1.0, "3": 1.0},
+        initial_mu: Dict[str, float] = {"1": 0.0, "2": 0.0, "3": 0.0},
+        initial_pi: Dict[str, float] = {"1": 1.0, "2": 1.0, "3": 1.0},
         omega_input: float = log(1e-4),
-        omega: Dict[str, Optional[float]] = {"1": -3.0, "2": -3.0, "3": -3.0},
-        kappas: Dict[str, Optional[float]] = {"1": 1.0, "2": 0.0},
+        omega: Dict[str, float] = {"1": -3.0, "2": -3.0, "3": -3.0},
+        kappas: Dict[str, float] = {"1": 1.0, "2": 0.0},
         eta0: float = 0.0,
         eta1: float = 1.0,
         pihat: float = jnp.inf,
-        rho: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0, "3": 0.0},
+        rho: Dict[str, float] = {"1": 0.0, "2": 0.0, "3": 0.0},
         verbose: bool = True,
     ):
         r"""Parameterization of the HGF model.
@@ -126,8 +125,9 @@ class HGF(object):
         self.model_type = model_type
         self.verbose = verbose
         self.n_levels = n_levels
-        self.parameters_structure = None
-        self.node_structure = None
+        self.node_structure: NodeStructure
+        self.node_trajectories: Dict
+        self.parameters_structure: Dict
 
         if model_type in ["continuous", "binary"]:
             if self.verbose:
@@ -198,7 +198,7 @@ class HGF(object):
 
     def input_data(
         self,
-        input_data: Union[List, np.ndarray, DeviceArray],
+        input_data: np.ndarray,
         time: Optional[np.ndarray] = None,
     ):
         """Add new observations.
@@ -417,7 +417,7 @@ class HGF(object):
         self.parameters_structure[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
-        structure_as_list = list(self.node_structure)
+        structure_as_list: List[Indexes] = list(self.node_structure)
 
         for idx in children_idxs:
             # add this node as parent and set value coupling
@@ -512,7 +512,7 @@ class HGF(object):
         self.parameters_structure[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
-        structure_as_list = list(self.node_structure)
+        structure_as_list: List[Indexes] = list(self.node_structure)
 
         for idx in children_idxs:
             # add this node as parent and set value coupling

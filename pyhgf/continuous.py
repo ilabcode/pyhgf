@@ -373,9 +373,7 @@ def continuous_input_update(
     return parameters_structure
 
 
-def gaussian_surprise(
-    x: jnp.DeviceArray, muhat: jnp.DeviceArray, pihat: jnp.DeviceArray
-) -> jnp.DeviceArray:
+def gaussian_surprise(x: float, muhat: float, pihat: float) -> jnp.DeviceArray:
     r"""Surprise at an outcome under a Gaussian prediction.
 
     The surprise ellicited by an observation :math:`x` under a Gaussian distribution
