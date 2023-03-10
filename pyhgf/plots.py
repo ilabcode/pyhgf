@@ -154,8 +154,8 @@ def plot_trajectories(
         ax_i = n_nodes - i
 
         # extract the sufficient statistics from the data frame
-        mu = trajectories_df[f"node_{i}_muhat"]
-        pi = trajectories_df[f"node_{i}_pihat"]
+        mu = trajectories_df[f"x_{i}_muhat"]
+        pi = trajectories_df[f"x_{i}_pihat"]
 
         # plotting mean
         axs[ax_i].plot(
@@ -175,8 +175,8 @@ def plot_trajectories(
                 sd = np.sqrt(1 / pi)
                 axs[ax_i].fill_between(
                     x=trajectories_df.time,
-                    y1=trajectories_df[f"node_{i}_muhat"] - sd,
-                    y2=trajectories_df[f"node_{i}_muhat"] + sd,
+                    y1=trajectories_df[f"x_{i}_muhat"] - sd,
+                    y2=trajectories_df[f"x_{i}_muhat"] + sd,
                     alpha=0.4,
                     color=color,
                     zorder=2,
@@ -187,7 +187,7 @@ def plot_trajectories(
             surprise_ax = axs[ax_i].twinx()
             surprise_ax.plot(
                 trajectories_df.time,
-                trajectories_df[f"node_{i}_surprise"],
+                trajectories_df[f"x_{i}_surprise"],
                 color="#2a2a2a",
                 linewidth=0.5,
                 linestyle="--",
@@ -196,8 +196,8 @@ def plot_trajectories(
             )
             surprise_ax.fill_between(
                 x=trajectories_df.time,
-                y1=trajectories_df[f"node_{i}_surprise"],
-                y2=trajectories_df[f"node_{i}_surprise"].min(),
+                y1=trajectories_df[f"x_{i}_surprise"],
+                y2=trajectories_df[f"x_{i}_surprise"].min(),
                 color="#7f7f7f",
                 alpha=0.2,
                 zorder=-1,

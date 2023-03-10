@@ -7,7 +7,7 @@ import jax.numpy as jnp
 from jax import jit
 
 
-@partial(jit, static_argnums=(2, 3))
+@partial(jit, static_argnames=("node_structure", "node_idx"))
 def continuous_node_update(
     parameters_structure: Dict,
     time_step: float,
@@ -63,7 +63,7 @@ def continuous_node_update(
 
     # return here if no parents node are provided
     if (value_parents_idx is None) and (volatility_parents_idx is None):
-        return node_structure
+        return parameters_structure
 
     pihat = node_parameters["pihat"]
 
@@ -181,13 +181,13 @@ def continuous_node_update(
     return parameters_structure
 
 
-@partial(jit, static_argnums=(3, 4))
+@partial(jit, static_argnames=("node_structure", "node_idx"))
 def continuous_input_update(
-    value: float,
-    time_step: float,
     parameters_structure: Dict,
-    node_structure: Dict,
+    time_step: float,
     node_idx: int,
+    node_structure: Tuple,
+    value: float,
 ) -> Dict:
     """Update the input node structure.
 
@@ -316,8 +316,6 @@ def continuous_input_update(
         ].volatility_parents
 
         vope = (1 / pi_va_pa + (value - mu_va_pa) ** 2) * pihat - 1
-
-        nu = vo_pa_node_parameters["nu"]
 
         # Compute new value for nu and pihat
         logvol = vo_pa_node_parameters["omega"]

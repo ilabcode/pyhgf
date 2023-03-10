@@ -5,14 +5,12 @@ from typing import Dict, Optional, Tuple
 
 from jax import jit
 
-from pyhgf.typing import NodeStructure
-
 
 def loop_inputs(
     parameters_structure: Dict,
     data: Tuple,
     update_sequence: Tuple,
-    node_structure: NodeStructure,
+    node_structure: Tuple,
 ) -> Tuple[Dict, Dict]:
     """Update the node structure after observing one new data point.
 
@@ -69,10 +67,10 @@ def apply_sequence(
     for sequence in update_sequence:
         node_idx, update_fn = sequence
         parameters_structure = update_fn(
-            value=value,
-            time_step=time_step,
             parameters_structure=parameters_structure,
+            time_step=time_step,
             node_idx=node_idx,
             node_structure=node_structure,
+            value=value,
         )
     return parameters_structure

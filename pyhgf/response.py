@@ -29,15 +29,12 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
         The model surprise given the input data.
 
     """
-    # Fill surprises with zeros if invalid input
-    this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf.results["value"][1:]), axis=0),
-        0.0,
-        hgf.results["surprise"],
-    )
-
     # Return an infinite surprise if the model cannot fit
-    this_surprise = jnp.where(jnp.isnan(this_surprise), jnp.inf, this_surprise)
+    this_surprise = jnp.where(
+        jnp.isnan(hgf.node_trajectories[0]["surprise"]),
+        jnp.inf,
+        hgf.node_trajectories[0]["surprise"],
+    )
 
     # Sum the surprise for this model
     surprise = jnp.sum(this_surprise)
@@ -66,15 +63,12 @@ def total_binary_surprise(hgf: "HGF", response_function_parameters=None):
         The model surprise given the input data.
 
     """
-    # Fill surprises with zeros if invalid input
-    this_surprise = jnp.where(
-        jnp.any(jnp.isnan(hgf.results["value"][1:]), axis=0),
-        0.0,
-        hgf.results["surprise"],
-    )
-
     # Return an infinite surprise if the model cannot fit
-    this_surprise = jnp.where(jnp.isnan(this_surprise), jnp.inf, this_surprise)
+    this_surprise = jnp.where(
+        jnp.isnan(hgf.node_trajectories[0]["surprise"]),
+        jnp.inf,
+        hgf.node_trajectories[0]["surprise"],
+    )
 
     # Sum the surprise for this model
     surprise = jnp.sum(this_surprise)
