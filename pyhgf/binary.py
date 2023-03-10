@@ -35,9 +35,8 @@ def binary_node_update(
         continuous nodes.
         .. note::
            `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes.
-           `"kappas"` is the volatility coupling strength. It should have same length
-           than the volatility parents' indexes.
+           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+           It should have same length than the volatility parents' indexes.
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
@@ -46,7 +45,6 @@ def binary_node_update(
     node_structure :
         Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
         For each node, the index list value and volatility parents.
-
 
     Returns
     -------
@@ -159,16 +157,14 @@ def binary_input_update(
         continuous nodes.
         .. note::
            `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes.
-           `"kappas"` is the volatility coupling strength. It should have same length
-           than the volatility parents' indexes.
+           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+           It should have same length than the volatility parents' indexes.
     node_structure :
         Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
         For each node, the index list value and volatility parents.
     node_idx :
         Pointer to the node that need to be updated. After continuous update, the
         parameters of value and volatility parents (if any) will be different.
-
 
     Returns
     -------

@@ -25,9 +25,8 @@ def loop_inputs(
         continuous nodes.
         .. note::
            `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes.
-           `"kappas"` is the volatility coupling strength. It should have same length
-           than the volatility parents' indexes.
+           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+           It should have same length than the volatility parents' indexes.
     data :
         The current array element. Scan will iterate over a n x 2 Array with time steps
         and values (i.e. the input time series).

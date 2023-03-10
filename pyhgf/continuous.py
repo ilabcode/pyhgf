@@ -21,8 +21,8 @@ def continuous_node_update(
     recursively.
 
     Updating the node's parents is a two step process:
-        1. Update value parent(s) and their parents (if provided).
-        2. Update volatility parent(s) and their parents (if provided).
+    1. Update value parent(s) and their parents (if provided).
+    2. Update volatility parent(s) and their parents (if provided).
 
     Then returns the new node structure.
 
@@ -34,9 +34,8 @@ def continuous_node_update(
         continuous nodes.
         .. note::
            `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes.
-           `"kappas"` is the volatility coupling strength. It should have same length
-           than the volatility parents' indexes.
+           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+           It should have same length than the volatility parents' indexes.
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
@@ -207,9 +206,8 @@ def continuous_input_update(
         continuous nodes.
         .. note::
            `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes.
-           `"kappas"` is the volatility coupling strength. It should have same length
-           than the volatility parents' indexes.
+           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+           It should have same length than the volatility parents' indexes.
     node_structure :
         Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
         For each node, the index list value and volatility parents.
