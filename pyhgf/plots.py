@@ -27,31 +27,25 @@ def plot_trajectories(
 
     Parameters
     ----------
-    hgf : :py:class:`pyhgf.model.HGF`
+    hgf :
         Instance of the HGF model.
-    ci : bool
+    ci :
         Show the uncertainty aroud the values estimates (standard deviation).
-    surprise : bool
+    surprise :
         If `True` plot each node's surprise together witt the sufficient statistics.
         If `False`, only the input node's surprise is depicted.
-    figsize : tuple
+    figsize :
         The width and height of the figure. Defaults to `(18, 9)` for a 2-levels model,
         or to `(18, 12)` for a 3-levels model.
-    axs : :class:`matplotlib.axes.Axes` | list | None
+    axs :
         A list of Matplotlib axes instance where to draw the trajectories. This should
         correspond to the number of nodes in the structure. Default is `None` (create a
         new figure).
 
     Returns
     -------
-    axs : :class:`matplotlib.axes.Axes`
+    axs :
         The Matplotlib axes instances where to plot the trajectories.
-
-    Notes
-    -----
-    The node structure can be a standard continuous or binary HGF, of a custom
-    structure. The nodes are traversed and plotted from bottom to top using
-    :py:func:`pyhgf.structure.structure_as_dict`.
 
     Examples
     --------
@@ -236,12 +230,12 @@ def plot_correlations(hgf: "HGF") -> Axes:
 
     Parameters
     ----------
-    hgf : :py:class:`pyhgf.model.HGF`
+    hgf :
         Instance of the HGF model.
 
     Returns
     -------
-    axs : :class:`matplotlib.axes.Axes`
+    axs :
         The Matplotlib ax instance containing the heatmap of parameters trajectories
         correlation.
 

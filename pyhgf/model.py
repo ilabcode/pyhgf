@@ -29,9 +29,6 @@ class HGF(object):
 
     Attributes
     ----------
-    hgf_results :
-        After oberving the data using the `input_data` method, the output of the model
-        are stored in the `hgf_results` dictionary.
     model_type :
         The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
     n_levels :
@@ -50,8 +47,6 @@ class HGF(object):
            volatility parents' indexes.
            `"kappas"` is the volatility coupling strength. It should have same length
            than the volatility parents' indexes.
-    results :
-        Time, values inputs and overall surprise of the model.
     verbose : bool
         Verbosity level.
 

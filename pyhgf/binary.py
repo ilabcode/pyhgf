@@ -1,11 +1,13 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Tuple
+from typing import Dict, Union
 
 import jax.numpy as jnp
-from jax import jit
+from jax import Array, jit
 from jax.lax import cond
+
+from pyhgf.typing import NodeStructure
 
 
 @partial(jit, static_argnames=("node_structure", "node_idx"))
@@ -13,7 +15,7 @@ def binary_node_update(
     parameters_structure: Dict,
     time_step: float,
     node_idx: int,
-    node_structure: Tuple,
+    node_structure: NodeStructure,
     **args
 ) -> Dict:
     """Update the value and volatility parents of a binary node.
@@ -109,11 +111,11 @@ def binary_node_update(
         # 3.2 Look at the (optional) va_pa's value parents
         # and update driftrate accordingly
         # if va_pa_value_parents is not None:
-        #     psi: DeviceArray
+        #     psi
         #     for va_pa_va_pa, psi in zip(
         #         va_pa_value_parents, va_pa_node_parameters["psis"]
         #     ):
-        #         _mu: DeviceArray = va_pa_va_pa[0]["mu"]
+        #         _mu = va_pa_va_pa[0]["mu"]
         #         driftrate += psi * _mu
         # 3.3
         muhat_pa = va_pa_node_parameters["mu"] + time_step * driftrate
@@ -136,7 +138,7 @@ def binary_input_update(
     parameters_structure: Dict,
     time_step: float,
     node_idx: int,
-    node_structure: Tuple,
+    node_structure: NodeStructure,
     value: float,
 ) -> Dict:
     """Update the input node structure given one observation.
@@ -213,8 +215,8 @@ def binary_input_update(
         # if va_pa_value_parents[0][1] is not None:
         #     for va_pa_va_pa in va_pa_value_parents[0][1]:
         #         # For each x2's value parents (optional)
-        #         _psi: DeviceArray = va_pa_value_parents[0][0]["psis"]
-        #         _mu: DeviceArray = va_pa_va_pa[0]["mu"]
+        #         _psi = va_pa_value_parents[0][0]["psis"]
+        #         _mu = va_pa_va_pa[0]["mu"]
         #         driftrate += _psi * _mu
 
         # 1.1.3 compute new_muhat
@@ -251,7 +253,9 @@ def binary_input_update(
     return parameters_structure
 
 
-def gaussian_density(x: float, mu: float, pi: float) -> jnp.DeviceArray:
+def gaussian_density(
+    x: Union[float, Array], mu: Union[float, Array], pi: Union[float, Array]
+) -> Array:
     """Gaussian density as defined by mean and precision."""
     return (
         pi
@@ -269,7 +273,7 @@ def sgm(
     return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound
 
 
-def binary_surprise(x: float, muhat: float) -> jnp.DeviceArray:
+def binary_surprise(x: Union[float, Array], muhat: Union[float, Array]) -> Array:
     r"""Surprise at a binary outcome.
 
     The surprise ellicited by a binary observation :math:`x` mean :math:`\hat{\mu}`
@@ -284,14 +288,14 @@ def binary_surprise(x: float, muhat: float) -> jnp.DeviceArray:
 
     Parameters
     ----------
-    x : jnp.DeviceArray
+    x :
         The outcome.
-    muhat : jnp.DeviceArray
+    muhat :
         The mean of the Bernouilli distribution.
 
     Returns
     -------
-    surprise : jnp.DeviceArray
+    surprise :
         The binary surprise.
 
 

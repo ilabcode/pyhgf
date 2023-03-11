@@ -18,14 +18,14 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
 
     Parameters
     ----------
-    hgf : :py:class:`pyhgf.model.HGF`
+    hgf :
         Instance of the HGF model.
-    response_function_parameters : None
+    response_function_parameters :
         No additional parameters are required to compute the Gaussian surprise.
 
     Returns
     -------
-    surprise : DeviceArray
+    surprise :
         The model surprise given the input data.
 
     """
@@ -52,14 +52,14 @@ def total_binary_surprise(hgf: "HGF", response_function_parameters=None):
 
     Parameters
     ----------
-    hgf : :py:class:`pyhgf.model.HGF`
+    hgf :
         Instance of the HGF model.
-    response_function_parameters : None
+    response_function_parameters :
         No additional parameters are required to compute the binary surprise.
 
     Returns
     -------
-    surprise : DeviceArray
+    surprise :
         The model surprise given the input data.
 
     """
