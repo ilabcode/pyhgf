@@ -210,7 +210,7 @@ class HGF(object):
         if self.verbose:
             print((f"Add {len(input_data)} new {self.model_type} observations."))
         if time is None:
-            time = jnp.ones(len(input_data), dtype=int)  # time step vector
+            time = np.ones(len(input_data), dtype=int)  # time step vector
 
         # create the function that will be scaned
         scan_fn = Partial(

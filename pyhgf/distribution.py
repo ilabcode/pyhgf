@@ -5,7 +5,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 import jax.numpy as jnp
 import numpy as np
 import pytensor.tensor as pt
-from jax import grad, jit
+from jax import Array, grad, jit
 from jax.tree_util import Partial
 from pytensor.graph import Apply, Op
 
@@ -180,30 +180,30 @@ def hgf_logp(
     for i in range(n):
 
         # Format HGF parameters
-        initial_mu: Dict[str, float] = {
+        initial_mu: Dict[str, Array] = {
             "1": _mu_1[i],
             "2": _mu_2[i],
             "3": _mu_3[i],
         }
-        initial_pi: Dict[str, float] = {
+        initial_pi: Dict[str, Array] = {
             "1": _pi_1[i],
             "2": _pi_2[i],
             "3": _pi_3[i],
         }
-        omega: Dict[str, float] = {
+        omega: Dict[str, Array] = {
             "1": _omega_1[i],
             "2": _omega_2[i],
             "3": _omega_3[i],
         }
-        rho: Dict[str, float] = {"1": _rho_1[i], "2": _rho_2[i], "3": _rho_3[i]}
-        kappas: Dict[str, float] = {"1": _kappa_1[i], "2": _kappa_2[i]}
+        rho: Dict[str, Array] = {"1": _rho_1[i], "2": _rho_2[i], "3": _rho_3[i]}
+        kappas: Dict[str, Array] = {"1": _kappa_1[i], "2": _kappa_2[i]}
 
         surprise = surprise + (
             HGF(
                 initial_mu=initial_mu,
                 initial_pi=initial_pi,
                 omega=omega,
-                omega_input=omega_input[i],
+                omega_input=_omega_input[i],
                 rho=rho,
                 kappas=kappas,
                 model_type=model_type,
