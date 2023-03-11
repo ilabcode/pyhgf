@@ -207,10 +207,8 @@ class HGF(object):
             `np.arange(0, len(input_data))`.
 
         """
-        input_data = jnp.asarray(input_data)
-
         if self.verbose:
-            print((f"Add {input_data.shape[0]} new {self.model_type} observations."))
+            print((f"Add {len(input_data)} new {self.model_type} observations."))
         if time is None:
             time = jnp.ones(len(input_data), dtype=int)  # time step vector
 

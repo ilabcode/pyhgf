@@ -132,21 +132,21 @@ def hgf_logp(
 
     # Broadcast inputs to an array with length n>=1
     (
-        omega_1,
-        omega_2,
-        omega_3,
-        omega_input,
-        rho_1,
-        rho_2,
-        rho_3,
-        pi_1,
-        pi_2,
-        pi_3,
-        mu_1,
-        mu_2,
-        mu_3,
-        kappa_1,
-        kappa_2,
+        _omega_1,
+        _omega_2,
+        _omega_3,
+        _omega_input,
+        _rho_1,
+        _rho_2,
+        _rho_3,
+        _pi_1,
+        _pi_2,
+        _pi_3,
+        _mu_1,
+        _mu_2,
+        _mu_3,
+        _kappa_1,
+        _kappa_2,
         _,
     ) = jnp.broadcast_arrays(
         omega_1,
@@ -181,22 +181,22 @@ def hgf_logp(
 
         # Format HGF parameters
         initial_mu: Dict[str, float] = {
-            "1": mu_1[i],
-            "2": mu_2[i],
-            "3": mu_3[i],
+            "1": _mu_1[i],
+            "2": _mu_2[i],
+            "3": _mu_3[i],
         }
         initial_pi: Dict[str, float] = {
-            "1": pi_1[i],
-            "2": pi_2[i],
-            "3": pi_3[i],
+            "1": _pi_1[i],
+            "2": _pi_2[i],
+            "3": _pi_3[i],
         }
         omega: Dict[str, float] = {
-            "1": omega_1[i],
-            "2": omega_2[i],
-            "3": omega_3[i],
+            "1": _omega_1[i],
+            "2": _omega_2[i],
+            "3": _omega_3[i],
         }
-        rho: Dict[str, float] = {"1": rho_1[i], "2": rho_2[i], "3": rho_3[i]}
-        kappas: Dict[str, float] = {"1": kappa_1[i], "2": kappa_2[i]}
+        rho: Dict[str, float] = {"1": _rho_1[i], "2": _rho_2[i], "3": _rho_3[i]}
+        kappas: Dict[str, float] = {"1": _kappa_1[i], "2": _kappa_2[i]}
 
         surprise = surprise + (
             HGF(
