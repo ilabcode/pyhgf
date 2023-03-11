@@ -5,6 +5,7 @@ from typing import Dict, Union
 
 import jax.numpy as jnp
 from jax import Array, jit
+from jax.typing import ArrayLike
 
 from pyhgf.typing import NodeStructure
 
@@ -376,7 +377,9 @@ def continuous_input_update(
 
 
 def gaussian_surprise(
-    x: Union[float, Array], muhat: Union[float, Array], pihat: Union[float, Array]
+    x: Union[float, ArrayLike],
+    muhat: Union[float, ArrayLike],
+    pihat: Union[float, ArrayLike],
 ) -> Array:
     r"""Surprise at an outcome under a Gaussian prediction.
 

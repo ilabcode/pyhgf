@@ -1,13 +1,15 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from math import log
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
+from jax import Array
 from jax.lax import scan
 from jax.tree_util import Partial
+from jax.typing import ArrayLike
 
 from pyhgf.binary import binary_input_update, binary_node_update
 from pyhgf.continuous import (
@@ -56,15 +58,31 @@ class HGF(object):
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
-        initial_mu: Dict[str, float] = {"1": 0.0, "2": 0.0, "3": 0.0},
-        initial_pi: Dict[str, float] = {"1": 1.0, "2": 1.0, "3": 1.0},
-        omega_input: float = log(1e-4),
-        omega: Dict[str, float] = {"1": -3.0, "2": -3.0, "3": -3.0},
-        kappas: Dict[str, float] = {"1": 1.0, "2": 0.0},
-        eta0: float = 0.0,
-        eta1: float = 1.0,
-        pihat: float = jnp.inf,
-        rho: Dict[str, float] = {"1": 0.0, "2": 0.0, "3": 0.0},
+        initial_mu: Dict[str, Union[float, np.ndarray, ArrayLike]] = {
+            "1": 0.0,
+            "2": 0.0,
+            "3": 0.0,
+        },
+        initial_pi: Dict[str, Union[float, np.ndarray, ArrayLike]] = {
+            "1": 1.0,
+            "2": 1.0,
+            "3": 1.0,
+        },
+        omega_input: Union[float, np.ndarray, ArrayLike] = log(1e-4),
+        omega: Dict[str, Union[float, np.ndarray, ArrayLike]] = {
+            "1": -3.0,
+            "2": -3.0,
+            "3": -3.0,
+        },
+        kappas: Dict[str, Union[float, np.ndarray, ArrayLike]] = {"1": 1.0, "2": 0.0},
+        eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
+        eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
+        pihat: Union[float, np.ndarray, ArrayLike] = jnp.inf,
+        rho: Dict[str, Union[float, np.ndarray, ArrayLike]] = {
+            "1": 0.0,
+            "2": 0.0,
+            "3": 0.0,
+        },
         verbose: bool = True,
     ):
         r"""Parameterization of the HGF model.
@@ -316,10 +334,10 @@ class HGF(object):
     def add_input_node(
         self,
         kind: str,
-        omega_input: float = log(1e-4),
-        pihat: float = jnp.inf,
-        eta0: float = 0.0,
-        eta1: float = 1.0,
+        omega_input: Union[float, np.ndarray, Array] = log(1e-4),
+        pihat: Union[float, np.ndarray, Array] = jnp.inf,
+        eta0: Union[float, np.ndarray, Array] = 0.0,
+        eta1: Union[float, np.ndarray, Array] = 1.0,
     ):
         """Create an input node."""
         if kind == "continuous":
@@ -346,16 +364,16 @@ class HGF(object):
     def add_value_parent(
         self,
         children_idxs: List,
-        value_coupling: float = 1.0,
-        mu: float = 0.0,
-        mu_hat: float = jnp.nan,
-        pi: float = 1.0,
-        pi_hat: float = jnp.nan,
+        value_coupling: Union[float, np.ndarray, Array] = 1.0,
+        mu: Union[float, np.ndarray, Array] = 0.0,
+        mu_hat: Union[float, np.ndarray, Array] = jnp.nan,
+        pi: Union[float, np.ndarray, Array] = 1.0,
+        pi_hat: Union[float, np.ndarray, Array] = jnp.nan,
         kappas: Optional[Tuple] = None,
-        nu: float = jnp.nan,
+        nu: Union[float, np.ndarray, Array] = jnp.nan,
         psis: Optional[Tuple] = None,
-        omega: float = jnp.nan,
-        rho: float = 0.0,
+        omega: Union[float, np.ndarray, Array] = jnp.nan,
+        rho: Union[float, np.ndarray, Array] = 0.0,
     ):
         """Add a value parent to node.
 
@@ -441,16 +459,16 @@ class HGF(object):
     def add_volatility_parent(
         self,
         children_idxs: List,
-        volatility_coupling: float,
-        mu: float = 0.0,
-        mu_hat: float = jnp.nan,
-        pi: float = 1.0,
-        pi_hat: float = jnp.nan,
+        volatility_coupling: Union[float, np.ndarray, Array],
+        mu: Union[float, np.ndarray, Array] = 0.0,
+        mu_hat: Union[float, np.ndarray, Array] = jnp.nan,
+        pi: Union[float, np.ndarray, Array] = 1.0,
+        pi_hat: Union[float, np.ndarray, Array] = jnp.nan,
         kappas: Optional[Tuple] = None,
-        nu: float = jnp.nan,
+        nu: Union[float, np.ndarray, Array] = jnp.nan,
         psis: Optional[Tuple] = None,
-        omega: float = jnp.nan,
-        rho: float = 0.0,
+        omega: Union[float, np.ndarray, Array] = jnp.nan,
+        rho: Union[float, np.ndarray, Array] = 0.0,
     ):
         """Add a volatility parent to node.
 

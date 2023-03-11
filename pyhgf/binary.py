@@ -6,6 +6,7 @@ from typing import Dict, Union
 import jax.numpy as jnp
 from jax import Array, jit
 from jax.lax import cond
+from jax.typing import ArrayLike
 
 from pyhgf.typing import NodeStructure
 
@@ -254,7 +255,7 @@ def binary_input_update(
 
 
 def gaussian_density(
-    x: Union[float, Array], mu: Union[float, Array], pi: Union[float, Array]
+    x: Union[float, ArrayLike], mu: Union[float, ArrayLike], pi: Union[float, ArrayLike]
 ) -> Array:
     """Gaussian density as defined by mean and precision."""
     return (
@@ -266,14 +267,16 @@ def gaussian_density(
 
 def sgm(
     x,
-    lower_bound=jnp.array(0.0),
-    upper_bound=jnp.array(1.0),
-):
+    lower_bound: ArrayLike = jnp.array(0.0),
+    upper_bound: ArrayLike = jnp.array(1.0),
+) -> Array:
     """Logistic sigmoid function."""
     return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound
 
 
-def binary_surprise(x: Union[float, Array], muhat: Union[float, Array]) -> Array:
+def binary_surprise(
+    x: Union[float, ArrayLike], muhat: Union[float, ArrayLike]
+) -> Array:
     r"""Surprise at a binary outcome.
 
     The surprise ellicited by a binary observation :math:`x` mean :math:`\hat{\mu}`
