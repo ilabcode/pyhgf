@@ -2,7 +2,6 @@
 
 import itertools
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -10,6 +9,7 @@ import seaborn as sns
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
+    from graphviz.sources import Source
     from pyhgf.model import HGF
 
 
@@ -272,3 +272,75 @@ def plot_correlations(hgf: "HGF") -> Axes:
     ax.set_title("Correlations between the model trajectories")
 
     return ax
+
+
+def plot_network(hgf: "HGF") -> "Source":
+    """Visualization of node network using GraphViz.
+
+    Parameters
+    ----------
+    hgf :
+        Instance of the HGF model containing a node structure.
+
+    Notes
+    -----
+    This function requires [Graphviz](https://github.com/xflr6/graphviz) to be
+    installed to work correctly.
+    
+    """
+    try:
+        import graphviz
+    except ImportError:
+        print(
+            (
+                "Graphviz is required to plot the nodes structure. "
+                "See https://pypi.org/project/graphviz/"
+                )
+            )
+
+    graphviz_structure = graphviz.Digraph('hgf-nodes', comment='Nodes structure')
+
+    graphviz_structure.attr('node', shape='circle')
+
+    # create nodes
+    for i in range(len(hgf.node_structure)):
+        if i == 0:
+            if hgf.model_type == "binary":
+                graphviz_structure.node(
+                    f"x_{i}", label="u", xlabel="Binary input", style="filled"
+                    )
+            elif hgf.model_type == "continuous":
+                graphviz_structure.node(
+                    f"x_{i}", label="u", xlabel="Continuous input", style="filled"
+                    )
+            else:
+                graphviz_structure.node(
+                    "x_{i}", label="u", xlabel="Input", style="filled"
+                    )
+        else:
+            graphviz_structure.node(f"x_{i}", label=str(i))
+
+    # connect value parents
+    for i, idx in enumerate(hgf.node_structure):
+        value_parents, _ = idx
+        
+        if value_parents is not None:
+            for value_parents_idx in value_parents:
+                graphviz_structure.edge(
+                    f"x_{value_parents_idx}", f"x_{i}",
+                    )
+
+    # connect volatility parents
+    for i, idx in enumerate(hgf.node_structure):
+        _, volatility_parents = idx
+        
+        if volatility_parents is not None:
+            for volatility_parents_idx in volatility_parents:
+                graphviz_structure.edge(
+                    f"x_{volatility_parents_idx}", f"x_{i}", color="gray", style="dashed"
+                    )
+    
+    # unflat the structure to better handle large/uneven networks
+    graphviz_structure = graphviz_structure.unflatten(stagger=3)
+
+    return graphviz_structure

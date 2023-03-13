@@ -16,7 +16,7 @@ from pyhgf.continuous import (
     continuous_node_update,
     gaussian_surprise,
 )
-from pyhgf.plots import plot_correlations, plot_trajectories
+from pyhgf.plots import plot_correlations, plot_trajectories, plot_network
 from pyhgf.response import total_binary_surprise, total_gaussian_surprise
 from pyhgf.structure import loop_inputs
 from pyhgf.typing import Indexes, NodeStructure
@@ -257,6 +257,9 @@ class HGF(object):
     def plot_correlations(self):
         """Plot the heatmap of cross-trajectories correlation."""
         return plot_correlations(hgf=self)
+
+    def plot_network(self):
+        return plot_network(hgf=self)
 
     def surprise(
         self,

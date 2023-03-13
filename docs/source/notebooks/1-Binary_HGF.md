@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.1
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -21,7 +21,7 @@ kernelspec:
 %%capture
 import sys
 if 'google.colab' in sys.modules:
-    ! pip install pyhgf
+    ! pip install pyhgf2
 ```
 
 ```{code-cell} ipython3
@@ -77,9 +77,11 @@ two_levels_hgf = HGF(
 )
 ```
 
-This function create an instance of a HGF model automatically parametrized for a 2-levels binary structure, so we do not have to worry about creating the nodes structure ourself. This class also embed function to add new observations and plots results that we are going to use below.
+This function create an instance of a HGF model automatically parametrized for a 2-levels binary structure, so we do not have to worry about creating the nodes structure ourself. This class also embed function to add new observations and plots results that we are going to use below. We can have a look at the node structure itself using the {ref}`pyhgf.plots.plot_network` function. This function will automatically dray the provided node structure using [Graphviz](https://github.com/xflr6/graphviz).
 
-+++
+```{code-cell} ipython3
+two_levels_hgf.plot_network()
+```
 
 #### Add data
 
@@ -130,6 +132,12 @@ three_levels_hgf = HGF(
     eta1=1.0,
     pihat = jnp.inf,
 )
+```
+
+The node structure now includes a volatility parent at the third level.
+
+```{code-cell} ipython3
+three_levels_hgf.plot_network()
 ```
 
 #### Add data
