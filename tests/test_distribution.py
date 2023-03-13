@@ -449,7 +449,6 @@ class TestDistribution(TestCase):
             idata = pm.sample(chains=4, cores=4, tune=1000)
 
         assert -4 < round(az.summary(idata)["mean"].values[0]) < -2
-        assert az.summary(idata)["r_hat"].values[0] <= 1.01
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)

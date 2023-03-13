@@ -256,7 +256,11 @@ def binary_input_update(
 
 def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike):
     """Gaussian density as defined by mean and precision."""
-    return pi / jnp.sqrt(2 * jnp.pi) * jnp.exp(-pi / 2 * (x - mu) ** 2)
+    return (
+        pi
+        / jnp.sqrt(2 * jnp.pi)
+        * jnp.exp(jnp.subtract(0, pi) / 2 * (jnp.subtract(x, mu)) ** 2)
+    )
 
 
 def sgm(
