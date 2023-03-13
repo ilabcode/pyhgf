@@ -1,33 +1,34 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
 import pytensor.tensor as pt
-from jax import Array, grad, jit
+from jax import grad, jit
 from jax.tree_util import Partial
+from jax.typing import ArrayLike
 from pytensor.graph import Apply, Op
 
 from pyhgf.model import HGF
 
 
 def hgf_logp(
-    omega_1: np.ndarray,
-    omega_2: np.ndarray,
-    omega_3: np.ndarray,
-    omega_input: np.ndarray,
-    rho_1: np.ndarray,
-    rho_2: np.ndarray,
-    rho_3: np.ndarray,
-    pi_1: np.ndarray,
-    pi_2: np.ndarray,
-    pi_3: np.ndarray,
-    mu_1: np.ndarray,
-    mu_2: np.ndarray,
-    mu_3: np.ndarray,
-    kappa_1: np.ndarray,
-    kappa_2: np.ndarray,
+    omega_1: Union[np.ndarray, ArrayLike, float],
+    omega_2: Union[np.ndarray, ArrayLike, float],
+    omega_3: Union[np.ndarray, ArrayLike, float],
+    omega_input: Union[np.ndarray, ArrayLike, float],
+    rho_1: Union[np.ndarray, ArrayLike, float],
+    rho_2: Union[np.ndarray, ArrayLike, float],
+    rho_3: Union[np.ndarray, ArrayLike, float],
+    pi_1: Union[np.ndarray, ArrayLike, float],
+    pi_2: Union[np.ndarray, ArrayLike, float],
+    pi_3: Union[np.ndarray, ArrayLike, float],
+    mu_1: Union[np.ndarray, ArrayLike, float],
+    mu_2: Union[np.ndarray, ArrayLike, float],
+    mu_3: Union[np.ndarray, ArrayLike, float],
+    kappa_1: Union[np.ndarray, ArrayLike, float],
+    kappa_2: Union[np.ndarray, ArrayLike, float],
     input_data: List[np.ndarray],
     response_function: Callable,
     model_type: str,
@@ -180,23 +181,23 @@ def hgf_logp(
     for i in range(n):
 
         # Format HGF parameters
-        initial_mu: Dict[str, Array] = {
+        initial_mu: Dict = {
             "1": _mu_1[i],
             "2": _mu_2[i],
             "3": _mu_3[i],
         }
-        initial_pi: Dict[str, Array] = {
+        initial_pi: Dict = {
             "1": _pi_1[i],
             "2": _pi_2[i],
             "3": _pi_3[i],
         }
-        omega: Dict[str, Array] = {
+        omega: Dict = {
             "1": _omega_1[i],
             "2": _omega_2[i],
             "3": _omega_3[i],
         }
-        rho: Dict[str, Array] = {"1": _rho_1[i], "2": _rho_2[i], "3": _rho_3[i]}
-        kappas: Dict[str, Array] = {"1": _kappa_1[i], "2": _kappa_2[i]}
+        rho: Dict = {"1": _rho_1[i], "2": _rho_2[i], "3": _rho_3[i]}
+        kappas: Dict = {"1": _kappa_1[i], "2": _kappa_2[i]}
 
         surprise = surprise + (
             HGF(

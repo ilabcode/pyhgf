@@ -254,21 +254,15 @@ def binary_input_update(
     return parameters_structure
 
 
-def gaussian_density(
-    x: Union[float, ArrayLike], mu: Union[float, ArrayLike], pi: Union[float, ArrayLike]
-) -> Array:
+def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike):
     """Gaussian density as defined by mean and precision."""
-    return (
-        pi
-        / jnp.sqrt(2 * jnp.pi)
-        * jnp.exp(jnp.subtract(0, pi) / 2 * (jnp.subtract(x, mu)) ** 2)
-    )
+    return pi / jnp.sqrt(2 * jnp.pi) * jnp.exp(-pi / 2 * (x - mu) ** 2)
 
 
 def sgm(
     x,
-    lower_bound: ArrayLike = jnp.array(0.0),
-    upper_bound: ArrayLike = jnp.array(1.0),
+    lower_bound: Union[ArrayLike, float] = 0.0,
+    upper_bound: Union[ArrayLike, float] = 1.0,
 ) -> Array:
     """Logistic sigmoid function."""
     return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound

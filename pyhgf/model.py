@@ -57,27 +57,27 @@ class HGF(object):
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
-        initial_mu: Dict[str, Union[float, np.ndarray, ArrayLike]] = {
+        initial_mu: Dict = {
             "1": 0.0,
             "2": 0.0,
             "3": 0.0,
         },
-        initial_pi: Dict[str, Union[float, np.ndarray, ArrayLike]] = {
+        initial_pi: Dict = {
             "1": 1.0,
             "2": 1.0,
             "3": 1.0,
         },
         omega_input: Union[float, np.ndarray, ArrayLike] = log(1e-4),
-        omega: Dict[str, Union[float, np.ndarray, ArrayLike]] = {
+        omega: Dict = {
             "1": -3.0,
             "2": -3.0,
             "3": -3.0,
         },
-        kappas: Dict[str, Union[float, np.ndarray, ArrayLike]] = {"1": 1.0, "2": 0.0},
+        kappas: Dict = {"1": 1.0, "2": 0.0},
         eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
         eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
         pihat: Union[float, np.ndarray, ArrayLike] = jnp.inf,
-        rho: Dict[str, Union[float, np.ndarray, ArrayLike]] = {
+        rho: Dict = {
             "1": 0.0,
             "2": 0.0,
             "3": 0.0,
