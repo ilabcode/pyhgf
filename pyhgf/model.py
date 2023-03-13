@@ -6,9 +6,9 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
-from jax.interpreters.xla import DeviceArray
 from jax.lax import scan
 from jax.tree_util import Partial
+from jax.typing import ArrayLike
 
 from pyhgf.binary import binary_input_update, binary_node_update
 from pyhgf.continuous import (
@@ -19,7 +19,7 @@ from pyhgf.continuous import (
 from pyhgf.plots import plot_correlations, plot_trajectories
 from pyhgf.response import total_binary_surprise, total_gaussian_surprise
 from pyhgf.structure import loop_inputs
-from pyhgf.typing import Indexes
+from pyhgf.typing import Indexes, NodeStructure
 
 
 class HGF(object):
@@ -30,9 +30,6 @@ class HGF(object):
 
     Attributes
     ----------
-    hgf_results :
-        After oberving the data using the `input_data` method, the output of the model
-        are stored in the `hgf_results` dictionary.
     model_type :
         The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
     n_levels :
@@ -51,8 +48,6 @@ class HGF(object):
            volatility parents' indexes.
            `"kappas"` is the volatility coupling strength. It should have same length
            than the volatility parents' indexes.
-    results :
-        Time, values inputs and overall surprise of the model.
     verbose : bool
         Verbosity level.
 
@@ -62,15 +57,31 @@ class HGF(object):
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
-        initial_mu: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0, "3": 0.0},
-        initial_pi: Dict[str, Optional[float]] = {"1": 1.0, "2": 1.0, "3": 1.0},
-        omega_input: float = log(1e-4),
-        omega: Dict[str, Optional[float]] = {"1": -3.0, "2": -3.0, "3": -3.0},
-        kappas: Dict[str, Optional[float]] = {"1": 1.0, "2": 0.0},
-        eta0: float = 0.0,
-        eta1: float = 1.0,
-        pihat: float = jnp.inf,
-        rho: Dict[str, Optional[float]] = {"1": 0.0, "2": 0.0, "3": 0.0},
+        initial_mu: Dict = {
+            "1": 0.0,
+            "2": 0.0,
+            "3": 0.0,
+        },
+        initial_pi: Dict = {
+            "1": 1.0,
+            "2": 1.0,
+            "3": 1.0,
+        },
+        omega_input: Union[float, np.ndarray, ArrayLike] = log(1e-4),
+        omega: Dict = {
+            "1": -3.0,
+            "2": -3.0,
+            "3": -3.0,
+        },
+        kappas: Dict = {"1": 1.0, "2": 0.0},
+        eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
+        eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
+        pihat: Union[float, np.ndarray, ArrayLike] = jnp.inf,
+        rho: Dict = {
+            "1": 0.0,
+            "2": 0.0,
+            "3": 0.0,
+        },
         verbose: bool = True,
     ):
         r"""Parameterization of the HGF model.
@@ -126,8 +137,9 @@ class HGF(object):
         self.model_type = model_type
         self.verbose = verbose
         self.n_levels = n_levels
-        self.parameters_structure = None
-        self.node_structure = None
+        self.node_structure: NodeStructure
+        self.node_trajectories: Dict
+        self.parameters_structure: Dict
 
         if model_type in ["continuous", "binary"]:
             if self.verbose:
@@ -198,7 +210,7 @@ class HGF(object):
 
     def input_data(
         self,
-        input_data: Union[List, np.ndarray, DeviceArray],
+        input_data: np.ndarray,
         time: Optional[np.ndarray] = None,
     ):
         """Add new observations.
@@ -212,12 +224,10 @@ class HGF(object):
             `np.arange(0, len(input_data))`.
 
         """
-        input_data = jnp.asarray(input_data)
-
         if self.verbose:
-            print((f"Add {input_data.shape[0]} new {self.model_type} observations."))
+            print((f"Add {len(input_data)} new {self.model_type} observations."))
         if time is None:
-            time = jnp.ones(len(input_data), dtype=int)  # time step vector
+            time = np.ones(len(input_data), dtype=int)  # time step vector
 
         # create the function that will be scaned
         scan_fn = Partial(
@@ -323,10 +333,10 @@ class HGF(object):
     def add_input_node(
         self,
         kind: str,
-        omega_input: float = log(1e-4),
-        pihat: float = jnp.inf,
-        eta0: float = 0.0,
-        eta1: float = 1.0,
+        omega_input: Union[float, np.ndarray, ArrayLike] = log(1e-4),
+        pihat: Union[float, np.ndarray, ArrayLike] = jnp.inf,
+        eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
+        eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
     ):
         """Create an input node."""
         if kind == "continuous":
@@ -353,16 +363,16 @@ class HGF(object):
     def add_value_parent(
         self,
         children_idxs: List,
-        value_coupling: float = 1.0,
-        mu: float = 0.0,
-        mu_hat: float = jnp.nan,
-        pi: float = 1.0,
-        pi_hat: float = jnp.nan,
+        value_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
+        mu: Union[float, np.ndarray, ArrayLike] = 0.0,
+        mu_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        pi: Union[float, np.ndarray, ArrayLike] = 1.0,
+        pi_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         kappas: Optional[Tuple] = None,
-        nu: float = jnp.nan,
+        nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         psis: Optional[Tuple] = None,
-        omega: float = jnp.nan,
-        rho: float = 0.0,
+        omega: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        rho: Union[float, np.ndarray, ArrayLike] = 0.0,
     ):
         """Add a value parent to node.
 
@@ -417,7 +427,7 @@ class HGF(object):
         self.parameters_structure[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
-        structure_as_list = list(self.node_structure)
+        structure_as_list: List[Indexes] = list(self.node_structure)
 
         for idx in children_idxs:
             # add this node as parent and set value coupling
@@ -448,16 +458,16 @@ class HGF(object):
     def add_volatility_parent(
         self,
         children_idxs: List,
-        volatility_coupling: float,
-        mu: float = 0.0,
-        mu_hat: float = jnp.nan,
-        pi: float = 1.0,
-        pi_hat: float = jnp.nan,
+        volatility_coupling: Union[float, np.ndarray, ArrayLike],
+        mu: Union[float, np.ndarray, ArrayLike] = 0.0,
+        mu_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        pi: Union[float, np.ndarray, ArrayLike] = 1.0,
+        pi_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         kappas: Optional[Tuple] = None,
-        nu: float = jnp.nan,
+        nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         psis: Optional[Tuple] = None,
-        omega: float = jnp.nan,
-        rho: float = 0.0,
+        omega: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        rho: Union[float, np.ndarray, ArrayLike] = 0.0,
     ):
         """Add a volatility parent to node.
 
@@ -512,7 +522,7 @@ class HGF(object):
         self.parameters_structure[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
-        structure_as_list = list(self.node_structure)
+        structure_as_list: List[Indexes] = list(self.node_structure)
 
         for idx in children_idxs:
             # add this node as parent and set value coupling

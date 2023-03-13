@@ -62,7 +62,28 @@ def apply_sequence(
     node_structure: Dict,
     update_sequence: Tuple,
 ) -> Dict:
-    """Apply a predefinded update sequence to a node structure."""
+    """Apply a predefinded update sequence to a node structure.
+
+    Parameters
+    ----------
+    value :
+        The new observation.
+    time_step :
+        The time interval between the new observation and the previous one.
+    parameters_structure :
+        The structure of nodes' parameters. Each parameter is a dictionary with the
+        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
+        continuous nodes.
+        .. note::
+           `"psis"` is the value coupling strength. It should have same length than the
+           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+           It should have same length than the volatility parents' indexes.
+    node_structure :
+        The node structure with the update sequence.
+    update_sequence :
+        The sequence of updates that will be applied to the node structure.
+
+    """
     for sequence in update_sequence:
         node_idx, update_fn = sequence
         parameters_structure = update_fn(

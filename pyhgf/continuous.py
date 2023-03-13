@@ -1,10 +1,13 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Tuple
+from typing import Dict, Union
 
 import jax.numpy as jnp
-from jax import jit
+from jax import Array, jit
+from jax.typing import ArrayLike
+
+from pyhgf.typing import NodeStructure
 
 
 @partial(jit, static_argnames=("node_structure", "node_idx"))
@@ -12,7 +15,7 @@ def continuous_node_update(
     parameters_structure: Dict,
     time_step: float,
     node_idx: int,
-    node_structure: Tuple,
+    node_structure: NodeStructure,
     **args
 ) -> Dict:
     """Update the value and volatility parents of a continuous node.
@@ -185,7 +188,7 @@ def continuous_input_update(
     parameters_structure: Dict,
     time_step: float,
     node_idx: int,
-    node_structure: Tuple,
+    node_structure: NodeStructure,
     value: float,
 ) -> Dict:
     """Update the input node structure.
@@ -374,8 +377,10 @@ def continuous_input_update(
 
 
 def gaussian_surprise(
-    x: jnp.DeviceArray, muhat: jnp.DeviceArray, pihat: jnp.DeviceArray
-) -> jnp.DeviceArray:
+    x: Union[float, ArrayLike],
+    muhat: Union[float, ArrayLike],
+    pihat: Union[float, ArrayLike],
+) -> Array:
     r"""Surprise at an outcome under a Gaussian prediction.
 
     The surprise ellicited by an observation :math:`x` under a Gaussian distribution
