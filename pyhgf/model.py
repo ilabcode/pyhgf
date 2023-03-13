@@ -6,7 +6,6 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
-from jax import Array
 from jax.lax import scan
 from jax.tree_util import Partial
 from jax.typing import ArrayLike
@@ -334,10 +333,10 @@ class HGF(object):
     def add_input_node(
         self,
         kind: str,
-        omega_input: Union[float, np.ndarray, Array] = log(1e-4),
-        pihat: Union[float, np.ndarray, Array] = jnp.inf,
-        eta0: Union[float, np.ndarray, Array] = 0.0,
-        eta1: Union[float, np.ndarray, Array] = 1.0,
+        omega_input: Union[float, np.ndarray, ArrayLike] = log(1e-4),
+        pihat: Union[float, np.ndarray, ArrayLike] = jnp.inf,
+        eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
+        eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
     ):
         """Create an input node."""
         if kind == "continuous":
@@ -364,16 +363,16 @@ class HGF(object):
     def add_value_parent(
         self,
         children_idxs: List,
-        value_coupling: Union[float, np.ndarray, Array] = 1.0,
-        mu: Union[float, np.ndarray, Array] = 0.0,
-        mu_hat: Union[float, np.ndarray, Array] = jnp.nan,
-        pi: Union[float, np.ndarray, Array] = 1.0,
-        pi_hat: Union[float, np.ndarray, Array] = jnp.nan,
+        value_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
+        mu: Union[float, np.ndarray, ArrayLike] = 0.0,
+        mu_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        pi: Union[float, np.ndarray, ArrayLike] = 1.0,
+        pi_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         kappas: Optional[Tuple] = None,
-        nu: Union[float, np.ndarray, Array] = jnp.nan,
+        nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         psis: Optional[Tuple] = None,
-        omega: Union[float, np.ndarray, Array] = jnp.nan,
-        rho: Union[float, np.ndarray, Array] = 0.0,
+        omega: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        rho: Union[float, np.ndarray, ArrayLike] = 0.0,
     ):
         """Add a value parent to node.
 
@@ -459,16 +458,16 @@ class HGF(object):
     def add_volatility_parent(
         self,
         children_idxs: List,
-        volatility_coupling: Union[float, np.ndarray, Array],
-        mu: Union[float, np.ndarray, Array] = 0.0,
-        mu_hat: Union[float, np.ndarray, Array] = jnp.nan,
-        pi: Union[float, np.ndarray, Array] = 1.0,
-        pi_hat: Union[float, np.ndarray, Array] = jnp.nan,
+        volatility_coupling: Union[float, np.ndarray, ArrayLike],
+        mu: Union[float, np.ndarray, ArrayLike] = 0.0,
+        mu_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        pi: Union[float, np.ndarray, ArrayLike] = 1.0,
+        pi_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         kappas: Optional[Tuple] = None,
-        nu: Union[float, np.ndarray, Array] = jnp.nan,
+        nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         psis: Optional[Tuple] = None,
-        omega: Union[float, np.ndarray, Array] = jnp.nan,
-        rho: Union[float, np.ndarray, Array] = 0.0,
+        omega: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        rho: Union[float, np.ndarray, ArrayLike] = 0.0,
     ):
         """Add a volatility parent to node.
 
