@@ -16,7 +16,7 @@ from pyhgf.continuous import (
     continuous_node_update,
     gaussian_surprise,
 )
-from pyhgf.plots import plot_correlations, plot_trajectories, plot_network
+from pyhgf.plots import plot_correlations, plot_network, plot_trajectories
 from pyhgf.response import total_binary_surprise, total_gaussian_surprise
 from pyhgf.structure import loop_inputs
 from pyhgf.typing import Indexes, NodeStructure
@@ -259,6 +259,7 @@ class HGF(object):
         return plot_correlations(hgf=self)
 
     def plot_network(self):
+        """Visualization of node network using GraphViz."""
         return plot_network(hgf=self)
 
     def surprise(
