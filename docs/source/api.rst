@@ -82,6 +82,7 @@ observing new data.
 
    plot_trajectories
    plot_correlations
+   plot_network
 
 Response
 --------
