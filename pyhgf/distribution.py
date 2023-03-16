@@ -179,7 +179,6 @@ def hgf_logp(
 
     # Fitting n HGF models to the n datasets
     for i in range(n):
-
         # Format HGF parameters
         initial_mu: Dict = {
             "1": _mu_1[i],

@@ -73,12 +73,10 @@ def continuous_node_update(
     # Update the continuous value parents #
     #######################################
     if value_parents_idx is not None:
-
         vape = node_parameters["mu"] - node_parameters["muhat"]
         psis = node_parameters["psis"]
 
         for va_pa_idx, psi in zip(value_parents_idx, psis):
-
             # unpack the current parent's parameters with value and volatility parents
             va_pa_node_parameters = parameters_structure[va_pa_idx]
             va_pa_value_parents_idx = node_structure[va_pa_idx].value_parents
@@ -125,7 +123,6 @@ def continuous_node_update(
     # Update volatility parents #
     #############################
     if volatility_parents_idx is not None:
-
         nu = node_parameters["nu"]
         kappas = node_parameters["kappas"]
         vope = (
@@ -134,7 +131,6 @@ def continuous_node_update(
         ) * node_parameters["pihat"] - 1
 
         for vo_pa_idx, kappa in zip(volatility_parents_idx, kappas):
-
             # unpack the current parent's parameters with value and volatility parents
             vo_pa_node_parameters = parameters_structure[vo_pa_idx]
             vo_pa_value_parents_idx = node_structure[vo_pa_idx].value_parents
@@ -248,7 +244,6 @@ def continuous_input_update(
     # Update value parents #
     ########################
     if value_parents_idx is not None:
-
         # unpack the current parent's parameters with value and volatility parents
         va_pa_node_parameters = parameters_structure[value_parents_idx[0]]
         va_pa_value_parents_idx = node_structure[value_parents_idx[0]].value_parents
@@ -306,7 +301,6 @@ def continuous_input_update(
     # Update volatility parents #
     #############################
     if volatility_parents_idx is not None:
-
         # unpack the current parent's parameters with value and volatility parents
         vo_pa_node_parameters = parameters_structure[volatility_parents_idx[0]]
         vo_pa_value_parents_idx = node_structure[

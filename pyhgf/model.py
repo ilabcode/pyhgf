@@ -16,10 +16,10 @@ from pyhgf.continuous import (
     continuous_node_update,
     gaussian_surprise,
 )
-from pyhgf.plots import plot_correlations, plot_trajectories
+from pyhgf.plots import plot_correlations, plot_network, plot_trajectories
 from pyhgf.response import total_binary_surprise, total_gaussian_surprise
 from pyhgf.structure import loop_inputs
-from pyhgf.typing import Indexes, NodeStructure
+from pyhgf.typing import Indexes, InputIndexes, NodeStructure
 
 
 class HGF(object):
@@ -30,6 +30,9 @@ class HGF(object):
 
     Attributes
     ----------
+    input_nodes_idx :
+        Indexes of the input nodes. Defaults to `(0,)` if the network only has one input
+        node.
     model_type :
         The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
     n_levels :
@@ -38,7 +41,8 @@ class HGF(object):
     node_structure :
         A tuple of :py:class:`pyhgf.typing.Indexes` representing the nodes hierarchy.
     node_trajectories :
-        The node structure updated at each new observation.
+        The parameter structure that incluse the consecutive updates at each new
+        observation.
     parameters_structure :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
@@ -140,6 +144,7 @@ class HGF(object):
         self.node_structure: NodeStructure
         self.node_trajectories: Dict
         self.parameters_structure: Dict
+        self.input_nodes_idx: Tuple[InputIndexes, ...]
 
         if model_type in ["continuous", "binary"]:
             if self.verbose:
@@ -166,8 +171,8 @@ class HGF(object):
                 value_coupling=1.0,
                 mu=initial_mu["1"],
                 pi=initial_pi["1"],
-                omega=omega["1"],
-                rho=rho["1"],
+                omega=omega["1"] if self.model_type != "binary" else np.nan,
+                rho=rho["1"] if self.model_type != "binary" else np.nan,
             )
 
             #########
@@ -258,6 +263,10 @@ class HGF(object):
         """Plot the heatmap of cross-trajectories correlation."""
         return plot_correlations(hgf=self)
 
+    def plot_network(self):
+        """Visualization of node network using GraphViz."""
+        return plot_network(hgf=self)
+
     def surprise(
         self,
         response_function: Optional[Callable] = None,
@@ -333,12 +342,31 @@ class HGF(object):
     def add_input_node(
         self,
         kind: str,
+        input_idx: int = 0,
         omega_input: Union[float, np.ndarray, ArrayLike] = log(1e-4),
         pihat: Union[float, np.ndarray, ArrayLike] = jnp.inf,
         eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
         eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
     ):
-        """Create an input node."""
+        """Create an input node.
+
+        Parameters
+        ----------
+        kind :
+            The kind of input that should be created (can be `"continuous"` or
+            `"binary"`).
+        input_idx :
+            The index of the new input (defaults to `0`).
+        omega_input :
+            The input precision (only relevant if `kind="continuous"`).
+        pihat :
+            The input precision (only relevant if `kind="binary"`).
+        eta0 :
+            The lower bound of the binary process (only relevant if `kind="binary"`).
+        eta1 :
+            The lower bound of the binary process (only relevant if `kind="binary"`).
+
+        """
         if kind == "continuous":
             input_node_parameters = {
                 "kappas": None,
@@ -356,8 +384,16 @@ class HGF(object):
                 "time_step": jnp.nan,
                 "value": jnp.nan,
             }
-        self.parameters_structure = {0: input_node_parameters}
-        self.node_structure = (Indexes(None, None),)
+        if input_idx == 0:
+            # this is the first node, create the node structure
+            self.parameters_structure = {input_idx: input_node_parameters}
+            self.node_structure = (Indexes(None, None),)
+            self.input_nodes_idx = (InputIndexes(input_idx, kind),)
+        else:
+            # update the node structure
+            self.parameters_structure[input_idx] = input_node_parameters
+            self.node_structure += (Indexes(None, None),)
+            self.input_nodes_idx += (InputIndexes(input_idx, kind),)
         return self
 
     def add_value_parent(
@@ -458,7 +494,7 @@ class HGF(object):
     def add_volatility_parent(
         self,
         children_idxs: List,
-        volatility_coupling: Union[float, np.ndarray, ArrayLike],
+        volatility_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
         mu: Union[float, np.ndarray, ArrayLike] = 0.0,
         mu_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.1
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -67,8 +67,6 @@ The response function used is the [sum of the Guassian surprise](pyhgf.response.
 ```
 
 ```{code-cell} ipython3
-:tags: []
-
 two_levels_continuous_hgf = HGF(
     n_levels=2,
     model_type="continuous",
@@ -79,9 +77,11 @@ two_levels_continuous_hgf = HGF(
     kappas={"1": 1.0})
 ```
 
-This function create an instance of a HGF model automatically parametrized for a 2-levels continuous structure, so we do not have to worry about creating the nodes structure ourself. This class also embed function to add new observations and plots results that we are going to use below.
+This function create an instance of a HGF model automatically parametrized for a 2-levels continuous structure, so we do not have to worry about creating the nodes structure ourself. This class also embed function to add new observations and plots results that we are going to use below. We can have a look at the node structure itself using the {ref}`pyhgf.plots.plot_network` function. This function will automatically dray the provided node structure using [Graphviz](https://github.com/xflr6/graphviz).
 
-+++
+```{code-cell} ipython3
+two_levels_continuous_hgf.plot_network()
+```
 
 #### Add data
 
@@ -136,6 +136,12 @@ three_levels_continuous_hgf = HGF(
     omega={"1": -13.0, "2": -2.0, "3": -2.0},
     rho={"1": 0.0, "2": 0.0, "3": 0.0},
     kappas={"1": 1.0, "2": 1.0})
+```
+
+The node structure now includes a volatility parent at the third level.
+
+```{code-cell} ipython3
+three_levels_continuous_hgf.plot_network()
 ```
 
 #### Add data
@@ -388,7 +394,7 @@ hgf_mcmc = HGF(
 ```
 
 ```{code-cell} ipython3
-hgf_mcmc.plot_trajectories(ci=False)
+hgf_mcmc.plot_trajectories(ci=True)
 ```
 
 ```{code-cell} ipython3

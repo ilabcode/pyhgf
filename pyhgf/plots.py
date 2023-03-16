@@ -10,6 +10,8 @@ import seaborn as sns
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
+    from graphviz.sources import Source
+
     from pyhgf.model import HGF
 
 
@@ -140,7 +142,6 @@ def plot_trajectories(
     # loop over the node idexes
     # -------------------------
     for i in range(1, n_nodes + 1):
-
         # use different colors for each nodes
         color = next(palette)
 
@@ -163,7 +164,6 @@ def plot_trajectories(
 
         # plotting standard deviation
         if ci is True:
-
             # if this is the first level of a binary model do not show CI
             if not (hgf.model_type == "binary") & (i == 1):
                 sd = np.sqrt(1 / pi)
@@ -196,13 +196,17 @@ def plot_trajectories(
                 alpha=0.2,
                 zorder=-1,
             )
+            surprise_ax.set_title(
+                f"Total surprise {trajectories_df[f'x_{i}_surprise'].sum()}", loc="left"
+            )
             surprise_ax.set_ylabel("Surprise")
         axs[ax_i].legend()
         axs[ax_i].set_ylabel(rf"$\mu_{i}$")
 
     # global surprise
     # ---------------
-    axs[n_nodes].fill_between(
+    surprise_ax = axs[n_nodes].twinx()
+    surprise_ax.fill_between(
         x=trajectories_df.time,
         y1=trajectories_df.surprise,
         y2=trajectories_df.surprise.min(),
@@ -210,7 +214,7 @@ def plot_trajectories(
         color="#7f7f7f",
         alpha=0.2,
     )
-    axs[n_nodes].plot(
+    surprise_ax.plot(
         trajectories_df.time,
         trajectories_df.surprise,
         color="#2a2a2a",
@@ -219,8 +223,11 @@ def plot_trajectories(
         zorder=-1,
         label="Surprise",
     )
-    axs[n_nodes].set_ylabel("Surprise")
-    axs[n_nodes].set_xlabel("Time")
+    surprise_ax.set_title(
+        f"Total surprise: {trajectories_df.surprise.sum()}", loc="left"
+    )
+    surprise_ax.set_ylabel("Surprise")
+    surprise_ax.set_xlabel("Time")
 
     return axs
 
@@ -272,3 +279,79 @@ def plot_correlations(hgf: "HGF") -> Axes:
     ax.set_title("Correlations between the model trajectories")
 
     return ax
+
+
+def plot_network(hgf: "HGF") -> "Source":
+    """Visualization of node network using GraphViz.
+
+    Parameters
+    ----------
+    hgf :
+        Instance of the HGF model containing a node structure.
+
+    Notes
+    -----
+    This function requires [Graphviz](https://github.com/xflr6/graphviz) to be
+    installed to work correctly.
+
+    """
+    try:
+        import graphviz
+    except ImportError:
+        print(
+            (
+                "Graphviz is required to plot the nodes structure. "
+                "See https://pypi.org/project/graphviz/"
+            )
+        )
+
+    graphviz_structure = graphviz.Digraph("hgf-nodes", comment="Nodes structure")
+
+    graphviz_structure.attr("node", shape="circle")
+
+    # set input nodes
+    list_of_input_idx = []
+    for input_node in hgf.input_nodes_idx:
+        list_of_input_idx.append(input_node.idx)
+        graphviz_structure.node(
+            f"x_{input_node.idx}",
+            label=f"{input_node.kind.capitalize()[0]}I - {input_node.idx}",
+            style="filled",
+            shape="octagon",
+        )
+
+    # create the rest of nodes
+    for i in range(len(hgf.node_structure)):
+        # only if node is not an input node
+        if i not in list_of_input_idx:
+            graphviz_structure.node(f"x_{i}", label=str(i), shape="circle")
+
+    # connect value parents
+    for i, idx in enumerate(hgf.node_structure):
+        value_parents, _ = idx
+
+        if value_parents is not None:
+            for value_parents_idx in value_parents:
+                graphviz_structure.edge(
+                    f"x_{value_parents_idx}",
+                    f"x_{i}",
+                )
+
+    # connect volatility parents
+    for i, idx in enumerate(hgf.node_structure):
+        _, volatility_parents = idx
+
+        if volatility_parents is not None:
+            for volatility_parents_idx in volatility_parents:
+                graphviz_structure.edge(
+                    f"x_{volatility_parents_idx}",
+                    f"x_{i}",
+                    color="gray",
+                    style="dashed",
+                    arrowhead="dot",
+                )
+
+    # unflat the structure to better handle large/uneven networks
+    graphviz_structure = graphviz_structure.unflatten(stagger=3)
+
+    return graphviz_structure

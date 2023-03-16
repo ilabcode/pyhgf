@@ -10,6 +10,13 @@ class Indexes(NamedTuple):
     volatility_parents: Optional[Tuple]
 
 
+class InputIndexes(NamedTuple):
+    """Input node type and index."""
+
+    idx: int
+    kind: str
+
+
 NodeStructure = Tuple[Indexes, ...]
 
 UpdateSequence = Tuple[Tuple[int, Callable], ...]

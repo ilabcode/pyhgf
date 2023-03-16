@@ -28,6 +28,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
+        sudo apt-get install graphviz
         pip install -r requirements-tests.txt
         pip install ipykernel coverage pytest pytest-cov
         python -m ipykernel install --user --name python3
