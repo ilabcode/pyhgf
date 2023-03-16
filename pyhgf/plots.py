@@ -198,13 +198,17 @@ def plot_trajectories(
                 alpha=0.2,
                 zorder=-1,
             )
+            surprise_ax.set_title(
+                f"Total surprise {trajectories_df[f'x_{i}_surprise'].sum()}", loc="left"
+            )
             surprise_ax.set_ylabel("Surprise")
         axs[ax_i].legend()
         axs[ax_i].set_ylabel(rf"$\mu_{i}$")
 
     # global surprise
     # ---------------
-    axs[n_nodes].fill_between(
+    surprise_ax = axs[n_nodes].twinx()
+    surprise_ax.fill_between(
         x=trajectories_df.time,
         y1=trajectories_df.surprise,
         y2=trajectories_df.surprise.min(),
@@ -212,7 +216,7 @@ def plot_trajectories(
         color="#7f7f7f",
         alpha=0.2,
     )
-    axs[n_nodes].plot(
+    surprise_ax.plot(
         trajectories_df.time,
         trajectories_df.surprise,
         color="#2a2a2a",
@@ -221,8 +225,11 @@ def plot_trajectories(
         zorder=-1,
         label="Surprise",
     )
-    axs[n_nodes].set_ylabel("Surprise")
-    axs[n_nodes].set_xlabel("Time")
+    surprise_ax.set_title(
+        f"Total surprise: {trajectories_df.surprise.sum()}", loc="left"
+    )
+    surprise_ax.set_ylabel("Surprise")
+    surprise_ax.set_xlabel("Time")
 
     return axs
 
@@ -304,23 +311,22 @@ def plot_network(hgf: "HGF") -> "Source":
 
     graphviz_structure.attr("node", shape="circle")
 
-    # create nodes
+    # set input nodes
+    list_of_input_idx = []
+    for input_node in hgf.input_nodes_idx:
+        list_of_input_idx.append(input_node.idx)
+        graphviz_structure.node(
+            f"x_{input_node.idx}",
+            label=f"{input_node.kind.capitalize()[0]}I - {input_node.idx}",
+            style="filled",
+            shape="octagon",
+        )
+
+    # create the rest of nodes
     for i in range(len(hgf.node_structure)):
-        if i == 0:
-            if hgf.model_type == "binary":
-                graphviz_structure.node(
-                    f"x_{i}", label="u", xlabel="Binary input", style="filled"
-                )
-            elif hgf.model_type == "continuous":
-                graphviz_structure.node(
-                    f"x_{i}", label="u", xlabel="Continuous input", style="filled"
-                )
-            else:
-                graphviz_structure.node(
-                    "x_{i}", label="u", xlabel="Input", style="filled"
-                )
-        else:
-            graphviz_structure.node(f"x_{i}", label=str(i))
+        # only if node is not an input node
+        if i not in list_of_input_idx:
+            graphviz_structure.node(f"x_{i}", label=str(i), shape="circle")
 
     # connect value parents
     for i, idx in enumerate(hgf.node_structure):
@@ -344,6 +350,7 @@ def plot_network(hgf: "HGF") -> "Source":
                     f"x_{i}",
                     color="gray",
                     style="dashed",
+                    arrowhead="dot",
                 )
 
     # unflat the structure to better handle large/uneven networks

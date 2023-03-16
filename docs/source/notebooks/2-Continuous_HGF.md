@@ -394,7 +394,7 @@ hgf_mcmc = HGF(
 ```
 
 ```{code-cell} ipython3
-hgf_mcmc.plot_trajectories(ci=False)
+hgf_mcmc.plot_trajectories(ci=True)
 ```
 
 ```{code-cell} ipython3

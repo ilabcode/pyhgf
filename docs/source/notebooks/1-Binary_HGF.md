@@ -21,7 +21,7 @@ kernelspec:
 %%capture
 import sys
 if 'google.colab' in sys.modules:
-    ! pip install pyhgf2
+    ! pip install pyhgf
 ```
 
 ```{code-cell} ipython3
@@ -68,12 +68,7 @@ two_levels_hgf = HGF(
     model_type="binary",
     initial_mu={"1": .0, "2": .5},
     initial_pi={"1": .0, "2": 1e4},
-    omega={"1": None, "2": -3.0},
-    rho={"1": None, "2": 0.0},
-    kappas={"1": None},
-    eta0=0.0,
-    eta1=1.0,
-    pihat = jnp.inf,
+    omega={"2": -3.0},
 )
 ```
 
