@@ -171,8 +171,8 @@ class HGF(object):
                 value_coupling=1.0,
                 mu=initial_mu["1"],
                 pi=initial_pi["1"],
-                omega=omega["1"] if self.model_type != "binary" else None,
-                rho=rho["1"] if self.model_type != "binary" else None,
+                omega=omega["1"] if self.model_type != "binary" else np.nan,
+                rho=rho["1"] if self.model_type != "binary" else np.nan,
             )
 
             #########
