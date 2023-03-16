@@ -142,7 +142,6 @@ def plot_trajectories(
     # loop over the node idexes
     # -------------------------
     for i in range(1, n_nodes + 1):
-
         # use different colors for each nodes
         color = next(palette)
 
@@ -165,7 +164,6 @@ def plot_trajectories(
 
         # plotting standard deviation
         if ci is True:
-
             # if this is the first level of a binary model do not show CI
             if not (hgf.model_type == "binary") & (i == 1):
                 sd = np.sqrt(1 / pi)
