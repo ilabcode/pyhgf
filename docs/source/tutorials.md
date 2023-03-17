@@ -18,6 +18,14 @@ notebooks/*.md
 
 ## Using the Hierarchical Gaussian Filter
 
+## How does it work?
+
+| Notebook | Colab |
+| --- | ---|
+| {ref}`hgf_networks` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.1-Creating_node_structures.ipynb)
+
+## Using the Hierarchical Gaussian Filter
+
 | Notebook | Colab |
 | --- | ---|
 | {ref}`binary_hgf` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/1-Binary_HGF.ipynb)
@@ -29,4 +37,14 @@ notebooks/*.md
 
 | Notebook | Colab |
 | --- | ---|
+| Notebook | Colab |
+| --- | ---|
 | {ref}`example_1` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)
+
+## Exercises
+
+Hand-on exercises to build intuition around the main components of the HGF and use an agent that optimizes its action under noisy observations.
+
+| Notebook | Colab |
+| --- | ---|
+| {ref}`example_1` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Working_with_the_HGF.ipynb)
