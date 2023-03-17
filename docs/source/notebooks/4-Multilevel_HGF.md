@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.1
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -100,8 +100,6 @@ _, axs = plt.subplots(figsize=(12, 3))
 for rw in dataset:
     axs.plot(rw, alpha=.6, linewidth=1)
 ```
-
-+++ {"tags": []}
 
 ### Model
 
@@ -213,8 +211,6 @@ for participant in range(n_data):
 
     dataset.append(input_data)
 ```
-
-+++ {"tags": []}
 
 ### Without hyper-priors
 
