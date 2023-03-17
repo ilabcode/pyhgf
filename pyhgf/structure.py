@@ -74,10 +74,10 @@ def apply_sequence(
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
-        .. note::
-           `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-           It should have same length than the volatility parents' indexes.
+    .. note::
+        `"psis"` is the value coupling strength. It should have same length than the
+        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+        It should have same length than the volatility parents' indexes.
     node_structure :
         The node structure with the update sequence.
     update_sequence :
