@@ -320,7 +320,6 @@ class HGF(object):
                 "time_steps": self.node_trajectories[0]["time_step"],
                 "time": jnp.cumsum(self.node_trajectories[0]["time_step"]),
                 "observation": self.node_trajectories[0]["value"],
-                "surprise": self.node_trajectories[0]["surprise"],
             }
         )
 
@@ -336,6 +335,11 @@ class HGF(object):
                 pihat=self.node_trajectories[i]["pihat"][:-1],
             )
             structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
+
+        # compute the global surprise over all node
+        structure_df["surprise"] = structure_df.iloc[
+            :, structure_df.columns.str.contains("surprise")
+        ].sum(axis=1)
 
         return structure_df
 
@@ -371,7 +375,6 @@ class HGF(object):
             input_node_parameters = {
                 "kappas": None,
                 "omega": omega_input,
-                "surprise": jnp.nan,
                 "time_step": jnp.nan,
                 "value": jnp.nan,
             }

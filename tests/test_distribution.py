@@ -55,7 +55,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
             kappa_2=jnp.nan,
         )
-        assert jnp.isclose(logp, 1941.3623)
+        assert jnp.isclose(logp, 2417.4758)
 
         ##############
         # Binary HGF #
@@ -149,7 +149,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
         )
 
-        assert jnp.isclose(omega_1, 0.48663694)
+        assert jnp.isclose(omega_1, -10.630915)
 
         ##############
         # Binary HGF #
@@ -244,7 +244,7 @@ class TestDistribution(TestCase):
             kappa_2=np.array(0.0),
         ).eval()
 
-        assert jnp.isclose(logp, 1941.36230469)
+        assert jnp.isclose(logp, 2417.47583008)
 
         ##############
         # Binary HGF #
@@ -312,7 +312,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
         )[0].eval()
 
-        assert jnp.isclose(omega_1, 0.48663694)
+        assert jnp.isclose(omega_1, -10.630915)
         
         
         ##############
@@ -364,7 +364,7 @@ class TestDistribution(TestCase):
 
         with pm.Model() as model:
 
-            omega_2 = pm.Normal("omega_2", -11.0, 2)
+            omega_2 = pm.Uniform("omega_2", -10, 0)
 
             pm.Potential(
                 "hhgf_loglike",
@@ -390,13 +390,13 @@ class TestDistribution(TestCase):
         initial_point = model.initial_point()
 
         pointslogs = model.point_logps(initial_point)
-        assert pointslogs["omega_2"] == -1.61
-        assert pointslogs["hhgf_loglike"] == 2152.63
+        assert pointslogs["omega_2"] == -1.39
+        assert pointslogs["hhgf_loglike"] == 2206.74
 
         with model:
             idata = pm.sample(chains=4, cores=4, tune=1000)
 
-        assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
+        assert -1.1 < round(az.summary(idata)["mean"].values[0]) < 0
         assert az.summary(idata)["r_hat"].values[0] == 1
 
         ##########

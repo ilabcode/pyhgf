@@ -360,10 +360,7 @@ def continuous_input_update(
         parameters_structure[volatility_parents_idx[0]]["mu"] = mu_vo_pa
         parameters_structure[volatility_parents_idx[0]]["nu"] = nu_vo_pa
 
-    # store input surprise, value and timestep in the node's parameters
-    parameters_structure[node_idx]["surprise"] = gaussian_surprise(
-        x=value, muhat=muhat_va_pa, pihat=pihat
-    )
+    # store value and timestep in the node's parameters
     parameters_structure[node_idx]["time_step"] = time_step
     parameters_structure[node_idx]["value"] = value
 
