@@ -71,7 +71,6 @@ def binary_node_update(
     # Update the continuous value parents #
     #######################################
     if value_parents_idx is not None:
-
         # unpack the current parent's parameters with value and volatility parents
         va_pa_node_parameters = parameters_structure[value_parents_idx[0]]
         # va_pa_value_parents_idx = node_structure[value_parents_idx[0]].value_parents
@@ -194,7 +193,6 @@ def binary_input_update(
     ################################
 
     if value_parents_idx is not None:
-
         # unpack the current parent's parameters with value and volatility parents
         # va_pa_node_parameters = parameters_structure[value_parents_idx[0]]
         va_pa_value_parents_idx = node_structure[value_parents_idx[0]].value_parents
@@ -292,7 +290,7 @@ def binary_surprise(
     x :
         The outcome.
     muhat :
-        The mean of the Bernouilli distribution.
+        The mean of the Bernoulli distribution.
 
     Returns
     -------
