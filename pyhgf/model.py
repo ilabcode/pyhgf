@@ -17,7 +17,7 @@ from pyhgf.continuous import (
     gaussian_surprise,
 )
 from pyhgf.plots import plot_correlations, plot_network, plot_trajectories
-from pyhgf.response import total_binary_surprise, total_gaussian_surprise
+from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
 from pyhgf.structure import loop_inputs
 from pyhgf.typing import Indexes, InputIndexes, NodeStructure
 
@@ -294,9 +294,9 @@ class HGF(object):
         """
         if response_function is None:
             response_function = (
-                total_gaussian_surprise
+                first_level_gaussian_surprise
                 if self.model_type == "continuous"
-                else total_binary_surprise
+                else first_level_binary_surprise
             )
 
         return response_function(
@@ -338,7 +338,7 @@ class HGF(object):
 
         # compute the global surprise over all node
         structure_df["surprise"] = structure_df.iloc[
-            :, structure_df.columns.str.contains("surprise")
+            :, structure_df.columns.str.contains("_surprise")
         ].sum(axis=1)
 
         return structure_df

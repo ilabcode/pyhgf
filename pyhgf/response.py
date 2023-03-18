@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from pyhgf.model import HGF
 
 
-def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
+def first_level_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
     """Gaussian surprise at the first level of a probabilistic network.
 
     .. note::
@@ -45,7 +45,7 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
     return jnp.sum(surprise)
 
 
-def total_binary_surprise(hgf: "HGF", response_function_parameters=None):
+def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None):
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
