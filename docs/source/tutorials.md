@@ -37,4 +37,4 @@ Hand-on exercises to build intuition around the main components of the HGF and u
 
 | Notebook | Colab |
 | --- | ---|
-| {ref}`example_1` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Working_with_the_HGF.ipynb)
+| {ref}`hgf_exercises` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Working_with_the_HGF.ipynb)
