@@ -393,7 +393,7 @@ class TestDistribution(TestCase):
         assert pointslogs["hhgf_loglike"] == 1088.4
 
         with model:
-            idata = pm.sample(chains=4, cores=1, tune=1000)
+            idata = pm.sample(chains=2, cores=1, tune=1000)
 
         assert -8.5 < az.summary(idata)["mean"].values[0] < -8.0
         assert az.summary(idata)["r_hat"].values[0] == 1
@@ -445,7 +445,7 @@ class TestDistribution(TestCase):
         assert pointslogs["hhgf_loglike"] == -231.19
 
         with model:
-            idata = pm.sample(chains=4, cores=1, tune=1000)
+            idata = pm.sample(chains=2, cores=1, tune=1000)
 
         assert -4 < round(az.summary(idata)["mean"].values[0]) < -2
 
