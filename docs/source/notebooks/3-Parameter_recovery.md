@@ -128,7 +128,7 @@ pm.model_to_graphviz(model)
 
 ```{code-cell} ipython3
 with model:
-    idata = pm.sample(chains=4, cores=4, tune=1000)
+    idata = pm.sample(chains=1)
 ```
 
 ```{code-cell} ipython3

@@ -30,3 +30,11 @@ notebooks/*.md
 | Notebook | Colab |
 | --- | ---|
 | {ref}`example_1` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)
+
+## Exercises
+
+Hand-on exercises to build intuition around the main components of the HGF and use an agent that optimizes its action under noisy observations.
+
+| Notebook | Colab |
+| --- | ---|
+| {ref}`hgf_exercises` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Working_with_the_HGF.ipynb)
