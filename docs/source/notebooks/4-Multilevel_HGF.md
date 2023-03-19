@@ -29,7 +29,7 @@ from numpy import loadtxt
 import numpy as np
 from pyhgf.distribution import hgf_logp, HGFDistribution
 from pyhgf import load_data
-from pyhgf.response import total_binary_surprise
+from pyhgf.response import first_level_binary_surprise
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
@@ -219,7 +219,7 @@ hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
     input_data=dataset,
-    response_function=total_binary_surprise,
+    response_function=first_level_binary_surprise,
 )
 ```
 

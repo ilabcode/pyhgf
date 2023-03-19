@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.1
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -27,7 +27,6 @@ from numpy import loadtxt
 import numpy as np
 from pyhgf.distribution import hgf_logp, HGFDistribution
 from pyhgf import load_data
-from pyhgf.response import total_binary_surprise
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
@@ -79,8 +78,6 @@ for participant in range(n_data):
 for rw in dataset:
     plt.plot(rw)
 ```
-
-+++ {"tags": []}
 
 ## Embedding a serie of HGFs in a graphical model
 
@@ -141,4 +138,8 @@ plt.tight_layout()
 
 ```{code-cell} ipython3
 az.summary(idata)
+```
+
+```{code-cell} ipython3
+
 ```
