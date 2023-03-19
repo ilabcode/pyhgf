@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.1
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -61,8 +61,6 @@ rr = input_conversion(x=peaks, input_type="peaks", output_type="rr_s")[:1400]
 time = np.cumsum(rr)
 ```
 
-+++ {"tags": []}
-
 ### Model
 
 ```{code-cell} ipython3
@@ -104,21 +102,15 @@ with pm.Model() as three_level_hgf:
 ```
 
 ```{code-cell} ipython3
-:tags: []
-
 pm.model_to_graphviz(three_level_hgf)
 ```
 
 ```{code-cell} ipython3
-:tags: []
-
 with three_level_hgf:
     idata = pm.sample(chains=4, cores=4, tune=1000)
 ```
 
 ```{code-cell} ipython3
-:tags: []
-
 az.plot_pair(idata, kind="kde", figsize=(4, 4), textsize=12);
 sns.despine()
 plt.tight_layout()

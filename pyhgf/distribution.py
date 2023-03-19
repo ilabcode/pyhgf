@@ -39,7 +39,6 @@ def hgf_logp(
     r"""Log probability from HGF model(s) given input data and parameter(s).
 
     This function support broadcasting along the first axis:
-
     - If the input data contains many time series, the function will automatically
     create the corresponding number of HGF models and fit them separately.
     - If a single input data is provided but some parameters have array-like inputs, the
@@ -49,6 +48,7 @@ def hgf_logp(
     - If multiple input data are provided with array-like inputs for some parameter, the
     function will create and fit the models separately using the value *i* for the
     *i* th model.
+
 
     Parameters
     ----------

@@ -17,7 +17,7 @@ from pyhgf.continuous import (
     gaussian_surprise,
 )
 from pyhgf.plots import plot_correlations, plot_network, plot_trajectories
-from pyhgf.response import total_binary_surprise, total_gaussian_surprise
+from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
 from pyhgf.structure import loop_inputs
 from pyhgf.typing import Indexes, InputIndexes, NodeStructure
 
@@ -47,11 +47,11 @@ class HGF(object):
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
-        .. note::
-           `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes.
-           `"kappas"` is the volatility coupling strength. It should have same length
-           than the volatility parents' indexes.
+    .. note::
+        `"psis"` is the value coupling strength. It should have same length than the
+        volatility parents' indexes.
+        `"kappas"` is the volatility coupling strength. It should have same length
+        than the volatility parents' indexes.
     verbose : bool
         Verbosity level.
 
@@ -294,9 +294,9 @@ class HGF(object):
         """
         if response_function is None:
             response_function = (
-                total_gaussian_surprise
+                first_level_gaussian_surprise
                 if self.model_type == "continuous"
-                else total_binary_surprise
+                else first_level_binary_surprise
             )
 
         return response_function(
@@ -320,7 +320,6 @@ class HGF(object):
                 "time_steps": self.node_trajectories[0]["time_step"],
                 "time": jnp.cumsum(self.node_trajectories[0]["time_step"]),
                 "observation": self.node_trajectories[0]["value"],
-                "surprise": self.node_trajectories[0]["surprise"],
             }
         )
 
@@ -330,12 +329,28 @@ class HGF(object):
             structure_df[f"x_{i}_pi"] = self.node_trajectories[i]["pi"]
             structure_df[f"x_{i}_muhat"] = self.node_trajectories[i]["muhat"]
             structure_df[f"x_{i}_pihat"] = self.node_trajectories[i]["pihat"]
-            surprise = gaussian_surprise(
-                x=self.node_trajectories[i]["mu"][1:],
-                muhat=self.node_trajectories[i]["muhat"][:-1],
-                pihat=self.node_trajectories[i]["pihat"][:-1],
+            if (i == 1) & (self.model_type == "continuous"):
+                surprise = gaussian_surprise(
+                    x=self.node_trajectories[0]["value"][1:],
+                    muhat=self.node_trajectories[i]["muhat"][:-1],
+                    pihat=self.node_trajectories[i]["pihat"][:-1],
+                )
+            else:
+                surprise = gaussian_surprise(
+                    x=self.node_trajectories[i]["mu"][1:],
+                    muhat=self.node_trajectories[i]["muhat"][:-1],
+                    pihat=self.node_trajectories[i]["pihat"][:-1],
+                )
+            # fill with nans when the model cannot fit
+            surprise = jnp.where(
+                jnp.isnan(self.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
             )
             structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
+
+        # compute the global surprise over all node
+        structure_df["surprise"] = structure_df.iloc[
+            :, structure_df.columns.str.contains("_surprise")
+        ].sum(axis=1, min_count=1)
 
         return structure_df
 
@@ -371,7 +386,6 @@ class HGF(object):
             input_node_parameters = {
                 "kappas": None,
                 "omega": omega_input,
-                "surprise": jnp.nan,
                 "time_step": jnp.nan,
                 "value": jnp.nan,
             }

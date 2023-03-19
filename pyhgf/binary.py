@@ -36,10 +36,10 @@ def binary_node_update(
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
-        .. note::
-           `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-           It should have same length than the volatility parents' indexes.
+    .. note::
+        `"psis"` is the value coupling strength. It should have same length than the
+        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+        It should have same length than the volatility parents' indexes.
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
@@ -71,7 +71,6 @@ def binary_node_update(
     # Update the continuous value parents #
     #######################################
     if value_parents_idx is not None:
-
         # unpack the current parent's parameters with value and volatility parents
         va_pa_node_parameters = parameters_structure[value_parents_idx[0]]
         # va_pa_value_parents_idx = node_structure[value_parents_idx[0]].value_parents
@@ -158,10 +157,10 @@ def binary_input_update(
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
-        .. note::
-           `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-           It should have same length than the volatility parents' indexes.
+    .. note::
+        `"psis"` is the value coupling strength. It should have same length than the
+        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+        It should have same length than the volatility parents' indexes.
     node_structure :
         Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
         For each node, the index list value and volatility parents.
@@ -194,7 +193,6 @@ def binary_input_update(
     ################################
 
     if value_parents_idx is not None:
-
         # unpack the current parent's parameters with value and volatility parents
         # va_pa_node_parameters = parameters_structure[value_parents_idx[0]]
         va_pa_value_parents_idx = node_structure[value_parents_idx[0]].value_parents
@@ -292,7 +290,7 @@ def binary_surprise(
     x :
         The outcome.
     muhat :
-        The mean of the Bernouilli distribution.
+        The mean of the Bernoulli distribution.
 
     Returns
     -------

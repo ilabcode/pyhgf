@@ -33,8 +33,8 @@ class Testmodel(TestCase):
         two_level_continuous_hgf.input_data(input_data=timeserie)
 
         surprise = two_level_continuous_hgf.surprise()  # Sum the surprise for this model
-        assert jnp.isclose(surprise, -1941.3623)
-        assert len(two_level_continuous_hgf.node_trajectories[0]["surprise"]) == 614
+        assert jnp.isclose(surprise, -676.51306)
+        assert len(two_level_continuous_hgf.node_trajectories[1]["mu"]) == 614
 
         # three-level
         # -----------
@@ -49,7 +49,7 @@ class Testmodel(TestCase):
         )
         three_level_continuous_hgf.input_data(input_data=timeserie)
         surprise = three_level_continuous_hgf.surprise()
-        assert jnp.isclose(surprise, -1918.408)
+        assert jnp.isclose(surprise, -394.20514)
 
 
         ##########

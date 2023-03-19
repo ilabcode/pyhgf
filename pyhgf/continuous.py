@@ -35,10 +35,10 @@ def continuous_node_update(
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
-        .. note::
-           `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-           It should have same length than the volatility parents' indexes.
+    .. note::
+        `"psis"` is the value coupling strength. It should have same length than the
+        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+        It should have same length than the volatility parents' indexes.
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
@@ -203,10 +203,10 @@ def continuous_input_update(
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
-        .. note::
-           `"psis"` is the value coupling strength. It should have same length than the
-           volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-           It should have same length than the volatility parents' indexes.
+    .. note::
+        `"psis"` is the value coupling strength. It should have same length than the
+        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
+        It should have same length than the volatility parents' indexes.
     node_structure :
         Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
         For each node, the index list value and volatility parents.
@@ -360,10 +360,7 @@ def continuous_input_update(
         parameters_structure[volatility_parents_idx[0]]["mu"] = mu_vo_pa
         parameters_structure[volatility_parents_idx[0]]["nu"] = nu_vo_pa
 
-    # store input surprise, value and timestep in the node's parameters
-    parameters_structure[node_idx]["surprise"] = gaussian_surprise(
-        x=value, muhat=muhat_va_pa, pihat=pihat
-    )
+    # store value and timestep in the node's parameters
     parameters_structure[node_idx]["time_step"] = time_step
     parameters_structure[node_idx]["value"] = value
 

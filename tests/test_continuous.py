@@ -160,7 +160,6 @@ class Testcontinuous(TestCase):
             "omega": 1.0,
             "kappas": None,
             "psis": None,
-            "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
         }
@@ -201,10 +200,7 @@ class Testcontinuous(TestCase):
             value=.2
             )
 
-        assert jnp.isclose(
-            new_parameters_structure[0]["surprise"],
-            2.014903
-        )
+        assert new_parameters_structure[1]["pi"] == 0.48708236
 
     def test_scan_loop(self):
 
@@ -220,7 +216,6 @@ class Testcontinuous(TestCase):
             "omega": 1.0,
             "kappas": None,
             "psis": None,
-            "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
         }

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.1
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -29,7 +29,7 @@ from numpy import loadtxt
 import numpy as np
 from pyhgf.distribution import hgf_logp, HGFDistribution
 from pyhgf import load_data
-from pyhgf.response import total_binary_surprise
+from pyhgf.response import first_level_binary_surprise
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
@@ -100,8 +100,6 @@ _, axs = plt.subplots(figsize=(12, 3))
 for rw in dataset:
     axs.plot(rw, alpha=.6, linewidth=1)
 ```
-
-+++ {"tags": []}
 
 ### Model
 
@@ -214,8 +212,6 @@ for participant in range(n_data):
     dataset.append(input_data)
 ```
 
-+++ {"tags": []}
-
 ### Without hyper-priors
 
 ```{code-cell} ipython3
@@ -223,7 +219,7 @@ hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
     input_data=dataset,
-    response_function=total_binary_surprise,
+    response_function=first_level_binary_surprise,
 )
 ```
 

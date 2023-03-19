@@ -4,7 +4,6 @@ import unittest
 from unittest import TestCase
 
 import arviz as az
-from pyhgf.binary import binary_surprise
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
@@ -13,7 +12,7 @@ from jax.tree_util import Partial
 
 from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
-from pyhgf.response import total_gaussian_surprise, total_binary_surprise
+from pyhgf.response import first_level_gaussian_surprise, first_level_binary_surprise
 
 
 class TestDistribution(TestCase):
@@ -31,7 +30,7 @@ class TestDistribution(TestCase):
                 hgf_logp,
                 n_levels=2,
                 input_data=[timeserie],
-                response_function=total_gaussian_surprise,
+                response_function=first_level_gaussian_surprise,
                 model_type="continuous",
                 response_function_parameters=None,
                 time=None
@@ -55,7 +54,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
             kappa_2=jnp.nan,
         )
-        assert jnp.isclose(logp, 1941.3623)
+        assert jnp.isclose(logp, 676.51306)
 
         ##############
         # Binary HGF #
@@ -68,7 +67,7 @@ class TestDistribution(TestCase):
                 hgf_logp,
                 n_levels=2,
                 input_data=[timeserie],
-                response_function=total_binary_surprise,
+                response_function=first_level_binary_surprise,
                 model_type="binary",
                 response_function_parameters=None,
             )
@@ -107,7 +106,7 @@ class TestDistribution(TestCase):
                     hgf_logp,
                     n_levels=2,
                     input_data=[timeserie],
-                    response_function=total_gaussian_surprise,
+                    response_function=first_level_gaussian_surprise,
                     model_type="continuous",
                     response_function_parameters=None,
                 ),
@@ -149,7 +148,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
         )
 
-        assert jnp.isclose(omega_1, 0.48663694)
+        assert jnp.isclose(omega_1, -6.8397017)
 
         ##############
         # Binary HGF #
@@ -164,7 +163,7 @@ class TestDistribution(TestCase):
                     hgf_logp,
                     n_levels=2,
                     input_data=[timeserie],
-                    response_function=total_binary_surprise,
+                    response_function=first_level_binary_surprise,
                     model_type="binary",
                     response_function_parameters=None,
                 ),
@@ -222,7 +221,7 @@ class TestDistribution(TestCase):
             input_data=[timeserie],
             model_type="continuous",
             n_levels=2,
-            response_function=total_gaussian_surprise,
+            response_function=first_level_gaussian_surprise,
             response_function_parameters=None,
         )
 
@@ -244,7 +243,7 @@ class TestDistribution(TestCase):
             kappa_2=np.array(0.0),
         ).eval()
 
-        assert jnp.isclose(logp, 1941.36230469)
+        assert jnp.isclose(logp, 676.51306152)
 
         ##############
         # Binary HGF #
@@ -257,7 +256,7 @@ class TestDistribution(TestCase):
             input_data=[timeserie],
             model_type="binary",
             n_levels=2,
-            response_function=total_binary_surprise,
+            response_function=first_level_binary_surprise,
             response_function_parameters=None,
         )
 
@@ -295,7 +294,7 @@ class TestDistribution(TestCase):
             model_type="continuous",
             input_data=[timeserie],
             n_levels=2,
-            response_function=total_gaussian_surprise,
+            response_function=first_level_gaussian_surprise,
             response_function_parameters=None,
         )
 
@@ -312,7 +311,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
         )[0].eval()
 
-        assert jnp.isclose(omega_1, 0.48663694)
+        assert jnp.isclose(omega_1, -6.8397017)
         
         
         ##############
@@ -326,7 +325,7 @@ class TestDistribution(TestCase):
             model_type="binary",
             input_data=[timeserie],
             n_levels=2,
-            response_function=total_binary_surprise,
+            response_function=first_level_binary_surprise,
             response_function_parameters=None,
         )
 
@@ -358,13 +357,13 @@ class TestDistribution(TestCase):
         hgf_logp_op = HGFDistribution(
             n_levels=2,
             input_data=[timeserie],
-            response_function=total_gaussian_surprise,
+            response_function=first_level_gaussian_surprise,
             response_function_parameters=(np.array(1), 1),
         )
 
         with pm.Model() as model:
 
-            omega_2 = pm.Normal("omega_2", -11.0, 2)
+            omega_2 = pm.Uniform("omega_2", -10, 0)
 
             pm.Potential(
                 "hhgf_loglike",
@@ -390,13 +389,13 @@ class TestDistribution(TestCase):
         initial_point = model.initial_point()
 
         pointslogs = model.point_logps(initial_point)
-        assert pointslogs["omega_2"] == -1.61
-        assert pointslogs["hhgf_loglike"] == 2152.63
+        assert pointslogs["omega_2"] == -1.39
+        assert pointslogs["hhgf_loglike"] == 1088.4
 
         with model:
-            idata = pm.sample(chains=4, cores=4, tune=1000)
+            idata = pm.sample(chains=4, cores=1, tune=1000)
 
-        assert -14 < round(az.summary(idata)["mean"].values[0]) < -10
+        assert -8.5 < az.summary(idata)["mean"].values[0] < -8.0
         assert az.summary(idata)["r_hat"].values[0] == 1
 
         ##########
@@ -410,7 +409,7 @@ class TestDistribution(TestCase):
             n_levels=2,
             model_type="binary",
             input_data=[timeserie],
-            response_function=total_binary_surprise,
+            response_function=first_level_binary_surprise,
             response_function_parameters=(np.array(1), 1),
         )
 
@@ -446,7 +445,7 @@ class TestDistribution(TestCase):
         assert pointslogs["hhgf_loglike"] == -231.19
 
         with model:
-            idata = pm.sample(chains=4, cores=4, tune=1000)
+            idata = pm.sample(chains=4, cores=1, tune=1000)
 
         assert -4 < round(az.summary(idata)["mean"].values[0]) < -2
 
