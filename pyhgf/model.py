@@ -329,17 +329,28 @@ class HGF(object):
             structure_df[f"x_{i}_pi"] = self.node_trajectories[i]["pi"]
             structure_df[f"x_{i}_muhat"] = self.node_trajectories[i]["muhat"]
             structure_df[f"x_{i}_pihat"] = self.node_trajectories[i]["pihat"]
-            surprise = gaussian_surprise(
-                x=self.node_trajectories[i]["mu"][1:],
-                muhat=self.node_trajectories[i]["muhat"][:-1],
-                pihat=self.node_trajectories[i]["pihat"][:-1],
+            if (i == 1) & (self.model_type == "continuous"):
+                surprise = gaussian_surprise(
+                    x=self.node_trajectories[0]["value"][1:],
+                    muhat=self.node_trajectories[i]["muhat"][:-1],
+                    pihat=self.node_trajectories[i]["pihat"][:-1],
+                )
+            else:
+                surprise = gaussian_surprise(
+                    x=self.node_trajectories[i]["mu"][1:],
+                    muhat=self.node_trajectories[i]["muhat"][:-1],
+                    pihat=self.node_trajectories[i]["pihat"][:-1],
+                )
+            # fill with nans when the model cannot fit
+            surprise = jnp.where(
+                jnp.isnan(self.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
             )
             structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
 
         # compute the global surprise over all node
         structure_df["surprise"] = structure_df.iloc[
             :, structure_df.columns.str.contains("_surprise")
-        ].sum(axis=1)
+        ].sum(axis=1, min_count=1)
 
         return structure_df
 

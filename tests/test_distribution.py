@@ -54,7 +54,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
             kappa_2=jnp.nan,
         )
-        assert jnp.isclose(logp, 2417.4758)
+        assert jnp.isclose(logp, 676.51306)
 
         ##############
         # Binary HGF #
@@ -148,7 +148,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
         )
 
-        assert jnp.isclose(omega_1, -10.630915)
+        assert jnp.isclose(omega_1, -6.8397017)
 
         ##############
         # Binary HGF #
@@ -243,7 +243,7 @@ class TestDistribution(TestCase):
             kappa_2=np.array(0.0),
         ).eval()
 
-        assert jnp.isclose(logp, 2417.47583008)
+        assert jnp.isclose(logp, 676.51306152)
 
         ##############
         # Binary HGF #
@@ -311,7 +311,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
         )[0].eval()
 
-        assert jnp.isclose(omega_1, -10.630915)
+        assert jnp.isclose(omega_1, -6.8397017)
         
         
         ##############
@@ -390,12 +390,12 @@ class TestDistribution(TestCase):
 
         pointslogs = model.point_logps(initial_point)
         assert pointslogs["omega_2"] == -1.39
-        assert pointslogs["hhgf_loglike"] == 2206.74
+        assert pointslogs["hhgf_loglike"] == 1088.4
 
         with model:
             idata = pm.sample(chains=4, cores=4, tune=1000)
 
-        assert -1.1 < round(az.summary(idata)["mean"].values[0]) < 0
+        assert -8.5 < az.summary(idata)["mean"].values[0] < -8.0
         assert az.summary(idata)["r_hat"].values[0] == 1
 
         ##########

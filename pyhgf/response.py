@@ -31,18 +31,20 @@ def first_level_gaussian_surprise(hgf: "HGF", response_function_parameters=None)
         The model surprise given the input data.
 
     """
-    # compute Gaussian surprise at the first level
-    surprise = gaussian_surprise(
-        x=hgf.node_trajectories[1]["mu"][1:],
-        muhat=hgf.node_trajectories[1]["muhat"][:-1],
-        pihat=hgf.node_trajectories[1]["pihat"][:-1],
+    # compute the sum of Gaussian surprise at the first level
+    # the input value at time t is compared to the gaussian prediction at t-1
+    surprise = jnp.sum(
+        gaussian_surprise(
+            x=hgf.node_trajectories[0]["value"][1:],
+            muhat=hgf.node_trajectories[1]["muhat"][:-1],
+            pihat=hgf.node_trajectories[1]["pihat"][:-1],
+        )
     )
 
-    # Return an infinite surprise if the model cannot fit
-    surprise = jnp.where(jnp.isnan(surprise), jnp.inf, surprise)
-
-    # return the sum of the surprise
-    return jnp.sum(surprise)
+    # Return an infinite surprise if the model could not fit at any point
+    return jnp.where(
+        jnp.any(jnp.isnan(hgf.node_trajectories[1]["mu"])), jnp.inf, surprise
+    )
 
 
 def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None):

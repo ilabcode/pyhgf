@@ -197,7 +197,8 @@ def plot_trajectories(
                 zorder=-1,
             )
             surprise_ax.set_title(
-                f"Total surprise {trajectories_df[f'x_{i}_surprise'].sum()}", loc="left"
+                f"Node {i} surprise: {trajectories_df[f'x_{i}_surprise'].sum()}",
+                loc="left",
             )
             surprise_ax.set_ylabel("Surprise")
         axs[ax_i].legend()
