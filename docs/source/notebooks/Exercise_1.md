@@ -186,7 +186,7 @@ pm.model_to_graphviz(two_level_hgf)
 
 ```{code-cell} ipython3
 with two_level_hgf:
-    idata = pm.sample(chains=4)
+    idata = pm.sample(chains=1)
 ```
 
 ```{code-cell} ipython3

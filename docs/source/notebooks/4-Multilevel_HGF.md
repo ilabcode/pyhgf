@@ -171,7 +171,7 @@ pm.model_to_graphviz(model)
 
 ```{code-cell} ipython3
 with model:
-    idata = pm.sample(chains=4, cores=4, tune=1000)
+    idata = pm.sample(chains=1)
 ```
 
 ```{code-cell} ipython3
@@ -270,7 +270,7 @@ pm.model_to_graphviz(two_levels_binary_hgf)
 
 ```{code-cell} ipython3
 with two_levels_binary_hgf:
-    two_level_hgf_idata = pm.sample(chains=4)
+    two_level_hgf_idata = pm.sample(chains=1)
 ```
 
 ```{code-cell} ipython3
