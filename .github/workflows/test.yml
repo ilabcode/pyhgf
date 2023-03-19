@@ -29,6 +29,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install graphviz
+        conda install -c conda-forge pymc==5.1.1
         pip install -r requirements-tests.txt
         pip install ipykernel coverage pytest pytest-cov
         python -m ipykernel install --user --name python3

@@ -25,6 +25,7 @@ jobs:
       - name: Build
         run: |
           sudo apt-get install graphviz
+          conda install -c conda-forge pymc==5.1.1
           pip install -r requirements-docs.txt
           sphinx-build -b html docs/source docs/build/html
 
