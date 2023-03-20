@@ -60,9 +60,9 @@ Using the equation above, write a Python code that implements a Gaussian random 
 
 +++
 
-The HGF generalize this process by making the parameters of a GRW depends on another GRW at a higher level. This kind of dependeny is termed "coupling" and can target the volatiliy ($\sigma^2$) of the value ($\mu$), or both. 
+The HGF hierarchically generalize the GRW by making the parameters of a stochastic process depend on another GRW at a higher level. This kind of dependency is termed "coupling" and can target the volatility ($\sigma^2$) or the value ($\mu$), or both. 
 
-If we take as example the two-level continuous HGF {cite:p}`2014:mathys`, the model is constituded of two states of interest, $x_1$ and $x_2$. The node $x_1$ is performing a GRW, but it is also paired with $x_2$ via *volatility coupling*. This means that for state $x_1$, the mean of the Gaussian random walk on time point $k$ is given by its previous value $x_1^{(k-1)}$, while the step size (or variance) depends on the current value of the higher level state, $x_2^{(k)}$.
+If we take as an example the two-level continuous HGF {cite:p}`2014:mathys`, the model is constituted of two states of interest, $x_1$ and $x_2$. The node $x_1$ is performing a GRW, but it is also paired with $x_2$ via *volatility coupling*. This means that for state $x_1$, the mean of the Gaussian random walk on time point $k$ is given by its previous value $x_1^{(k-1)}$, while the step size (or variance) depends on the current value of the higher level state, $x_2^{(k)}$.
 
 $$
 x_1^{(k)} \sim \mathcal{N}(x_1^{(k)} | x_1^{(k-1)}, \, f(x_2^{(k)}))
@@ -82,6 +82,8 @@ $$
 
 ```{admonition} Exercise 2
 Using the equation above and your previous implementation, write a Python code that implements a hierarchical Gaussian random walk with the following parameters: $\omega_1 = -6.0$, $\omega_2 = -6.0$, $\mu_1 = 0.0$, $\mu_2 = -2.0$, $x_{1} = 0.0$ and $x_{2} = -2.0$
+
+What happens if you try different values of $\omega$?
 ```
 
 +++
@@ -90,7 +92,7 @@ Using the equation above and your previous implementation, write a Python code t
 
 +++
 
-In the following example, we illustrate how we can use the Hierarchical Gaussian Filter to filter and predict inputs in a continuous node.
+The pyhgf package implements this process with the corresponding update equation so the model can take as input a time series and infer the more likely generative structure that created the values. This can be extremely useful if you want to work with time series that have varying levels of volatility (i.e. meta-volatility). In the following example, we illustrate how we can use the Hierarchical Gaussian Filter to filter and predict inputs in a continuous node.
 
 ```{code-cell} ipython3
 # create a sime two-levels continuous HGF with defaults parameters
@@ -130,14 +132,7 @@ $\omega$ represents the tonic part of the variance (the part that is not affecte
 
 +++
 
-In the final part of the exercise, you will be asked to apply the HGF to real world situation. For example, you can download wheather time series at the following link: https://renewables.ninja/. From there you can try:
-
-* an agent has been living for 20 years in city A and has learn a model of weather that works well in this city, but decide to move and live in city B for one year. He is using the same model to understant weather changes in the new city. 
-
-
-```{note}
-The proposed exercise are more suggestions. You can use any time series that you find interesting, it should just come with a volatility that is interesting to model.
-```
+So far we have been running the HGF forward by fixing the values of the parameters beforehand. We can also adopt an alternative approach and try to estimate the most likely value of a given parameter from an input time series (i.e. what would be the "best" agent in this context?). This can be done through Bayesian inference. Here we are going to use Hamiltonian Monte Carlo sampling using PyMC.
 
 ```{code-cell} ipython3
 import pymc as pm
@@ -186,7 +181,7 @@ pm.model_to_graphviz(two_level_hgf)
 
 ```{code-cell} ipython3
 with two_level_hgf:
-    idata = pm.sample(chains=1)
+    idata = pm.sample(chains=2)
 ```
 
 ```{code-cell} ipython3
@@ -206,15 +201,15 @@ In the previous section, we introduced the basic computational concept behind th
 1. How to fit the HGF to a time series.
 2. How to find the parameters that optimize a simple response function.
 
-In this section, we are going to apply this knowledge to more practical considerations and try to build an agent that can optimize its behaviour under volatile sensory inputs. We will take the example of an agent that experiences fluctuation in the weather and would like to optimize behaviour regarding whether or not he should carry an umbrella with him for the next day(s). Experiencing rain while not having an umbrella is extremely annoying for this agent (this elicits a lot of surprises), but carrying an umbrella in sunny weather is also annoying. You should therefore come up with a solution to help this agent optimise its decision. For the exercise we will consider that the agent cannot just look by the windows and check the weather, it has to make the decision one day for the next, using its current understanding of the weather.
+In this section, we are going to apply this knowledge to more practical considerations and try to build agents that can optimize their behaviour under volatile sensory inputs. We will take the example of agents that experiences fluctuation in the weather and would like to optimize their behaviour (e.g. regarding whether or not they should carry an umbrella for the next day). Experiencing rain while not having an umbrella is extremely annoying for these agents (this elicits a lot of surprises), but carrying an umbrella in sunny weather is also annoying. You should therefore come up with a solution to help them optimise their decisions. For the exercise we will consider that the agents cannot just look by the windows and check the weather, they have to decide at least one day for the next or more, using their current understanding of the weather (i.e. their beliefs about the latent variables in the environment).
 
-We will use data from {citep}`pfenninger:2016, staffell:2016` that is made available at the following database: https://renewables.ninja/. This database contains hourly recordings of various weather parameters that have been tracked over one year at a different positions in the world. You can explore the database and use the recording you like, you can also compare agents trained in a different part of the globe. The procedure is the following: 
+We will use data from {citep}`pfenninger:2016, staffell:2016` that is made available at the following database: https://renewables.ninja/. This database contains hourly recordings of various weather parameters that have been tracked over one year at a different positions in the world. You can explore the database and use the recording you like, you can also compare agents trained in different part of the globe. The procedure is the following: 
 1. Set the point or search for a location
 2. Extend the weather button and check all boxes (if you wish to use the premade processing script) or select your data structure.
 3. Press "run" and wait for the simulation to run
 4. Save hourly output as CSV
 
-Alternatively, we provide here a data frame that can be easily loaded, it is the weather parameters recorded in Aarhus:
+Alternatively, we provide here a data frame that can be easily loaded, it contains the weather parameters recorded in Aarhus:
 
 ```{code-cell} ipython3
 aarhus_weather_df = pd.read_csv("https://raw.githubusercontent.com/ilabcode/hgf-data/main/datasets/weather.csv")
@@ -234,7 +229,7 @@ The data frame contains the following parameters, recorded every hour over the y
 
 +++
 
-```{admonition} Exercises
+```{admonition} Exercises 4
 - Select a city and download a recording OR use the data frame loaded above.
 - Choose which weather variables to work with.
 - Set up an HGF structure and run it forward on the data.
@@ -286,22 +281,30 @@ The most important state trajecotories of the HGF.
 ```{code-cell} ipython3
 # get beliefs trajectories from the agent
 trajectories = hgf.to_pandas()
+trajectories = trajectories.drop(["time", "time_steps"], axis=1)
 trajectories.head()
 ```
 
 ```{code-cell} ipython3
 # join the beliefs and observation
 trajectories = pd.concat([aarhus_weather_df, trajectories], axis=1)
+trajectories["time"] = pd.to_datetime(trajectories["time"])
+trajectories.head()
 ```
 
 ```{code-cell} ipython3
-# 1 - create a decision function: based on the beliefs over the previous hour/day/week, decide if the agent should carry an umbrella
+# aggregate over one day
+trajectories.groupby(trajectories["time"].dt.date, as_index=False)[["x_1_mu", "prectotland"]].sum()
 ```
 
 ```{code-cell} ipython3
-# 2 - create an outcome function: based on the parameters that were recorded in the main data fram, what was the outcome (raining or not?)
+# 1 - create a decision function: based on the beliefs over the previous hour/day/week, decide e.g. if the agent should carry an umbrella
 ```
 
 ```{code-cell} ipython3
-# 3  -compute the surprise: how surprise is the agent if it was raining and no umbrella etc...
+# 2 - create an outcome function: based on the parameters that were recorded in the main data frame, what was the outcome (e.g. raining or not?)
+```
+
+```{code-cell} ipython3
+# 3 - compute the surprise: how surprised are the agents if it was raining and no umbrella etc...
 ```
