@@ -35,7 +35,7 @@ import arviz as az
 timeseries = load_data("continuous")
 ```
 
-In this notebook you are going to learn the core principles on whic the HGF is built, you will build agents that can filter new observations and update their beliefs about hidden states of the world and try to optimize them so they are getting less and less surprised about what is happening. Finally, you will create and agent that tries to optimize its behavior when facing (almost) unpredictable events.
+In this notebook you are going to learn the core principles on which the HGF is built, you will build agents that can filter new observations and update their beliefs about hidden states of the world and try to optimize them so they are getting less and less surprised about what is happening. Finally, you will create an agent that tries to optimize its behaviour when facing (almost) unpredictable events.
 
 +++
 
@@ -121,7 +121,7 @@ two_levels_continuous_hgf.surprise()
 ```
 
 ```{admonition} Exercise 3
-$\omega represents the tonic part of the variance (the part that is not affected by the parent node). Using the code example above, create another model with different values for $\omega$ at the second level. What is the consequence of changing this value on the beliefs trajectories? What is the "best" model in this context?
+$\omega$ represents the tonic part of the variance (the part that is not affected by the parent node). Using the code example above, create another model with different values for $\omega$ at the second level. What is the consequence of changing this value on the beliefs trajectories? What is the "best" model in this context?
 ```
 
 +++
@@ -281,7 +281,7 @@ The most important state trajecotories of the HGF.
 - posterior precision: $\pi$
 - prediction mean: $\hat{\mu}$
 - prediction precision:  $\hat{\pi}$
-- surprise 
+- surprise
 
 ```{code-cell} ipython3
 # get beliefs trajectories from the agent
