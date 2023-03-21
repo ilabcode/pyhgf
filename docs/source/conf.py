@@ -109,7 +109,7 @@ html_theme_options = {
         ),
     ],
     "logo": {
-        "text": "gHGF",
+        "text": "pyhgf",
     }
 }
 
