@@ -47,6 +47,61 @@ def first_level_gaussian_surprise(hgf: "HGF", response_function_parameters=None)
     )
 
 
+def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
+    """Sum of the Gaussian surprise across probabilistic network.
+
+    .. note::
+      The function returns `jnp.inf` if the model could not fit at a given time point.
+
+    Parameters
+    ----------
+    hgf :
+        Instance of the HGF model.
+    response_function_parameters :
+        No additional parameters are required to compute the Gaussian surprise.
+
+    Returns
+    -------
+    surprise :
+        The model surprise given the input data.
+
+    """
+    # compute the sum of Gaussian surprise across every nodes
+    surprise = 0.0
+
+    # first we start with nodes that are value parents to input nodes
+    input_idx_list = []
+    input_parents_list = []
+    for inp in hgf.input_nodes_idx:
+        input_idx_list.append(inp.idx)
+        va_pa = hgf.node_structure[inp.idx].value_parents[0]  # type: ignore
+        input_parents_list.append(va_pa)
+        surprise += jnp.sum(
+            gaussian_surprise(
+                x=hgf.node_trajectories[inp.idx]["value"][1:],
+                muhat=hgf.node_trajectories[va_pa]["muhat"][:-1],
+                pihat=hgf.node_trajectories[va_pa]["pihat"][:-1],
+            )
+        )
+
+    # then we do the same for every node that is not an input node
+    # and not the parent of an input node
+    for i in range(len(hgf.node_structure)):
+        if (i not in input_idx_list) and (i not in input_parents_list):
+            surprise += jnp.sum(
+                gaussian_surprise(
+                    x=hgf.node_trajectories[i]["mu"][1:],
+                    muhat=hgf.node_trajectories[i]["muhat"][:-1],
+                    pihat=hgf.node_trajectories[i]["pihat"][:-1],
+                )
+            )
+
+    # Return an infinite surprise if the model could not fit at any point
+    return jnp.where(
+        jnp.any(jnp.isnan(hgf.node_trajectories[1]["mu"])), jnp.inf, surprise
+    )
+
+
 def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None):
     """Sum of the binary surprise along the time series (binary HGF).
 

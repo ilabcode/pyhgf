@@ -7,7 +7,7 @@ import jax.numpy as jnp
 
 from pyhgf import load_data
 from pyhgf.model import HGF
-
+from pyhgf.response import total_gaussian_surprise
 
 class Testmodel(TestCase):
     def test_HGF(self):
@@ -51,6 +51,9 @@ class Testmodel(TestCase):
         surprise = three_level_continuous_hgf.surprise()
         assert jnp.isclose(surprise, -394.20514)
 
+        # test an alternative response function
+        sp = total_gaussian_surprise(three_level_continuous_hgf)
+        assert jnp.isclose(sp, 1646.3826)
 
         ##########
         # Binary #

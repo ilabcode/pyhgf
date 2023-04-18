@@ -96,6 +96,7 @@ least the HGF instance as input after observation and returning surprise.
    :toctree: generated/pyhgf.response
 
    first_level_gaussian_surprise
+   total_gaussian_surprise
    first_level_binary_surprise
 
 Structure
