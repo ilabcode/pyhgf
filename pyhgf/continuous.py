@@ -297,69 +297,6 @@ def continuous_input_update(
         parameters_structure[value_parents_idx[0]]["mu"] = mu_va_pa
         parameters_structure[value_parents_idx[0]]["nu"] = nu_va_pa
 
-    #############################
-    # Update volatility parents #
-    #############################
-    if volatility_parents_idx is not None:
-        # unpack the current parent's parameters with value and volatility parents
-        vo_pa_node_parameters = parameters_structure[volatility_parents_idx[0]]
-        vo_pa_value_parents_idx = node_structure[
-            volatility_parents_idx[0]
-        ].value_parents
-        vo_pa_volatility_parents_idx = node_structure[
-            volatility_parents_idx[0]
-        ].volatility_parents
-
-        vope = (1 / pi_va_pa + (value - mu_va_pa) ** 2) * pihat - 1
-
-        # Compute new value for nu and pihat
-        logvol = vo_pa_node_parameters["omega"]
-
-        # Look at the (optional) vo_pa's volatility parents
-        # and update logvol accordingly
-        if vo_pa_volatility_parents_idx is not None:
-            for vo_pa_vo_pa in vo_pa_volatility_parents_idx:
-                kappa = vo_pa_vo_pa[0]["kappas"]
-                logvol += kappa * parameters_structure[vo_pa_vo_pa]["mu"]
-
-        # Estimate new_nu
-        nu = time_step * jnp.exp(logvol)
-        new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-
-        pihat_vo_pa, nu_vo_pa = [
-            1 / (1 / vo_pa_node_parameters["pi"] + new_nu),
-            new_nu,
-        ]
-
-        pi_vo_pa = pihat_vo_pa + 0.5 * jnp.square(input_node_parameters["kappas"]) * (
-            1 + vope
-        )
-        pi_vo_pa = jnp.where(pi_vo_pa <= 0, jnp.nan, pi_vo_pa)
-
-        # Compute new muhat
-        driftrate = vo_pa_node_parameters["rho"]
-
-        # Look at the (optional) va_pa's value parents
-        # and update driftrate accordingly
-        if vo_pa_value_parents_idx is not None:
-            for vo_pa_va_pa, p in zip(
-                vo_pa_value_parents_idx, vo_pa_node_parameters["psis"]
-            ):
-                driftrate += p * parameters_structure[vo_pa_va_pa]["mu"]
-
-        muhat_vo_pa = vo_pa_node_parameters["mu"] + time_step * driftrate
-        mu_vo_pa = (
-            muhat_vo_pa
-            + jnp.multiply(0.5, input_node_parameters["kappas"]) / pi_vo_pa * vope
-        )
-
-        # Update this parent's parameters
-        parameters_structure[volatility_parents_idx[0]]["pihat"] = pihat_vo_pa
-        parameters_structure[volatility_parents_idx[0]]["pi"] = pi_vo_pa
-        parameters_structure[volatility_parents_idx[0]]["muhat"] = muhat_vo_pa
-        parameters_structure[volatility_parents_idx[0]]["mu"] = mu_vo_pa
-        parameters_structure[volatility_parents_idx[0]]["nu"] = nu_vo_pa
-
     # store value and timestep in the node's parameters
     parameters_structure[node_idx]["time_step"] = time_step
     parameters_structure[node_idx]["value"] = value
