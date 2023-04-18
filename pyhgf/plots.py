@@ -193,11 +193,12 @@ def plot_trajectories(
                 y1=trajectories_df[f"x_{i}_surprise"],
                 y2=trajectories_df[f"x_{i}_surprise"].min(),
                 color="#7f7f7f",
-                alpha=0.2,
+                alpha=0.1,
                 zorder=-1,
             )
+            sp = trajectories_df[f"x_{i}_surprise"].sum()
             surprise_ax.set_title(
-                f"Node {i} surprise: {trajectories_df[f'x_{i}_surprise'].sum()}",
+                f"Node {i} - Surprise: {sp:.2f}",
                 loc="left",
             )
             surprise_ax.set_ylabel("Surprise")
@@ -224,9 +225,8 @@ def plot_trajectories(
         zorder=-1,
         label="Surprise",
     )
-    surprise_ax.set_title(
-        f"Total surprise: {trajectories_df.surprise.sum()}", loc="left"
-    )
+    sp = trajectories_df.surprise.sum()
+    surprise_ax.set_title(f"Total surprise: {sp:.2f}", loc="left")
     surprise_ax.set_ylabel("Surprise")
     surprise_ax.set_xlabel("Time")
 
@@ -329,7 +329,7 @@ def plot_network(hgf: "HGF") -> "Source":
 
     # connect value parents
     for i, idx in enumerate(hgf.node_structure):
-        value_parents, _ = idx
+        value_parents = idx.value_parents
 
         if value_parents is not None:
             for value_parents_idx in value_parents:
@@ -340,7 +340,7 @@ def plot_network(hgf: "HGF") -> "Source":
 
     # connect volatility parents
     for i, idx in enumerate(hgf.node_structure):
-        _, volatility_parents = idx
+        volatility_parents = idx.volatility_parents
 
         if volatility_parents is not None:
             for volatility_parents_idx in volatility_parents:
