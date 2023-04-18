@@ -8,32 +8,16 @@ on:
     branches:
       - "*"
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10']
+        python-version: ["3.10"]
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - uses: actions/cache@v2
-      name: Configure pip caching
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install isort==5.10.1 flake8 black==23.1.0 pydocstyle==6.3.0 mypy==1.1.1
-    - name: Run linting
-      run: |
-        flake8 ./pyhgf/
-        black ./pyhgf/
-        isort ./pyhgf/
-        pydocstyle pyhgf/. --ignore=D213,D100,D203,D104
-        mypy ./pyhgf/ --ignore-missing-imports
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run lint
+        uses: pre-commit/action@v3.0.0
