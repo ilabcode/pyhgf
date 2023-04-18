@@ -13,7 +13,7 @@ kernelspec:
 ---
 
 (example_1)=
-# Example 1: physiological volatility
+# Example 1: Bayesian filtering of cardiac volatility
 
 ```{code-cell} ipython3
 %%capture
@@ -34,9 +34,12 @@ from systole.detection import ecg_peaks
 from systole.utils import input_conversion
 from systole import import_dataset1
 from systole.plots import plot_raw
+from bokeh.io import output_notebook
+from bokeh.plotting import show
+output_notebook()
 ```
 
-In this examples, we will use a three-levels Hierarchical Gaussian Filter to predict the dynamics of heart rate and respiration of a participant that is presented with images of different emotional valence. We will then extract the surprise trajectories of each predictive node.
+The nodalized version of the Hierarchical Gaussian Filter that is implemented in [pyhgf](https://github.com/ilabcode/pyhgf) opens the possibility to create filters with multiple inputs. Here, we illustrate how we can use this feature to create an agent that is filtering their physiological signals in real-time. We use a two-level Hierarchical Gaussian Filter to predict the dynamics of the instantaneous heart rate (the RR interval measured at each heartbeat). We then extract the trajectory of surprise at each predictive node to relate it with the cognitive task performed by the participant while the signal is being recorded.
 
 +++
 
@@ -49,26 +52,44 @@ physio_df = import_dataset1(modalities=['ECG', 'Respiration'])
 
 # Only use the first 60 seconds for demonstration
 ecg = physio_df.ecg
-plot_raw(ecg, modality='ecg', sfreq=1000, ecg_method='sleepecg', show_heart_rate=True)
+```
+
+### Plot the signal with instantaneous heart rate derivations
+
+```{code-cell} ipython3
+show(
+    plot_raw(ecg, modality='ecg', sfreq=1000, show_heart_rate=True, backend="bokeh")
+)
+```
+
+### Preprocessing
+
+```{code-cell} ipython3
+# detect R peaks using Pan-Tomkins algorithm
+_, peaks = ecg_peaks(physio_df.ecg)
+
+# convert the peaks into a RR time series
+rr = input_conversion(x=peaks, input_type="peaks", output_type="rr_s")
+```
+
+## Model
+
++++
+
+```{note}
+Here we use the total Gaussian surprise ({ref}`pyhgf.response.total_gaussian_surprise`) as a response function. This response function deviates from the default behaviour for the continuous HGF in that it returns the sum of the surprise for all the probabilistic nodes in the network, whereas the default ({ref}`pyhgf.response.first_level_gaussian_surprise`) only computes the surprise at the first level (i.e. the value parent of the continuous input node). We explicitly specify this parameter here to indicate that we want our model to minimise its prediction errors over all variables, and not only at the observation level. In this case, however, the results are expected to be very similar between the two methods.
 ```
 
 ```{code-cell} ipython3
-# peaks detection using Pan-Tomkins
-_, peaks = ecg_peaks(physio_df.ecg)
-
-# convert the peaks vector into a RR time series
-rr = input_conversion(x=peaks, input_type="peaks", output_type="rr_s")[:1400]
-time = np.cumsum(rr)
+from pyhgf.response import total_gaussian_surprise
 ```
-
-### Model
 
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="continuous",
     input_data=[rr],
-    time=[time]
+    response_function=total_gaussian_surprise,
 )
 ```
 
@@ -76,13 +97,12 @@ hgf_logp_op = HGFDistribution(
 with pm.Model() as three_level_hgf:
 
     # omegas priors
-    omega_1 = pm.Uniform("omega_1", -20.0, -2.0)
-    omega_2 = pm.Uniform("omega_2", -15.0, -2.0)
+    omega_2 = pm.Normal("omega_2", -2.0, 2.0)
 
     pm.Potential(
         "hgf_loglike",
         hgf_logp_op(
-            omega_1=omega_1,
+            omega_1=-4.0,
             omega_2=omega_2,
             omega_input=np.log(1e-4),
             rho_1=0.0,
@@ -90,7 +110,7 @@ with pm.Model() as three_level_hgf:
             pi_1=1e4,
             pi_2=1e1,
             mu_1=rr[0],
-            mu_2=0.0,
+            mu_2=-4.0,
             kappa_1=1.0,
             omega_3=np.nan,
             rho_3=np.nan,
@@ -111,27 +131,28 @@ with three_level_hgf:
 ```
 
 ```{code-cell} ipython3
-az.plot_pair(idata, kind="kde", figsize=(4, 4), textsize=12);
-sns.despine()
+az.plot_trace(idata)
 plt.tight_layout()
+```
+
+```{code-cell} ipython3
+# retrieve the best fir for omega_2
+omega_2 = az.summary(idata)["mean"]["omega_2"]
 ```
 
 ```{code-cell} ipython3
 hgf = HGF(
     n_levels=2,
     model_type="continuous",
-    initial_mu={"1": rr[0], "2": 0.0},
+    initial_mu={"1": rr[0], "2": -4.0},
     initial_pi={"1": 1e4, "2": 1e1},
-    omega={
-        "1": az.summary(idata)["mean"]["omega_1"], 
-        "2": az.summary(idata)["mean"]["omega_2"], 
-    },
+    omega={"1": -4.0, "2": omega_2},
     rho={"1": 0.0, "2": 0.0},
-    kappas={"1": 1.0}).input_data(input_data=rr, time=time)
+    kappas={"1": 1.0}).input_data(input_data=rr)
 ```
 
 ```{code-cell} ipython3
-hgf.plot_trajectories()
+hgf.plot_trajectories();
 ```
 
 # System configuration
