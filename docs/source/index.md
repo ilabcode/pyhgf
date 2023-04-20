@@ -53,7 +53,7 @@ The pyhgf package includes pre-implemented standard HGF models that can be used 
 
 ### Model fitting
 
-Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcome from {cite:p}`iglesias:2013`.
+Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcome from {cite:p}`2013:iglesias`.
 
 ```python
 from pyhgf.model import HGF
