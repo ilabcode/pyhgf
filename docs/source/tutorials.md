@@ -14,7 +14,7 @@ notebooks/*.md
 
 | Notebook | Colab |
 | --- | ---|
-| {ref}`probabilistic_networks` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.1-Creating_node_structures.ipynb)
+| {ref}`probabilistic_networks` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.1-Creating_networks.ipynb)
 
 ## Using the Hierarchical Gaussian Filter
 
