@@ -110,7 +110,11 @@ html_theme_options = {
     ],
     "logo": {
         "text": "pyhgf",
-    }
+    },
+    'launch_buttons': {
+        'colab_url': 'https://colab.research.google.com',
+        'binderhub_url': 'https://mybinder.org'
+    },
 }
 
 myst_enable_extensions = ["dollarmath"]
@@ -126,11 +130,13 @@ def setup(app):
 # -- Intersphinx ------------------------------------------------
 
 intersphinx_mapping = {
-    "numpy": ("http://docs.scipy.org/doc/numpy/", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
     "scipy": ("http://docs.scipy.org/doc/scipy/reference/", None),
     "matplotlib": ("http://matplotlib.org/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
     "sklearn": ("http://scikit-learn.org/stable", None),
     "bokeh": ("http://docs.bokeh.org/en/latest/", None),
+    "python": ("https://docs.python.org/3", None),
+    "jax": ("https://jax.readthedocs.io/en/latest", None),
 }

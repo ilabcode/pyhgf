@@ -6,7 +6,6 @@
 
 pyhgf is a Python library that implements the generalized, nodalized and multilevel Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library can create and manipulate graph neural networks that perform beliefs update throught the diffusion of precision-weighted prediction errors under new observations. The core functions are derivable, JIT-able, and are designed to interface smoothly with other libraries in the JAX ecosystem for Bayesian inference.
 
-* 🎓 [What is a Hierarchical Gaussian Filter?](https://ilabcode.github.io/pyhgf/theory.html)  
 * 📖 [API Documentation](https://ilabcode.github.io/pyhgf/)  
 * ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/tutorials.html)  
 
@@ -14,7 +13,7 @@ pyhgf is a Python library that implements the generalized, nodalized and multile
 
 ### Installation
 
-The last official release can be download from PIP:
+The last official release can be downloaded from PIP:
 
 ```bash
 pip install pyhgf
@@ -37,7 +36,7 @@ More generally, pyhgf operates on graph neural networks that can be defined and 
 * A set of update functions that operate on any of the 3 other variables, starting from a target node.
 * An update sequence (tuple) that define the order in which the update functions are called, and the target node.
 
-![png](./images/graph_network.svg)
+![png](./images/graph_networks.svg)
 
 Value parent and volatility parent are nodes themself. Any node can be a value and/or volatility parent for other nodes and have multiple value and/or volatility parents. A filtering structure consists of nodes embedding other nodes hierarchically. Nodes are parametrized by their sufficient statistic and parents. The transformations between nodes can be linear, non-linear, or any function (thus a *generalization* of the HGF).
 
@@ -91,13 +90,12 @@ hgf.plot_trajectories()
 
 # Acknowledgements
 
-This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab version](https://translationalneuromodeling.github.io/tapas). A Julia implementation of the generalised, nodalised and multilevel HGF is also available [here](https://github.com/ilabcode/HGF.jl).
+This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab version](https://translationalneuromodeling.github.io/tapas). A Julia equivalent of the generalised, nodalised and multilevel HGF is also available [here](https://github.com/ilabcode/HGF.jl).
 
 ```{toctree}
 ---
 hidden:
 ---
-Theory <theory.md>
 Tutorials <tutorials.md>
 API <api.rst>
 Cite <cite.md>
