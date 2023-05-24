@@ -33,7 +33,7 @@ More generally, pyhgf operates on graph neural networks that can be defined and 
 * A set of update functions that operate on any of the 3 other variables, starting from a target node.
 * An update sequence (tuple) that define the order in which the update functions are called, and the target node.
 
-![png](./docs/source/images/graph_network.png)
+![png](./docs/source/images/graph_networks.svg)
 
 Value parent and volatility parent are nodes themself. Any node can be a value and/or volatility parent for other nodes and have multiple value and/or volatility parents. A filtering structure consists of nodes embedding other nodes hierarchically. Nodes are parametrized by their sufficient statistic and parents. The transformations between nodes can be linear, non-linear, or any function (thus a *generalization* of the HGF).
 
