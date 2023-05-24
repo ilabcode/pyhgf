@@ -57,6 +57,12 @@ def continuous_node_update(
     --------
     update_continuous_input_parents, update_binary_input_parents
 
+    References
+    ----------
+    .. [1] Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., &
+       Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1).
+       arXiv. https://doi.org/10.48550/ARXIV.2305.10937
+
     """
     # using the current node index, unwrap parameters and parents
     node_parameters = parameters_structure[node_idx]
@@ -222,6 +228,12 @@ def continuous_input_update(
     See Also
     --------
     continuous_node_update, update_binary_input_parents
+
+    References
+    ----------
+    .. [1] Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., &
+       Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1).
+       arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
     # using the current node index, unwrap parameters and parents
