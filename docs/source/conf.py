@@ -48,7 +48,6 @@ extensions = [
     "jupyter_sphinx",
     "myst_nb",
     "sphinxcontrib.bibtex",
-    "sphinx_proof"
 ]
 
 panels_add_bootstrap_css = False
