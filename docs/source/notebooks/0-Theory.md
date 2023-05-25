@@ -336,7 +336,7 @@ We have placed the {term}`Prediction` step in the end of the update loop. This i
 
 The exact computations of the {term}`Update` depend on the nature of the coupling with the child node(s), while both the {term}`Prediction error` and the {term}`Prediction` step depend on the coupling with the parent node(s).
 
-:::{note} Update
+```{note} Update
 :class: dropdown
 
 If Node $i$ is the value parent of Node $i-1$, then the following update equations apply to Node $i$:
@@ -365,11 +365,11 @@ In sum, at the time of the update, Node $i$ needs to have access to the followin
 
 All of these are available at the time of the update. Node $i$ therefore only needs to receive the PE and the predicted precision from the level below to perform its update.
 
-:::
+```
 
 +++ {"user_expressions": []}
 
-:::{note} Prediction error
+```{note} Prediction error
 :class: dropdown
 
 We will assume in the following, that Node $i$ is the value child of Node $i+1$. Then the following quantities have to be sent up to Node $i+1$ (cf. necessary information from level below in a value parent):
@@ -385,11 +385,11 @@ $$
 \end{equation}
 $$
 
-:::
+```
 
 +++ {"user_expressions": []}
 
-:::{note} Prediction
+```{note} Prediction
 :class: dropdown
 
 Still assuming that Node $i$ is the value child of Node $i+1$, the prediction step consists of the following computations:
@@ -416,7 +416,7 @@ Note that if Node $i$ additionally has a {term}`VOPE` parent node, the estimated
 In general, the prediction of the mean will depend only on whether Node $i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node $i$ has a volatility parent or not.
 
 Thus, the {prf:ref}`vape-prediction` only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
-:::
+```
 
 +++ {"user_expressions": []}
 
@@ -469,7 +469,7 @@ which will be computed as part of the [vope preditions](#vope-prediction) and on
 
 +++ {"user_expressions": []}
 
-:::{note} Update
+```{note} Update
 :class: dropdown
 :name: vope-update
 
@@ -521,11 +521,11 @@ Therefore, at the time of the update, Node $i$ needs to have access to the follo
 * Coupling strength: $\kappa_{i,i-1}$
 * From level below: $\Delta_{i-1}^{(k)}$, $\gamma_{i-1}^{(k)}$
 
-:::
+```
 
 +++ {"user_expressions": []}
 
-:::{note} Prediction-error
+```{note} Prediction-error
 :class: dropdown
 :name: vope-pe
 
@@ -543,11 +543,11 @@ $$
 \end{align}
 $$
 
-:::
+```
 
 +++ {"user_expressions": []}
 
-:::{note} Prediction
+```{note} Prediction
 :class: dropdown
 :name: vope-prediction
 
@@ -570,25 +570,27 @@ Note that if Node $i$ additionally has a {term}`VAPE` parent node, the predictio
 
 ## Glossary
 
-{.glossary}
+```{glossary}
 
 Node
-: HGF models are defined as networks of probabilistic nodes. A node is defined by its parameters (e.g. sufficient statistics, coupling values...) and by its connection with other nodes. The dependencies structure can have more than one dimension (i.e. there are many kinds of dependencies between nodes, especially here the volatility coupling and the value coupling).
+    HGF models are defined as networks of probabilistic nodes. A node is defined by its parameters (e.g. sufficient statistics, coupling values...) and by its connection with other nodes. The dependencies structure can have more than one dimension (i.e. there are many kinds of dependencies between nodes, especially here the volatility coupling and the value coupling).
 
 Prediction
-: At every time $k$, a continuous node $i$ is defined by its sufficient statistics, the mean $\mu_i^{(k)}$ and its inverse variance, or precision, $\pi_i^{(k)}$, and hold predictions about the next observed values, denoted $\hat{\mu}_i^{(k)}$ and $\hat{\pi}_i^{(k)}$.
+    At every time $k$, a continuous node $i$ is defined by its sufficient statistics, the mean $\mu_i^{(k)}$ and its inverse variance, or precision, $\pi_i^{(k)}$, and hold predictions about the next observed values, denoted $\hat{\mu}_i^{(k)}$ and $\hat{\pi}_i^{(k)}$.
 
 Prediction error
-: Difference between the top-down predictions at node $i$ that is inherited from parents, and the bottom-up incoming observatrion passed by children nodes.
+    Difference between the top-down predictions at node $i$ that is inherited from parents, and the bottom-up incoming observatrion passed by children nodes.
 
 Update
-: At each time $k$, a new value is observed at the input node and the sufficient statistics of the nodes (i.e. beliefs) are updated accordingly from the lower part to the upper part of the structure.
+    At each time $k$, a new value is observed at the input node and the sufficient statistics of the nodes (i.e. beliefs) are updated accordingly from the lower part to the upper part of the structure.
 
 VAPE
-: Value prediction error. The error of top-down prediction concerning the node's value ($\mu_i$).
+    Value prediction error. The error of top-down prediction concerning the node's value ($\mu_i$).
 
 VOPE
-: Volatility prediction error. The error of top-down prediction concerning the node's volatility ($\pi_i$).
+    Volatility prediction error. The error of top-down prediction concerning the node's volatility ($\pi_i$).
+
+```
 
 ```{code-cell} ipython3
 
