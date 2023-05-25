@@ -1,7 +1,7 @@
 -e .
 xarray>=2022.6.0
 jupyter_sphinx>=0.4.0
-pydata-sphinx-theme>=0.12.0
+pydata-sphinx-theme>=0.13.3
 sphinx-bootstrap-theme>=0.8.1
 sphinxcontrib-bibtex>=2.4.2
 myst-nb>=0.16.0

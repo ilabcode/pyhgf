@@ -111,10 +111,6 @@ html_theme_options = {
     "logo": {
         "text": "pyhgf",
     },
-    'launch_buttons': {
-        'colab_url': 'https://colab.research.google.com',
-        'binderhub_url': 'https://mybinder.org'
-    },
 }
 
 myst_enable_extensions = ["dollarmath"]
