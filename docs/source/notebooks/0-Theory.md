@@ -15,7 +15,7 @@ kernelspec:
 +++ {"user_expressions": []}
 
 (theory)=
-# The Hierarchical Gaussian Filter
+# An introduction to the Hierarchical Gaussian Filter
 In this notebook, we introduce the main oncepts on which the Hierarchical Gaussian Filter (HGF) is based. We describe the main equations and illustrate the examples with Python code. We start with the generative model of the HGF, which describes how the model assume that the data is being generated. This generative structure is then used to filter the observation (i.e. the sensory part of the model), which is then used by the agent to produce behaviors (i.e. the action part of the model). Next, we show how this model can be "inverted" and used by an agent to infer parameter values that generated the sensory inputs. From there, we discuss the notion of prediction error and how derivations of the model can be used to infer probability densities given observed behavioural outcomes.
 
 +++ {"user_expressions": []}
@@ -64,7 +64,7 @@ If we take as example the two-level continuous HGF {cite:p}`2014:mathys`, the mo
 +++ {"user_expressions": []}
 
 $$
-x_1^{(k)} \sim \mathcal{N}(x_1^{(k)} | x_1^{(k-1)}, \, f(x_2^{(k)}))
+x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 $$
 
 where the exact dependency is of the form
@@ -78,7 +78,7 @@ with $\kappa$ as scalling parameter (by defaults in most case it is set to `1` w
 At the higher level of the hierarchy (here the second level), the nodes are not inheriting anything from their parents anymore, and only rely on their own variance:
 
 $$
-x_2^{(k)} \sim \mathcal{N}(x_2^{(k)} | x_2^{(k-1)}, \, \exp(\omega_2))
+x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 $$
 
 The model described above can be implemented in Python as the following:
@@ -127,8 +127,8 @@ In this example, it becomes apparent that the volatility of the observation is n
 This distant influence of one node on another is called *volatility coupling* (see below). However, a higher-level state can also have influence on a lower-level state by influencing its mean instead of its variance. In that case, the mean of the Gaussian random walk at one level is a function not only of its own previous value, but also the current value of the higher-level state. Such model can be formalized as follow:
 
 $$
-    x_1^{(k)} \sim \mathcal{N}(x_1^{(k)} | x_1^{(k-1)} + \alpha_{1} x_2^{(k)}, \, \exp(\omega_1)) \\
-    x_2^{(k)} \sim \mathcal{N}(x_2^{(k)} | x_2^{(k-1)}, \, \exp(\omega_2))
+    x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + \alpha_{1} x_2^{(k)}, \, \exp(\omega_1)) \\
+    x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 $$
 
 where $\alpha$ is the value coupling between the two nodes.
@@ -336,7 +336,7 @@ We have placed the {term}`Prediction` step in the end of the update loop. This i
 
 The exact computations of the {term}`Update` depend on the nature of the coupling with the child node(s), while both the {term}`Prediction error` and the {term}`Prediction` step depend on the coupling with the parent node(s).
 
-```{note} Update
+```{admonition} Update
 :class: dropdown
 
 If Node $i$ is the value parent of Node $i-1$, then the following update equations apply to Node $i$:
@@ -369,7 +369,7 @@ All of these are available at the time of the update. Node $i$ therefore only ne
 
 +++ {"user_expressions": []}
 
-```{note} Prediction error
+```{admonition} Prediction error
 :class: dropdown
 
 We will assume in the following, that Node $i$ is the value child of Node $i+1$. Then the following quantities have to be sent up to Node $i+1$ (cf. necessary information from level below in a value parent):
@@ -389,7 +389,7 @@ $$
 
 +++ {"user_expressions": []}
 
-```{note} Prediction
+```{admonition} Prediction
 :class: dropdown
 
 Still assuming that Node $i$ is the value child of Node $i+1$, the prediction step consists of the following computations:
@@ -469,7 +469,7 @@ which will be computed as part of the [vope preditions](#vope-prediction) and on
 
 +++ {"user_expressions": []}
 
-```{note} Update
+```{admonition} Update
 :class: dropdown
 :name: vope-update
 
@@ -525,7 +525,7 @@ Therefore, at the time of the update, Node $i$ needs to have access to the follo
 
 +++ {"user_expressions": []}
 
-```{note} Prediction-error
+```{admonition} Prediction-error
 :class: dropdown
 :name: vope-pe
 
@@ -547,7 +547,7 @@ $$
 
 +++ {"user_expressions": []}
 
-```{note} Prediction
+```{admonition} Prediction
 :class: dropdown
 :name: vope-prediction
 
@@ -565,6 +565,7 @@ $$
 Thus, the prediction for trial $k+1$ depends again only on receiving the posterior mean of Node $i+1$ on trial $k$, and knowing the Node's own posteriors.
 
 Note that if Node $i$ additionally has a {term}`VAPE` parent node, the prediction of the new mean, $\hat{\mu}_i^{k+1}$ would also depend on the posterior mean of that value parent (cf. {prf:ref}`vape-prediction`).
+```
 
 +++ {"user_expressions": []}
 

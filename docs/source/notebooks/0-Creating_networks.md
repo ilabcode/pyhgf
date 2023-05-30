@@ -97,7 +97,7 @@ For example, the following network is a valid HGF structure:
 
 ```{code-cell} ipython3
 custom_hgf = (
-    HGF(n_levels=3, model_type=None)
+    HGF(model_type=None)
     .add_input_node(kind="continuous")
     .add_value_parent(children_idxs=[0])
     .add_value_parent(children_idxs=[1])
