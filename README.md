@@ -14,7 +14,7 @@ pyhgf is a Python library that implements the generalized, nodalized and multile
 
 ### Installation
 
-The last official release can be download from PIP:
+The last official release can be downloaded from PIP:
 
 `pip install pyhgf`
 
