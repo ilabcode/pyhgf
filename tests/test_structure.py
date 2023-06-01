@@ -8,6 +8,7 @@ import jax.numpy as jnp
 from pyhgf.continuous import continuous_input_update, continuous_node_update
 from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes
+import jax.numpy as jnp
 
 
 class TestStructure(TestCase):
