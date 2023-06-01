@@ -64,7 +64,8 @@ class Testcontinuous(TestCase):
             time_step=1.0,
             node_structure=node_structure,
             update_sequence=update_sequence, 
-            value=None
+            values=jnp.nan,
+            input_nodes_idx=jnp.array([0])
             )
 
         assert parameters_structure == new_parameters_structure
@@ -85,7 +86,8 @@ class Testcontinuous(TestCase):
             time_step=1.0,
             node_structure=node_structure,
             update_sequence=update_sequence, 
-            value=None
+            values=jnp.nan,
+            input_nodes_idx=jnp.array([0])
             )
 
         assert jnp.isclose(
@@ -109,7 +111,8 @@ class Testcontinuous(TestCase):
             time_step=1.0,
             node_structure=node_structure,
             update_sequence=update_sequence, 
-            value=None
+            values=jnp.nan,
+            input_nodes_idx=jnp.array([0])
             )
         assert jnp.isclose(
             new_node_structure[1]["pi"],
@@ -132,7 +135,8 @@ class Testcontinuous(TestCase):
             time_step=1.0,
             node_structure=node_structure,
             update_sequence=update_sequence, 
-            value=None
+            values=jnp.nan,
+            input_nodes_idx=jnp.array([0])
             )
         assert jnp.isclose(
             new_node_structure[1]["pi"],
@@ -185,7 +189,7 @@ class Testcontinuous(TestCase):
             node_parameters,
             node_parameters,
         )
-        
+
         # create update sequence
         sequence1 = 0, continuous_input_update
         sequence2 = 1, continuous_node_update
@@ -197,7 +201,8 @@ class Testcontinuous(TestCase):
             parameters_structure=parameters_structure,
             update_sequence=update_sequence, 
             time_step=1.0,
-            value=.2
+            values=.2,
+            input_nodes_idx=jnp.array([0])
             )
 
         assert new_parameters_structure[1]["pi"] == 0.48708236
@@ -251,7 +256,8 @@ class Testcontinuous(TestCase):
         scan_fn = Partial(
             loop_inputs, 
             update_sequence=update_sequence, 
-            node_structure=node_structure
+            node_structure=node_structure,
+            input_nodes_idx=jnp.array([0])
             )
 
         # Run the entire for loop

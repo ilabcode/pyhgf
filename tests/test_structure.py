@@ -2,14 +2,14 @@
 
 import unittest
 from unittest import TestCase
-import jax.numpy as jnp
 from pyhgf.continuous import continuous_input_update, continuous_node_update
-from pyhgf.structure import loop_inputs, apply_sequence
+from pyhgf.structure import apply_sequence
 from pyhgf.typing import Indexes
+import jax.numpy as jnp
 
 class TestStructure(TestCase):
 
-    def test_loop_inputs(self):
+    def test_apply_sequence(self):
         """Test the loop_inputs function"""
 
         ###############################################
@@ -57,7 +57,8 @@ class TestStructure(TestCase):
             parameters_structure=parameters_structure,
             update_sequence=update_sequence, 
             time_step=1.0,
-            value=.2
+            values=jnp.array([.2]),
+            input_nodes_idx=jnp.array([0])
             )
 
 if __name__ == "__main__":

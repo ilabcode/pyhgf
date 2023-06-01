@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, NamedTuple, Optional, Tuple
+from typing import Callable, List, NamedTuple, Optional, Tuple
 
 
 class Indexes(NamedTuple):
@@ -11,10 +11,10 @@ class Indexes(NamedTuple):
 
 
 class InputIndexes(NamedTuple):
-    """Input node type and index."""
+    """Input nodes type and index."""
 
-    idx: int
-    kind: str
+    idx: List[int]
+    kind: List[str]
 
 
 NodeStructure = Tuple[Indexes, ...]

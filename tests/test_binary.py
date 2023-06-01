@@ -91,7 +91,8 @@ class Testbinary(TestCase):
             parameters_structure=parameters_structure,
             update_sequence=update_sequence, 
             time_step=1.0,
-            value=1.0
+            values=jnp.array([1.0]),
+            input_nodes_idx=jnp.array([0])
             )
         assert new_parameters_structure[0]["surprise"] == 0.31326166
 
@@ -101,12 +102,12 @@ class Testbinary(TestCase):
         # Create the data (value and time steps vectors)
         data = jnp.array([timeserie, jnp.ones(len(timeserie), dtype=int)]).T
 
-
         # create the function that will be scaned
         scan_fn = Partial(
             loop_inputs, 
             update_sequence=update_sequence, 
-            node_structure=node_structure
+            node_structure=node_structure,
+            input_nodes_idx=jnp.array([0])
             )
 
         # Run the entire for loop
