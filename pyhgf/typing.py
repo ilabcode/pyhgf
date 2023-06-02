@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, List, NamedTuple, Optional, Tuple
+from typing import Callable, NamedTuple, Optional, Tuple
 
 
 class Indexes(NamedTuple):
