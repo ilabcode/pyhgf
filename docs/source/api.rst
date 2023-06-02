@@ -44,7 +44,7 @@ Distribution
 ------------
 
 The Herarchical Gaussian Filter as a PyMC distribution. This distribution can be
-embedded in a PyMC model (pymc>=5.0.0).
+embedded in models using PyMC>=5.0.0.
 
 .. currentmodule:: pyhgf.distribution
 
@@ -109,5 +109,4 @@ Utilities for manipulating node structures and applying sequences.
 .. autosummary::
    :toctree: generated/pyhgf.structure
 
-   loop_inputs
-   apply_sequence
+   beliefs_propagation

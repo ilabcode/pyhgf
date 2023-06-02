@@ -18,7 +18,7 @@ from pyhgf.continuous import (
 )
 from pyhgf.plots import plot_correlations, plot_network, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
-from pyhgf.structure import loop_inputs
+from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes, InputIndexes, NodeStructure, UpdateSequence
 
 
@@ -145,7 +145,6 @@ class HGF(object):
         self.node_structure: NodeStructure
         self.node_trajectories: Dict
         self.parameters_structure: Dict
-        self.input_nodes_idx: InputIndexes = InputIndexes([], [])
         self.update_sequence: Optional[UpdateSequence] = None
 
         if model_type in ["continuous", "binary"]:
@@ -240,10 +239,10 @@ class HGF(object):
 
         # create the function that will be scaned
         scan_fn = Partial(
-            loop_inputs,
+            beliefs_propagation,
             update_sequence=self.update_sequence,
             node_structure=self.node_structure,
-            input_nodes_idx=jnp.array(self.input_nodes_idx.idx),
+            input_nodes_idx=self.input_nodes_idx.idx,
         )
 
         # create the input array (data, time)
@@ -407,14 +406,18 @@ class HGF(object):
             # this is the first node, create the node structure
             self.parameters_structure = {input_idx: input_node_parameters}
             self.node_structure = (Indexes(None, None),)
+            self.input_nodes_idx = InputIndexes((input_idx,), (kind,))
         else:
             # update the node structure
             self.parameters_structure[input_idx] = input_node_parameters
             self.node_structure += (Indexes(None, None),)
 
-        # add information about the new input node in the indexes
-        self.input_nodes_idx.idx.append(input_idx)
-        self.input_nodes_idx.kind.append(kind)
+            # add information about the new input node in the indexes
+            new_idx = self.input_nodes_idx.idx
+            new_idx += (input_idx,)
+            new_kind = self.input_nodes_idx.kind
+            new_kind += (kind,)
+            self.input_nodes_idx = InputIndexes(new_idx, new_kind)
 
         return self
 
