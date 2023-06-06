@@ -254,11 +254,11 @@ $$
 \end{equation}
 $$
 
-Note that if Node $i$ additionally has a {term}`VOPE` parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. {prf:ref}`vope-prediction`).
+Note that if Node $i$ additionally has a {term}`VOPE` parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. {ref}`vope-prediction`).
 
 In general, the prediction of the mean will depend only on whether Node $i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node $i$ has a volatility parent or not.
 
-Thus, the {prf:ref}`vape-prediction` only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
+Thus, the {ref}`vape-prediction` only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
 
 For example, the three-level continuous HGF that is illustrated [above](hgf-fig) is built on top of the following generative model:
 
@@ -411,11 +411,11 @@ $$
 \end{equation}
 $$
 
-Note that if Node $i$ additionally has a {term}`VOPE` parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. {prf:ref}`vope-prediction`).
+Note that if Node $i$ additionally has a {term}`VOPE` parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. {ref}`vope-prediction`).
 
 In general, the prediction of the mean will depend only on whether Node $i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node $i$ has a volatility parent or not.
 
-Thus, the {prf:ref}`vape-prediction` only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
+Thus, the {ref}`vape-prediction` only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
 ```
 
 +++ {"user_expressions": []}
@@ -534,7 +534,7 @@ The exact computation of the prediction error depends, like the computation of t
 * Expected precision: $\gamma_{i}^{(k)}$
 * Prediction error: $\Delta_{i}^{(k)}$
 
-Node $i$ has already performed the {prf:ref}`vope-prediction` on the previous trial, so it has already computed the predicted precision, $\hat{\pi}_{i}^{(k)}$, and the volatiliy estimate, $\nu_i^{(k)}$, and out of these the expected precision, $\gamma_{i}^{(k)}$, for the current trial. Hence, in the **PE step**, it needs to perform only the following calculations:
+Node $i$ has already performed the {ref}`vope-prediction` on the previous trial, so it has already computed the predicted precision, $\hat{\pi}_{i}^{(k)}$, and the volatiliy estimate, $\nu_i^{(k)}$, and out of these the expected precision, $\gamma_{i}^{(k)}$, for the current trial. Hence, in the **PE step**, it needs to perform only the following calculations:
 
 $$
 \begin{align}
@@ -564,7 +564,7 @@ $$
 
 Thus, the prediction for trial $k+1$ depends again only on receiving the posterior mean of Node $i+1$ on trial $k$, and knowing the Node's own posteriors.
 
-Note that if Node $i$ additionally has a {term}`VAPE` parent node, the prediction of the new mean, $\hat{\mu}_i^{k+1}$ would also depend on the posterior mean of that value parent (cf. {prf:ref}`vape-prediction`).
+Note that if Node $i$ additionally has a {term}`VAPE` parent node, the prediction of the new mean, $\hat{\mu}_i^{k+1}$ would also depend on the posterior mean of that value parent (cf. {ref}`vape-prediction`).
 ```
 
 +++ {"user_expressions": []}

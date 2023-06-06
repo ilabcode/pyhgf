@@ -11,7 +11,7 @@ from pyhgf.continuous import (
     continuous_input_update,
     continuous_node_update,
 )
-from pyhgf.structure import loop_inputs, apply_sequence
+from pyhgf.structure import beliefs_propagation
 from jax.tree_util import Partial
 from pyhgf.typing import Indexes
 
@@ -53,18 +53,18 @@ class Testcontinuous(TestCase):
             node_parameters,
             node_parameters,
         )
+        data = jnp.array([jnp.nan, 1.0])
 
         ###########################################
         # No value parent - no volatility parents #
         ###########################################
         sequence1 = 0, continuous_node_update
         update_sequence = (sequence1,)
-        new_parameters_structure = apply_sequence(
+        new_parameters_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure, 
-            time_step=1.0,
+            data=data,
             node_structure=node_structure,
             update_sequence=update_sequence, 
-            value=None
             )
 
         assert parameters_structure == new_parameters_structure
@@ -77,15 +77,15 @@ class Testcontinuous(TestCase):
             Indexes(None, None),
             Indexes(None, None),
         )
+        data = jnp.array([jnp.nan, 1.0])
 
         sequence1 = 0, continuous_node_update
         update_sequence = (sequence1,)
-        new_parameters_structure = apply_sequence(
+        new_parameters_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure, 
-            time_step=1.0,
             node_structure=node_structure,
+            data=data,
             update_sequence=update_sequence, 
-            value=None
             )
 
         assert jnp.isclose(
@@ -101,15 +101,15 @@ class Testcontinuous(TestCase):
             Indexes(None, None),
             Indexes(None, None),
         )
+        data = jnp.array([jnp.nan, 1.0])
 
         sequence1 = 0, continuous_node_update
         update_sequence = (sequence1,)
-        new_node_structure = apply_sequence(
+        new_node_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure, 
-            time_step=1.0,
+            data=data,
             node_structure=node_structure,
             update_sequence=update_sequence, 
-            value=None
             )
         assert jnp.isclose(
             new_node_structure[1]["pi"],
@@ -124,15 +124,15 @@ class Testcontinuous(TestCase):
             Indexes(None, None),
             Indexes(None, None),
         )
+        data = jnp.array([jnp.nan, 1.0])
 
         sequence1 = 0, continuous_node_update
         update_sequence = (sequence1,)
-        new_node_structure = apply_sequence(
+        new_node_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure, 
-            time_step=1.0,
+            data=data,
             node_structure=node_structure,
             update_sequence=update_sequence, 
-            value=None
             )
         assert jnp.isclose(
             new_node_structure[1]["pi"],
@@ -185,19 +185,19 @@ class Testcontinuous(TestCase):
             node_parameters,
             node_parameters,
         )
-        
+
         # create update sequence
         sequence1 = 0, continuous_input_update
         sequence2 = 1, continuous_node_update
         update_sequence = (sequence1, sequence2)
+        data = jnp.array([.2, 1.0])
 
-        # apply sequence
-        new_parameters_structure = apply_sequence(
+        # apply beliefs propagation updates
+        new_parameters_structure, _ = beliefs_propagation(
             node_structure=node_structure,
             parameters_structure=parameters_structure,
             update_sequence=update_sequence, 
-            time_step=1.0,
-            value=.2
+            data=data,
             )
 
         assert new_parameters_structure[1]["pi"] == 0.48708236
@@ -249,9 +249,9 @@ class Testcontinuous(TestCase):
 
         # create the function that will be scaned
         scan_fn = Partial(
-            loop_inputs, 
+            beliefs_propagation, 
             update_sequence=update_sequence, 
-            node_structure=node_structure
+            node_structure=node_structure,
             )
 
         # Run the entire for loop

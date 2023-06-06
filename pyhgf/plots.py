@@ -311,12 +311,10 @@ def plot_network(hgf: "HGF") -> "Source":
     graphviz_structure.attr("node", shape="circle")
 
     # set input nodes
-    list_of_input_idx = []
-    for input_node in hgf.input_nodes_idx:
-        list_of_input_idx.append(input_node.idx)
+    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
         graphviz_structure.node(
-            f"x_{input_node.idx}",
-            label=f"{input_node.kind.capitalize()[0]}I - {input_node.idx}",
+            f"x_{idx}",
+            label=f"{kind.capitalize()[0]}I - {idx}",
             style="filled",
             shape="octagon",
         )
@@ -324,12 +322,12 @@ def plot_network(hgf: "HGF") -> "Source":
     # create the rest of nodes
     for i in range(len(hgf.node_structure)):
         # only if node is not an input node
-        if i not in list_of_input_idx:
+        if i not in hgf.input_nodes_idx.idx:
             graphviz_structure.node(f"x_{i}", label=str(i), shape="circle")
 
     # connect value parents
-    for i, idx in enumerate(hgf.node_structure):
-        value_parents = idx.value_parents
+    for i, index in enumerate(hgf.node_structure):
+        value_parents = index.value_parents
 
         if value_parents is not None:
             for value_parents_idx in value_parents:
@@ -339,8 +337,8 @@ def plot_network(hgf: "HGF") -> "Source":
                 )
 
     # connect volatility parents
-    for i, idx in enumerate(hgf.node_structure):
-        volatility_parents = idx.volatility_parents
+    for i, index in enumerate(hgf.node_structure):
+        volatility_parents = index.volatility_parents
 
         if volatility_parents is not None:
             for volatility_parents_idx in volatility_parents:

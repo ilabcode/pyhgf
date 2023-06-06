@@ -16,9 +16,9 @@ from pyhgf.binary import (
     sgm
 )
 from pyhgf.continuous import continuous_node_update
-from pyhgf.structure import apply_sequence, loop_inputs
+from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes
-
+import numpy as np
 
 
 class Testbinary(TestCase):
@@ -84,14 +84,14 @@ class Testbinary(TestCase):
         sequence2 = 1, binary_node_update
         sequence3 = 2, continuous_node_update
         update_sequence = (sequence1, sequence2, sequence3)
+        data = jnp.array([1.0, 1.0])
 
         # apply sequence
-        new_parameters_structure = apply_sequence(
+        new_parameters_structure, _ = beliefs_propagation(
             node_structure=node_structure,
             parameters_structure=parameters_structure,
             update_sequence=update_sequence, 
-            time_step=1.0,
-            value=1.0
+            data=data,
             )
         assert new_parameters_structure[0]["surprise"] == 0.31326166
 
@@ -101,12 +101,11 @@ class Testbinary(TestCase):
         # Create the data (value and time steps vectors)
         data = jnp.array([timeserie, jnp.ones(len(timeserie), dtype=int)]).T
 
-
         # create the function that will be scaned
         scan_fn = Partial(
-            loop_inputs, 
+            beliefs_propagation, 
             update_sequence=update_sequence, 
-            node_structure=node_structure
+            node_structure=node_structure,
             )
 
         # Run the entire for loop

@@ -2,14 +2,14 @@
 
 import unittest
 from unittest import TestCase
-import jax.numpy as jnp
 from pyhgf.continuous import continuous_input_update, continuous_node_update
-from pyhgf.structure import loop_inputs, apply_sequence
+from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes
+import jax.numpy as jnp
 
 class TestStructure(TestCase):
 
-    def test_loop_inputs(self):
+    def test_beliefs_propagation(self):
         """Test the loop_inputs function"""
 
         ###############################################
@@ -51,13 +51,15 @@ class TestStructure(TestCase):
         sequence2 = 1, continuous_node_update
         update_sequence = (sequence1, sequence2)
 
+        # one batch of new observations with time step
+        data = jnp.array([.2, 1.0])
+
         # apply sequence
-        new_parameters_structure = apply_sequence(
-            node_structure=node_structure,
+        new_parameters_structure = beliefs_propagation(
             parameters_structure=parameters_structure,
+            data=data,
             update_sequence=update_sequence, 
-            time_step=1.0,
-            value=.2
+            node_structure=node_structure,
             )
 
 if __name__ == "__main__":

@@ -11,10 +11,10 @@ class Indexes(NamedTuple):
 
 
 class InputIndexes(NamedTuple):
-    """Input node type and index."""
+    """Input nodes type and index."""
 
-    idx: int
-    kind: str
+    idx: Tuple[int, ...]
+    kind: Tuple[str, ...]
 
 
 NodeStructure = Tuple[Indexes, ...]
