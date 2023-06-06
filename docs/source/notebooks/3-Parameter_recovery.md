@@ -71,7 +71,7 @@ for participant in range(n_data):
         u = np.random.normal(mu_1, 1e-4**.5)
         input_data.append(u)
 
-    dataset.append(input_data)
+    dataset.append(np.array(input_data))
 ```
 
 ```{code-cell} ipython3
