@@ -18,7 +18,7 @@ from pyhgf.continuous import (
 )
 from pyhgf.plots import plot_correlations, plot_network, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
-from pyhgf.structure import beliefs_propagation
+from pyhgf.structure import beliefs_propagation, get_children
 from pyhgf.typing import Indexes, InputIndexes, NodeStructure, UpdateSequence
 
 
@@ -224,7 +224,7 @@ class HGF(object):
         Parameters
         ----------
         input_data :
-            The new observations.
+            2d array of new observations (time x features).
         time :
             Time vector (optional). If `None`, the time vector will defaults to
             `np.arange(0, len(input_data))`.
@@ -245,8 +245,12 @@ class HGF(object):
             input_nodes_idx=self.input_nodes_idx.idx,
         )
 
-        # create the input array (data, time)
-        data = jnp.array([input_data, time], dtype=float).T
+        # concatenate data and time
+        time = time[..., jnp.newaxis]
+        if input_data.ndim == 1:
+            input_data = input_data[..., jnp.newaxis]
+
+        data = jnp.concatenate((input_data, time), dtype=float, axis=1)
 
         # Run the entire for loop
         # this is where the model loop over the input time series
@@ -612,16 +616,24 @@ class HGF(object):
         return self
 
     def get_update_sequence(
-        self, node_idx: int = 0, update_sequence: Tuple = ()
+        self, node_idxs: Tuple[int, ...] = (0,), update_sequence: Tuple = ()
     ) -> Tuple:
-        """Get update sequence from the nodes' connections structure.
+        """Automated creation of the update sequence from the network's structure.
+
+        The function ensures that the following rules apply:
+        1. all children have been updated before propagating to the parent(s) node.
+        2. the update function of an input node is choosen based on the node's type
+        (`"continuous"` or `"binary"`).
+        3. the update function of the parent of an input node is choosen based on the
+        node's type (`"continuous"` or `"binary"`).
 
         Parameters
         ----------
-        node_idx :
-            The index of the current node.
+        node_idxs :
+            The indexes of the current node(s) that should be evaluated. By default
+            (`None`), the function will start with the list of input nodes.
         update_sequence :
-            The current update sequence. This is used for recursive evaluation.
+            The current state of the update sequence (for recursive evaluation).
 
         Returns
         -------
@@ -629,35 +641,70 @@ class HGF(object):
             The update sequence.
 
         """
-        # get the parents indexes
-        value_parent_idx = self.node_structure[node_idx].value_parents
-        volatility_parent_idx = self.node_structure[node_idx].volatility_parents
+        if len(update_sequence) == 0:
+            node_idxs = self.input_nodes_idx.idx
 
-        # select the update function
-        if node_idx in self.input_nodes_idx.idx:
-            if self.model_type == "binary":
-                update_fn = binary_input_update
-            elif self.model_type == "continuous":
-                update_fn = continuous_input_update
-        elif (node_idx == 1) & (self.model_type == "binary"):
-            update_fn = binary_node_update
-        else:
+        for node_idx in node_idxs:
+            # select the update function
+            # --------------------------
+
+            # case 1 - default to a continuous node
             update_fn = continuous_node_update
 
-        # create a new sequence step and add it to the list
-        new_sequence = node_idx, update_fn
-        update_sequence += (new_sequence,)
+            # case 2 - this is an input node
+            if node_idx in self.input_nodes_idx.idx:
+                model_kind = [
+                    kind_
+                    for kind_, idx_ in zip(
+                        self.input_nodes_idx.kind, self.input_nodes_idx.idx
+                    )
+                    if idx_ == node_idx
+                ][0]
+                if model_kind == "binary":
+                    update_fn = binary_input_update
+                elif model_kind == "continuous":
+                    update_fn = continuous_input_update
 
-        # search recursively for the nex update steps
-        if value_parent_idx is not None:
-            for idx in value_parent_idx:
-                update_sequence = self.get_update_sequence(
-                    node_idx=idx, update_sequence=update_sequence
-                )
-        if volatility_parent_idx is not None:
-            for idx in volatility_parent_idx:
-                update_sequence = self.get_update_sequence(
-                    node_idx=idx, update_sequence=update_sequence
-                )
+            # case 3 - this is the parent of at least one binary input node
+            children_idxs = get_children(
+                node_idx=node_idx, node_structure=self.node_structure
+            )
+            for child_idx in children_idxs:
+                if child_idx in self.input_nodes_idx.idx:
+                    model_kind = [
+                        kind_
+                        for kind_, idx_ in zip(
+                            self.input_nodes_idx.kind, self.input_nodes_idx.idx
+                        )
+                        if idx_ == child_idx
+                    ][0]
+                    if model_kind == "binary":
+                        update_fn = binary_node_update
+
+            # create a new sequence step and add it to the list
+            new_sequence = node_idx, update_fn
+            update_sequence += (new_sequence,)
+
+            # search recursively for the next update steps - make sure that all the
+            # children have been updated before updating the next parent
+            # ---------------------------------------------------------------------
+
+            # loop over all possible dependencies (e.g. value, volatility coupling)
+            parents = self.node_structure[node_idx]
+            for parent_types in parents:
+                if parent_types is not None:
+                    for idx in parent_types:
+                        # get the list of all the parent's children
+                        children_idxs = get_children(
+                            node_idx=idx, node_structure=self.node_structure
+                        )
+
+                        # only call the update on the parent(s) if the current node is
+                        # the last on the children list (meaning that all the other
+                        # nodes have been updated)
+                        if children_idxs[-1] == node_idx:
+                            update_sequence = self.get_update_sequence(
+                                node_idxs=(idx,), update_sequence=update_sequence
+                            )
 
         return update_sequence

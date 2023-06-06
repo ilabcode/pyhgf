@@ -1,13 +1,14 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import jax.numpy as jnp
+import numpy as np
 from jax import jit
 from jax.typing import ArrayLike
 
-from pyhgf.typing import UpdateSequence
+from pyhgf.typing import NodeStructure, UpdateSequence
 
 
 @partial(jit, static_argnames=("update_sequence", "node_structure", "input_nodes_idx"))
@@ -75,3 +76,27 @@ def beliefs_propagation(
         parameters_structure,
         parameters_structure,
     )  # ("carryover", "accumulated")
+
+
+def get_children(node_idx: int, node_structure: NodeStructure) -> List[int]:
+    """Get the list of all children from a given node.
+
+    Parameters
+    ----------
+    node_idx :
+        Index of the parent node.
+    node_structure :
+        The network structure.
+
+    Returns
+    -------
+    children_idx :
+        The indexes of the children nodes.
+
+    """
+    children_idxs = []
+    for idx in range(len(node_structure)):
+        if np.any([node_idx in i for i in node_structure[idx] if i is not None]):
+            children_idxs.append(idx)
+
+    return children_idxs
