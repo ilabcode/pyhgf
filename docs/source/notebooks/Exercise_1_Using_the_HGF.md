@@ -243,7 +243,7 @@ To illustrate on possible workflow, we create an agent that tries to use the tem
 
 ```{code-cell} ipython3
 # Load time series example data
-timeserie = aarhus_weather_df["t2m"][:24*30]
+timeserie = aarhus_weather_df["t2m"][:24*30].to_numpy()
 
 # This is where we define all the model parameters - You can control the value of
 # different variables at different levels using the corresponding dictionary.
