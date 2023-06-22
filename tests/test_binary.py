@@ -64,10 +64,10 @@ class Testbinary(TestCase):
         }
 
         node_structure = (
-            Indexes((1,), None),
-            Indexes((2,), None),
-            Indexes(None, (3,)),
-            Indexes(None, None),
+            Indexes((1,), None, None, None),
+            Indexes((2,), None, (0,), None),
+            Indexes(None, (3,), (1,), None),
+            Indexes(None, None, None, (2,)),
         )
         parameters_structure = (
             input_node_parameters,

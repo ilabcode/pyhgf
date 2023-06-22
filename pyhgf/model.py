@@ -18,7 +18,7 @@ from pyhgf.continuous import (
 )
 from pyhgf.plots import plot_correlations, plot_network, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
-from pyhgf.structure import beliefs_propagation, get_children
+from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes, InputIndexes, NodeStructure, UpdateSequence
 
 
@@ -322,38 +322,48 @@ class HGF(object):
             surprise of each node in the structure.
 
         """
-        # input parameters
+        # get time and time steps from the first input node
         structure_df = pd.DataFrame(
             {
-                "time_steps": self.node_trajectories[0]["time_step"],
-                "time": jnp.cumsum(self.node_trajectories[0]["time_step"]),
-                "observation": self.node_trajectories[0]["value"],
+                "time_steps": self.node_trajectories[self.input_nodes_idx.idx[0]][
+                    "time_step"
+                ],
+                "time": jnp.cumsum(
+                    self.node_trajectories[self.input_nodes_idx.idx[0]]["time_step"]
+                ),
             }
         )
 
+        # add the observations from input nodes
+        for inpt in self.input_nodes_idx.idx:
+            structure_df[f"observation_input_{inpt}"] = self.node_trajectories[inpt][
+                "value"
+            ]
+
         # loop over nodes and store sufficient statistics with surprise
         for i in range(1, len(self.node_trajectories)):
-            structure_df[f"x_{i}_mu"] = self.node_trajectories[i]["mu"]
-            structure_df[f"x_{i}_pi"] = self.node_trajectories[i]["pi"]
-            structure_df[f"x_{i}_muhat"] = self.node_trajectories[i]["muhat"]
-            structure_df[f"x_{i}_pihat"] = self.node_trajectories[i]["pihat"]
-            if (i == 1) & (self.model_type == "continuous"):
-                surprise = gaussian_surprise(
-                    x=self.node_trajectories[0]["value"][1:],
-                    muhat=self.node_trajectories[i]["muhat"][:-1],
-                    pihat=self.node_trajectories[i]["pihat"][:-1],
+            if i not in self.input_nodes_idx.idx:
+                structure_df[f"x_{i}_mu"] = self.node_trajectories[i]["mu"]
+                structure_df[f"x_{i}_pi"] = self.node_trajectories[i]["pi"]
+                structure_df[f"x_{i}_muhat"] = self.node_trajectories[i]["muhat"]
+                structure_df[f"x_{i}_pihat"] = self.node_trajectories[i]["pihat"]
+                if (i == 1) & (self.model_type == "continuous"):
+                    surprise = gaussian_surprise(
+                        x=self.node_trajectories[0]["value"][1:],
+                        muhat=self.node_trajectories[i]["muhat"][:-1],
+                        pihat=self.node_trajectories[i]["pihat"][:-1],
+                    )
+                else:
+                    surprise = gaussian_surprise(
+                        x=self.node_trajectories[i]["mu"][1:],
+                        muhat=self.node_trajectories[i]["muhat"][:-1],
+                        pihat=self.node_trajectories[i]["pihat"][:-1],
+                    )
+                # fill with nans when the model cannot fit
+                surprise = jnp.where(
+                    jnp.isnan(self.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
                 )
-            else:
-                surprise = gaussian_surprise(
-                    x=self.node_trajectories[i]["mu"][1:],
-                    muhat=self.node_trajectories[i]["muhat"][:-1],
-                    pihat=self.node_trajectories[i]["pihat"][:-1],
-                )
-            # fill with nans when the model cannot fit
-            surprise = jnp.where(
-                jnp.isnan(self.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
-            )
-            structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
+                structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
 
         # compute the global surprise over all node
         structure_df["surprise"] = structure_df.iloc[
@@ -409,12 +419,12 @@ class HGF(object):
         if input_idx == 0:
             # this is the first node, create the node structure
             self.parameters_structure = {input_idx: input_node_parameters}
-            self.node_structure = (Indexes(None, None),)
+            self.node_structure = (Indexes(None, None, None, None),)
             self.input_nodes_idx = InputIndexes((input_idx,), (kind,))
         else:
             # update the node structure
             self.parameters_structure[input_idx] = input_node_parameters
-            self.node_structure += (Indexes(None, None),)
+            self.node_structure += (Indexes(None, None, None, None),)
 
             # add information about the new input node in the indexes
             new_idx = self.input_nodes_idx.idx
@@ -486,7 +496,7 @@ class HGF(object):
         }
 
         # add a new node to connection structure with no parents
-        self.node_structure += (Indexes(None, None),)
+        self.node_structure += (Indexes(None, None, tuple(children_idxs), None),)
 
         # add a new parameters to parameters structure
         self.parameters_structure[parent_idx] = node_parameters
@@ -502,7 +512,10 @@ class HGF(object):
                     parent_idx,
                 )
                 structure_as_list[idx] = Indexes(
-                    new_value_parents_idx, structure_as_list[idx].volatility_parents
+                    new_value_parents_idx,
+                    structure_as_list[idx].volatility_parents,
+                    structure_as_list[idx].value_children,
+                    structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
                 self.parameters_structure[idx]["psis"] += (value_coupling,)
@@ -510,7 +523,10 @@ class HGF(object):
                 # append new index
                 new_value_parents_idx = (parent_idx,)
                 structure_as_list[idx] = Indexes(
-                    new_value_parents_idx, structure_as_list[idx].volatility_parents
+                    new_value_parents_idx,
+                    structure_as_list[idx].volatility_parents,
+                    structure_as_list[idx].value_children,
+                    structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
                 self.parameters_structure[idx]["psis"] = (value_coupling,)
@@ -581,7 +597,7 @@ class HGF(object):
         }
 
         # add a new node to connection structure with no parents
-        self.node_structure += (Indexes(None, None),)
+        self.node_structure += (Indexes(None, None, None, tuple(children_idxs)),)
 
         # add a new parameters to parameters structure
         self.parameters_structure[parent_idx] = node_parameters
@@ -597,7 +613,10 @@ class HGF(object):
                     idx
                 ].volatility_parents + (parent_idx,)
                 structure_as_list[idx] = Indexes(
-                    structure_as_list[idx].value_parents, new_volatility_parents_idx
+                    structure_as_list[idx].value_parents,
+                    new_volatility_parents_idx,
+                    structure_as_list[idx].value_children,
+                    structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
                 self.parameters_structure[idx]["kappas"] += (volatility_coupling,)
@@ -605,7 +624,10 @@ class HGF(object):
                 # append new index
                 new_volatility_parents_idx = (parent_idx,)
                 structure_as_list[idx] = Indexes(
-                    structure_as_list[idx].value_parents, new_volatility_parents_idx
+                    structure_as_list[idx].value_parents,
+                    new_volatility_parents_idx,
+                    structure_as_list[idx].value_children,
+                    structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
                 self.parameters_structure[idx]["kappas"] = (volatility_coupling,)
@@ -645,6 +667,12 @@ class HGF(object):
             node_idxs = self.input_nodes_idx.idx
 
         for node_idx in node_idxs:
+            # if the node has no parent, exit here
+            if (self.node_structure[node_idx].value_parents is None) & (
+                self.node_structure[node_idx].volatility_parents is None
+            ):
+                continue
+
             # select the update function
             # --------------------------
 
@@ -665,46 +693,52 @@ class HGF(object):
                 elif model_kind == "continuous":
                     update_fn = continuous_input_update
 
-            # case 3 - this is the parent of at least one binary input node
-            children_idxs = get_children(
-                node_idx=node_idx, node_structure=self.node_structure
-            )
-            for child_idx in children_idxs:
-                if child_idx in self.input_nodes_idx.idx:
-                    model_kind = [
-                        kind_
-                        for kind_, idx_ in zip(
-                            self.input_nodes_idx.kind, self.input_nodes_idx.idx
-                        )
-                        if idx_ == child_idx
-                    ][0]
-                    if model_kind == "binary":
-                        update_fn = binary_node_update
+            # case 3 - this is the value parent of at least one binary input node
+            if self.node_structure[node_idx].value_children is not None:
+                value_children_idx = self.node_structure[node_idx].value_children
+                for child_idx in value_children_idx:  # type: ignore
+                    if child_idx in self.input_nodes_idx.idx:
+                        model_kind = [
+                            kind_
+                            for kind_, idx_ in zip(
+                                self.input_nodes_idx.kind, self.input_nodes_idx.idx
+                            )
+                            if idx_ == child_idx
+                        ][0]
+                        if model_kind == "binary":
+                            update_fn = binary_node_update
 
             # create a new sequence step and add it to the list
             new_sequence = node_idx, update_fn
             update_sequence += (new_sequence,)
 
             # search recursively for the next update steps - make sure that all the
-            # children have been updated before updating the next parent
+            # children have been updated before updating the parent(s)
             # ---------------------------------------------------------------------
 
             # loop over all possible dependencies (e.g. value, volatility coupling)
-            parents = self.node_structure[node_idx]
+            parents = self.node_structure[node_idx][:2]
             for parent_types in parents:
                 if parent_types is not None:
                     for idx in parent_types:
-                        # get the list of all the parent's children
-                        children_idxs = get_children(
-                            node_idx=idx, node_structure=self.node_structure
-                        )
-
-                        # only call the update on the parent(s) if the current node is
-                        # the last on the children list (meaning that all the other
-                        # nodes have been updated)
-                        if children_idxs[-1] == node_idx:
-                            update_sequence = self.get_update_sequence(
-                                node_idxs=(idx,), update_sequence=update_sequence
+                        # get the list of all the children in the parent's family
+                        children_idxs = []
+                        if self.node_structure[idx].value_children is not None:
+                            children_idxs.extend(
+                                [*self.node_structure[idx].value_children]
                             )
+                        if self.node_structure[idx].volatility_children is not None:
+                            children_idxs.extend(
+                                [*self.node_structure[idx].volatility_children]
+                            )
+
+                        if len(children_idxs) > 0:
+                            # only call the update on the parent(s) if the current node
+                            # is the last on the children list (meaning that all the
+                            # other nodes have been updated)
+                            if children_idxs[-1] == node_idx:
+                                update_sequence = self.get_update_sequence(
+                                    node_idxs=(idx,), update_sequence=update_sequence
+                                )
 
         return update_sequence

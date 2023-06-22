@@ -18,16 +18,19 @@ def continuous_node_update(
     node_structure: NodeStructure,
     **args
 ) -> Dict:
-    """Update the value and volatility parents of a continuous node.
+    """Update the value and volatility parent(s) of a continuous node.
 
-    If the parents have value and/or volatility parents, they will be updated
-    recursively.
+    Updating the node's parents is a two-step process:
+    1. Update value parent(s).
+    2. Update volatility parent(s).
 
-    Updating the node's parents is a two step process:
-    1. Update value parent(s) and their parents (if provided).
-    2. Update volatility parent(s) and their parents (if provided).
+    If a value/volatility parent has multiple children, all the children will update
+    the parent together, therefor this function should only be called once per group
+    of child nodes. The method :py:meth:`pyhgf.model.HGF.get_update_sequence`
+    ensures that this function is only called once all the children have been
+    updated.
 
-    Then returns the new node structure.
+    Then returns the structure of the new parameters.
 
     Parameters
     ----------
@@ -51,7 +54,7 @@ def continuous_node_update(
     Returns
     -------
     parameters_structure :
-        The updated node structure.
+        The updated parameters structure.
 
     See Also
     --------
@@ -105,6 +108,8 @@ def continuous_node_update(
 
             pihat_pa, nu_pa = [1 / (1 / va_pa_node_parameters["pi"] + new_nu), new_nu]
             pi_pa = pihat_pa + psi**2 * pihat
+
+            # gather precision updates from other nodes if the parent has many children
 
             # Compute new muhat
             driftrate = va_pa_node_parameters["rho"]
@@ -195,9 +200,8 @@ def continuous_input_update(
 ) -> Dict:
     """Update the input node structure.
 
-    This function is the entry level of the model fitting. It update the partents of
-    the input node and then call :py:func:`pyhgf.jax.continuous_node_update` recursively
-    to update the rest of the node structure.
+    This function is the entry level of the structure updates. It update the parent
+    of the input node.
 
     Parameters
     ----------
@@ -294,7 +298,7 @@ def continuous_input_update(
         if va_pa_value_parents_idx is not None:
             for va_pa_va_pa in va_pa_value_parents_idx:
                 driftrate += (
-                    va_pa_node_parameters["psis"]
+                    va_pa_node_parameters["psis"][0]
                     * parameters_structure[va_pa_va_pa]["mu"]
                 )
 
