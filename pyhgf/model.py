@@ -217,7 +217,7 @@ class HGF(object):
     def input_data(
         self,
         input_data: np.ndarray,
-        time: Optional[np.ndarray] = None,
+        time_steps: Optional[np.ndarray] = None,
     ):
         """Add new observations.
 
@@ -225,15 +225,16 @@ class HGF(object):
         ----------
         input_data :
             2d array of new observations (time x features).
-        time :
+        time_steps :
             Time vector (optional). If `None`, the time vector will defaults to
-            `np.arange(0, len(input_data))`.
+            `np.ones(len(input_data))`. This vector is automatically transformed
+            into a time steps vector.
 
         """
         if self.verbose:
             print((f"Adding {len(input_data)} new observations."))
-        if time is None:
-            time = np.ones(len(input_data), dtype=int)  # time step vector
+        if time_steps is None:
+            time_steps = np.ones(len(input_data))  # time steps vector
         if self.update_sequence is None:
             self.update_sequence = self.get_update_sequence()
 
@@ -246,11 +247,11 @@ class HGF(object):
         )
 
         # concatenate data and time
-        time = time[..., jnp.newaxis]
+        time_steps = time_steps[..., jnp.newaxis]
         if input_data.ndim == 1:
             input_data = input_data[..., jnp.newaxis]
 
-        data = jnp.concatenate((input_data, time), dtype=float, axis=1)
+        data = jnp.concatenate((input_data, time_steps), dtype=float, axis=1)
 
         # Run the entire for loop
         # this is where the model loop over the input time series
@@ -440,13 +441,13 @@ class HGF(object):
         children_idxs: List,
         value_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
         mu: Union[float, np.ndarray, ArrayLike] = 0.0,
-        mu_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
-        pi_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
         kappas: Optional[Tuple] = None,
         nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         psis: Optional[Tuple] = None,
-        omega: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
     ):
         """Add a value parent to node.
@@ -459,23 +460,27 @@ class HGF(object):
             The value_coupling between the child and parent node. This is will be
             appended to the `psis` parameters in the child node.
         mu :
-            Mean.
+            The mean of the Gaussian distribution.
         mu_hat :
-            Expected mean.
+            The expected mean of the Gaussian distribution for the next observation.
         pi :
-            Precision.
+            The precision of the Gaussian distribution (inverse variance).
         pi_hat :
-            Expected precision.
+            The expected precision of the Gaussian distribution (inverse variance) for
+            the next observation.
         kappas :
-            Phasic part of the variance.
+            The phasic part of the variance (the part that is inherited from volatility
+            parents).
         nu :
             Stochasticity coupling.
         psis :
-            Value coupling.
+            The value coupling with other value parents (defaults to `None` when the
+            node is created as no parents are defined yet).
         omega :
-            Tonic part of the variance.
+            The tonic part of the variance (the variance that is not inherited from
+            volatility parent(s)).
         rho :
-            Drift of the random walk.
+            The drift of the random walk. Defaults to `0.0` (no drift).
 
         """
         # how many nodes in structure
@@ -541,13 +546,13 @@ class HGF(object):
         children_idxs: List,
         volatility_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
         mu: Union[float, np.ndarray, ArrayLike] = 0.0,
-        mu_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
-        pi_hat: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
         kappas: Optional[Tuple] = None,
         nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         psis: Optional[Tuple] = None,
-        omega: Union[float, np.ndarray, ArrayLike] = jnp.nan,
+        omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
     ):
         """Add a volatility parent to node.
@@ -560,23 +565,26 @@ class HGF(object):
             The volatility coupling between the child and parent node. This is will be
             appended to the `kappas` parameters in the child node.
         mu :
-            Mean.
+            The mean of the Gaussian distribution.
         mu_hat :
-            Expected mean.
+            The expected mean of the Gaussian distribution for the next observation.
         pi :
-            Precision.
+            The precision of the Gaussian distribution (inverse variance).
         pi_hat :
-            Expected precision.
+            The expected precision of the Gaussian distribution (inverse variance) for
+            the next observation.
         kappas :
             Phasic part of the variance.
         nu :
             Stochasticity coupling.
         psis :
-            Value coupling.
+            The value coupling with other value parents (defaults to `None` when the
+            node is created as no parents are defined yet).
         omega :
-            Tonic part of the variance.
+            The tonic part of the variance (the variance that is not inherited from
+            volatility parent(s)).
         rho :
-            Drift of the random walk.
+            The drift of the random walk. Defaults to `0.0` (no drift).
 
         """
         # how many nodes in structure

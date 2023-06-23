@@ -34,7 +34,7 @@ def hgf_logp(
     model_type: str,
     n_levels: int,
     response_function_parameters: Tuple = (),
-    time: Optional[List] = None,
+    time_steps: Optional[List] = None,
 ) -> float:
     r"""Log probability from HGF model(s) given input data and parameter(s).
 
@@ -117,10 +117,10 @@ def hgf_logp(
         using :py:meth:`pyhgf.model.HGF.add_nodes`.
     response_function_parameters :
         Additional parameters to the response function.
-    time :
+    time_steps :
         List of 1d Numpy arrays containing the time vectors for each input time series.
         If one of the list item is `None`, or if `None` is provided instead, the time
-        vector will defaults to integers vector starting at 0.
+        vector will defaults to unit vector.
 
     Returns
     -------
@@ -170,10 +170,10 @@ def hgf_logp(
 
     # if no time vectors provided, set it to None (will defaults to integers vectors)
     # otherwise check consistency with the input data
-    if time is None:
-        time = [None] * n
+    if time_steps is None:
+        time_steps = [None] * n
     else:
-        assert len(time) == n
+        assert len(time_steps) == n
 
     surprise = 0.0
 
@@ -213,7 +213,7 @@ def hgf_logp(
                 pihat=jnp.inf,
                 verbose=False,
             )
-            .input_data(input_data=input_data[i], time=time[i])
+            .input_data(input_data=input_data[i], time_steps=time_steps[i])
             .surprise(
                 response_function=response_function,
                 response_function_parameters=response_function_parameters,
@@ -230,7 +230,7 @@ class HGFLogpGradOp(Op):
     def __init__(
         self,
         input_data: List = [],
-        time: Optional[List] = None,
+        time_steps: Optional[List] = None,
         model_type: str = "continous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
@@ -242,13 +242,13 @@ class HGFLogpGradOp(Op):
         ----------
         input_data :
             List of input data. When `n` models should be fitted, the list contains `n`
-            1d Numpy arrays. By default, the associated time vector is the integers
-            vector starting at `0`. A different time vector can be passed to the `time`
-            argument.
-        time :
-            List of 1d Numpy arrays containing the time vectors for each input time
-            series. If one of the list item is `None`, or if `None` is provided instead,
-            the time vector will defaults to integers vector starting at 0.
+            1d Numpy arrays. By default, the associated time_steps vector is the unit
+            vector. A different time vector can be passed to the `time_steps` argument.
+        time_steps :
+            List of 1d Numpy arrays containing the time_steps vectors for each input
+            time series. If one of the list item is `None`, or if `None` is provided
+            instead, the time_steps vector will defaults to integers vector starting at
+            0.
         model_type :
             The model type to use (can be "continuous" or "binary").
         n_levels :
@@ -267,7 +267,7 @@ class HGFLogpGradOp(Op):
                     hgf_logp,
                     n_levels=n_levels,
                     input_data=input_data,
-                    time=time,
+                    time_steps=time_steps,
                     response_function=response_function,
                     model_type=model_type,
                     response_function_parameters=response_function_parameters,
@@ -426,7 +426,7 @@ class HGFDistribution(Op):
     def __init__(
         self,
         input_data: List[np.ndarray] = [],
-        time: Optional[List] = None,
+        time_steps: Optional[List] = None,
         model_type: str = "continuous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
@@ -438,13 +438,13 @@ class HGFDistribution(Op):
         ----------
         input_data :
             List of input data. When `n` models should be fitted, the list contains `n`
-            1d Numpy arrays. By default, the associated time vector is the integers
-            vector starting at `0`. A different time vector can be passed to the `time`
-            argument.
-        time :
-            List of 1d Numpy arrays containing the time vectors for each input time
-            series. If one of the list item is `None`, or if `None` is provided instead,
-            the time vector will defaults to integers vector starting at 0.
+            1d Numpy arrays. By default, the associated time vector is the unit
+            vector starting at `0`. A different time_steps vector can be passed to
+            the `time_steps` argument.
+        time_steps :
+            List of 1d Numpy arrays containing the time_steps vectors for each input
+            time series. If one of the list item is `None`, or if `None` is provided
+            instead, the time vector will defaults to integers vector starting at 0.
         model_type :
             The model type to use (can be "continuous" or "binary").
         n_levels :
@@ -463,7 +463,7 @@ class HGFDistribution(Op):
                 hgf_logp,
                 n_levels=n_levels,
                 input_data=input_data,
-                time=time,
+                time_steps=time_steps,
                 response_function=response_function,
                 model_type=model_type,
                 response_function_parameters=response_function_parameters,
@@ -473,7 +473,7 @@ class HGFDistribution(Op):
         # The gradient function
         self.hgf_logp_grad_op = HGFLogpGradOp(
             input_data=input_data,
-            time=time,
+            time_steps=time_steps,
             model_type=model_type,
             n_levels=n_levels,
             response_function=response_function,
