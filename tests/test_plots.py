@@ -10,9 +10,7 @@ from pyhgf.model import HGF
 
 
 class Testplots(TestCase):
-
     def test_plotting_functions(self):
-
         # Read USD-CHF data
         timeserie = load_data("continuous")
 
@@ -70,16 +68,16 @@ class Testplots(TestCase):
         two_level_binary_hgf = HGF(
             n_levels=2,
             model_type="binary",
-            initial_mu={"1": .0, "2": .5},
-            initial_pi={"1": .0, "2": 1e4},
+            initial_mu={"1": 0.0, "2": 0.5},
+            initial_pi={"1": 0.0, "2": 1e4},
             omega={"1": None, "2": -6.0},
             rho={"1": None, "2": 0.0},
             kappas={"1": None},
             eta0=0.0,
             eta1=1.0,
-            pihat = jnp.inf,
+            pihat=jnp.inf,
         ).input_data(timeserie)
-        
+
         # plot trajectories
         two_level_binary_hgf.plot_trajectories()
 
@@ -92,16 +90,16 @@ class Testplots(TestCase):
         three_level_binary_hgf = HGF(
             n_levels=3,
             model_type="binary",
-            initial_mu={"1": .0, "2": .5, "3": 0.},
-            initial_pi={"1": .0, "2": 1e4, "3": 1e1},
+            initial_mu={"1": 0.0, "2": 0.5, "3": 0.0},
+            initial_pi={"1": 0.0, "2": 1e4, "3": 1e1},
             omega={"1": None, "2": -6.0, "3": -2.0},
             rho={"1": None, "2": 0.0, "3": 0.0},
             kappas={"1": None, "2": 1.0},
             eta0=0.0,
             eta1=1.0,
-            pihat = jnp.inf,
+            pihat=jnp.inf,
         ).input_data(timeserie)
-        
+
         # plot trajectories
         three_level_binary_hgf.plot_trajectories()
 
