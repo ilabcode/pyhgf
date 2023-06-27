@@ -12,13 +12,11 @@ from jax.tree_util import Partial
 
 from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
-from pyhgf.response import first_level_gaussian_surprise, first_level_binary_surprise
+from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
 
 
 class TestDistribution(TestCase):
-
     def test_hgf_logp(self):
-
         ##################
         # Continuous HGF #
         ##################
@@ -33,7 +31,7 @@ class TestDistribution(TestCase):
                 response_function=first_level_gaussian_surprise,
                 model_type="continuous",
                 response_function_parameters=None,
-                time=None
+                time=None,
             )
         )
 
@@ -93,7 +91,6 @@ class TestDistribution(TestCase):
         assert jnp.isclose(logp, -215.58821)
 
     def test_grad_logp(self):
-
         ##################
         # Continuous HGF #
         ##################
@@ -156,7 +153,7 @@ class TestDistribution(TestCase):
 
         # Create the data (value and time vectors)
         timeserie = load_data("binary")
-        
+
         grad_logp = jit(
             grad(
                 Partial(
@@ -188,21 +185,21 @@ class TestDistribution(TestCase):
             kappa_1,
             kappa_2,
         ) = grad_logp(
-                np.array(0.0),
-                np.array(-2.0),
-                np.array(0.0),
-                np.array(0.0),
-                np.array(0.0),
-                np.array(0.0),
-                np.array(0.0),
-                np.array(0.0),
-                np.array(1e4),
-                np.array(0.0),
-                np.array(0.0),
-                np.array(0.5),
-                np.array(0.0),
-                np.array(1.0),
-                np.array(1.0),
+            np.array(0.0),
+            np.array(-2.0),
+            np.array(0.0),
+            np.array(0.0),
+            np.array(0.0),
+            np.array(0.0),
+            np.array(0.0),
+            np.array(0.0),
+            np.array(1e4),
+            np.array(0.0),
+            np.array(0.0),
+            np.array(0.5),
+            np.array(0.0),
+            np.array(1.0),
+            np.array(1.0),
         )
 
         assert jnp.isclose(omega_2, -3.4070916)
@@ -312,8 +309,7 @@ class TestDistribution(TestCase):
         )[0].eval()
 
         assert jnp.isclose(omega_1, -6.8397017)
-        
-        
+
         ##############
         # Binary HGF #
         ##############
@@ -362,7 +358,6 @@ class TestDistribution(TestCase):
         )
 
         with pm.Model() as model:
-
             omega_2 = pm.Uniform("omega_2", -10, 0)
 
             pm.Potential(
@@ -414,7 +409,6 @@ class TestDistribution(TestCase):
         )
 
         with pm.Model() as model:
-
             omega_2 = pm.Normal("omega_2", -11.0, 2)
 
             pm.Potential(
@@ -448,6 +442,7 @@ class TestDistribution(TestCase):
             idata = pm.sample(chains=2, cores=1, tune=1000)
 
         assert -4 < round(az.summary(idata)["mean"].values[0]) < -2
+
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)
