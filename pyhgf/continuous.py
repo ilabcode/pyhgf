@@ -18,16 +18,19 @@ def continuous_node_update(
     node_structure: NodeStructure,
     **args
 ) -> Dict:
-    """Update the value and volatility parents of a continuous node.
+    """Update the value and volatility parent(s) of a continuous node.
 
-    If the parents have value and/or volatility parents, they will be updated
-    recursively.
+    Updating the node's parents is a two-step process:
+    1. Update value parent(s).
+    2. Update volatility parent(s).
 
-    Updating the node's parents is a two step process:
-    1. Update value parent(s) and their parents (if provided).
-    2. Update volatility parent(s) and their parents (if provided).
+    If a value/volatility parent has multiple children, all the children will update
+    the parent together, therefor this function should only be called once per group
+    of child nodes. The method :py:meth:`pyhgf.model.HGF.get_update_sequence`
+    ensures that this function is only called once all the children have been
+    updated.
 
-    Then returns the new node structure.
+    Then returns the structure of the new parameters.
 
     Parameters
     ----------
@@ -51,7 +54,7 @@ def continuous_node_update(
     Returns
     -------
     parameters_structure :
-        The updated node structure.
+        The updated parameters structure.
 
     See Also
     --------
@@ -79,51 +82,112 @@ def continuous_node_update(
     # Update the continuous value parents #
     #######################################
     if value_parents_idx is not None:
-        vape = node_parameters["mu"] - node_parameters["muhat"]
         psis = node_parameters["psis"]
 
         for va_pa_idx, psi in zip(value_parents_idx, psis):
-            # unpack the current parent's parameters with value and volatility parents
-            va_pa_node_parameters = parameters_structure[va_pa_idx]
-            va_pa_value_parents_idx = node_structure[va_pa_idx].value_parents
-            va_pa_volatility_parents_idx = node_structure[va_pa_idx].volatility_parents
+            # if this child is the last one relative to this parent's family, all the
+            # child will update the parent at once, otherwise just pass and wait
+            if node_structure[va_pa_idx].value_children[-1] == node_idx:
+                # unpack the parent's parameters with value and volatility parents
+                va_pa_node_parameters = parameters_structure[va_pa_idx]
+                va_pa_value_parents_idx = node_structure[va_pa_idx].value_parents
+                va_pa_volatility_parents_idx = node_structure[
+                    va_pa_idx
+                ].volatility_parents
 
-            # Compute new value for nu and pihat
-            logvol = va_pa_node_parameters["omega"]
+                # Compute new value for nu and pihat
+                logvol = va_pa_node_parameters["omega"]
 
-            # Look at the (optional) va_pa's volatility parents
-            # and update logvol accordingly
-            if va_pa_volatility_parents_idx is not None:
-                for va_pa_vo_pa, k in zip(
-                    va_pa_volatility_parents_idx, va_pa_node_parameters["kappas"]
-                ):
-                    logvol += k * parameters_structure[va_pa_vo_pa]["mu"]
+                # Look at the (optional) va_pa's volatility parents
+                # and update logvol accordingly
+                if va_pa_volatility_parents_idx is not None:
+                    for va_pa_vo_pa, k in zip(
+                        va_pa_volatility_parents_idx, va_pa_node_parameters["kappas"]
+                    ):
+                        logvol += k * parameters_structure[va_pa_vo_pa]["mu"]
 
-            # Estimate new_nu
-            nu = time_step * jnp.exp(logvol)
-            new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
+                # Estimate new_nu
+                nu = time_step * jnp.exp(logvol)
+                new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
 
-            pihat_pa, nu_pa = [1 / (1 / va_pa_node_parameters["pi"] + new_nu), new_nu]
-            pi_pa = pihat_pa + psi**2 * pihat
+                pihat_pa, nu_pa = [
+                    1 / (1 / va_pa_node_parameters["pi"] + new_nu),
+                    new_nu,
+                ]
 
-            # Compute new muhat
-            driftrate = va_pa_node_parameters["rho"]
+                # gather precision updates from other nodes if the parent has many child
+                # this part corresponds to the sum over children required for the
+                # multi-children situations
+                pi_children = 0.0
+                for child_idx in node_structure[va_pa_idx].value_children:
+                    # this part find which psi corresponds to this value parent
+                    # in a JAX compatible way
+                    psi_child = jnp.where(
+                        jnp.isin(
+                            va_pa_idx,
+                            jnp.array(node_structure[child_idx].value_parents),
+                        ),
+                        jnp.sum(
+                            jnp.equal(
+                                jnp.array(node_structure[child_idx].value_parents),
+                                va_pa_idx,
+                            )
+                            * jnp.array(parameters_structure[child_idx]["psis"])
+                        ),
+                        jnp.nan,
+                    )
+                    pihat_child = parameters_structure[child_idx]["pihat"]
+                    pi_children += psi_child**2 * pihat_child
 
-            # Look at the (optional) va_pa's value parents
-            # and update driftrate accordingly
-            if va_pa_value_parents_idx is not None:
-                for va_pa_va_pa in va_pa_value_parents_idx:
-                    driftrate += psi * va_pa_va_pa["mu"]
+                pi_pa = pihat_pa + pi_children
 
-            muhat_pa = va_pa_node_parameters["mu"] + time_step * driftrate
-            mu_pa = muhat_pa + psi * pihat / pi_pa * vape
+                # Compute new muhat
+                driftrate = va_pa_node_parameters["rho"]
 
-            # Update this parent's parameters
-            parameters_structure[va_pa_idx]["pihat"] = pihat_pa
-            parameters_structure[va_pa_idx]["pi"] = pi_pa
-            parameters_structure[va_pa_idx]["muhat"] = muhat_pa
-            parameters_structure[va_pa_idx]["mu"] = mu_pa
-            parameters_structure[va_pa_idx]["nu"] = nu_pa
+                # Look at the (optional) va_pa's value parents
+                # and update driftrate accordingly
+                if va_pa_value_parents_idx is not None:
+                    for va_pa_va_pa in va_pa_value_parents_idx:
+                        driftrate += psi * va_pa_va_pa["mu"]
+
+                muhat_pa = va_pa_node_parameters["mu"] + time_step * driftrate
+
+                # gather PE updates from other nodes if the parent has many child
+                # this part corresponds to the sum over children required for the
+                # multi-children situations
+                pe_children = 0.0
+                for child_idx in node_structure[va_pa_idx].value_children:
+                    # this part find which psi corresponds to this value parent
+                    # in a JAX compatible way
+                    psi_child = jnp.where(
+                        jnp.isin(
+                            va_pa_idx,
+                            jnp.array(node_structure[child_idx].value_parents),
+                        ),
+                        jnp.sum(
+                            jnp.equal(
+                                jnp.array(node_structure[child_idx].value_parents),
+                                va_pa_idx,
+                            )
+                            * jnp.array(parameters_structure[child_idx]["psis"])
+                        ),
+                        jnp.nan,
+                    )
+                    vape_child = (
+                        parameters_structure[child_idx]["mu"]
+                        - parameters_structure[child_idx]["muhat"]
+                    )
+                    pihat_child = parameters_structure[child_idx]["pihat"]
+                    pe_children += (psi_child * pihat_child * vape_child) / pi_pa
+
+                mu_pa = muhat_pa + pe_children
+
+                # Update this parent's parameters
+                parameters_structure[va_pa_idx]["pihat"] = pihat_pa
+                parameters_structure[va_pa_idx]["pi"] = pi_pa
+                parameters_structure[va_pa_idx]["muhat"] = muhat_pa
+                parameters_structure[va_pa_idx]["mu"] = mu_pa
+                parameters_structure[va_pa_idx]["nu"] = nu_pa
 
     #############################
     # Update volatility parents #
@@ -195,9 +259,8 @@ def continuous_input_update(
 ) -> Dict:
     """Update the input node structure.
 
-    This function is the entry level of the model fitting. It update the partents of
-    the input node and then call :py:func:`pyhgf.jax.continuous_node_update` recursively
-    to update the rest of the node structure.
+    This function is the entry level of the structure updates. It update the parent
+    of the input node.
 
     Parameters
     ----------
@@ -294,7 +357,7 @@ def continuous_input_update(
         if va_pa_value_parents_idx is not None:
             for va_pa_va_pa in va_pa_value_parents_idx:
                 driftrate += (
-                    va_pa_node_parameters["psis"]
+                    va_pa_node_parameters["psis"][0]
                     * parameters_structure[va_pa_va_pa]["mu"]
                 )
 

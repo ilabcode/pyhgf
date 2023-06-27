@@ -8,6 +8,8 @@ class Indexes(NamedTuple):
 
     value_parents: Optional[Tuple]
     volatility_parents: Optional[Tuple]
+    value_children: Optional[Tuple]
+    volatility_children: Optional[Tuple]
 
 
 class InputIndexes(NamedTuple):

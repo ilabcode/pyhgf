@@ -38,9 +38,9 @@ class TestStructure(TestCase):
         }
 
         node_structure = (
-            Indexes((1,), None),
-            Indexes(None, (2,)),
-            Indexes(None, None),
+            Indexes((1,), None, None, None),
+            Indexes(None, (2,), (0,), None),
+            Indexes(None, None, None, (1,)),
         )
         parameters_structure = (
             input_node_parameters,
@@ -57,12 +57,15 @@ class TestStructure(TestCase):
         data = jnp.array([0.2, 1.0])
 
         # apply sequence
-        beliefs_propagation(
+        new_parameters_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure,
             data=data,
             update_sequence=update_sequence,
             node_structure=node_structure,
         )
+
+        assert new_parameters_structure[1]["mu"] == 0.6405112
+        assert new_parameters_structure[2]["pi"] == 0.50698835
 
 
 if __name__ == "__main__":

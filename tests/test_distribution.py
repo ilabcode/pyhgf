@@ -31,7 +31,7 @@ class TestDistribution(TestCase):
                 response_function=first_level_gaussian_surprise,
                 model_type="continuous",
                 response_function_parameters=None,
-                time=None,
+                time_steps=None,
             )
         )
 

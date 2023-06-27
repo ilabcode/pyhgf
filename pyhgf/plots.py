@@ -121,7 +121,7 @@ def plot_trajectories(
     if hgf.model_type == "continuous":
         axs[n_nodes - 1].scatter(
             trajectories_df.time,
-            trajectories_df.observation,
+            trajectories_df.observation_input_0,
             s=3,
             label="Input",
             color="#2a2a2a",
@@ -131,7 +131,7 @@ def plot_trajectories(
     elif hgf.model_type == "binary":
         axs[n_nodes - 1].scatter(
             x=trajectories_df.time,
-            y=trajectories_df.observation,
+            y=trajectories_df.observation_input_0,
             label="Input",
             color="#4c72b0",
             alpha=0.4,
@@ -251,7 +251,7 @@ def plot_correlations(hgf: "HGF") -> Axes:
     trajectories_df = hgf.to_pandas()
     trajectories_df = pd.concat(
         [
-            trajectories_df[["time", "observation", "surprise"]],
+            trajectories_df[["time", "observation_input_0", "surprise"]],
             trajectories_df.filter(regex="hat"),
         ],
         axis=1,

@@ -43,9 +43,9 @@ class Testcontinuous(TestCase):
             "rho": 1.0,
         }
         node_structure = (
-            Indexes(None, None),
-            Indexes(None, None),
-            Indexes(None, None),
+            Indexes(None, None, None, None),
+            Indexes(None, None, None, None),
+            Indexes(None, None, None, None),
         )
 
         parameters_structure = (
@@ -73,9 +73,9 @@ class Testcontinuous(TestCase):
         # x_1 as value parent #
         #######################
         node_structure = (
-            Indexes((1,), None),
-            Indexes(None, None),
-            Indexes(None, None),
+            Indexes((1,), None, None, None),
+            Indexes(None, None, (0,), None),
+            Indexes(None, None, None, None),
         )
         data = jnp.array([jnp.nan, 1.0])
 
@@ -97,9 +97,9 @@ class Testcontinuous(TestCase):
         # x_1 as volatility parent #
         ############################
         node_structure = (
-            Indexes(None, (1,)),
-            Indexes(None, None),
-            Indexes(None, None),
+            Indexes(None, (1,), None, None),
+            Indexes(None, None, None, (0,)),
+            Indexes(None, None, None, None),
         )
         data = jnp.array([jnp.nan, 1.0])
 
@@ -121,9 +121,9 @@ class Testcontinuous(TestCase):
         # Both value and volatility parents #
         #####################################
         node_structure = (
-            Indexes((1,), (2,)),
-            Indexes(None, None),
-            Indexes(None, None),
+            Indexes((1,), (2,), None, None),
+            Indexes(None, None, (0,), None),
+            Indexes(None, None, None, (0,)),
         )
         data = jnp.array([jnp.nan, 1.0])
 
@@ -178,9 +178,9 @@ class Testcontinuous(TestCase):
         }
 
         node_structure = (
-            Indexes((1,), None),
-            Indexes(None, (2,)),
-            Indexes(None, None),
+            Indexes((1,), None, None, None),
+            Indexes(None, (2,), (0,), None),
+            Indexes(None, None, None, (1,)),
         )
         parameters_structure = (
             input_node_parameters,
@@ -244,9 +244,9 @@ class Testcontinuous(TestCase):
         }
 
         node_structure = (
-            Indexes((1,), None),
-            Indexes(None, (2,)),
-            Indexes(None, None),
+            Indexes((1,), None, None, None),
+            Indexes(None, (2,), (0,), None),
+            Indexes(None, None, None, (1,)),
         )
         parameters_structure = (
             input_node_parameters,
