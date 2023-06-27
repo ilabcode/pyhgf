@@ -17,9 +17,9 @@ from pyhgf.typing import Indexes
 
 class Testcontinuous(TestCase):
 
-    def test_update_sequences(self):
+    def test_continuous_node_update(self):
 
-        # create a node structure with one value parent and one volatility parent
+        # create a node structure with no value parent and no volatility parent
         node_parameters = {
             "pihat": 1.0,
             "pi": 1.0,
@@ -87,11 +87,11 @@ class Testcontinuous(TestCase):
             data=data,
             update_sequence=update_sequence, 
             )
-
-        assert jnp.isclose(
-            new_parameters_structure[1]["pi"],
-            1.2689414
-        )
+        for idx, val in zip(["pi", "pihat", "mu", "muhat", "nu"], [1.2689414, 0.26894143, 2.0, 2.0, 2.7182817]):
+            assert jnp.isclose(
+                new_parameters_structure[1][idx],
+                val
+            )
 
         ############################
         # x_1 as volatility parent #
@@ -105,16 +105,17 @@ class Testcontinuous(TestCase):
 
         sequence1 = 0, continuous_node_update
         update_sequence = (sequence1,)
-        new_node_structure, _ = beliefs_propagation(
+        new_parameters_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure, 
             data=data,
             node_structure=node_structure,
             update_sequence=update_sequence, 
             )
-        assert jnp.isclose(
-            new_node_structure[1]["pi"],
-            0.7689414
-        )
+        for idx, val in zip(["pi", "pihat", "mu", "muhat", "nu"], [0.7689414, 0.26894143, 2.0, 2.0, 2.7182817]):
+            assert jnp.isclose(
+                new_parameters_structure[1][idx],
+                val
+            )
 
         #####################################
         # Both value and volatility parents #
@@ -128,20 +129,22 @@ class Testcontinuous(TestCase):
 
         sequence1 = 0, continuous_node_update
         update_sequence = (sequence1,)
-        new_node_structure, _ = beliefs_propagation(
+        new_parameters_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure, 
             data=data,
             node_structure=node_structure,
             update_sequence=update_sequence, 
             )
-        assert jnp.isclose(
-            new_node_structure[1]["pi"],
-            1.2689414
-        )
-        assert jnp.isclose(
-            new_node_structure[2]["pi"],
-            0.7689414
-        )
+        for idx, val in zip(["pi", "pihat", "mu", "muhat", "nu"], [1.2689414, 0.26894143, 2.0, 2.0, 2.7182817]):
+            assert jnp.isclose(
+                new_parameters_structure[1][idx],
+                val
+            )
+        for idx, val in zip(["pi", "pihat", "mu", "muhat", "nu"], [0.7689414, 0.26894143, 2.0, 2.0, 2.7182817]):
+            assert jnp.isclose(
+                new_parameters_structure[2][idx],
+                val
+            )
 
     def test_gaussian_surprise(self):
         surprise = gaussian_surprise(
@@ -151,7 +154,7 @@ class Testcontinuous(TestCase):
         )
         assert jnp.all(jnp.isclose(surprise, 1.4189385))
 
-    def test_update_continuous_input_parents(self):
+    def test_continuous_input_update(self):
 
         ###############################################
         # one value parent with one volatility parent #
@@ -200,7 +203,21 @@ class Testcontinuous(TestCase):
             data=data,
             )
 
-        assert new_parameters_structure[1]["pi"] == 0.48708236
+        for idx, val in zip(["time_step", "value"], [1.0, 0.2]):
+            assert jnp.isclose(
+                new_parameters_structure[0][idx],
+                val
+            )
+        for idx, val in zip(["pi", "pihat", "mu", "muhat", "nu"], [0.48708236, 0.11920292, 0.6405112, 2.0, 7.389056]):
+            assert jnp.isclose(
+                new_parameters_structure[1][idx],
+                val
+            )
+        for idx, val in zip(["pi", "pihat", "mu", "muhat", "nu"], [0.50698835, 0.26894143, 1.5353041, 2.0, 2.7182817]):
+            assert jnp.isclose(
+                new_parameters_structure[2][idx],
+                val
+            )
 
     def test_scan_loop(self):
 
@@ -255,8 +272,22 @@ class Testcontinuous(TestCase):
             )
 
         # Run the entire for loop
-        last, final = scan(scan_fn, parameters_structure, data)
-
+        last, _ = scan(scan_fn, parameters_structure, data)
+        for idx, val in zip(["time_step", "value"], [1.0, 0.8241]):
+            assert jnp.isclose(
+                last[0][idx],
+                val
+            )
+        for idx, val in zip(["pi", "pihat", "mu", "muhat", "nu"], [0.44606116, 0.07818171, 1.0302161, 2.000083, 10.548521]):
+            assert jnp.isclose(
+                last[1][idx],
+                val
+            )
+        for idx, val in zip(["pi", "pihat", "mu", "muhat", "nu"], [0.30642906, 0.16752565, 1.3451389, 2.3559856, 2.7182817]):
+            assert jnp.isclose(
+                last[2][idx],
+                val
+            )
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)
