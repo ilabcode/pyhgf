@@ -68,9 +68,9 @@ parameters = {"mu": 0.0, "pi": 1.0}
 
 parameters_structure = (parameters, parameters, parameters)
 node_structure = (
-    Indexes((1,), None),
-    Indexes(None, (2,)),
-    Indexes(None, None),
+    Indexes((1,), None, None, None),
+    Indexes(None, (2,), (0,), None),
+    Indexes(None, None, None, (1,)),
 )
 ```
 
