@@ -8,7 +8,6 @@ import jax.numpy as jnp
 from pyhgf.continuous import continuous_input_update, continuous_node_update
 from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes
-import jax.numpy as jnp
 
 
 class TestStructure(TestCase):
@@ -58,16 +57,16 @@ class TestStructure(TestCase):
         data = jnp.array([0.2, 1.0])
 
         # apply sequence
-        beliefs_propagation(
+        new_parameters_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure,
             data=data,
             update_sequence=update_sequence,
             node_structure=node_structure,
         )
 
-
         assert new_parameters_structure[1]["mu"] == 0.6405112
         assert new_parameters_structure[2]["pi"] == 0.50698835
+
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)
