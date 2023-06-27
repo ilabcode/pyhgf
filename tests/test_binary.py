@@ -18,7 +18,7 @@ from pyhgf.binary import (
 from pyhgf.continuous import continuous_node_update
 from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes
-import numpy as np
+
 
 class Testbinary(TestCase):
     def test_gaussian_density(self):
