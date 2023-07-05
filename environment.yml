@@ -1,0 +1,16 @@
+name: pyhgf_dev
+dependencies:
+  - python=3.9
+  - pip
+  - conda-forge::pymc
+  - graphviz
+  - pip:
+    - jax>=0.4.1
+    - jaxlib>=0.4.1
+    - numpy>=1.18,<=1.23
+    - matplotlib>=3.0.2
+    - seaborn>=0.9.0
+    - arviz>=0.12.0
+    - setuptools>=38.4
+    - packaging
+    - graphviz
