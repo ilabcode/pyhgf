@@ -24,7 +24,7 @@ def binary_node_update(
     If the parents have value and/or volatility parents, they will be updated
     recursively.
 
-    Updating the node's parents is a two step process:
+    Updating the node's parents is a two-step process:
         1. Update value parent(s) and their parents (if provided).
         2. Update volatility parent(s) and their parents (if provided).
 
@@ -37,16 +37,16 @@ def binary_node_update(
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
     .. note::
-        `"psis"` is the value coupling strength. It should have same length than the
+        `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-        It should have same length than the volatility parents' indexes.
+        It should have the same length as the volatility parents' indexes.
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
-        Pointer to the node that need to be updated. After continuous update, the
+        Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
     node_structure :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
+        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
         For each node, the index list value and volatility parents.
 
     Returns
@@ -149,7 +149,7 @@ def binary_input_update(
 ) -> Dict:
     """Update the input node structure given one observation.
 
-    This function is the entry level of the model fitting. It update the partents of
+    This function is the entry-level of the model fitting. It updates the parents of
     the input node and then call :py:func:`pyhgf.binary.binary_node_update` to update
     the rest of the node structure.
 
@@ -158,20 +158,20 @@ def binary_input_update(
     value :
         The new observed value.
     time_step :
-        Interval between the previous time point and the current time point.
+        The interval between the previous time point and the current time point.
     parameters_structure :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
     .. note::
-        `"psis"` is the value coupling strength. It should have same length than the
+        `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-        It should have same length than the volatility parents' indexes.
+        It should have the same length as the volatility parents' indexes.
     node_structure :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
+        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
         For each node, the index list value and volatility parents.
     node_idx :
-        Pointer to the node that need to be updated. After continuous update, the
+        Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
 
     Returns
@@ -222,7 +222,7 @@ def binary_input_update(
 
         # TODO: this will be decided once we figure out the multi parents/children
         # # 1.1.2 Look at the (optional) va_pa's value parents (x3)
-        # # and update the driftrate accordingly
+        # # and update the drift rate accordingly
         # if va_pa_value_parents[0][1] is not None:
         #     for va_pa_va_pa in va_pa_value_parents[0][1]:
         #         # For each x2's value parents (optional)

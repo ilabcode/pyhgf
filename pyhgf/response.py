@@ -21,18 +21,18 @@ def first_level_gaussian_surprise(hgf: "HGF", response_function_parameters=None)
     Parameters
     ----------
     hgf :
-        Instance of the HGF model.
+        An instance of the HGF model.
     response_function_parameters :
         No additional parameters are required to compute the Gaussian surprise.
 
     Returns
     -------
     surprise :
-        The model surprise given the input data.
+        The model's surprise given the input data.
 
     """
     # compute the sum of Gaussian surprise at the first level
-    # the input value at time t is compared to the gaussian prediction at t-1
+    # the input value at time t is compared to the Gaussian prediction at t-1
     surprise = jnp.sum(
         gaussian_surprise(
             x=hgf.node_trajectories[0]["value"][1:],
@@ -48,7 +48,7 @@ def first_level_gaussian_surprise(hgf: "HGF", response_function_parameters=None)
 
 
 def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
-    """Sum of the Gaussian surprise across probabilistic network.
+    """Sum of the Gaussian surprise across the probabilistic network.
 
     .. note::
       The function returns `jnp.inf` if the model could not fit at a given time point.
@@ -56,17 +56,17 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
     Parameters
     ----------
     hgf :
-        Instance of the HGF model.
+        An instance of the HGF model.
     response_function_parameters :
         No additional parameters are required to compute the Gaussian surprise.
 
     Returns
     -------
     surprise :
-        The model surprise given the input data.
+        The model's surprise given the input data.
 
     """
-    # compute the sum of Gaussian surprise across every nodes
+    # compute the sum of Gaussian surprise across every node
     surprise = 0.0
 
     # first we start with nodes that are value parents to input nodes
@@ -111,14 +111,14 @@ def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None):
     Parameters
     ----------
     hgf :
-        Instance of the HGF model.
+        An instance of the HGF model.
     response_function_parameters :
         No additional parameters are required to compute the binary surprise.
 
     Returns
     -------
     surprise :
-        The model surprise given the input data.
+        The model's surprise given the input data.
 
     """
     # Return an infinite surprise if the model cannot fit

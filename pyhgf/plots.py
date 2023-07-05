@@ -30,19 +30,19 @@ def plot_trajectories(
     Parameters
     ----------
     hgf :
-        Instance of the HGF model.
+        An instance of the HGF model.
     ci :
-        Show the uncertainty aroud the values estimates (standard deviation).
+        Show the uncertainty around the values estimates (standard deviation).
     surprise :
-        If `True` plot each node's surprise together witt the sufficient statistics.
+        If `True` plot each node's surprise together with sufficient statistics.
         If `False`, only the input node's surprise is depicted.
     figsize :
         The width and height of the figure. Defaults to `(18, 9)` for a 2-levels model,
         or to `(18, 12)` for a 3-levels model.
     axs :
-        A list of Matplotlib axes instance where to draw the trajectories. This should
-        correspond to the number of nodes in the structure. Default is `None` (create a
-        new figure).
+        A list of Matplotlib axes instances where to draw the trajectories. This should
+        correspond to the number of nodes in the structure. The default is `None`
+        (create a new figure).
 
     Returns
     -------
@@ -139,10 +139,10 @@ def plot_trajectories(
             zorder=10,
         )
 
-    # loop over the node idexes
-    # -------------------------
+    # loop over the node indexes
+    # --------------------------
     for i in range(1, n_nodes + 1):
-        # use different colors for each nodes
+        # use different colors for each node
         color = next(palette)
 
         # which ax instance to use
@@ -239,12 +239,12 @@ def plot_correlations(hgf: "HGF") -> Axes:
     Parameters
     ----------
     hgf :
-        Instance of the HGF model.
+        An instance of the HGF model.
 
     Returns
     -------
     axs :
-        The Matplotlib ax instance containing the heatmap of parameters trajectories
+        The Matplotlib axe instance containing the heatmap of parameters trajectories
         correlation.
 
     """
@@ -288,7 +288,7 @@ def plot_network(hgf: "HGF") -> "Source":
     Parameters
     ----------
     hgf :
-        Instance of the HGF model containing a node structure.
+        An instance of the HGF model containing a node structure.
 
     Notes
     -----

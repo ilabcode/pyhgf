@@ -110,3 +110,5 @@ Utilities for manipulating node structures and applying sequences.
    :toctree: generated/pyhgf.structure
 
    beliefs_propagation
+   trim_sequence
+   list_branches

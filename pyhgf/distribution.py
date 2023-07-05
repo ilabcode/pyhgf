@@ -64,7 +64,7 @@ def hgf_logp(
         The :math:`\omega` parameter, or *evolution rate*, at the third level of the
         HGF. This parameter represents the tonic part of the variance (the part that is
         not inherited from parents nodes). The value of this parameter will be ignored
-        when using a 2-levels HGF (`n_levels=2`).
+        when using a two-level HGF (`n_levels=2`).
     omega_input :
         Represent the noise associated with the input observation.
     rho_1 :
@@ -76,14 +76,14 @@ def hgf_logp(
     rho_3 :
         The :math:`\rho` parameter at the first level of the HGF. This parameter
         represents the drift of the random walk. The value of this parameter will be
-        ignored when using a 2-levels HGF (`n_levels=2`).
+        ignored when using a two-level HGF (`n_levels=2`).
     pi_1 :
         The :math:`\pi` parameter, or *precision*, at the first level of the HGF.
     pi_2 :
         The :math:`\pi` parameter, or *precision*, at the second level of the HGF.
     pi_3 :
         The :math:`\pi` parameter, or *precision*, at the third level of the HGF. The
-        value of this parameter will be ignored when using a 2-levels HGF
+        value of this parameter will be ignored when using a two-level HGF
         (`n_levels=2`).
     mu_1 :
         The :math:`\mu` parameter, or *mean*, at the first level of the HGF.
@@ -91,18 +91,18 @@ def hgf_logp(
         The :math:`\mu` parameter, or *mean*, at the second level of the HGF.
     mu_3 :
         The :math:`\mu` parameter, or *mean*, at the third level of the HGF. The value
-        of this parameter will be ignored when using a 2-levels HGF (`n_levels=2`).
+        of this parameter will be ignored when using a two-level HGF (`n_levels=2`).
     kappa_1 :
         The value of the :math:`\\kappa` parameter at the first level of the HGF. Kappa
         represents the phasic part of the variance (the part that is affected by the
-        parents nodes) and will defines the strenght of the connection between the node
+        parent nodes) and will define the strength of the connection between the node
         and the parent node. Often fixed to `1`.
     kappa_2 :
         The value of the :math:`\\kappa` parameter at the second level of the HGF. Kappa
         represents the phasic part of the variance (the part that is affected by the
-        parents nodes) and will defines the strenght of the connection between the node
+        parent nodes) and will define the strength of the connection between the node
         and the parent node. Often fixed to `1`. The value of this parameter will be
-        ignored when using a 2-levels HGF (`n_levels=2`).
+        ignored when using a two-level HGF (`n_levels=2`).
     input_data :
         List of input data. When `n` models should be fitted, the list contains `n` 1d
         Numpy arrays. By default, the associated time vector is the integers vector
@@ -113,19 +113,19 @@ def hgf_logp(
         The model type to use (can be "continuous" or "binary").
     n_levels :
         The number of hierarchies in the perceptual model (can be `2` or `3`). If
-        `None`, the nodes hierarchy is not created and might be provided afterward
+        `None`, the nodes hierarchy is not created and might be provided afterwards
         using :py:meth:`pyhgf.model.HGF.add_nodes`.
     response_function_parameters :
         Additional parameters to the response function.
     time_steps :
         List of 1d Numpy arrays containing the time vectors for each input time series.
-        If one of the list item is `None`, or if `None` is provided instead, the time
-        vector will defaults to unit vector.
+        If one of the list items is `None`, or if `None` is provided instead, the time
+        vector will default to the unit vector.
 
     Returns
     -------
     log_prob :
-        The sum of the log-probabilities (or negative surprise).
+        The sum of the log probabilities (or negative surprise).
 
     """
     # number of models
@@ -246,9 +246,9 @@ class HGFLogpGradOp(Op):
             vector. A different time vector can be passed to the `time_steps` argument.
         time_steps :
             List of 1d Numpy arrays containing the time_steps vectors for each input
-            time series. If one of the list item is `None`, or if `None` is provided
-            instead, the time_steps vector will defaults to integers vector starting at
-            0.
+            time series. If one of the list items is `None`, or if `None` is provided
+            instead, the time_steps vector will default to an integers vector starting
+            at 0.
         model_type :
             The model type to use (can be "continuous" or "binary").
         n_levels :
@@ -378,7 +378,7 @@ class HGFDistribution(Op):
     >>> timeserie = load_data("continuous")
 
     We create the PyMC distribution here, specifying the type of model and response
-    function we want to use (i.e simple gaussian surprise).
+    function we want to use (i.e. simple Gaussian surprise).
 
     >>> hgf_logp_op = HGFDistribution(
     >>>     n_levels=2,
@@ -387,7 +387,7 @@ class HGFDistribution(Op):
     >>> )
 
     Create the PyMC model
-    Here we are fixing all the paramters to arbitrary values and sampling the
+    Here we are fixing all the parameters to arbitrary values and sampling the
     posterior probability density of Omega in the second level, using a normal
     distribution as prior : ω_2 ~ N(-11, 2).
 
@@ -443,13 +443,13 @@ class HGFDistribution(Op):
             the `time_steps` argument.
         time_steps :
             List of 1d Numpy arrays containing the time_steps vectors for each input
-            time series. If one of the list item is `None`, or if `None` is provided
-            instead, the time vector will defaults to integers vector starting at 0.
+            time series. If one of the list items is `None`, or if `None` is provided
+            instead, the time vector will default to an integers vector starting at 0.
         model_type :
             The model type to use (can be "continuous" or "binary").
         n_levels :
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
-            `None`, the nodes hierarchy is not created and might be provided afterward
+            `None`, the nodes hierarchy is not created and might be provided afterwards
             using `add_nodes()`.
         response_function :
             The response function to use to compute the model surprise.
@@ -516,7 +516,7 @@ class HGFDistribution(Op):
             pt.as_tensor_variable(kappa_1),
             pt.as_tensor_variable(kappa_2),
         ]
-        # Define the type of the output returned by the wrapped JAX function
+        # Define the type of output returned by the wrapped JAX function
         outputs = [pt.dscalar()]
         return Apply(self, inputs, outputs)
 
@@ -545,7 +545,7 @@ class HGFDistribution(Op):
             grad_kappa_2,
         ) = self.hgf_logp_grad_op(*inputs)
         # If there are inputs for which the gradients will never be needed or cannot
-        # be computed, `aesara.gradient.grad_not_implemented` should  be used as the
+        # be computed, `pytensor.gradient.grad_not_implemented` should  be used as the
         # output gradient for that input.
         output_gradient = output_gradients[0]
         return [
