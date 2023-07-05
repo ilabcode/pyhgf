@@ -6,7 +6,7 @@ from unittest import TestCase
 import jax.numpy as jnp
 
 from pyhgf.continuous import continuous_input_update, continuous_node_update
-from pyhgf.structure import beliefs_propagation
+from pyhgf.structure import beliefs_propagation, list_branches, trim_sequence
 from pyhgf.typing import Indexes
 
 
@@ -66,6 +66,43 @@ class TestStructure(TestCase):
 
         assert new_parameters_structure[1]["mu"] == 0.6405112
         assert new_parameters_structure[2]["pi"] == 0.50698835
+
+    def test_find_branch(self):
+        """Test the find_branch function"""
+        node_structure = (
+            Indexes((1,), None, None, None),
+            Indexes(None, (2,), (0,), None),
+            Indexes(None, None, None, (1,)),
+            Indexes((4,), None, None, None),
+            Indexes(None, None, (3,), None),
+        )
+        branch_list = list_branches([0], node_structure, branch_list=[])
+        assert branch_list == [0, 1, 2]
+
+    def test_trim_sequence(self):
+        """Test the trim_sequence function"""
+        node_structure = (
+            Indexes((1,), None, None, None),
+            Indexes(None, (2,), (0,), None),
+            Indexes(None, None, None, (1,)),
+            Indexes((4,), None, None, None),
+            Indexes(None, None, (3,), None),
+        )
+        update_sequence = (
+            (0, continuous_input_update),
+            (1, continuous_node_update),
+            (2, continuous_node_update),
+            (3, continuous_node_update),
+            (4, continuous_node_update),
+        )
+        new_sequence = trim_sequence(
+            exclude_node_idxs=[0],
+            update_sequence=update_sequence,
+            node_structure=node_structure,
+        )
+        assert len(new_sequence) == 2
+        assert new_sequence[0][0] == 3
+        assert new_sequence[1][0] == 4
 
 
 if __name__ == "__main__":

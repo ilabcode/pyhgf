@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import jax.numpy as jnp
 import numpy as np
 import pandas as pd
-from jax.lax import scan
+from jax.lax import scan, switch
 from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
@@ -25,7 +25,7 @@ from pyhgf.typing import Indexes, InputIndexes, NodeStructure, UpdateSequence
 class HGF(object):
     r"""The two-level and three-level Hierarchical Gaussian Filters (HGF).
 
-    This class use pre-made nodes structures that corresponds to the most widely used
+    This class uses pre-made nodes structures that correspond to the most widely used
     HGF. The inputs can be continuous or binary.
 
     Attributes
@@ -42,17 +42,16 @@ class HGF(object):
     node_structure :
         A tuple of :py:class:`pyhgf.typing.Indexes` representing the nodes hierarchy.
     node_trajectories :
-        The parameter structure that incluse the consecutive updates at each new
-        observation.
+        The dynamic of the node's beliefs after updating.
     parameters_structure :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
     .. note::
-        `"psis"` is the value coupling strength. It should have same length than the
+        `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes.
-        `"kappas"` is the volatility coupling strength. It should have same length
-        than the volatility parents' indexes.
+        `"kappas"` is the volatility coupling strength. It should have the same length
+        as the volatility parents' indexes.
     verbose : bool
         Verbosity level.
 
@@ -100,18 +99,18 @@ class HGF(object):
             The second categorical value of the binary node. Defaults to `0.0`. Only
             relevant if `model_type="binary"`.
         initial_mu :
-            Dictionary containing the initial values for the :math:`\\mu` parameter at
+            A dictionary containing the initial values for the :math:`\\mu` parameter at
             different levels of the hierarchy. Defaults set to `0.0` at all levels.
         initial_pi :
-            Dictionary containing the initial values for the :math:`\\pi` parameter at
+            A dictionary containing the initial values for the :math:`\\pi` parameter at
             different levels of the hierarchy. Pis values encode the precision of the
-            values at each level (Var = 1/pi) Defaults set to `1.0` at all levels.
+            values at each level (Var = 1/pi) Defaults are set to `1.0` at all levels.
         kappas :
-            Dictionary containing the initial values for the :math:`\\kappa` parameter
+            A dictionary containing the initial values for the :math:`\\kappa` parameter
             at different levels of the hierarchy. Kappa represents the phasic part of
-            the variance (the part that is affected by the parents nodes) and will
-            defines the strenght of the connection between the node and the parent
-            node. Often fixed to `1`. Defaults set to `1` at all levels.
+            the variance (the part that is affected by the parent nodes) and will
+            define the strength of the connection between the node and the parent
+            node. Often fixed to `1`. Defaults are set to `1` at all levels.
         model_type : str
             The model type to use (can be `"continuous"` or `"binary"`).
         n_levels :
@@ -119,11 +118,11 @@ class HGF(object):
             `None`, the nodes hierarchy is not created and might be provided afterward
             using `add_nodes()`. Defaults to `2` for a 2-level HGF.
         omega :
-            Dictionary containing the initial values for the :math:`\\omega` parameter
+            A dictionary containing the initial values for the :math:`\\omega` parameter
             at different levels of the hierarchy. :math:`\\omega` represents the tonic
             part of the variance (the part that is not affected by the parent node).
-            Defaults set to `-3.0` at all levels. This parameter is only required for
-            Gaussian Random Walk nodes.
+            Defaults are set to `-3.0` at all levels. This parameter is only required
+            for Gaussian Random Walk nodes.
         omega_input :
             Default value sets to `log(1e-4)`. Represents the noise associated with
             the input.
@@ -131,12 +130,13 @@ class HGF(object):
             The precision of the binary input node. Default to `jnp.inf`. Only relevant
             if `model_type="binary"`.
         rho :
-            Dictionary containing the initial values for the :math:`\\rho` parameter at
-            different levels of the hierarchy. Rho represents the drift of the random
+            A dictionary containing the initial values for the :math:`\\rho` parameter
+            at different levels of the hierarchy. Rho represents the drift of the random
             walk. This parameter is only required for Gaussian Random Walk nodes.
             Defaults set all entries to `0` according to the number of required levels.
         verbose :
-            Verbosity of the methods for model creation and fitting. Defaults to `True`.
+            The verbosity of the methods for model creation and fitting. Defaults to
+            `True`.
 
         """
         self.model_type = model_type
@@ -226,7 +226,7 @@ class HGF(object):
         input_data :
             2d array of new observations (time x features).
         time_steps :
-            Time vector (optional). If `None`, the time vector will defaults to
+            Time vector (optional). If `None`, the time vector will default to
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
 
@@ -264,6 +264,84 @@ class HGF(object):
 
         return self
 
+    def input_custom_sequence(
+        self,
+        update_branches: Tuple[UpdateSequence],
+        branches_idx: np.array,
+        input_data: np.ndarray,
+        time_steps: Optional[np.ndarray] = None,
+    ):
+        """Add new observations with custom update sequences.
+
+        This method should be used when the update sequence should be adapted to the
+        input data. (e.g. in the case of missing/null observations that should not
+        trigger node update).
+
+        .. note::
+           When the dynamic adaptation of the update sequence is not required, it is
+           recommended to use :py:meth:`pyhgf.model.HGF.input_data` instead as this
+           might result in performance improvement.
+
+        Parameters
+        ----------
+        update_branches :
+            A tuple of UpdateSequence listing the possible update sequences.
+        branches_idx :
+            The branches indexes (integers). Should have the same length as the input
+            data.
+        input_data :
+            2d array of new observations (time x features).
+        time_steps :
+            Time vector (optional). If `None`, the time vector will default to
+            `np.ones(len(input_data))`. This vector is automatically transformed
+            into a time steps vector.
+
+        """
+        if self.verbose:
+            print((f"Adding {len(input_data)} new observations."))
+        if time_steps is None:
+            time_steps = np.ones(len(input_data))  # time steps vector
+
+        # concatenate data and time
+        time_steps = time_steps[..., jnp.newaxis]
+        if input_data.ndim == 1:
+            input_data = input_data[..., jnp.newaxis]
+        data = jnp.concatenate((input_data, time_steps), dtype=float, axis=1)
+
+        # create the update functions that will be scanned
+        branches_fn = [
+            Partial(
+                beliefs_propagation,
+                update_sequence=seq,
+                node_structure=self.node_structure,
+                input_nodes_idx=self.input_nodes_idx.idx,
+            )
+            for seq in update_branches
+        ]
+
+        # create the function that will be scanned
+        def switching_propagation(parameters_structure, scan_input):
+            data, idx = scan_input
+            return switch(idx, branches_fn, parameters_structure, data)
+
+        # wrap the inputs
+        scan_input = data, branches_idx
+
+        # scan over the input data and apply the switching belief propagation functions
+        _, node_trajectories = scan(
+            switching_propagation, self.parameters_structure, scan_input
+        )
+
+        # the node structure at each value update
+        self.node_trajectories = node_trajectories
+
+        # because some of the input node might not have been updated, here we manually
+        # insert the input data to the input node (without triggering updates)
+        for idx, inp in zip(self.input_nodes_idx.idx, range(input_data.shape[1])):
+            self.node_trajectories[idx]["value"] = input_data[:, inp]
+
+        return self
+
     def plot_trajectories(self, **kwargs):
         """Plot the parameters trajectories."""
         return plot_trajectories(hgf=self, **kwargs)
@@ -290,15 +368,15 @@ class HGF(object):
         ----------
         response_function :
             The response function to use to compute the model surprise. If `None`
-            (default), return the sum of gaussian surprise if `model_type=="continuous"`
+            (default), return the sum of Gaussian surprise if `model_type=="continuous"`
             or the sum of the binary surprise if `model_type=="binary"`.
         response_function_parameters :
-            Additional parameters to the response function (optional) .
+            Additional parameters to the response function (optional).
 
         Returns
         -------
         surprise :
-            The model surprise given the input data and the response function.
+            The model's surprise given the input data and the response function.
 
         """
         if response_function is None:
@@ -319,8 +397,8 @@ class HGF(object):
         Returns
         -------
         structure_df :
-            Pandas data frame with the time series of the sufficient statistics and
-            surprise of each node in the structure.
+            Pandas data frame with the time series of sufficient statistics and
+            the surprise of each node in the structure.
 
         """
         # get time and time steps from the first input node
@@ -450,7 +528,7 @@ class HGF(object):
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
     ):
-        """Add a value parent to node.
+        """Add a value parent to a given set of nodes.
 
         Parameters
         ----------
@@ -555,14 +633,14 @@ class HGF(object):
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
     ):
-        """Add a volatility parent to node.
+        """Add a volatility parent to a given set of nodes.
 
         Parameters
         ----------
         children_idxs :
             The child(s) node index(es).
         volatility_coupling :
-            The volatility coupling between the child and parent node. This is will be
+            The volatility coupling between the child and parent node. This will be
             appended to the `kappas` parameters in the child node.
         mu :
             The mean of the Gaussian distribution.
@@ -604,17 +682,17 @@ class HGF(object):
             "rho": rho,
         }
 
-        # add a new node to connection structure with no parents
+        # add a new node to the connection structure with no parents
         self.node_structure += (Indexes(None, None, None, tuple(children_idxs)),)
 
-        # add a new parameters to parameters structure
+        # add a new parameter to the parameters structure
         self.parameters_structure[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
         structure_as_list: List[Indexes] = list(self.node_structure)
 
         for idx in children_idxs:
-            # add this node as parent and set value coupling
+            # add this node as a parent and set value coupling
             if structure_as_list[idx].volatility_parents is not None:
                 # append new index
                 new_volatility_parents_idx = structure_as_list[
@@ -652,9 +730,9 @@ class HGF(object):
 
         The function ensures that the following rules apply:
         1. all children have been updated before propagating to the parent(s) node.
-        2. the update function of an input node is choosen based on the node's type
+        2. the update function of an input node is chosen based on the node's type
         (`"continuous"` or `"binary"`).
-        3. the update function of the parent of an input node is choosen based on the
+        3. the update function of the parent of an input node is chosen based on the
         node's type (`"continuous"` or `"binary"`).
 
         Parameters
@@ -742,7 +820,7 @@ class HGF(object):
 
                         if len(children_idxs) > 0:
                             # only call the update on the parent(s) if the current node
-                            # is the last on the children list (meaning that all the
+                            # is the last on the children's list (meaning that all the
                             # other nodes have been updated)
                             if children_idxs[-1] == node_idx:
                                 update_sequence = self.get_update_sequence(
