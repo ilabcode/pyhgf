@@ -16,7 +16,7 @@ from pyhgf.continuous import (
     continuous_node_update,
     gaussian_surprise,
 )
-from pyhgf.plots import plot_correlations, plot_network, plot_trajectories
+from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
 from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes, InputIndexes, NodeStructure, UpdateSequence
@@ -341,6 +341,10 @@ class HGF(object):
             self.node_trajectories[idx]["value"] = input_data[:, inp]
 
         return self
+
+    def plot_nodes(self, node_idxs: Union[int, List[int]], **kwargs):
+        """Plot the node(s) beliefs trajectories."""
+        return plot_nodes(hgf=self, node_idxs=node_idxs, **kwargs)
 
     def plot_trajectories(self, **kwargs):
         """Plot the parameters trajectories."""
