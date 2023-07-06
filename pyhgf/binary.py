@@ -4,7 +4,7 @@ from functools import partial
 from typing import Dict, Union
 
 import jax.numpy as jnp
-from jax import Array, jit
+from jax import jit
 from jax.lax import cond
 from jax.typing import ArrayLike
 
@@ -264,7 +264,7 @@ def binary_input_update(
     return parameters_structure
 
 
-def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike):
+def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike) -> ArrayLike:
     """Gaussian density as defined by mean and precision."""
     return (
         pi
@@ -277,14 +277,14 @@ def sgm(
     x,
     lower_bound: Union[ArrayLike, float] = 0.0,
     upper_bound: Union[ArrayLike, float] = 1.0,
-) -> Array:
+) -> ArrayLike:
     """Logistic sigmoid function."""
     return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound
 
 
 def binary_surprise(
     x: Union[float, ArrayLike], muhat: Union[float, ArrayLike]
-) -> Array:
+) -> ArrayLike:
     r"""Surprise at a binary outcome.
 
     The surprise ellicited by a binary observation :math:`x` mean :math:`\hat{\mu}`
