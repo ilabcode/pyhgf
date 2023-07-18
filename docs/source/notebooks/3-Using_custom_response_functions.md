@@ -20,7 +20,7 @@ kernelspec:
 editable: true
 slideshow:
   slide_type: ''
-tags: [hide-input]
+tags: [hice-cell]
 ---
 %%capture
 import sys
@@ -168,7 +168,12 @@ In [pyhgf](https://github.com/ilabcode/pyhgf), the {term}`Perceptual model` is t
 
 ```{important}
 A *response function* should not return the actions $y$ (this is what the {term}`Decision rule` does), but the [surprise](https://en.wikipedia.org/wiki/Information_content) $S$ associated with the observation $x$, which is defined by:
-$$S(x) = -\log[Pr(x)]$$
+
+$$
+\begin{align}
+S(x) = -\log[Pr(x)]
+\end{align}
+$$
 ```
 
 If you are already familiar with using HGFs in the Julia equivalent of pyhgf, you probably noted that the toolbox is split into a **perceptual** package [HierarchicalGaussianFiltering.jl](https://github.com/ilabcode/HierarchicalGaussianFiltering.jl) and a **response** package [ActionModels.jl](https://github.com/ilabcode/ActionModels.jl). This was made to make the difference between the two parts of the HGF clear and be explicit that you can use a perceptual model without any action model. In [pyhgf](https://github.com/ilabcode/pyhgf) however, everything happens in the same package, the response function is merely an optional, additional argument that can be passed to describe how surprise is computed.
@@ -176,7 +181,7 @@ If you are already familiar with using HGFs in the Julia equivalent of pyhgf, yo
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-Therefor, ee want a {term}`Response function` that returns the surprise for observing the response $y$, which is:
+Therefore, we want a {term}`Response function` that returns the surprise for observing the response $y$, which is:
 
 $$
 \begin{align}
