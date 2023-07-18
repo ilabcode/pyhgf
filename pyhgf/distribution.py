@@ -239,7 +239,7 @@ class HGFLogpGradOp(Op):
         model_type: str = "continous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
-        response_function_parameters: Tuple = (),
+        response_function_parameters: Optional[List[Optional[Tuple]]] = None,
     ):
         """Initialize function.
 
@@ -263,7 +263,9 @@ class HGFLogpGradOp(Op):
         response_function :
             The response function to use to compute the model surprise.
         response_function_parameters :
-            Additional parameters to the response function.
+            A list of tuples with the same length as the number of models. Each tuple
+            contains additional data and parameters that can be accessible to the
+            response functions.
 
         """
         self.grad_logp = jit(
@@ -435,7 +437,7 @@ class HGFDistribution(Op):
         model_type: str = "continuous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
-        response_function_parameters: Tuple = (),
+        response_function_parameters: Optional[List[Optional[Tuple]]] = None,
     ):
         """Distribution initialization.
 
@@ -459,7 +461,9 @@ class HGFDistribution(Op):
         response_function :
             The response function to use to compute the model surprise.
         response_function_parameters :
-            Additional parameters to the response function.
+            A list of tuples with the same length as the number of models. Each tuple
+            contains additional data and parameters that can be accessible to the
+            response functions.
 
         """
         # The value function
