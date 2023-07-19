@@ -43,17 +43,17 @@ import matplotlib.pyplot as plt
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-The probabilistic networks we have been creating so far correspond to what is often called the {term}`Perceptual model` of a Hierarchical Gaussian Filter (HGF). This part of the model acts as a [Bayesian filter](https://en.wikipedia.org/wiki/Recursive_Bayesian_estimation) as it tries to predict the next input(s) given past observations. In that sense, the HGF can be seen as a generalization of other Bayesian filters as a one-level continuous HGF is equivalent to a Kalman filter. Such models are designed to update beliefs (i.e. sufficient statistics over statistical distributions, critically here Gaussian distributions) by receiving new inputs $u$. Complex probabilistic networks can then handle environments for example with nested volatility, and can even receive more than one input at a time or time-varying input that would trigger different belief propagation according to their structure (see {ref}`probabilistic_networks` for a tutorial on how to create and manipulate probabilistic networks). 
+The probabilistic networks we have been creating so far with the continuous and the binary Hierarchical Gaussian Filter (HGF) are often referred to as {term}`Perceptual model`. This branch of the model acts as a [Bayesian filter](https://en.wikipedia.org/wiki/Recursive_Bayesian_estimation) as it tries to predict the next observation(s) given current and past observations (often noted $u$). In that sense, the HGF is sometimes described as a generalization of Bayesian filters (e.g. a one-level continuous HGF is equivalent to a Kalman filter). Complex probabilistic networks can handle more complex environments for example with nested volatility, with multiple inputs, or with time-varying inputs that dynamically change how beliefs propagate through the structure (see {ref}`probabilistic_networks` for a tutorial on probabilistic networks). 
 
-But no matter how complex those networks are, they only relate to the *perceptual* part of the HGF (forming beliefs about states of the world). If we want an agent to be able to act according to the beliefs he/she is having about the environment, we need  what is traditionally called a {term}`Response model` (also sometimes referred to as *decision model* or *observation model*). This part of the model critically incorporates a {term}`Decision rule`, which is any function that, given the sufficient statistics of the network's beliefs at time $t$, will decide to perform an action $a_t$, selected from the range of possible actions.
+But no matter how complex those networks are, they are only the *perceptual* side of the model. If we want our agent to be able to act according to the beliefs he/she is having about the environment and evaluate its performances from these actions, we need  what is traditionally called a {term}`Response model` (also sometimes referred to as *decision model* or *observation model*). In a nutshell, a {term}`Response model` describe how we think the agent decide to perform some action at time $t$, and how we can measure the "goodness of fit" of our perceptual model given the observed actions. It critically incorporates a {term}`Decision rule`, which is the function that, given the sufficient statistics of the network's beliefs sample an action from the possible actions at hand.
 
-Being able to write and modify such {term}`Response model` is critical for practical applications of the HGF as it allows users to adapt the models to their experimental designs. In this notebook, we will demonstrate how it is possible to write custom response models for a given probabilistic network.
+Being able to write and modify such {term}`Response model` is critical for practical applications of the HGF as it allows users to adapt the models to their specific experimental designs. In this notebook, we will demonstrate how it is possible to write custom response models for a given probabilistic network.
 
 ```{figure} ../images/response_models.png
 ---
 name: response-models-fig
 ---
-**Relation between the {term}`Perceptual model` and the {term}`Response model` of a Hierarchical Gaussian Filter**. Beliefs are being updated in the probabilistic network (blue circles) as new observations are coming in (e.g. the association between a stimulus and an outcome at time $t$). Using these beliefs, the {term}`Response model` selects one action $y$. Critically here, the {term}`Response model` only operate in a unidirectional fashion (i.e. taking beliefs to generate action), but the actions are not modulating the way beliefs are updated (the model does not perform active inference - yet?).
+**The {term}`Perceptual model` and the {term}`Response model` of a Hierarchical Gaussian Filter (HGF)**. The left panel represents the {term}`Perceptual model`. The beliefs that the agent holds on state of the world are updated in the probabilistic network (blue circles) as the agent makes new observations (often noted $u$, e.g. the association between a stimulus and an outcome at time $t$). Using these beliefs, the {term}`Response model` (right panel) selects which decision/action $y$ to perform. Critically here, the {term}`Response model` only operates one-way (i.e. taking beliefs to generate action), but the actions are not modulating the way beliefs are updated (the model does not perform active inference - this point is, however, an active line of researches and new iterations of the model will try to *fusion* the two branch using active inference principles).
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -120,6 +120,7 @@ slideshow:
   slide_type: ''
 ---
 # a simple decision rule using the first level of the HGF
+np.random.seed(1)
 responses = np.random.binomial(p=agent.node_trajectories[1]["muhat"], n=1)
 ```
 
@@ -157,26 +158,26 @@ We started by simulation the responses from an agent for the sake of demonstrati
 
 ### Creating a new response function
 
-Let's now consider that the two vectors of observations $u$ and responses $y$ were obtained from a real participant undergoing a real experiment. In this situation, we assume that this participant internally used a {term}`Perceptual model` and a {term}`Decision rule` that might resemble what we defined previously, and we want to infer what are the most likely values for critical parameters in the model (e.g. the evolution rate $\omega_2$). To do so, we are going to use our dataset (both $u$ and $y$), and try many models. We are going to fix the values of all HGF parameters to reasonable estimates (here, using the exact same values as in the simulation), except for $\omega_2$. For this last parameter, we will assume a prior set at $\mathcal{N}(-2.0, 1.0)$. The idea is that we want to sample many $\omega_2$ values from this distribution and see if the model is performing better with some values.
+Let's now consider that the two vectors of observations $u$ and responses $y$ were obtained from a real participant undergoing a real experiment. In this situation, we assume that this participant internally used a {term}`Perceptual model` and a {term}`Decision rule` that might resemble what we defined previously, and we want to infer what are the most likely values for critical parameters in the model (e.g. the evolution rate $\omega_2$). To do so, we are going to use our dataset (both $u$ and $y$), and try many models. We are going to fix the values of all HGF parameters to reasonable estimates (here, using the exact same values as in the simulation), except for $\omega_2$. For this last parameter, we will assume a prior set at $\mathcal{N}(-2.0, 2.0)$. The idea is that we want to sample many $\omega_2$ values from this distribution and see if the model is performing better with some values.
 
 But here, we need a clear definition of what this means *to perform better* for a given model. And this is exactly what a {term}`Response model` does, it is a way for us to evaluate how likely the behaviours $y$ for a given {term}`Perceptual model`, and assuming that the participants use this specific {term}`Decision rule`. In [pyhgf](https://github.com/ilabcode/pyhgf), this step is performed by creating the corresponding {term}`Response function`, which is the Python function that will return the surprise $S$ of getting these behaviours from the participant under this decision rule.
 
 ````{hint} What is a *response function*?
-Most of the work around HGFs consists in creating and adapting {term}`Response model` to work with a given experimental design. There is no limit in terms of what can be used as a {term}`Response model`, provided that the {term}`Perceptual model` and the response model are clearly defined.
+Most of the work around HGFs consists in creating and adapting {term}`Response model` to work with a given experimental design. There is no limit in terms of what can be used as a {term}`Response model`, provided that the {term}`Perceptual model` and the {term}`Decision rule` are clearly defined.
 
-In [pyhgf](https://github.com/ilabcode/pyhgf), the {term}`Perceptual model` is the probabilistic network created with the main :py:class:`pyhgf.model.HGF` and :py:class:`pyhgf.distribution.HGFDistribution` classes. The {term}`Response model` is something that is implicitly defined when we create the {term}`Response function`, a Python function that computes the negative of the log-likelihood of the actions given the perceptual model. This {term}`Response function` can be passed as an argument to the main classes using the keywords arguments `response_function` and `response_function_parameters`. The `response_function` can be any callable that returns the surprise $S$ of observing action $y$ given this model, and the {term}`Decision rule`. The `response_function_parameters` is where additional parameters or observations can be provided. Critically, this is where the actions $y$ should be provided.
+In [pyhgf](https://github.com/ilabcode/pyhgf), the {term}`Perceptual model` is the probabilistic network created with the main {py:class}`pyhgf.model.HGF` and :py:class:`pyhgf.distribution.HGFDistribution` classes. The {term}`Response model` is something that is implicitly defined when we create the {term}`Response function`, a Python function that computes the negative of the log-likelihood of the actions given the perceptual model. This {term}`Response function` can be passed as an argument to the main classes using the keywords arguments `response_function` and `response_function_parameters`. The `response_function` can be any callable that returns the surprise $S$ of observing action $y$ given this model, and the {term}`Decision rule`. The `response_function_parameters` is where additional parameters or observations can be provided. Critically, this is where the actions $y$ should be provided.
 
 ```{important}
-A *response function* should not return the actions $y$ (this is what the {term}`Decision rule` does), but the [surprise](https://en.wikipedia.org/wiki/Information_content) $S$ associated with the observation $x$, which is defined by:
+A *response function* should not return the actions given perceptual inputs $y | u$ (this is what the {term}`Decision rule` does), but the [surprise](https://en.wikipedia.org/wiki/Information_content) $S$ associated with the observation of actions given the perceptual inputs $S(y | u)$, which is defined by:
 
 $$
 \begin{align}
-S(x) = -\log[Pr(x)]
+S(y | u) = -\log[Pr(y | u)]
 \end{align}
 $$
 ```
 
-If you are already familiar with using HGFs in the Julia equivalent of pyhgf, you probably noted that the toolbox is split into a **perceptual** package [HierarchicalGaussianFiltering.jl](https://github.com/ilabcode/HierarchicalGaussianFiltering.jl) and a **response** package [ActionModels.jl](https://github.com/ilabcode/ActionModels.jl). This was made to make the difference between the two parts of the HGF clear and be explicit that you can use a perceptual model without any action model. In [pyhgf](https://github.com/ilabcode/pyhgf) however, everything happens in the same package, the response function is merely an optional, additional argument that can be passed to describe how surprise is computed.
+If you are already familiar with using HGFs in the Julia equivalent of [pyhgf](https://github.com/ilabcode/pyhgf), you probably noted that the toolbox is split into a **perceptual** package [HierarchicalGaussianFiltering.jl](https://github.com/ilabcode/HierarchicalGaussianFiltering.jl) and a **response** package [ActionModels.jl](https://github.com/ilabcode/ActionModels.jl). This was made to make the difference between the two parts of the HGF clear and be explicit that you can use a perceptual model without any action model. In [pyhgf](https://github.com/ilabcode/pyhgf) however, everything happens in the same package, the response function is merely an optional, additional argument that can be passed to describe how surprise is computed.
 ````
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -265,7 +266,7 @@ The response function that we created above is passed as an argument directly to
 with pm.Model() as sigmoid_hgf:
 
     # prior over the evolution rate at the second level
-    omega_2 = pm.Normal("omega_2", -2.0, 1.0)
+    omega_2 = pm.Normal("omega_2", -2.0, 2.0)
 
     # the main HGF distribution
     pm.Potential(
@@ -301,7 +302,7 @@ plt.tight_layout()
 az.summary(sigmoid_hgf_idata, var_names=["omega_2"])
 ```
 
-The results above indicate that given the responses provided by the participant, the most likely values for the parameter $\omega_2$ are between -4.7 and -3.3, with a mean at -4.0 (you can find slightly different values if you sample again). This is an excellent estimate given the sparsity of the data, and the complexity of the model.
+The results above indicate that given the responses provided by the participant, the most likely values for the parameter $\omega_2$ are between -4.9 and -3.1, with a mean at -3.9 (you can find slightly different values if you sample different actions from the decisions function). We can consider this as an excellent estimate given the sparsity of the data, and the complexity of the model.
 
 +++
 
