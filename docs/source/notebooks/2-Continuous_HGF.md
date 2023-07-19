@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -33,7 +33,7 @@ import seaborn as sns
 from math import log
 ```
 
-In this notebook, we illustrate applications of the standard two-levels and three-level Hierarchical Gaussian Filters (HGF) for continuous inputs. This class of models slightly differs from the previous binary example as input nodes here are not restricted to boolean variables but accept any observations on a continuous domain. Fitting continuous data allows using the HGF with any time series, which can find several applications in neuroscience (see for example the case study on physiological modelling using the Hierarchical Gaussian Filter {ref}`example_1`). The continuous HGF is built on to of the following probabilistic network:
+In this notebook, we illustrate applications of the standard two-level and three-level Hierarchical Gaussian Filters (HGF) for continuous inputs. This class of models slightly differs from the previous binary example as input nodes here are not restricted to boolean variables but accept any observations on a continuous domain. Fitting continuous data allows using the HGF with any time series, which can find several applications in neuroscience (see for example the case study on physiological modelling using the Hierarchical Gaussian Filter {ref}`example_1`). The continuous HGF is built on to of the following probabilistic network:
 
 ```{figure} ../images/continuous.png
 ---
@@ -42,7 +42,7 @@ name: continuous-hgf
 The two-level and three-level Hierarchical Gaussian Filter for continuous inputs.
 ```
 
-Here, we will use the continuous HGF to predict the the exchange rate of the US Dollar to the Swiss Franc during much of 2010 and 2011 (we use this time series as it is a classical example in the [Matlab toolbox)](https://github.com/translationalneuromodeling/tapas/blob/master/HGF/README.md).
+Here, we will use the continuous HGF to predict the exchange rate of the US Dollar to the Swiss Franc during much of 2010 and 2011 (we use this time series as it is a classical example in the [Matlab toolbox)](https://github.com/translationalneuromodeling/tapas/blob/master/HGF/README.md).
 
 ```{code-cell} ipython3
 timeserie = load_data("continuous")
@@ -55,7 +55,7 @@ timeserie = load_data("continuous")
 +++
 
 ```{note}
-The default response function for a continuous HGF is the [sum of the Guassian surprise at the first level](pyhgf.response.total_gaussian_surprise). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next observation in the continuous domain.
+The default response function for a continuous HGF is the [sum of the Gaussian surprise at the first level](pyhgf.response.total_gaussian_surprise). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next observation in the continuous domain.
 ```
 
 ```{code-cell} ipython3
@@ -85,22 +85,22 @@ two_levels_continuous_hgf = two_levels_continuous_hgf.input_data(input_data=time
 
 +++
 
-A Hierarchical Gaussian Filter parametrized with the standard Gaussian surprise as a response function will act as a Bayesian filter. By presenting new continuous observations and running the update equation forward, we can observe the trajectories of the parameters of the node that are adapting to the trajectory and volatility of the input time series (i.e. the mean $\mu$ and the precision $\pi$). The `plot_trajectories` function automatically extracts the relevant parameters given the model structure and plot their evolution together with the input data.
+A Hierarchical Gaussian Filter parametrized with the standard Gaussian surprise as a response function will act as a Bayesian filter. By presenting new continuous observations and running the update equation forward, we can observe the trajectories of the parameters of the node that are adapting to the trajectory and volatility of the input time series (i.e. the mean $\mu$ and the precision $\pi$). The `plot_trajectories` function automatically extracts the relevant parameters given the model structure and plots their evolution together with the input data.
 
 ```{code-cell} ipython3
 two_levels_continuous_hgf.plot_trajectories();
 ```
 
-Looking at the volatility level (i.e. the orange line in the first panel), we see that there are two salient events in our time series where volatility shoots up. The first is in April 2010 when the currency markets react to the news that Greece is effectively broke. This leads to a flight into the US dollar (the grey dots rising very quickly), sending the volatility higher. The second is an accelerating increase in the value of the Swiss Franc in August and September 2011, as the Euro crisis drags on. The point where the Swiss central bank intervened and put a floor under how far the Euro could fall with respect to the Franc is visible in the Franc's valuation against the Dollar. This surprising intervention shows up as another spike in volatility.
+Looking at the volatility level (i.e. the orange line in the first panel), we see that there are two salient events in our time series where volatility shoots up. The first is in April 2010 when the currency markets react to the news that Greece is effectively broke. This leads to a flight into the US dollar (the grey dots rising very quickly), sending the volatility higher. The second is an accelerating increase in the value of the Swiss Franc in August and September 2011, as the Euro crisis drags on. The point where the Swiss central bank intervened and put a floor under how far the Euro could fall with respect to the Franc is visible in Franc's valuation against the Dollar. This surprising intervention shows up as another spike in volatility.
 
-We can see that the surprise will increase when the time series exhibit more unexpected behaviours. The degree to which a given observation is expected will depend on the expected value and volatility in the input node, which is influenced by the values of higher-order nodes. One way to assess model fit is to look at the total gaussian surprise for each observation. This value can be returned using the {ref}`pyhgf.model.HGF.surprise` method:
+We can see that the surprise will increase when the time series exhibit more unexpected behaviours. The degree to which a given observation is expected will depend on the expected value and volatility in the input node, which is influenced by the values of higher-order nodes. One way to assess model fit is to look at the total Gaussian surprise for each observation. This value can be returned using the {ref}`pyhgf.model.HGF.surprise` method:
 
 ```{code-cell} ipython3
 two_levels_continuous_hgf.surprise()
 ```
 
 ```{note}
-The surprise returned by a model when presented with new observation is a function of the response model that was used. Different response functions can be added and provided, together with additional parameters in the {ref}`pyhgf.model.HGF.surprise` method. The surprise is the negative log probability density of the new observations under the model priors:
+The surprise returned by a model when presented with new observations is a function of the response model that was used. Different response functions can be added and provided, together with additional parameters in the {py:func}`pyhgf.model.HGF.surprise` method. The surprise is the negative log probability density of the new observations under the model priors:
 
 $$surprise = -log(p)$$
 ```
@@ -116,7 +116,7 @@ two_levels_continuous_hgf.plot_correlations();
 
 ### The three-level continuous Hierarchical Gaussian Filter
 #### Create the model
-The three-level HGF can add a meta-volatility layer to the model. This can be useful if we suspect that the volatility of the time series is not stable across time and we would like our model to learn it. Here, we create a new {ref}`pyhgf.model.HGF` instance, setting the number of levels to `3`. Note that we are extending the size of the dictionaries accordingly.
+The three-level HGF can add a meta-volatility layer to the model. This can be useful if we suspect that the volatility of the time series is not stable across time and we would like our model to learn it. Here, we create a new {py:class}`pyhgf.model.HGF` instance, setting the number of levels to `3`. Note that we are extending the size of the dictionaries accordingly.
 
 ```{code-cell} ipython3
 three_levels_continuous_hgf = HGF(
@@ -153,7 +153,7 @@ Similarly, we can retrieve the overall Gaussian surprise at the first node for e
 three_levels_continuous_hgf.surprise()
 ```
 
-The overall amount of surprise returned by the three-level is `-381`, while it was `-382` fot the two-level HGF. Because an agent will aims to minimize surprise, it looks like the two-level model is slightly beter in this context. However, surprise will also change as the value for the parameters of the node are being optimized beforehand. One important parameter for each node is $\omega$ (`omega`). This is the tonic part of the variance (the part of the variance in each node that is not affected by the parent node). Here we are going to change $\omega$ at the second level to see if it can help minimizing surprise:
+The overall amount of surprise returned by the three-level is `-381`, while it was `-382` for the two-level HGF. Because an agent will aim to minimize surprise, it looks like the two-level model is slightly better in this context. However, the surprise will also change as the value for the parameters of the node is optimized beforehand. One important parameter for each node is $\omega$ (`omega`). This is the tonic part of the variance (the part of the variance in each node that is not affected by the parent node). Here we are going to change $\omega$ at the second level to see if it can help to minimize surprise:
 
 ```{code-cell} ipython3
 # create an alternative model with different omega values
@@ -208,10 +208,10 @@ hgf_logp_op = HGFDistribution(
 )
 ```
 
-This log probabilit function can then be embedded in a PyMC model using the same API. Here, we are going to optimize `omega_1`. The other parameters are fixed.
+This log probability function can then be embedded in a PyMC model using the same API. Here, we are going to optimize `omega_1`. The other parameters are fixed.
 
 ```{note}
-The data has being passed to the distribution in the cell above when the function is created.
+The data has been passed to the distribution in the cell above when the function is created.
 ```
 
 ```{code-cell} ipython3
