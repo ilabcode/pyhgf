@@ -48,10 +48,9 @@ class HGF(object):
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
     .. note::
-        `"psis"` is the value coupling strength. It should have the same length as the
-        volatility parents' indexes.
-        `"kappas"` is the volatility coupling strength. It should have the same length
-        as the volatility parents' indexes.
+        The parameter structure also incorporate the value and volatility coupling
+        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
+        `"kappas_parents"`, `"kappas_children"`).
     verbose : bool
         Verbosity level.
 
@@ -133,7 +132,8 @@ class HGF(object):
             A dictionary containing the initial values for the :math:`\\rho` parameter
             at different levels of the hierarchy. Rho represents the drift of the random
             walk. This parameter is only required for Gaussian Random Walk nodes.
-            Defaults set all entries to `0` according to the number of required levels.
+            Defaults set all entries to `0.0` according to the number of required
+            levels.
         verbose :
             The verbosity of the methods for model creation and fitting. Defaults to
             `True`.
@@ -484,7 +484,7 @@ class HGF(object):
         """
         if kind == "continuous":
             input_node_parameters = {
-                "kappas": None,
+                "kappas_parents": None,
                 "omega": omega_input,
                 "time_step": jnp.nan,
                 "value": jnp.nan,
@@ -530,9 +530,7 @@ class HGF(object):
         mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
         pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
-        kappas: Optional[Tuple] = None,
         nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
-        psis: Optional[Tuple] = None,
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
@@ -545,7 +543,7 @@ class HGF(object):
             The child(s) node index(es).
         value_coupling :
             The value_coupling between the child and parent node. This is will be
-            appended to the `psis` parameters in the child node.
+            appended to the `psis` parameters in the parent and child node(s).
         mu :
             The mean of the Gaussian distribution.
         mu_hat :
@@ -555,14 +553,8 @@ class HGF(object):
         pi_hat :
             The expected precision of the Gaussian distribution (inverse variance) for
             the next observation.
-        kappas :
-            The phasic part of the variance (the part that is inherited from volatility
-            parents).
         nu :
             Stochasticity coupling.
-        psis :
-            The value coupling with other value parents (defaults to `None` when the
-            node is created as no parents are defined yet).
         omega :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
@@ -582,9 +574,11 @@ class HGF(object):
             "muhat": mu_hat,
             "pi": pi,
             "pihat": pi_hat,
-            "kappas": kappas,
+            "kappas_children": None,
+            "kappas_parents": None,
+            "psis_children": (value_coupling,),
+            "psis_parents": None,
             "nu": nu,
-            "psis": psis,
             "omega": omega,
             "rho": rho,
         }
@@ -616,7 +610,7 @@ class HGF(object):
                     structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.parameters_structure[idx]["psis"] += (value_coupling,)
+                self.parameters_structure[idx]["psis_parents"] += (value_coupling,)
             else:
                 # append new index
                 new_value_parents_idx = (parent_idx,)
@@ -627,7 +621,7 @@ class HGF(object):
                     structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.parameters_structure[idx]["psis"] = (value_coupling,)
+                self.parameters_structure[idx]["psis_parents"] = (value_coupling,)
 
         # convert the list back to a tuple
         self.node_structure = tuple(structure_as_list)
@@ -642,9 +636,7 @@ class HGF(object):
         mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
         pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
-        kappas: Optional[Tuple] = None,
         nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
-        psis: Optional[Tuple] = None,
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
@@ -656,8 +648,8 @@ class HGF(object):
         children_idxs :
             The child(s) node index(es).
         volatility_coupling :
-            The volatility coupling between the child and parent node. This will be
-            appended to the `kappas` parameters in the child node.
+            The volatility coupling between the child and parent node. This is will be
+            appended to the `kappas` parameters in the parent and child node(s).
         mu :
             The mean of the Gaussian distribution.
         mu_hat :
@@ -667,13 +659,8 @@ class HGF(object):
         pi_hat :
             The expected precision of the Gaussian distribution (inverse variance) for
             the next observation.
-        kappas :
-            Phasic part of the variance.
         nu :
             Stochasticity coupling.
-        psis :
-            The value coupling with other value parents (defaults to `None` when the
-            node is created as no parents are defined yet).
         omega :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
@@ -693,9 +680,11 @@ class HGF(object):
             "muhat": mu_hat,
             "pi": pi,
             "pihat": pi_hat,
-            "kappas": kappas,
+            "kappas_children": (volatility_coupling,),
+            "kappas_parents": None,
+            "psis_children": None,
+            "psis_parents": None,
             "nu": nu,
-            "psis": psis,
             "omega": omega,
             "rho": rho,
         }
@@ -727,7 +716,9 @@ class HGF(object):
                     structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.parameters_structure[idx]["kappas"] += (volatility_coupling,)
+                self.parameters_structure[idx]["kappas_parents"] += (
+                    volatility_coupling,
+                )
             else:
                 # append new index
                 new_volatility_parents_idx = (parent_idx,)
@@ -738,7 +729,9 @@ class HGF(object):
                     structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.parameters_structure[idx]["kappas"] = (volatility_coupling,)
+                self.parameters_structure[idx]["kappas_parents"] = (
+                    volatility_coupling,
+                )
 
         # convert the list back to a tuple
         self.node_structure = tuple(structure_as_list)

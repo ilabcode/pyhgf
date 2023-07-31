@@ -18,25 +18,42 @@ class TestStructure(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "omega": 1.0,
-            "kappas": None,
-            "psis": None,
+            "pihat": jnp.inf,
+            "eta0": 0.0,
+            "eta1": 1.0,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "omega": 1.0,
+            "kappas_parents": None,
+            "psis_parents": (1.0,),
         }
-        node_parameters = {
+        node_parameters_1 = {
             "pihat": 1.0,
             "pi": 1.0,
             "muhat": 1.0,
-            "kappas": (1.0,),
+            "psis_children": (1.0,),
+            "psis_parents": None,
+            "kappas_parents": (1.0,),
+            "kappas_children": None,
             "mu": 1.0,
             "nu": 1.0,
-            "psis": (1.0,),
             "omega": 1.0,
-            "rho": 1.0,
+            "rho": 0.0,
         }
-
+        node_parameters_2 = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "psis_children": None,
+            "psis_parents": None,
+            "kappas_parents": None,
+            "kappas_children": (1.0,),
+            "mu": 1.0,
+            "nu": 1.0,
+            "omega": 1.0,
+            "rho": 0.0,
+        }
         node_structure = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
@@ -44,8 +61,8 @@ class TestStructure(TestCase):
         )
         parameters_structure = (
             input_node_parameters,
-            node_parameters,
-            node_parameters,
+            node_parameters_1,
+            node_parameters_2,
         )
 
         # create update sequence
@@ -64,8 +81,8 @@ class TestStructure(TestCase):
             node_structure=node_structure,
         )
 
-        assert new_parameters_structure[1]["mu"] == 0.6405112
-        assert new_parameters_structure[2]["pi"] == 0.50698835
+        assert new_parameters_structure[1]["mu"] == 0.39578274
+        assert new_parameters_structure[2]["pi"] == 0.45746425
 
     def test_find_branch(self):
         """Test the find_branch function"""

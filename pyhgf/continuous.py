@@ -39,9 +39,9 @@ def continuous_node_update(
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
     .. note::
-        `"psis"` is the value coupling strength. It should have the same length as the
-        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-        It should have the same length as the volatility parents' indexes.
+        The parameter structure also incorporate the value and volatility coupling
+        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
+        `"kappas_parents"`, `"kappas_children"`).
     time_step :
         The interval between the previous time point and the current time point.
     node_idx :
@@ -82,7 +82,8 @@ def continuous_node_update(
     # Update the continuous value parents #
     #######################################
     if value_parents_idx is not None:
-        psis = node_parameters["psis"]
+        # the strength of the value coupling with parents nodes
+        psis = node_parameters["psis_parents"]
 
         for va_pa_idx, psi in zip(value_parents_idx, psis):
             # if this child is the last one relative to this parent's family, all the
@@ -102,7 +103,8 @@ def continuous_node_update(
                 # and update logvol accordingly
                 if va_pa_volatility_parents_idx is not None:
                     for va_pa_vo_pa, k in zip(
-                        va_pa_volatility_parents_idx, va_pa_node_parameters["kappas"]
+                        va_pa_volatility_parents_idx,
+                        va_pa_node_parameters["kappas_parents"],
                     ):
                         logvol += k * parameters_structure[va_pa_vo_pa]["mu"]
 
@@ -119,23 +121,10 @@ def continuous_node_update(
                 # children - this part corresponds to the sum of children required for
                 # the multi-children situations
                 pi_children = 0.0
-                for child_idx in node_structure[va_pa_idx].value_children:
-                    # this part finds which psi corresponds to this value parent
-                    # in a JAX-compatible way
-                    psi_child = jnp.where(
-                        jnp.isin(
-                            va_pa_idx,
-                            jnp.array(node_structure[child_idx].value_parents),
-                        ),
-                        jnp.sum(
-                            jnp.equal(
-                                jnp.array(node_structure[child_idx].value_parents),
-                                va_pa_idx,
-                            )
-                            * jnp.array(parameters_structure[child_idx]["psis"])
-                        ),
-                        jnp.nan,
-                    )
+                for child_idx, psi_child in zip(
+                    node_structure[va_pa_idx].value_children,
+                    parameters_structure[va_pa_idx]["psis_children"],
+                ):
                     pihat_child = parameters_structure[child_idx]["pihat"]
                     pi_children += psi_child**2 * pihat_child
 
@@ -156,23 +145,10 @@ def continuous_node_update(
                 # this part corresponds to the sum of children required for the
                 # multi-children situations
                 pe_children = 0.0
-                for child_idx in node_structure[va_pa_idx].value_children:
-                    # this part finds which psi corresponds to this value parent
-                    # in a JAX-compatible way
-                    psi_child = jnp.where(
-                        jnp.isin(
-                            va_pa_idx,
-                            jnp.array(node_structure[child_idx].value_parents),
-                        ),
-                        jnp.sum(
-                            jnp.equal(
-                                jnp.array(node_structure[child_idx].value_parents),
-                                va_pa_idx,
-                            )
-                            * jnp.array(parameters_structure[child_idx]["psis"])
-                        ),
-                        jnp.nan,
-                    )
+                for child_idx, psi_child in zip(
+                    node_structure[va_pa_idx].value_children,
+                    parameters_structure[va_pa_idx]["psis_children"],
+                ):
                     vape_child = (
                         parameters_structure[child_idx]["mu"]
                         - parameters_structure[child_idx]["muhat"]
@@ -194,7 +170,7 @@ def continuous_node_update(
     #############################
     if volatility_parents_idx is not None:
         nu = node_parameters["nu"]
-        kappas = node_parameters["kappas"]
+        kappas = node_parameters["kappas_parents"]
         vope = (
             1 / node_parameters["pi"]
             + (node_parameters["mu"] - node_parameters["muhat"]) ** 2
@@ -212,8 +188,10 @@ def continuous_node_update(
             # Look at the (optional) vo_pa's volatility parents
             # and update logvol accordingly
             if vo_pa_volatility_parents_idx is not None:
-                for i, vo_pa_vo_pa in enumerate(vo_pa_volatility_parents_idx):
-                    k = vo_pa_node_parameters["kappas"][i]
+                for vo_pa_vo_pa, k in zip(
+                    vo_pa_volatility_parents_idx,
+                    vo_pa_node_parameters["kappas_parents"],
+                ):
                     logvol += k * parameters_structure[vo_pa_vo_pa]["mu"]
 
             # Estimate new_nu
@@ -270,12 +248,12 @@ def continuous_input_update(
         The interval between the previous time point and the current time point.
     parameters_structure :
         The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
+        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "omega"` for
         continuous nodes.
     .. note::
-        `"psis"` is the value coupling strength. It should have the same length as the
-        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-        It should have the same length as the volatility parents' indexes.
+        The parameter structure also incorporate the value and volatility coupling
+        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
+        `"kappas_parents"`, `"kappas_children"`).
     node_structure :
         Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
         For each node, the index list value and volatility parents.
@@ -307,12 +285,10 @@ def continuous_input_update(
     lognoise = input_node_parameters["omega"]
 
     if volatility_parents_idx is not None:
-        for i, vo_pa_idx in enumerate(volatility_parents_idx):
-            lognoise += (
-                input_node_parameters["kappas"][i]
-                * parameters_structure[vo_pa_idx]["mu"]
-            )
-
+        for vo_pa_idx, k in zip(
+            volatility_parents_idx, input_node_parameters["kappas_parents"]
+        ):
+            lognoise += k * parameters_structure[vo_pa_idx]["mu"]
     pihat = 1 / jnp.exp(lognoise)
 
     ########################
@@ -335,7 +311,7 @@ def continuous_input_update(
         # and update logvol accordingly
         if va_pa_volatility_parents_idx is not None:
             for va_pa_vo_pa, k in zip(
-                va_pa_volatility_parents_idx, va_pa_node_parameters["kappas"]
+                va_pa_volatility_parents_idx, va_pa_node_parameters["kappas_parents"]
             ):
                 logvol += k * parameters_structure[va_pa_vo_pa]["mu"]
 
