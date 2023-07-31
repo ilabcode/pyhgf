@@ -37,9 +37,9 @@ def binary_node_update(
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
     .. note::
-        `"psis"` is the value coupling strength. It should have same length than the
-        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-        It should have same length than the volatility parents' indexes.
+        The parameter structure also incorporate the value and volatility coupling
+        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
+        `"kappas_parents"`, `"kappas_children"`).
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
@@ -94,7 +94,7 @@ def binary_node_update(
         # and update logvol accordingly
         if va_pa_volatility_parents_idx is not None:
             for va_pa_vo_pa, k in zip(
-                va_pa_volatility_parents_idx, va_pa_node_parameters["kappas"]
+                va_pa_volatility_parents_idx, va_pa_node_parameters["kappas_parents"]
             ):
                 logvol += k * parameters_structure[va_pa_vo_pa]["mu"]
 

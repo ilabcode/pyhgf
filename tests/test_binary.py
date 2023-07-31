@@ -50,15 +50,45 @@ class Testbinary(TestCase):
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "kappas_parents": None,
+            "psis_parents": (1.0,),
         }
-        node_parameters = {
+        node_parameters_1 = {
             "pihat": 1.0,
             "pi": 1.0,
             "muhat": 1.0,
-            "kappas": (1.0,),
+            "psis_children": (1.0,),
+            "psis_parents": (1.0,),
+            "kappas_parents": None,
+            "kappas_children": None,
             "mu": 1.0,
             "nu": 1.0,
-            "psis": (1.0,),
+            "omega": 1.0,
+            "rho": 0.0,
+        }
+        node_parameters_2 = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "psis_children": (1.0,),
+            "psis_parents": None,
+            "kappas_parents": (1.0,),
+            "kappas_children": None,
+            "mu": 1.0,
+            "nu": 1.0,
+            "omega": 1.0,
+            "rho": 0.0,
+        }
+        node_parameters_3 = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "psis_children": None,
+            "psis_parents": None,
+            "kappas_parents": None,
+            "kappas_children": (1.0,),
+            "mu": 1.0,
+            "nu": 1.0,
             "omega": 1.0,
             "rho": 0.0,
         }
@@ -71,9 +101,9 @@ class Testbinary(TestCase):
         )
         parameters_structure = (
             input_node_parameters,
-            node_parameters,
-            node_parameters,
-            node_parameters,
+            node_parameters_1,
+            node_parameters_2,
+            node_parameters_3,
         )
 
         # create update sequence

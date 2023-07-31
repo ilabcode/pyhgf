@@ -20,131 +20,69 @@ from pyhgf.typing import Indexes
 class Testcontinuous(TestCase):
     def test_continuous_node_update(self):
         # create a node structure with no value parent and no volatility parent
-        node_parameters = {
+        input_node_parameters = {
+            "pihat": jnp.inf,
+            "eta0": 0.0,
+            "eta1": 1.0,
+            "omega": 1.0,
+            "surprise": 0.0,
+            "time_step": 0.0,
+            "value": 0.0,
+            "kappas_parents": None,
+            "psis_parents": None,
+        }
+        node_parameters_1 = {
             "pihat": 1.0,
             "pi": 1.0,
             "muhat": 1.0,
-            "kappas": None,
+            "psis_children": None,
+            "psis_parents": None,
+            "kappas_parents": None,
+            "kappas_children": None,
             "mu": 1.0,
             "nu": 1.0,
-            "psis": (1.0,),
             "omega": 1.0,
-            "rho": 1.0,
+            "rho": 0.0,
         }
-        input_parameters = {
+        node_parameters_2 = {
             "pihat": 1.0,
             "pi": 1.0,
             "muhat": 1.0,
-            "kappas": (1.0,),
+            "psis_children": None,
+            "psis_parents": None,
+            "kappas_parents": None,
+            "kappas_children": None,
             "mu": 1.0,
             "nu": 1.0,
-            "psis": (1.0,),
             "omega": 1.0,
-            "rho": 1.0,
+            "rho": 0.0,
         }
+        parameters_structure = (
+            input_node_parameters,
+            node_parameters_1,
+            node_parameters_2,
+        )
         node_structure = (
             Indexes(None, None, None, None),
             Indexes(None, None, None, None),
             Indexes(None, None, None, None),
         )
-
-        parameters_structure = (
-            input_parameters,
-            node_parameters,
-            node_parameters,
-        )
-        data = jnp.array([jnp.nan, 1.0])
+        data = jnp.array([0.2, 1.0])
 
         ###########################################
         # No value parent - no volatility parents #
         ###########################################
-        sequence1 = 0, continuous_node_update
-        update_sequence = (sequence1,)
-        new_parameters_structure, _ = beliefs_propagation(
-            parameters_structure=parameters_structure,
-            data=data,
-            node_structure=node_structure,
-            update_sequence=update_sequence,
-        )
-
-        assert parameters_structure == new_parameters_structure
-
-        #######################
-        # x_1 as value parent #
-        #######################
-        node_structure = (
-            Indexes((1,), None, None, None),
-            Indexes(None, None, (0,), None),
-            Indexes(None, None, None, None),
-        )
-        data = jnp.array([jnp.nan, 1.0])
-
-        sequence1 = 0, continuous_node_update
+        sequence1 = 0, continuous_input_update
         update_sequence = (sequence1,)
         new_parameters_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure,
             node_structure=node_structure,
-            data=data,
             update_sequence=update_sequence,
-        )
-        for idx, val in zip(
-            ["pi", "pihat", "mu", "muhat", "nu"],
-            [1.2689414, 0.26894143, 2.0, 2.0, 2.7182817],
-        ):
-            assert jnp.isclose(new_parameters_structure[1][idx], val)
-
-        ############################
-        # x_1 as volatility parent #
-        ############################
-        node_structure = (
-            Indexes(None, (1,), None, None),
-            Indexes(None, None, None, (0,)),
-            Indexes(None, None, None, None),
-        )
-        data = jnp.array([jnp.nan, 1.0])
-
-        sequence1 = 0, continuous_node_update
-        update_sequence = (sequence1,)
-        new_parameters_structure, _ = beliefs_propagation(
-            parameters_structure=parameters_structure,
             data=data,
-            node_structure=node_structure,
-            update_sequence=update_sequence,
         )
-        for idx, val in zip(
-            ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.7689414, 0.26894143, 2.0, 2.0, 2.7182817],
-        ):
-            assert jnp.isclose(new_parameters_structure[1][idx], val)
 
-        #####################################
-        # Both value and volatility parents #
-        #####################################
-        node_structure = (
-            Indexes((1,), (2,), None, None),
-            Indexes(None, None, (0,), None),
-            Indexes(None, None, None, (0,)),
-        )
-        data = jnp.array([jnp.nan, 1.0])
-
-        sequence1 = 0, continuous_node_update
-        update_sequence = (sequence1,)
-        new_parameters_structure, _ = beliefs_propagation(
-            parameters_structure=parameters_structure,
-            data=data,
-            node_structure=node_structure,
-            update_sequence=update_sequence,
-        )
-        for idx, val in zip(
-            ["pi", "pihat", "mu", "muhat", "nu"],
-            [1.2689414, 0.26894143, 2.0, 2.0, 2.7182817],
-        ):
-            assert jnp.isclose(new_parameters_structure[1][idx], val)
-        for idx, val in zip(
-            ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.7689414, 0.26894143, 2.0, 2.0, 2.7182817],
-        ):
-            assert jnp.isclose(new_parameters_structure[2][idx], val)
+        assert parameters_structure[1] == new_parameters_structure[1]
+        assert parameters_structure[2] == new_parameters_structure[2]
 
     def test_gaussian_surprise(self):
         surprise = gaussian_surprise(
@@ -159,33 +97,52 @@ class Testcontinuous(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
+            "pihat": jnp.inf,
+            "eta0": 0.0,
+            "eta1": 1.0,
             "omega": 1.0,
-            "kappas": None,
-            "psis": None,
+            "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "kappas_parents": (1.0,),
+            "psis_parents": (1.0,),
         }
-        node_parameters = {
+        node_parameters_1 = {
             "pihat": 1.0,
             "pi": 1.0,
             "muhat": 1.0,
-            "kappas": (1.0,),
+            "psis_children": (1.0,),
+            "psis_parents": None,
+            "kappas_parents": (1.0,),
+            "kappas_children": None,
             "mu": 1.0,
             "nu": 1.0,
-            "psis": (1.0,),
             "omega": 1.0,
-            "rho": 1.0,
+            "rho": 0.0,
         }
+        node_parameters_2 = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "psis_children": None,
+            "psis_parents": None,
+            "kappas_parents": None,
+            "kappas_children": (1.0,),
+            "mu": 1.0,
+            "nu": 1.0,
+            "omega": 1.0,
+            "rho": 0.0,
+        }
+        parameters_structure = (
+            input_node_parameters,
+            node_parameters_1,
+            node_parameters_2,
+        )
 
         node_structure = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
-        )
-        parameters_structure = (
-            input_node_parameters,
-            node_parameters,
-            node_parameters,
         )
 
         # create update sequence
@@ -206,12 +163,12 @@ class Testcontinuous(TestCase):
             assert jnp.isclose(new_parameters_structure[0][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.48708236, 0.11920292, 0.6405112, 2.0, 7.389056],
+            [0.48708236, 0.11920292, 0.39578274, 1.0, 7.389056],
         ):
             assert jnp.isclose(new_parameters_structure[1][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.50698835, 0.26894143, 1.5353041, 2.0, 2.7182817],
+            [0.45746425, 0.26894143, 0.31479883, 1.0, 2.7182817],
         ):
             assert jnp.isclose(new_parameters_structure[2][idx], val)
 
@@ -225,33 +182,52 @@ class Testcontinuous(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "omega": 1.0,
-            "kappas": None,
-            "psis": None,
+            "pihat": jnp.inf,
+            "eta0": 0.0,
+            "eta1": 1.0,
+            "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "omega": 1.0,
+            "kappas_parents": None,
+            "psis_parents": (1.0,),
         }
-        node_parameters = {
+        node_parameters_1 = {
             "pihat": 1.0,
             "pi": 1.0,
             "muhat": 1.0,
-            "kappas": (1.0,),
+            "psis_children": (1.0,),
+            "psis_parents": None,
+            "kappas_parents": (1.0,),
+            "kappas_children": None,
             "mu": 1.0,
             "nu": 1.0,
-            "psis": (1.0,),
             "omega": 1.0,
-            "rho": 1.0,
+            "rho": 0.0,
+        }
+        node_parameters_2 = {
+            "pihat": 1.0,
+            "pi": 1.0,
+            "muhat": 1.0,
+            "psis_children": None,
+            "psis_parents": None,
+            "kappas_parents": None,
+            "kappas_children": (1.0,),
+            "mu": 1.0,
+            "nu": 1.0,
+            "omega": 1.0,
+            "rho": 0.0,
         }
 
+        parameters_structure = (
+            input_node_parameters,
+            node_parameters_1,
+            node_parameters_2,
+        )
         node_structure = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
-        )
-        parameters_structure = (
-            input_node_parameters,
-            node_parameters,
-            node_parameters,
         )
 
         # create update sequence
@@ -272,12 +248,12 @@ class Testcontinuous(TestCase):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.44606116, 0.07818171, 1.0302161, 2.000083, 10.548521],
+            [72.89327, 72.52539, 0.8888132, 0.88914144, 4.7156173e-05],
         ):
             assert jnp.isclose(last[1][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.30642906, 0.16752565, 1.3451389, 2.3559856, 2.7182817],
+            [0.0026260098, 0.0026116176, -10.965327, -10.962046, 2.7182817],
         ):
             assert jnp.isclose(last[2][idx], val)
 
