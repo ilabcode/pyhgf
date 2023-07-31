@@ -3,7 +3,7 @@
 import pkg_resources  # type: ignore
 from numpy import loadtxt
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 
 def load_data(dataset: str):

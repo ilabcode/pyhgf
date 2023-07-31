@@ -43,12 +43,12 @@ def continuous_node_update(
         strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
         `"kappas_parents"`, `"kappas_children"`).
     time_step :
-        Interval between the previous time point and the current time point.
+        The interval between the previous time point and the current time point.
     node_idx :
-        Pointer to the node that need to be updated. After continuous update, the
+        Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
     node_structure :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
+        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
         For each node, the index list value and volatility parents.
 
     Returns
@@ -89,7 +89,7 @@ def continuous_node_update(
             # if this child is the last one relative to this parent's family, all the
             # child will update the parent at once, otherwise just pass and wait
             if node_structure[va_pa_idx].value_children[-1] == node_idx:
-                # unpack the parent's parameters with value and volatility parents
+                # unpack the parent's parameters with the value and volatility parents
                 va_pa_node_parameters = parameters_structure[va_pa_idx]
                 va_pa_value_parents_idx = node_structure[va_pa_idx].value_parents
                 va_pa_volatility_parents_idx = node_structure[
@@ -117,9 +117,9 @@ def continuous_node_update(
                     new_nu,
                 ]
 
-                # gather precision updates from other nodes if the parent has many child
-                # this part corresponds to the sum over children required for the
-                # multi-children situations
+                # gather precision updates from other nodes if the parent has many
+                # children - this part corresponds to the sum of children required for
+                # the multi-children situations
                 pi_children = 0.0
                 for child_idx, psi_child in zip(
                     node_structure[va_pa_idx].value_children,
@@ -134,15 +134,15 @@ def continuous_node_update(
                 driftrate = va_pa_node_parameters["rho"]
 
                 # Look at the (optional) va_pa's value parents
-                # and update driftrate accordingly
+                # and update drift rate accordingly
                 if va_pa_value_parents_idx is not None:
                     for va_pa_va_pa in va_pa_value_parents_idx:
                         driftrate += psi * va_pa_va_pa["mu"]
 
                 muhat_pa = va_pa_node_parameters["mu"] + time_step * driftrate
 
-                # gather PE updates from other nodes if the parent has many child
-                # this part corresponds to the sum over children required for the
+                # gather PE updates from other nodes if the parent has many children
+                # this part corresponds to the sum of children required for the
                 # multi-children situations
                 pe_children = 0.0
                 for child_idx, psi_child in zip(
@@ -237,7 +237,7 @@ def continuous_input_update(
 ) -> Dict:
     """Update the input node structure.
 
-    This function is the entry level of the structure updates. It update the parent
+    This function is the entry-level of the structure updates. It updates the parent
     of the input node.
 
     Parameters
@@ -245,7 +245,7 @@ def continuous_input_update(
     value :
         The new observed value.
     time_step :
-        Interval between the previous time point and the current time point.
+        The interval between the previous time point and the current time point.
     parameters_structure :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "omega"` for
@@ -258,7 +258,7 @@ def continuous_input_update(
         Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
         For each node, the index list value and volatility parents.
     node_idx :
-        Pointer to the node that need to be updated. After continuous update, the
+        Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
 
     Returns
@@ -329,7 +329,7 @@ def continuous_input_update(
         driftrate = va_pa_node_parameters["rho"]
 
         # Look at the (optional) va_pa's value parents
-        # and update driftrate accordingly
+        # and update drift rate accordingly
         if va_pa_value_parents_idx is not None:
             for va_pa_va_pa in va_pa_value_parents_idx:
                 driftrate += (
@@ -362,7 +362,7 @@ def gaussian_surprise(
 ) -> Array:
     r"""Surprise at an outcome under a Gaussian prediction.
 
-    The surprise ellicited by an observation :math:`x` under a Gaussian distribution
+    The surprise elicited by an observation :math:`x` under a Gaussian distribution
     with expected mean :math:`\hat{\mu}` and expected precision :math:`\hat{\pi}` is
     given by:
 

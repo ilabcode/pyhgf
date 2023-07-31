@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -32,13 +32,13 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 ```
 
-In this notebook, we demonstrate how to create and fit the standard 2-levels and 3-level Hierarchical Gaussian Filters (HGF) for binary inputs. This class share a lot of similarities with its continuous counterpart described in the [next tutorial](continuous_hgf). Here, the difference is that the input node accepts binary data. Binary responses are widely used in decision-making neuroscience, and standard reinforcement learning algorithms like Rescorla-Wagner are tailored to learn outcomes probability under such configuration. Here, by using a Hierarchical Gaussian Filter, we want to be able to learn from the evolution of higher-level volatility, and the parameters that are influencing the strength of the coupling between lower-level nodes with their parents (i.e. $\omega$, or the `evolution rate` of the 1rst and 2nd levels nodes). The binary version of the Hierarchical Gaussian Filter can take the following structures:
+In this notebook, we demonstrate how to create and fit the standard two-level and three-level Hierarchical Gaussian Filters (HGF) for binary inputs. This class share a lot of similarities with its continuous counterpart described in the [next tutorial](continuous_hgf). Here, the difference is that the input node accepts binary data. Binary responses are widely used in decision-making neuroscience, and standard reinforcement learning algorithms like Rescorla-Wagner are tailored to learn outcomes probability under such configuration. Here, by using a Hierarchical Gaussian Filter, we want to be able to learn from the evolution of higher-level volatility, and the parameters that are influencing the strength of the coupling between lower-level nodes with their parents (i.e. $\omega$, or the `evolution rate` of the 1rst and 2nd levels nodes). The binary version of the Hierarchical Gaussian Filter can take the following structures:
 
 ```{figure} ../images/binary.png
 ---
 name: binary-hgf
 ---
-The 2-levels and 3-level Hierarchical Gaussian Filter for binary inputs. Note that the first level $X_{1}$ is a value parent for the binary input node $\mathcal{B}$, and has itself a value parent $X_{2}$. A volatility parent is only used in the context of a 3-level HGF. This is a specificity of the binary model.
+The two-level and three-level Hierarchical Gaussian Filter for binary inputs. Note that the first level $X_{1}$ is a value parent for the binary input node $\mathcal{B}$, and has itself a value parent $X_{2}$. A volatility parent is only used in the context of a 3-level HGF. This is a specificity of the binary model.
 ```
 
 In this example, we will use data from a decision-making task where the outcome probability was manipulated across time, and observe how the binary HGFs can track switches in response probabilities.
@@ -53,13 +53,13 @@ timeserie = load_data("binary")
 ```
 
 ## Fitting the binary HGF with fixed parameters
-### The 2-levels binary Hierarchical Gaussian Filter
+### The two-level binary Hierarchical Gaussian Filter
 #### Create the model
 
-The node structure corresponding to the 2-levels and 3-levels Hierarchical Gaussian Filters are automatically generated from `model_type` and `n_levels` using the nodes parameters provided in the dictionaries. Here we are not performing any optimization so thoses parameters are fixed to reasonnable values.
+The node structure corresponding to the two-level and three-level Hierarchical Gaussian Filters are automatically generated from `model_type` and `n_levels` using the nodes parameters provided in the dictionaries. Here we are not performing any optimization so those parameters are fixed to reasonable values.
 
 ```{note}
-The response function used is the binary surprise at each time points(:py:func:``pyhgf.response.binary_surprise`). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next binary observation. See also [this tutorial](custom_response_function) to see how to create custom response function.
+The response function used is the binary surprise at each time point ({py:func}`pyhgf.response.binary_surprise`). In other words, at each time point the model try to update its hierarchy to minimize the discrepancy between the expected and real next binary observation. See also [this tutorial](custom_response_function) to see how to create a custom response function.
 ```
 
 ```{code-cell} ipython3
@@ -72,7 +72,7 @@ two_levels_hgf = HGF(
 )
 ```
 
-This function create an instance of a HGF model automatically parametrized for a 2-levels binary structure, so we do not have to worry about creating the nodes structure ourself. This class also embed function to add new observations and plots results that we are going to use below. We can have a look at the node structure itself using the {ref}`pyhgf.plots.plot_network` function. This function will automatically dray the provided node structure using [Graphviz](https://github.com/xflr6/graphviz).
+This function creates an instance of a HGF model automatically parametrized for a 2-levels binary structure, so we do not have to worry about creating the node structure ourselves. This class also embed function to add new observations and plot results that we are going to use below. We can have a look at the node structure itself using the {ref}`pyhgf.plots.plot_network` function. This function will automatically dray the provided node structure using [Graphviz](https://github.com/xflr6/graphviz).
 
 ```{code-cell} ipython3
 two_levels_hgf.plot_network()
@@ -89,30 +89,30 @@ two_levels_hgf = two_levels_hgf.input_data(input_data=timeserie)
 
 +++
 
-A Hierarchical Gaussian Filter is acting as a Bayesian filter when presented new observation, and by running the update equation forward, we can observe the trajectories of the nodes parameters that are being updated after each new observation (i.e. the mean $\mu$ and the precision $\pi$). The `plot_trajectories` function automatically extract the relevant parameters given the model structure and will plot their evolution together with the input data.
+A Hierarchical Gaussian Filter is acting as a Bayesian filter when presented with new observation, and by running the update equation forward, we can observe the trajectories of the parameters of the node that are being updated after each new observation (i.e. the mean $\mu$ and the precision $\pi$). The `plot_trajectories` function automatically extracts the relevant parameters given the model structure and will plot their evolution together with the input data.
 
 ```{code-cell} ipython3
 two_levels_hgf.plot_trajectories()
 ```
 
 #### Surprise
-We can see that the surprise will increase when the time series exhibit more unexpected behaviors. The degree to which a given observation is expected will deppends on the expeted value and volatility in the input node, that are influenced by the values of higher order nodes. One way to assess model fit is to look at the total binary surprise for each observation. This values can be returned from the fitted model using the `surprise` method:
+We can see that the surprise will increase when the time series exhibit more unexpected behaviours. The degree to which a given observation is expected will depend on the expected value and volatility in the input node, which is influenced by the values of higher-order nodes. One way to assess model fit is to look at the total binary surprise for each observation. These values can be returned from the fitted model using the `surprise` method:
 
 ```{code-cell} ipython3
 two_levels_hgf.surprise()
 ```
 
 ```{note}
-The surprise of a model under the observation of new data directly depends on the response function that was used. New response functions can be added and provided using different `response_function_parameters` and `response_function` in the py:func:`pyhgf.model.HGF.surprise` method. The surprise is then defined as the negative log probability of new observations:
+The surprise of a model under the observation of new data directly depends on the response function that was used. New response functions can be added and provided using different `response_function_parameters` and `response_function` in the {py:func}`pyhgf.model.HGF.surprise` method. The surprise is then defined as the negative log probability of new observations:
 
-$$surprise = -log(p)$$
+$$S(x) = -\log[Pr(x)]$$
 ```
 
 +++
 
 ### The 3-levels binary Hierarchical Gaussian Filter
 #### Create the model
-Here, we create a new :py:`pyhgf.model.HGF` instance, setting the number of levels to `3`. Note that we are extending the size of the dictionaries accordingly.
+Here, we create a new {py:class}`pyhgf.model.HGF` instance, setting the number of levels to `3`. Note that we are extending the size of the dictionaries accordingly.
 
 ```{code-cell} ipython3
 three_levels_hgf = HGF(
@@ -150,7 +150,7 @@ three_levels_hgf.plot_trajectories()
 ## Learning parameters with MCMC sampling
 In the previous section, we assumed we knew the parameters of the HGF models that were used to filter the input data. This can give us information on how an agent using these values would behave when presented with these inputs. We can also adopt a different perspective and consider that we want to learn these parameters from the data. Here, we are going to set some of the parameters free and use Hamiltonian Monte Carlo methods (NUTS) to sample their probability density.
 
-Because the HGF classes are built on the top of [JAX](https://github.com/google/jax), they are natively differentiable and compatible with optimisation libraries or can be embedded as regular distributions in the context of a Bayesian network. Here, we are using this approach, and we are going to use [PyMC](https://www.pymc.io/welcome.html) to perform this step. PyMC can use any log probability function (here the negative surprise of the model) as a building block for a new distribution by wrapping it in its underlying tensor library [Aesara](https://aesara.readthedocs.io/en/latest/), now forked as [PyTensor](https://pytensor.readthedocs.io/en/latest/). This PyMC-compatible distribution can be found in the :py:`pyhgf.distribution` sub-module.
+Because the HGF classes are built on the top of [JAX](https://github.com/google/jax), they are natively differentiable and compatible with optimisation libraries or can be embedded as regular distributions in the context of a Bayesian network. Here, we are using this approach, and we are going to use [PyMC](https://www.pymc.io/welcome.html) to perform this step. PyMC can use any log probability function (here the negative surprise of the model) as a building block for a new distribution by wrapping it in its underlying tensor library [Aesara](https://aesara.readthedocs.io/en/latest/), now forked as [PyTensor](https://pytensor.readthedocs.io/en/latest/). This PyMC-compatible distribution can be found in the {py:obj}`pyhgf.distribution` sub-module.
 
 ```{code-cell} ipython3
 import pymc as pm
@@ -262,7 +262,7 @@ hgf_logp_op = HGFDistribution(
 ```
 
 ```{note}
-The data is being passed to the distribution when the instance is created.
+The data is passed to the distribution when the instance is created.
 ```
 
 ```{code-cell} ipython3

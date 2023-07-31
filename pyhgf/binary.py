@@ -4,7 +4,7 @@ from functools import partial
 from typing import Dict, Union
 
 import jax.numpy as jnp
-from jax import Array, jit
+from jax import jit
 from jax.lax import cond
 from jax.typing import ArrayLike
 
@@ -24,7 +24,7 @@ def binary_node_update(
     If the parents have value and/or volatility parents, they will be updated
     recursively.
 
-    Updating the node's parents is a two step process:
+    Updating the node's parents is a two-step process:
         1. Update value parent(s) and their parents (if provided).
         2. Update volatility parent(s) and their parents (if provided).
 
@@ -43,10 +43,10 @@ def binary_node_update(
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
-        Pointer to the node that need to be updated. After continuous update, the
+        Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
     node_structure :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
+        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
         For each node, the index list value and volatility parents.
 
     Returns
@@ -149,7 +149,7 @@ def binary_input_update(
 ) -> Dict:
     """Update the input node structure given one observation.
 
-    This function is the entry level of the model fitting. It update the partents of
+    This function is the entry-level of the model fitting. It updates the parents of
     the input node and then call :py:func:`pyhgf.binary.binary_node_update` to update
     the rest of the node structure.
 
@@ -158,20 +158,20 @@ def binary_input_update(
     value :
         The new observed value.
     time_step :
-        Interval between the previous time point and the current time point.
+        The interval between the previous time point and the current time point.
     parameters_structure :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
     .. note::
-        `"psis"` is the value coupling strength. It should have same length than the
+        `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-        It should have same length than the volatility parents' indexes.
+        It should have the same length as the volatility parents' indexes.
     node_structure :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
+        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
         For each node, the index list value and volatility parents.
     node_idx :
-        Pointer to the node that need to be updated. After continuous update, the
+        Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
 
     Returns
@@ -222,7 +222,7 @@ def binary_input_update(
 
         # TODO: this will be decided once we figure out the multi parents/children
         # # 1.1.2 Look at the (optional) va_pa's value parents (x3)
-        # # and update the driftrate accordingly
+        # # and update the drift rate accordingly
         # if va_pa_value_parents[0][1] is not None:
         #     for va_pa_va_pa in va_pa_value_parents[0][1]:
         #         # For each x2's value parents (optional)
@@ -264,7 +264,7 @@ def binary_input_update(
     return parameters_structure
 
 
-def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike):
+def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike) -> ArrayLike:
     """Gaussian density as defined by mean and precision."""
     return (
         pi
@@ -277,14 +277,14 @@ def sgm(
     x,
     lower_bound: Union[ArrayLike, float] = 0.0,
     upper_bound: Union[ArrayLike, float] = 1.0,
-) -> Array:
+) -> ArrayLike:
     """Logistic sigmoid function."""
     return jnp.subtract(upper_bound, lower_bound) / (1 + jnp.exp(-x)) + lower_bound
 
 
 def binary_surprise(
     x: Union[float, ArrayLike], muhat: Union[float, ArrayLike]
-) -> Array:
+) -> ArrayLike:
     r"""Surprise at a binary outcome.
 
     The surprise ellicited by a binary observation :math:`x` mean :math:`\hat{\mu}`

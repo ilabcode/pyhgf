@@ -1,9 +1,10 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import jax.numpy as jnp
+import numpy as np
 from jax import jit
 from jax.typing import ArrayLike
 
@@ -46,20 +47,26 @@ def beliefs_propagation(
         An array of input indexes. The default is `[0]` (one input node, the first node
         in the network).
 
+    Returns
+    -------
+    parameters_structure, parameters_structure :
+        A tuple of parameters structure (carryover and accumulated).
+
+
     """
     # extract value(s) and time steps from the data
     values = data[:-1]
     time_step = data[-1]
-    input_nodes_idx = jnp.asarray(input_nodes_idx)
 
-    # Fit the model with the current time and value variables, given model structure
+    input_nodes_idx = jnp.asarray(input_nodes_idx)
+    # Fit the model with the current time and value variables, given the model structure
     for sequence in update_sequence:
         node_idx, update_fn = sequence
 
         # if we are updating an input node, select the value that should be passed
         value = jnp.where(
             jnp.isin(node_idx, input_nodes_idx),
-            jnp.sum(jnp.equal(input_nodes_idx, node_idx) * values),
+            jnp.nansum(jnp.equal(input_nodes_idx, node_idx) * values),
             jnp.nan,
         )
 
@@ -75,3 +82,97 @@ def beliefs_propagation(
         parameters_structure,
         parameters_structure,
     )  # ("carryover", "accumulated")
+
+
+def trim_sequence(
+    exclude_node_idxs: List, update_sequence: UpdateSequence, node_structure: Tuple
+) -> UpdateSequence:
+    """Remove steps from an update sequence that depends on a set of nodes.
+
+    Parameters
+    ----------
+    exclude_node_idxs :
+        A list of node indexes. The nodes can be input nodes or any other node in the
+        network.
+    update_sequence :
+        The sequence of updates that will be applied to the node structure.
+    node_structure :
+        The nodes structure.
+
+    Returns
+    -------
+    trimmed_update_sequence :
+        The update sequence without the update steps for nodes depending on the root
+        list.
+
+    """
+    # list the nodes that depend on the root indexes
+    branch_list = list_branches(
+        node_idxs=exclude_node_idxs, node_structure=node_structure
+    )
+
+    # remove the update steps that are targetting the excluded nodes
+    trimmed_update_sequence = tuple(
+        [seq for seq in update_sequence if seq[0] not in branch_list]
+    )
+
+    return trimmed_update_sequence
+
+
+def list_branches(
+    node_idxs: List, node_structure: Tuple, branch_list: List = []
+) -> List:
+    """Return the branch of a network from a given set of root nodes.
+
+    This function searches recursively and lists the parents above a given node. If all
+    the children of a given parent are on the exclusion list, this parent is also
+    excluded.
+
+    Parameters
+    ----------
+    node_idxs :
+        A list of node indexes. The nodes can be input nodes or any other node in the
+        network.
+    node_structure :
+        The nodes structure.
+    branch_list :
+        The list of nodes that are already excluded (i.e )
+
+    Returns
+    -------
+    branch_list :
+        The list of node indexes that belong to the branch.
+
+    """
+    for idx in node_idxs:
+        # add this node to the exclusion list
+        branch_list.append(idx)
+        all_parents = np.array(
+            [
+                i
+                for i in [
+                    node_structure[idx].value_parents,
+                    node_structure[idx].volatility_parents,
+                ]
+                if i is not None
+            ]
+        ).flatten()
+        for parent_idx in all_parents:
+            # list the children for this node
+            all_children = np.array(
+                [
+                    i
+                    for i in [
+                        node_structure[parent_idx].value_children,
+                        node_structure[parent_idx].volatility_children,
+                    ]
+                    if i is not None
+                ]
+            ).flatten()
+            # if this parent has only excluded children, add it to the exclusion list
+            if np.all([i in branch_list for i in all_children]):
+                branch_list = list_branches(
+                    [parent_idx], node_structure, branch_list=branch_list
+                )
+
+    return branch_list

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -224,8 +224,6 @@ hgf_logp_op = HGFDistribution(
 ```
 
 ```{code-cell} ipython3
-from pymc.math import clip
-
 with pm.Model() as two_levels_binary_hgf:
     
     # Hypterpriors
@@ -276,4 +274,11 @@ with two_levels_binary_hgf:
 ```{code-cell} ipython3
 az.plot_trace(two_level_hgf_idata);
 plt.tight_layout()
+```
+
+# System configuration
+
+```{code-cell} ipython3
+%load_ext watermark
+%watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```

@@ -14,8 +14,8 @@ glob:
 
 | Notebook | Colab |
 | --- | ---|
-| {ref}`theory` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.0-Theory.ipynb)
 | {ref}`probabilistic_networks` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.1-Creating_networks.ipynb)
+| {ref}`theory` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.0-Theory.ipynb)
 
 ## Using the Hierarchical Gaussian Filter
 
@@ -23,8 +23,9 @@ glob:
 | --- | ---|
 | {ref}`binary_hgf` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/1-Binary_HGF.ipynb)
 | {ref}`continuous_hgf` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/2-Continuous_HGF.ipynb)
-| {ref}`parameters_recovery` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/3-Parameter_recovery.ipynb)
+| {ref}`custom_response_functions` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/3-Using_custom_response_functions.ipynb)
 | {ref}`multilevel_hgf` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/4-Multilevel_HGF.ipynb)
+| {ref}`parameters_recovery` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/5-Parameter_recovery.ipynb)
 
 ## Use cases
 
