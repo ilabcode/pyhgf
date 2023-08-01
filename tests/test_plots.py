@@ -75,7 +75,7 @@ class Testplots(TestCase):
             kappas={"1": None},
             eta0=0.0,
             eta1=1.0,
-            pihat=jnp.inf,
+            binary_precision=jnp.inf,
         ).input_data(timeserie)
 
         # plot trajectories
@@ -97,7 +97,7 @@ class Testplots(TestCase):
             kappas={"1": None, "2": 1.0},
             eta0=0.0,
             eta1=1.0,
-            pihat=jnp.inf,
+            binary_precision=jnp.inf,
         ).input_data(timeserie)
 
         # plot trajectories

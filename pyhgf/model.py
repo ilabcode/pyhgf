@@ -1,6 +1,5 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from math import log
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
@@ -70,7 +69,7 @@ class HGF(object):
             "2": 1.0,
             "3": 1.0,
         },
-        omega_input: Union[float, np.ndarray, ArrayLike] = log(1e-4),
+        continuous_precision: Union[float, np.ndarray, ArrayLike] = 1e4,
         omega: Dict = {
             "1": -3.0,
             "2": -3.0,
@@ -79,7 +78,7 @@ class HGF(object):
         kappas: Dict = {"1": 1.0, "2": 0.0},
         eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
         eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
-        pihat: Union[float, np.ndarray, ArrayLike] = jnp.inf,
+        binary_precision: Union[float, np.ndarray, ArrayLike] = jnp.inf,
         rho: Dict = {
             "1": 0.0,
             "2": 0.0,
@@ -122,10 +121,10 @@ class HGF(object):
             part of the variance (the part that is not affected by the parent node).
             Defaults are set to `-3.0` at all levels. This parameter is only required
             for Gaussian Random Walk nodes.
-        omega_input :
-            Default value sets to `log(1e-4)`. Represents the noise associated with
-            the input.
-        pihat :
+        continuous_precision :
+            The expected precision of the continuous input node. Default to `1e4`. Only
+            relevant if `model_type="continuous"`.
+        binary_precision :
             The precision of the binary input node. Default to `jnp.inf`. Only relevant
             if `model_type="binary"`.
         rho :
@@ -160,9 +159,16 @@ class HGF(object):
             # Input #
             #########
             if model_type == "continuous":
-                self.add_input_node(kind="continuous", omega_input=omega_input)
+                self.add_input_node(
+                    kind="continuous", continuous_precision=continuous_precision
+                )
             elif model_type == "binary":
-                self.add_input_node(kind="binary", eta0=eta0, eta1=eta1, pihat=pihat)
+                self.add_input_node(
+                    kind="binary",
+                    eta0=eta0,
+                    eta1=eta1,
+                    binary_precision=binary_precision,
+                )
 
             #########
             # x - 1 #
@@ -455,8 +461,8 @@ class HGF(object):
         self,
         kind: str,
         input_idx: int = 0,
-        omega_input: Union[float, np.ndarray, ArrayLike] = log(1e-4),
-        pihat: Union[float, np.ndarray, ArrayLike] = jnp.inf,
+        continuous_precision: Union[float, np.ndarray, ArrayLike] = 1e4,
+        binary_precision: Union[float, np.ndarray, ArrayLike] = jnp.inf,
         eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
         eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
         additional_parameters: Optional[Dict] = None,
@@ -470,10 +476,12 @@ class HGF(object):
             `"binary"`).
         input_idx :
             The index of the new input (defaults to `0`).
-        omega_input :
-            The input precision (only relevant if `kind="continuous"`).
-        pihat :
-            The input precision (only relevant if `kind="binary"`).
+        continuous_precision :
+            The continuous input precision (only relevant if `kind="continuous"`).
+            Defaults to `1e4`.
+        binary_precision :
+            The binary input precision (only relevant if `kind="binary"`). Default to
+            `jnp.inf`.
         eta0 :
             The lower bound of the binary process (only relevant if `kind="binary"`).
         eta1 :
@@ -485,13 +493,13 @@ class HGF(object):
         if kind == "continuous":
             input_node_parameters = {
                 "kappas_parents": None,
-                "omega": omega_input,
+                "pihat": continuous_precision,
                 "time_step": jnp.nan,
                 "value": jnp.nan,
             }
         elif kind == "binary":
             input_node_parameters = {
-                "pihat": pihat,
+                "pihat": binary_precision,
                 "eta0": eta0,
                 "eta1": eta1,
                 "surprise": jnp.nan,

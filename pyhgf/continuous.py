@@ -313,16 +313,9 @@ def continuous_input_update(
     """
     # list value and volatility parents
     value_parents_idxs = node_structure[node_idx].value_parents
-    volatility_parents_idxs = node_structure[node_idx].volatility_parents
 
-    lognoise = parameters_structure[node_idx]["omega"]
-
-    if volatility_parents_idxs is not None:
-        for volatility_parents_idx, k in zip(
-            volatility_parents_idxs, parameters_structure[node_idx]["kappas_parents"]
-        ):
-            lognoise += k * parameters_structure[volatility_parents_idx]["mu"]
-    pihat = 1 / jnp.exp(lognoise)
+    # the expected precision of the continuous input
+    pihat = parameters_structure[node_idx]["pihat"]
 
     ########################
     # Update value parents #
@@ -384,6 +377,7 @@ def continuous_input_update(
             muhat_value_parent = (
                 parameters_structure[value_parents_idx]["mu"] + time_step * driftrate
             )
+
             vape = value - muhat_value_parent
             mu_value_parent = muhat_value_parent + pihat / pi_value_parent * vape
 

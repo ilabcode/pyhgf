@@ -21,10 +21,7 @@ class Testcontinuous(TestCase):
     def test_continuous_node_update(self):
         # create a node structure with no value parent and no volatility parent
         input_node_parameters = {
-            "pihat": jnp.inf,
-            "eta0": 0.0,
-            "eta1": 1.0,
-            "omega": 1.0,
+            "pihat": 1e4,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
@@ -97,10 +94,7 @@ class Testcontinuous(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "pihat": jnp.inf,
-            "eta0": 0.0,
-            "eta1": 1.0,
-            "omega": 1.0,
+            "pihat": 1e4,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
@@ -163,12 +157,12 @@ class Testcontinuous(TestCase):
             assert jnp.isclose(new_parameters_structure[0][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.48708236, 0.11920292, 0.39578274, 1.0, 7.389056],
+            [10000.119, 0.11920292, 0.20000952, 1.0, 7.389056],
         ):
             assert jnp.isclose(new_parameters_structure[1][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.45746425, 0.26894143, 0.31479883, 1.0, 2.7182817],
+            [0.29854316, 0.26894143, -0.36260414, 1.0, 2.7182817],
         ):
             assert jnp.isclose(new_parameters_structure[2][idx], val)
 
@@ -182,13 +176,10 @@ class Testcontinuous(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "pihat": jnp.inf,
-            "eta0": 0.0,
-            "eta1": 1.0,
+            "pihat": 1e4,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
-            "omega": 1.0,
             "kappas_parents": None,
             "psis_parents": (1.0,),
         }
@@ -202,7 +193,7 @@ class Testcontinuous(TestCase):
             "kappas_children": None,
             "mu": 1.0,
             "nu": 1.0,
-            "omega": 1.0,
+            "omega": -3.0,
             "rho": 0.0,
         }
         node_parameters_2 = {
@@ -215,7 +206,7 @@ class Testcontinuous(TestCase):
             "kappas_children": (1.0,),
             "mu": 1.0,
             "nu": 1.0,
-            "omega": 1.0,
+            "omega": -3.0,
             "rho": 0.0,
         }
 
@@ -248,12 +239,12 @@ class Testcontinuous(TestCase):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
-            [72.89327, 72.52539, 0.8888132, 0.88914144, 4.7156173e-05],
+            [22792.508, 12792.507, 0.80494785, 0.7899765, 3.3479002e-05],
         ):
             assert jnp.isclose(last[1][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.0026260098, 0.0026116176, -10.965327, -10.962046, 2.7182817],
+            [1.4523009, 1.4297459, -6.9464974, -7.3045917, 0.049787067],
         ):
             assert jnp.isclose(last[2][idx], val)
 

@@ -17,7 +17,7 @@ def hgf_logp(
     omega_1: Union[np.ndarray, ArrayLike, float],
     omega_2: Union[np.ndarray, ArrayLike, float],
     omega_3: Union[np.ndarray, ArrayLike, float],
-    omega_input: Union[np.ndarray, ArrayLike, float],
+    continuous_precision: Union[np.ndarray, ArrayLike, float],
     rho_1: Union[np.ndarray, ArrayLike, float],
     rho_2: Union[np.ndarray, ArrayLike, float],
     rho_3: Union[np.ndarray, ArrayLike, float],
@@ -65,8 +65,8 @@ def hgf_logp(
         HGF. This parameter represents the tonic part of the variance (the part that is
         not inherited from parents nodes). The value of this parameter will be ignored
         when using a two-level HGF (`n_levels=2`).
-    omega_input :
-        Represent the noise associated with the input observation.
+    continuous_precision :
+        Represent the expected precision associated with the continuous input.
     rho_1 :
         The :math:`\rho` parameter at the first level of the HGF. This parameter
         represents the drift of the random walk.
@@ -138,7 +138,7 @@ def hgf_logp(
         _omega_1,
         _omega_2,
         _omega_3,
-        _omega_input,
+        _continuous_precision,
         _rho_1,
         _rho_2,
         _rho_3,
@@ -155,7 +155,7 @@ def hgf_logp(
         omega_1,
         omega_2,
         omega_3,
-        omega_input,
+        continuous_precision,
         rho_1,
         rho_2,
         rho_3,
@@ -208,14 +208,14 @@ def hgf_logp(
                 initial_mu=initial_mu,
                 initial_pi=initial_pi,
                 omega=omega,
-                omega_input=_omega_input[i],
+                continuous_precision=_continuous_precision[i],
                 rho=rho,
                 kappas=kappas,
                 model_type=model_type,
                 n_levels=n_levels,
                 eta0=0.0,
                 eta1=1.0,
-                pihat=jnp.inf,
+                binary_precision=jnp.inf,
                 verbose=False,
             )
             .input_data(input_data=input_data[i], time_steps=time_steps[i])
@@ -288,7 +288,7 @@ class HGFLogpGradOp(Op):
         omega_1=np.array(-3.0),
         omega_2=np.array(-3.0),
         omega_3=np.array(0.0),
-        omega_input=np.log(1e-4),
+        continuous_precision=np.array(1e4),
         rho_1=np.array(0.0),
         rho_2=np.array(0.0),
         rho_3=np.array(0.0),
@@ -307,7 +307,7 @@ class HGFLogpGradOp(Op):
             pt.as_tensor_variable(omega_1),
             pt.as_tensor_variable(omega_2),
             pt.as_tensor_variable(omega_3),
-            pt.as_tensor_variable(omega_input),
+            pt.as_tensor_variable(continuous_precision),
             pt.as_tensor_variable(rho_1),
             pt.as_tensor_variable(rho_2),
             pt.as_tensor_variable(rho_3),
@@ -333,7 +333,7 @@ class HGFLogpGradOp(Op):
             grad_omega_1,
             grad_omega_2,
             grad_omega_3,
-            grad_omega_input,
+            grad_continuous_precision,
             grad_rho_1,
             grad_rho_2,
             grad_rho_3,
@@ -350,7 +350,9 @@ class HGFLogpGradOp(Op):
         outputs[0][0] = np.asarray(grad_omega_1, dtype=node.outputs[0].dtype)
         outputs[1][0] = np.asarray(grad_omega_2, dtype=node.outputs[1].dtype)
         outputs[2][0] = np.asarray(grad_omega_3, dtype=node.outputs[2].dtype)
-        outputs[3][0] = np.asarray(grad_omega_input, dtype=node.outputs[3].dtype)
+        outputs[3][0] = np.asarray(
+            grad_continuous_precision, dtype=node.outputs[3].dtype
+        )
         outputs[4][0] = np.asarray(grad_rho_1, dtype=node.outputs[4].dtype)
         outputs[5][0] = np.asarray(grad_rho_2, dtype=node.outputs[5].dtype)
         outputs[6][0] = np.asarray(grad_rho_3, dtype=node.outputs[6].dtype)
@@ -494,7 +496,7 @@ class HGFDistribution(Op):
         omega_1,
         omega_2,
         omega_3,
-        omega_input,
+        continuous_precision,
         rho_1,
         rho_2,
         rho_3,
@@ -512,7 +514,7 @@ class HGFDistribution(Op):
             pt.as_tensor_variable(omega_1),
             pt.as_tensor_variable(omega_2),
             pt.as_tensor_variable(omega_3),
-            pt.as_tensor_variable(omega_input),
+            pt.as_tensor_variable(continuous_precision),
             pt.as_tensor_variable(rho_1),
             pt.as_tensor_variable(rho_2),
             pt.as_tensor_variable(rho_3),
@@ -540,7 +542,7 @@ class HGFDistribution(Op):
             grad_omega_1,
             grad_omega_2,
             grad_omega_3,
-            grad_omega_input,
+            grad_continuous_precision,
             grad_rho_1,
             grad_rho_2,
             grad_rho_3,
@@ -561,7 +563,7 @@ class HGFDistribution(Op):
             output_gradient * grad_omega_1,
             output_gradient * grad_omega_2,
             output_gradient * grad_omega_3,
-            output_gradient * grad_omega_input,
+            output_gradient * grad_continuous_precision,
             output_gradient * grad_rho_1,
             output_gradient * grad_rho_2,
             output_gradient * grad_rho_3,

@@ -76,7 +76,7 @@ class Testmodel(TestCase):
             kappas={"1": None},
             eta0=0.0,
             eta1=1.0,
-            pihat=jnp.inf,
+            binary_precision=jnp.inf,
         )
 
         # Provide new observations
@@ -96,7 +96,7 @@ class Testmodel(TestCase):
             kappas={"1": None, "2": 1.0},
             eta0=0.0,
             eta1=1.0,
-            pihat=jnp.inf,
+            binary_precision=jnp.inf,
         )
         three_level_binary_hgf.input_data(input_data=timeseries)
         surprise = three_level_binary_hgf.surprise()
@@ -116,7 +116,7 @@ class Testmodel(TestCase):
             kappas={"1": None, "2": 1.0},
             eta0=0.0,
             eta1=1.0,
-            pihat=jnp.inf,
+            binary_precision=jnp.inf,
         )
 
         # create a custom update series
