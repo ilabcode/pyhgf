@@ -15,11 +15,18 @@ kernelspec:
 (probabilistic_networks)=
 # Creating and manipulating networks of probabilistic nodes
 
-[pyhgf](https://ilabcode.github.io/pyhgf/index.html#) is designed with inspiration from graph neural network libraries that manipulates networks of probabilistic nodes and performs beliefs propagation using dedicated variational message passing. In this notebook, we detail the necessary variables that are required to define such networks and demonstrate how to create arbitrary structures and how to update them under new observations.
+[pyhgf](https://ilabcode.github.io/pyhgf/index.html#) is designed with inspiration from graph neural network libraries that manipulates networks of probabilistic nodes and performs beliefs propagation using dedicated variational message passing. While this library is well-suited and optimized to implement the standard two-level and three-level HGF, it can target much larger use cases and generalize to any kind of probabilistic network. More specifically, the four main components of a network for predictive coding applications, which are:
+1. network structure
+2. the network parameters
+3. the update function
+4. the update sequence
+are all made modular and dynamically accessible during the inference processes, allowing the creation of agents that can also manipulate these components. 
+
+In this notebook, we dive into the details of creating such networks and illustrate their modularity.
 
 +++
 
-## Creating a network of probabilistic nodes
+## Creating networks of probabilistic nodes
 
 Any form of generalized Hierarchical Gaussian Filter can be fully determined by the following variables. Let 
 
@@ -45,7 +52,9 @@ Each item of this sequence pairs a node index with an update function as previou
 
 ![graph_networks](../images/graph_networks.svg)
 
-## Implementation details
++++
+
+### Implementation details
 
 Networks are represented by two variables and two sets of functions:
 
@@ -55,12 +64,12 @@ Networks are represented by two variables and two sets of functions:
 4. an update sequence as a tuple of function/index pairs.
 
 ```{tip}
-The update function should treat `node_structure` as a static arguments and `parameter_structure` as a dynamic variable to comply with JAX JIT compilation (see [the documattion](https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#jit-mechanics-tracing-and-static-variables) on that point).
+The update function should treat `node_structure` as a static argument and `parameter_structure` as a dynamic variable to comply with JAX JIT compilation (see [the documattion](https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#jit-mechanics-tracing-and-static-variables) on that point).
 ```
 
 +++
 
-## Creating nodes
+### Creating nodes
 
 ```{code-cell} ipython3
 from pyhgf.typing import Indexes
@@ -78,7 +87,7 @@ The code above illustrate the creation of a probabilistic network of 3 nodes wit
 
 +++
 
-## Visualizing the network
+### Network visualization
 
 ```{code-cell} ipython3
 from pyhgf.model import HGF
@@ -88,12 +97,27 @@ hgf = HGF(n_levels=3, model_type="continuous")
 hgf.plot_network()
 ```
 
-## Building a custom node structure
-The two and three-level continuous and binary HGF are special cases of probabilistic networks that can be manipulated by pyhgf. We can indeed build probabilistic networks with arbitrary structure. Notably,
-- one node can have multiple parents and/or children, both in the value and volatility domains.
-- the network can have multiple input node, binary and/or continuous.
+## Modifying the parameter structure
 
-For example, the following network is a valid HGF structure:
+The simpler change we can make on a network is to change the values of some of its parameters. The parameters are stored in the `parameters_structure` variable as a dictionary where the key (integers) are node indexes. Therefore, modifying the expected precision of the third node in the previous example is as simple as:
+
+```{code-cell} ipython3
+hgf.parameters_structure[3]["pi"] = 5.0
+```
+
+However, modifying parameters values *manually* should not be that common as this is something we want the model to perform dynamically as we present new observations, but this can be used for example to generate prior predictive by sampling some parameter values from a distribution. 
+
+```{note} What is a valid parameter/value?
+A probabilistic node can store an arbitrary number of parameters. Parameter values should be valid JAX types, therefore a node cannot contain strings. You can provide additional parameters by using the `additional_parameters` arguments in {py:meth}`pyhgf.model.add_input_node`, {py:meth}`pyhgf.model.add_value_parent` and {py:meth}`pyhgf.model.add_volatility_parent`. Most of the nodes that are being used in the HGF use Gaussian distribution, therefore they contain the current mean and precision (`mu` and `pi`) as well as the expected mean and precision (`muhat` and `pihat`).
+```
+
++++
+
+## Modifying the network structure
+
+The second way we can modify a probabilistic network is by modifying its structure (i.e. the number of nodes, the type of nodes and the way they are connected with each other). Because nodes and connections are modular, a large variety of network structures can be declared. The only restrictions are that the network should be **acyclic** and **rooted** (the roots being input nodes).
+
+For example, the following networks are valid HGF structures:
 
 ```{code-cell} ipython3
 custom_hgf = (
@@ -110,8 +134,6 @@ custom_hgf = (
 custom_hgf.plot_network()
 ```
 
-It is also possible to work with multiple input:
-
 ```{code-cell} ipython3
 custom_hgf = (
     HGF(model_type=None)
@@ -121,10 +143,29 @@ custom_hgf = (
     .add_value_parent(children_idxs=[0])
     .add_value_parent(children_idxs=[1])
     .add_value_parent(children_idxs=[2])
-    .add_volatility_parent(children_idxs=[0, 1, 2])
+    .add_volatility_parent(children_idxs=[3, 4, 5])
 )
 custom_hgf.plot_network()
 ```
+
+The structure of the probabilistic network is stored in the `node_structure` variable which consists of a tuple of `Indexes` that store the indexes of value/volatility parents/children for each node. For example, accessing the nodes connected to node `4` in the example above is done with:
+
+```{code-cell} ipython3
+# the node structure
+custom_hgf.node_structure[4]
+```
+
+```{tip} Different types of coupling
+Contrary to standard graph networks, the directed connection between nodes can have multiple forms. The standard HGF is built on combinations of *value coupling* and *volatility coupling* bindings, but this can be extended to an arbitrary number of types.
+```
+
++++
+
+### Multivariate coupling
+
+As we can see in the examples above, nodes in a valid HGF network can be influenced by multiple parents (either value or volatility parents). Similarly, a single node can be influenced by multiple children. This feature is termed *multivariate descendency* and *multivariate ascendency* (respectively) and is a central addition to the generalization of the HGF {cite:p}`weber:2023` that was implemented in this package, as well as in the [Julia counterpart](https://github.com/ilabcode/HierarchicalGaussianFiltering.jl).
+
++++
 
 ```{note}
 Hierarchical Gaussian Filters have often been described in terms of levels. For example, the two-level and three-level HGFs are specific instances of  node structures designed to track the volatility and meta-volatility of binary or continuous processes, respectively. While such models can easily be implemented in this framework, the notion of level itself is now less informative. This is a consequence of the multivariate control and influence properties, which can result in structures in which some nodes have a position in the hierarchy that cannot be clearly disambiguated.
@@ -132,19 +173,140 @@ Hierarchical Gaussian Filters have often been described in terms of levels. For 
 
 +++
 
-The parameters structure and node structures are embedded in the HGF class anc can be retrieved with:
+#### The case of *multivariate descendency*
+
+##### Value coupling
 
 ```{code-cell} ipython3
-# paramter values from the first node
-custom_hgf.parameters_structure[0]
+# creating a network that contains many child nodes are value coupled to one parent node
+many_children_hgf = (
+    HGF(model_type=None)
+    .add_input_node(kind="continuous")
+    #.add_input_node(kind="continuous", input_idx=1)
+    .add_value_parent(children_idxs=[0], omega=-10.0)
+    #.add_value_parent(children_idxs=[1], omega=0.0)
+    .add_value_parent(children_idxs=[1], omega=-3.0)
+    .add_volatility_parent(children_idxs=[2])
+    #.add_value_parent(children_idxs=[3], omega=-3.0)
+    #.add_value_parent(children_idxs=[4, 5], omega=-3.0)
+)
+
+# plot the network
+many_children_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
-# the node structure
-custom_hgf.node_structure
+import numpy as np
+import matplotlib.pyplot as plt
+
+# simulate some time series
+u_0 = np.random.normal(0, 1, size=100)
+u_1 = np.random.normal(0, 1, size=100)
+
+u_0[20:50] += 5
+u_0[90:] += 5
+
+u_1[50:70] += 5
+u_1[70:] += 5
+
+input_data = np.array([u_0]).T
 ```
 
-## Building custom update functions and sequences
+```{code-cell} ipython3
+many_children_hgf.input_data(input_data=input_data)
+```
+
+```{code-cell} ipython3
+many_children_hgf.plot_nodes([1, 2], figsize=(12, 9))
+```
+
+```{code-cell} ipython3
+many_children_hgf.parameters_structure
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+many_children_hgf.plot_nodes([4, 5], figsize=(12, 9))
+```
+
+```{code-cell} ipython3
+many_children_hgf.plot_nodes([6], figsize=(12, 9))
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
+plt.plot(u_0)
+plt.plot(u_1)
+```
+
+##### Volatility coupling
+
+```{code-cell} ipython3
+# creating a network that contains many child nodes are volatility coupled to one parent node
+many_children_hgf = (
+    HGF(model_type=None)
+    .add_input_node(kind="continuous")
+    .add_input_node(kind="continuous", input_idx=1)
+    .add_value_parent(children_idxs=[0])
+    .add_value_parent(children_idxs=[1])
+    .add_volatility_parent(children_idxs=[2, 3])
+)
+
+# plot the network
+many_children_hgf.plot_network()
+```
+
+#### The case of *multivariate ascendency*
+
++++
+
+## Creating custom update functions
 
 Models that are created with parameter structures and node structures only represent static configuration of the HGF, they are not yet filtering new observation or acting in response to specific input. To add a dynamic and responsive layer, we need two additional components:
 
@@ -162,9 +324,11 @@ parameters_structure = update_fn(node_idx, parameters_structure, node_structure)
 
 In other words, it is updating the parameters structure by applying certain transformation using the node $i$ as reference. This usually means that an observation has reached node $i$ and we want to send prediction-error to the parent nodes and update their sufficient statistics. The function has acess to the entire parameters and nodes structure, which mean that it can retrive parameters from parents, children, grand-parents etc... But in practice, pessage passing updates only use information found in the [Markov blanket](https://en.wikipedia.org/wiki/Markov_blanket) of the given node.
 
-### Update sequeces
++++
 
-Update sequences define the dynamcis of beliefs propagation through the probabilistic network. In its simplier form, and update sequence is a sequence of update function pointing to a node index such as:
+## Creating custom update sequences
+
+Update sequences define the dynamics of beliefs propagation through the probabilistic network. In its simpler form, an update sequence is a sequence of update functions pointing to a node index such as:
 
 ```python
 update_sequence = (
@@ -173,7 +337,7 @@ update_sequence = (
 )
 ```
 
-The HGF class include a bluit-in {ref}`pyhgf.modeal.HGF.get_update_sequence` method to automatically generate the update sequence from the network structure, assuming that we want to propagate the beliefs from the lower part of the tree (the input nodes) to its upper part (nodes that do not have parents).
+The HGF class include a built-in {ref}`pyhgf.modeal.HGF.get_update_sequence` method to automatically generate the update sequence from the network structure, assuming that we want to propagate the beliefs from the lower part of the tree (the input nodes) to its upper part (nodes that do not have parents).
 
 ```{code-cell} ipython3
 
