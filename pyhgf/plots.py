@@ -361,14 +361,18 @@ def plot_nodes(
     node_idxs: Union[int, List[int]],
     ci: bool = True,
     surprise: bool = True,
+    children_inputs: bool = True,
+    show_current_state: bool = True,
     figsize: Tuple[int, int] = (12, 5),
     axs: Optional[Union[List, Axes]] = None,
 ):
     r"""Plot the trajectories of the nodes' sufficient statistics and surprise.
 
-    This function will plot :math:`\hat{\mu}`, :math:`\¨hat{\pi}` (converted into
-    standard deviation) and the Gaussian surprise :math:`\mu` given :math:`\¨hat{\pi}`
-    and :math:`\¨hat{\mu}`.
+    This function will plot :math:`\hat{\mu}`, :math:`\hat{\pi}` (converted into
+    standard deviation) and the Gaussian surprise :math:`\mu` given :math:`\hat{\pi}`
+    and :math:`\hat{\mu}` at the previous time point. If `children_inputs` is `True`,
+    will also plot the children input (:math:`\mu` for value coupling and :math:`\pi`
+    for volatility coupling).
 
     Parameters
     ----------
@@ -381,6 +385,13 @@ def plot_nodes(
     surprise :
         If `True` plot each node's surprise together with sufficient statistics.
         If `False`, only the input node's surprise is depicted.
+    children_inputs :
+        If `True`, show the input received from the child nodes. In case of value
+        coupling, plot the mean of the node(s) below, in case of volatility coupling,
+        plot the precision of the nodes below.
+    show_current_state :
+        If `True`, plot the current states (:math:`\mu` and :math:`\pi`) on the top of
+        expected states (:math:`\hat{\mu} and :math:`\hat{\pi}). Defaults to `False`.
     figsize :
         The width and height of the figure. Defaults to `(18, 9)` for a 2-levels model,
         or to `(18, 12)` for a 3-levels model.
@@ -439,6 +450,9 @@ def plot_nodes(
     for i, node_idx in enumerate(node_idxs):
         color = next(palette)
 
+        # show the expected states
+        # ------------------------
+
         # extract sufficient statistics from the data frame
         mu = trajectories_df[f"x_{node_idx}_muhat"]
         pi = trajectories_df[f"x_{node_idx}_pihat"]
@@ -455,19 +469,48 @@ def plot_nodes(
 
         # plotting standard deviation
         if ci is True:
-            # if this is the first level of a binary model do not show CI
-            if not (hgf.model_type == "binary") & (i == 1):
+            sd = np.sqrt(1 / pi)
+            axs[i].fill_between(
+                x=trajectories_df.time,
+                y1=trajectories_df[f"x_{node_idx}_muhat"] - sd,
+                y2=trajectories_df[f"x_{node_idx}_muhat"] + sd,
+                alpha=0.4,
+                color=color,
+                zorder=2,
+            )
+
+        # show the current states
+        # -----------------------
+        if show_current_state:
+            # extract sufficient statistics from the data frame
+            mu = trajectories_df[f"x_{node_idx}_mu"]
+            pi = trajectories_df[f"x_{node_idx}_pi"]
+
+            # plotting mean
+            axs[i].plot(
+                trajectories_df.time,
+                mu,
+                label=r"$\mu$",
+                color="gray",
+                linewidth=0.5,
+                zorder=2,
+                linestyle="--",
+            )
+
+            # plotting standard deviation
+            if ci is True:
                 sd = np.sqrt(1 / pi)
                 axs[i].fill_between(
                     x=trajectories_df.time,
-                    y1=trajectories_df[f"x_{node_idx}_muhat"] - sd,
-                    y2=trajectories_df[f"x_{node_idx}_muhat"] + sd,
-                    alpha=0.4,
+                    y1=trajectories_df[f"x_{node_idx}_mu"] - sd,
+                    y2=trajectories_df[f"x_{node_idx}_mu"] + sd,
+                    alpha=0.1,
                     color=color,
                     zorder=2,
                 )
 
         # plotting surprise
+        # -----------------
         if surprise:
             surprise_ax = axs[i].twinx()
             surprise_ax.plot(
@@ -494,6 +537,36 @@ def plot_nodes(
             )
             surprise_ax.set_ylabel("Surprise")
             surprise_ax.legend()
+
+        # plot the inputs from child nodes
+        # --------------------------------
+        if children_inputs:
+            # value coupling
+            if hgf.node_structure[node_idx].value_children is not None:
+                for ii, child_idx in enumerate(
+                    hgf.node_structure[node_idx].value_children  # type: ignore
+                ):
+                    if child_idx not in hgf.input_nodes_idx.idx:
+                        axs[i].scatter(
+                            trajectories_df.time,
+                            trajectories_df[f"x_{child_idx}_mu"],
+                            s=3,
+                            label=f"Input child - {ii}",
+                            zorder=10,
+                            alpha=0.5,
+                        )
+                    else:
+                        child_idx = np.where(
+                            np.array(hgf.input_nodes_idx.idx) == child_idx
+                        )[0][0]
+                        axs[i].scatter(
+                            trajectories_df.time,
+                            trajectories_df[f"observation_input_{child_idx}"],
+                            s=3,
+                            label=f"Input child - {ii}",
+                            zorder=10,
+                            alpha=0.5,
+                        )
 
         axs[i].legend()
 
