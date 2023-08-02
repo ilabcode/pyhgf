@@ -75,8 +75,6 @@ def continuous_node_update(
     if (value_parents_idxs is None) and (volatility_parents_idxs is None):
         return parameters_structure
 
-    pihat = parameters_structure[node_idx]["pihat"]
-
     ########################
     # Update value parents #
     ########################
@@ -179,83 +177,134 @@ def continuous_node_update(
     #############################
     if volatility_parents_idxs is not None:
         # the strength of the value coupling between the base node and the parents nodes
-        kappas = parameters_structure[node_idx]["kappas_parents"]
+        kappas_parents = parameters_structure[node_idx]["kappas_parents"]
 
         nu = parameters_structure[node_idx]["nu"]
-        vope = (
-            1 / parameters_structure[node_idx]["pi"]
-            + (
-                parameters_structure[node_idx]["mu"]
-                - parameters_structure[node_idx]["muhat"]
-            )
-            ** 2
-        ) * parameters_structure[node_idx]["pihat"] - 1
 
-        for volatility_parents_idx, kappa in zip(volatility_parents_idxs, kappas):
-            # list the value and volatility parents
-            volatility_parent_value_parents_idx = node_structure[
-                volatility_parents_idx
-            ].value_parents
-            volatility_parent_volatility_parents_idx = node_structure[
-                volatility_parents_idx
-            ].volatility_parents
+        for volatility_parent_idx, kappas_parent in zip(
+            volatility_parents_idxs, kappas_parents
+        ):
+            # if this child is the last one relative to this parent's family, all the
+            # children will update the parent at once, otherwise just pass and wait
+            if (
+                node_structure[volatility_parent_idx].volatility_children[-1]
+                == node_idx
+            ):
+                # list the value and volatility parents
+                volatility_parent_value_parents_idx = node_structure[
+                    volatility_parent_idx
+                ].value_parents
+                volatility_parent_volatility_parents_idx = node_structure[
+                    volatility_parent_idx
+                ].volatility_parents
 
-            # Compute new value for nu and pihat
-            logvol = parameters_structure[volatility_parents_idx]["omega"]
+                # Compute new value for nu and pihat
+                logvol = parameters_structure[volatility_parent_idx]["omega"]
 
-            # Look at the (optional) vo_pa's volatility parents
-            # and update logvol accordingly
-            if volatility_parent_volatility_parents_idx is not None:
-                for vo_pa_vo_pa, k in zip(
-                    volatility_parent_volatility_parents_idx,
-                    parameters_structure[volatility_parents_idx]["kappas_parents"],
+                # Look at the (optional) vo_pa's volatility parents
+                # and update logvol accordingly
+                if volatility_parent_volatility_parents_idx is not None:
+                    for vo_pa_vo_pa, k in zip(
+                        volatility_parent_volatility_parents_idx,
+                        parameters_structure[volatility_parent_idx]["kappas_parents"],
+                    ):
+                        logvol += k * parameters_structure[vo_pa_vo_pa]["mu"]
+
+                # Estimate new_nu
+                new_nu = time_step * jnp.exp(logvol)
+                new_nu = jnp.where(new_nu > 1e-128, new_nu, jnp.nan)
+
+                pihat_volatility_parent, nu_volatility_parent = [
+                    1
+                    / (1 / parameters_structure[volatility_parent_idx]["pi"] + new_nu),
+                    new_nu,
+                ]
+
+                # gather volatility precisions from the child nodes
+                children_volatility_precision = 0.0
+                for child_idx, kappas_children in zip(
+                    node_structure[volatility_parent_idx].volatility_children,
+                    parameters_structure[volatility_parent_idx]["kappas_children"],
                 ):
-                    logvol += k * parameters_structure[vo_pa_vo_pa]["mu"]
+                    nu_children = parameters_structure[child_idx]["nu"]
+                    pihat_children = parameters_structure[child_idx]["pihat"]
+                    pi_children = parameters_structure[child_idx]["pi"]
+                    vope_children = (
+                        1 / parameters_structure[child_idx]["pi"]
+                        + (
+                            parameters_structure[child_idx]["mu"]
+                            - parameters_structure[child_idx]["muhat"]
+                        )
+                        ** 2
+                    ) * parameters_structure[child_idx]["pihat"] - 1
 
-            # Estimate new_nu
-            new_nu = time_step * jnp.exp(logvol)
-            new_nu = jnp.where(new_nu > 1e-128, new_nu, jnp.nan)
+                    children_volatility_precision += (
+                        0.5
+                        * (kappas_children * nu_children * pihat_children) ** 2
+                        * (1 + (1 - 1 / (nu_children * pi_children)) * vope_children)
+                    )
 
-            pihat_volatility_parent, nu_volatility_parent = [
-                1 / (1 / parameters_structure[volatility_parents_idx]["pi"] + new_nu),
-                new_nu,
-            ]
+                pi_volatility_parent = (
+                    pihat_volatility_parent + children_volatility_precision
+                )
 
-            pi_volatility_parent = pihat_volatility_parent + 0.5 * (
-                kappa * nu * pihat
-            ) ** 2 * (1 + (1 - 1 / (nu * parameters_structure[node_idx]["pi"])) * vope)
-            pi_volatility_parent = jnp.where(
-                pi_volatility_parent <= 0, jnp.nan, pi_volatility_parent
-            )
+                pi_volatility_parent = jnp.where(
+                    pi_volatility_parent <= 0, jnp.nan, pi_volatility_parent
+                )
 
-            # Compute new muhat
-            driftrate = parameters_structure[volatility_parents_idx]["rho"]
+                # drift rate of the GRW
+                driftrate = parameters_structure[volatility_parent_idx]["rho"]
 
-            # Look at the (optional) va_pa's value parents
-            # and update drift rate accordingly
-            if volatility_parent_value_parents_idx is not None:
-                for vo_pa_va_pa in volatility_parent_value_parents_idx:
-                    driftrate += psi * parameters_structure[vo_pa_va_pa]["mu"]
+                # Look at the (optional) va_pa's value parents
+                # and update drift rate accordingly
+                if volatility_parent_value_parents_idx is not None:
+                    for vo_pa_va_pa in volatility_parent_value_parents_idx:
+                        driftrate += psi * parameters_structure[vo_pa_va_pa]["mu"]
 
-            muhat_volatility_parent = (
-                parameters_structure[volatility_parents_idx]["mu"]
-                + time_step * driftrate
-            )
-            mu_volatility_parent = (
-                muhat_volatility_parent
-                + 0.5 * kappa * nu * pihat / pi_volatility_parent * vope
-            )
+                muhat_volatility_parent = (
+                    parameters_structure[volatility_parent_idx]["mu"]
+                    + time_step * driftrate
+                )
 
-            # Update this parent's parameters
-            parameters_structure[volatility_parents_idx][
-                "pihat"
-            ] = pihat_volatility_parent
-            parameters_structure[volatility_parents_idx]["pi"] = pi_volatility_parent
-            parameters_structure[volatility_parents_idx][
-                "muhat"
-            ] = muhat_volatility_parent
-            parameters_structure[volatility_parents_idx]["mu"] = mu_volatility_parent
-            parameters_structure[volatility_parents_idx]["nu"] = nu_volatility_parent
+                # gather volatility prediction errors from the child nodes
+                children_volatility_prediction_error = 0.0
+                for child_idx, kappas_children in zip(
+                    node_structure[volatility_parent_idx].volatility_children,
+                    parameters_structure[volatility_parent_idx]["kappas_children"],
+                ):
+                    nu_children = parameters_structure[child_idx]["nu"]
+                    pihat_children = parameters_structure[child_idx]["pihat"]
+                    vope_children = (
+                        1 / parameters_structure[child_idx]["pi"]
+                        + (
+                            parameters_structure[child_idx]["mu"]
+                            - parameters_structure[child_idx]["muhat"]
+                        )
+                        ** 2
+                    ) * parameters_structure[child_idx]["pihat"] - 1
+                    children_volatility_prediction_error += (
+                        0.5
+                        * kappas_children
+                        * nu_children
+                        * pihat_children
+                        / pi_volatility_parent
+                        * vope_children
+                    )
+
+                mu_volatility_parent = (
+                    muhat_volatility_parent + children_volatility_prediction_error
+                )
+
+                # Update this parent's parameters
+                parameters_structure[volatility_parent_idx][
+                    "pihat"
+                ] = pihat_volatility_parent
+                parameters_structure[volatility_parent_idx]["pi"] = pi_volatility_parent
+                parameters_structure[volatility_parent_idx][
+                    "muhat"
+                ] = muhat_volatility_parent
+                parameters_structure[volatility_parent_idx]["mu"] = mu_volatility_parent
+                parameters_structure[volatility_parent_idx]["nu"] = nu_volatility_parent
 
     return parameters_structure
 
