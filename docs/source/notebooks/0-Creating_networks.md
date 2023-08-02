@@ -15,61 +15,56 @@ kernelspec:
 (probabilistic_networks)=
 # Creating and manipulating networks of probabilistic nodes
 
-[pyhgf](https://ilabcode.github.io/pyhgf/index.html#) is designed with inspiration from graph neural network libraries that manipulates networks of probabilistic nodes and performs beliefs propagation using dedicated variational message passing. While this library is well-suited and optimized to implement the standard two-level and three-level HGF, it can target much larger use cases and generalize to any kind of probabilistic network. More specifically, the four main components of a network for predictive coding applications, which are:
-1. network structure
-2. the network parameters
-3. the update function
-4. the update sequence
-are all made modular and dynamically accessible during the inference processes, allowing the creation of agents that can also manipulate these components. 
+[pyhgf](https://ilabcode.github.io/pyhgf/index.html#) is designed with inspiration from graph neural network libraries that can support message-passing schemes and performs beliefs propagation through network nodes. Here, this principle is applied to predictive processing modelisation and focuses on networks that are structured as rooted trees and perform variational message passing to update beliefs about the state of the environment, inferred from the observations that are provided at the root of the tree. While this library is well-suited and optimized to implement the standard two-level and three-level HGF, it can also be applied to much larger use cases and the main idea is to generalize belief propagation as it has been described so far to larger and more complex networks that will capture greater variety of environmental structure. Therefore, the library is also designed to facilitate the creation and manipulation of such probabilistic networks. The main idea is that a network can be fully described by the following variables:
+1. the network parameters
+2. the network structure
+3. the update function(s)
+4. the update sequence(s)
+Splitting the networks this way makes the components easily compatible with JAX main transformations, and dynamically accessible during the inference processes, allowing the creation of agents that can manipulate these components to minimize surprise. 
 
-In this notebook, we dive into the details of creating such networks and illustrate their modularity.
+In this notebook, we dive into the details of creating such networks and illustrate their modularity by the manipulation of the four main variables.
 
 +++
 
-## Creating networks of probabilistic nodes
+## Theory and implementation details
 
-Any form of generalized Hierarchical Gaussian Filter can be fully determined by the following variables. Let 
+Any probabilistic network can be fully described by the following variables. Let 
 
 $$\mathcal{HGF}_{k} = \{\theta, \xi, \mathcal{F}, \Sigma \}$$ 
 
-be the HGF model with $K$ probabilistic nodes with 
+be a probabilistic network that contains $K$ probabilistic nodes. The variable 
 
 $$\theta = \{\theta_1, ..., \theta_{k}\}$$ 
 
-a set of parameters. Nodes' parameters can be used to register sufficient statistics of the distributions as well as various coupling weights. The *shape* of the hierarchical structure is defined by the [adjacency list](https://en.wikipedia.org/wiki/Adjacency_list)
+is the set of parameters, and each parameter is a set of values. Nodes' parameters can be used to register sufficient statistics of the distributions as well as various coupling weights. This component is registered as the `parameters_structure` dictionary.
+
+The *shape* of the hierarchical structure is defined by its [adjacency list](https://en.wikipedia.org/wiki/Adjacency_list), which register the connections between a node and other nodes from the network.
 
 $$\xi = \{\xi_1, ..., \xi_{k} \}$$
 
-where every edge $\xi_k$ contains $m$ sets of node indexes, $m$ being the adjacency dimension (here we only consider value and volatility coupling, therefore $m=2$). The propagation of precision-weighted prediction error under new observations (or other generic belief propagation dynamics) are defined by the set of $n$ update functions
+where every edge $\xi_k$ contains $m$ sets of node indexes, $m$ being the adjacency dimension (here we only consider value and volatility coupling, therefore $m=2$). 
+
+The way beliefs are being updated, or the type of generic computation that is performed by the nodes are defined by the set of $n$ update functions
 
 $$\mathcal{F} = \{f_1, ..., f_n\}$$
 
-Each update function is parametrized by a node index $n \in 1, ..., k$ and the current state of the HGF model at time $t$. The most standard uses of the HGF only require continuous and/or binary update functions for input and states node. The propagation dynamics (the direction of the information flow) are controlled by the ordered update sequence
+In this set, each update function is linked to a node from the node indexes $n \in 1, ..., k$ to which the function should apply. The most standard uses of the HGF only require continuous and/or binary update functions for input and states node that can be found in the {ref}`pyhgf.continuous` and {ref}`pyhgf.binary` sub-modules.
+
+The dynamic of belief propagation dynamics (which part of the network should be updated and in which order) are controlled by the ordered update sequence
 
 $$\Sigma = [f_1(n_1), ..., f_i(n_j), f \in \mathcal{F}, n \in 1, ..., k ]$$,
 
-Each item of this sequence pairs a node index with an update function as previously defined.
+This list describes the sequence of function-to-nodes instructions that are executed during the inference and update processes.
 
 ![graph_networks](../images/graph_networks.svg)
 
-+++
-
-### Implementation details
-
-Networks are represented by two variables and two sets of functions:
-
-1. a dictionary `parameter_structure` that registers the nodes' parameters.
-2. a named tuple `node_structure` that encodes the [adjacency list](https://en.wikipedia.org/wiki/Adjacency_list) (see the [Indexes](#pyhgf.typing.Indexes)).
-2. updates functions (see e.g. the {ref}`pyhgf.continuous` and {ref}`pyhgf.continuous` modules)
-4. an update sequence as a tuple of function/index pairs.
-
-```{tip}
-The update function should treat `node_structure` as a static argument and `parameter_structure` as a dynamic variable to comply with JAX JIT compilation (see [the documattion](https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#jit-mechanics-tracing-and-static-variables) on that point).
+```{tip} Compatibility with JAX transformations
+One of the advantages of reasoning this way is that it dissociates variables that are transparent to the JAX framework and can be expressed as "PyTress" from variables that should be filtered before transformations. The variable `parameters_structure` ($\theta$) is typically expressed as a PyTree while the other variables that contain parametrized functions are filtered. See [the documattion](https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#jit-mechanics-tracing-and-static-variables) for further details on JAX transformations.
 ```
 
 +++
 
-### Creating nodes
+### Creating probabilistic nodes
 
 ```{code-cell} ipython3
 from pyhgf.typing import Indexes
@@ -87,7 +82,7 @@ The code above illustrate the creation of a probabilistic network of 3 nodes wit
 
 +++
 
-### Network visualization
+### Visualizing probabilistic network
 
 ```{code-cell} ipython3
 from pyhgf.model import HGF
@@ -175,31 +170,16 @@ Hierarchical Gaussian Filters have often been described in terms of levels. For 
 
 #### The case of *multivariate descendency*
 
+*Multivariate descendency* refers to situations where a node exerts a predictive influence (and is updated backwards through prediction errors) on multiple children nodes, either via value or volatility coupling.
+
 ##### Value coupling
 
 ```{code-cell} ipython3
-# creating a network that contains many child nodes are value coupled to one parent node
-many_children_hgf = (
-    HGF(model_type=None)
-    .add_input_node(kind="continuous")
-    #.add_input_node(kind="continuous", input_idx=1)
-    .add_value_parent(children_idxs=[0], omega=-10.0)
-    #.add_value_parent(children_idxs=[1], omega=0.0)
-    .add_value_parent(children_idxs=[1], omega=-3.0)
-    .add_volatility_parent(children_idxs=[2])
-    #.add_value_parent(children_idxs=[3], omega=-3.0)
-    #.add_value_parent(children_idxs=[4, 5], omega=-3.0)
-)
-
-# plot the network
-many_children_hgf.plot_network()
+import numpy as np
 ```
 
 ```{code-cell} ipython3
-import numpy as np
-import matplotlib.pyplot as plt
-
-# simulate some time series
+# simulate some time series - sampling from N(0, 1) sometime shifted by 5
 u_0 = np.random.normal(0, 1, size=100)
 u_1 = np.random.normal(0, 1, size=100)
 
@@ -209,87 +189,57 @@ u_0[90:] += 5
 u_1[50:70] += 5
 u_1[70:] += 5
 
-input_data = np.array([u_0]).T
+input_data = np.array([u_0, u_1]).T
 ```
 
 ```{code-cell} ipython3
-many_children_hgf.input_data(input_data=input_data)
+# creating a network that contains many child nodes are value coupled to one parent node
+many_value_children_hgf = (
+    HGF(model_type=None)
+    .add_input_node(kind="continuous")
+    .add_input_node(kind="continuous", input_idx=1)
+    .add_value_parent(children_idxs=[0, 1])
+    .add_volatility_parent(children_idxs=[2])
+)
+
+# plot the network
+many_value_children_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
-many_children_hgf.plot_nodes([1, 2], figsize=(12, 9))
+many_value_children_hgf.input_data(input_data=input_data)
 ```
 
 ```{code-cell} ipython3
-many_children_hgf.parameters_structure
+# many_children_hgf.plot_nodes([0, 1, 2], figsize=(12, 9))
 ```
 
 ```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-many_children_hgf.plot_nodes([4, 5], figsize=(12, 9))
-```
-
-```{code-cell} ipython3
-many_children_hgf.plot_nodes([6], figsize=(12, 9))
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-plt.plot(u_0)
-plt.plot(u_1)
+#plt.plot(many_children_hgf.to_pandas().observation_input_0, label="Input-0")
+#plt.plot(many_children_hgf.to_pandas().observation_input_1, label="Input-1")
+#plt.plot(many_children_hgf.to_pandas().x_2_mu, label="mu_x2")
+#plt.plot(many_children_hgf.to_pandas().x_3_mu, label="mu_x3")
+#plt.legend()
 ```
 
 ##### Volatility coupling
 
 ```{code-cell} ipython3
+# simulate some time series - sampling from N(0, 1) sometime multiplied by 5
+u_0 = np.random.normal(0, 1, size=1000)
+u_1 = np.random.normal(0, 1, size=1000)
+
+u_0[200:500] *= 5
+u_0[900:] *= 5
+
+u_1[800:] *= 5
+
+input_data = np.array([u_0, u_1]).T
+```
+
+```{code-cell} ipython3
 # creating a network that contains many child nodes are volatility coupled to one parent node
-many_children_hgf = (
+many_volatility_children_hgf = (
     HGF(model_type=None)
     .add_input_node(kind="continuous")
     .add_input_node(kind="continuous", input_idx=1)
@@ -299,10 +249,52 @@ many_children_hgf = (
 )
 
 # plot the network
-many_children_hgf.plot_network()
+many_volatility_children_hgf.plot_network()
+```
+
+```{code-cell} ipython3
+many_volatility_children_hgf.input_data(input_data=input_data)
+```
+
+```{code-cell} ipython3
+# many_volatility_children_hgf.plot_nodes([2, 3, 4])
+```
+
+```{code-cell} ipython3
+#plt.plot(many_volatility_children_hgf.to_pandas().observation_input_0, label="Input-0")
+#plt.plot(many_volatility_children_hgf.to_pandas().observation_input_1, label="Input-1")
+#plt.legend()
+```
+
+```{code-cell} ipython3
+#plt.plot(many_volatility_children_hgf.to_pandas().x_2_mu, label="mu_x2")
+#plt.plot(many_volatility_children_hgf.to_pandas().x_3_mu, label="mu_x3")
+#plt.legend()
+```
+
+```{code-cell} ipython3
+#plt.plot(many_volatility_children_hgf.to_pandas().x_4_pi, label="pi_x4")
+```
+
+```{code-cell} ipython3
+#plt.plot(many_volatility_children_hgf.to_pandas().x_4_mu, label="mu_x4")
 ```
 
 #### The case of *multivariate ascendency*
+
+*Multivariate ascendency* refers to situations where a node is influenced (and updates backwards through prediction errors) multiple value or volatility parents.
+
+#### Value coupling
+
+```{warning}
+Work in progress
+```
+
+#### Volatility coupling
+
+```{warning}
+Work in progress
+```
 
 +++
 
@@ -338,6 +330,18 @@ update_sequence = (
 ```
 
 The HGF class include a built-in {ref}`pyhgf.modeal.HGF.get_update_sequence` method to automatically generate the update sequence from the network structure, assuming that we want to propagate the beliefs from the lower part of the tree (the input nodes) to its upper part (nodes that do not have parents).
+
++++
+
+## Time-varying update sequences
+
+### Static assignation of update sequences
+
+### Dynamic assignation of update sequences
+
+```{warning}
+Work in progress
+```
 
 ```{code-cell} ipython3
 
