@@ -225,7 +225,7 @@ with pm.Model() as two_level_hgf:
         hgf_logp_op(
             omega_1=omega_1,
             omega_2=-2.0,
-            omega_input=log(1e-4),
+            continuous_precision=1e4,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=1e4,
@@ -258,7 +258,7 @@ pm.model_to_graphviz(two_level_hgf)
 
 ```{code-cell} ipython3
 with two_level_hgf:
-    two_level_hgf_idata = pm.sample(chains=1)
+    two_level_hgf_idata = pm.sample(chains=2)
 ```
 
 ```{code-cell} ipython3
@@ -313,7 +313,7 @@ with pm.Model() as three_level_hgf:
             omega_1=omega_1,
             omega_2=-2.0,
             omega_3=-2.0,
-            omega_input=log(1e-4),
+            continuous_precision=1e4,
             rho_1=0.0,
             rho_2=0.0,
             rho_3=0.0,
@@ -339,7 +339,7 @@ pm.model_to_graphviz(three_level_hgf)
 
 ```{code-cell} ipython3
 with three_level_hgf:
-    three_level_hgf_idata = pm.sample(chains=1)
+    three_level_hgf_idata = pm.sample(chains=2)
 ```
 
 ```{code-cell} ipython3
