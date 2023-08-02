@@ -274,7 +274,7 @@ with pm.Model() as sigmoid_hgf:
         hgf_logp_op(
             omega_1=jnp.inf,
             omega_2=omega_2,
-            omega_input=jnp.inf,
+            continuous_precision=jnp.nan,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=0.0,
