@@ -584,7 +584,7 @@ class HGF(object):
             "pihat": pi_hat,
             "kappas_children": None,
             "kappas_parents": None,
-            "psis_children": (value_coupling,),
+            "psis_children": tuple(value_coupling for _ in range(len(children_idxs))),
             "psis_parents": None,
             "nu": nu,
             "omega": omega,
@@ -688,7 +688,9 @@ class HGF(object):
             "muhat": mu_hat,
             "pi": pi,
             "pihat": pi_hat,
-            "kappas_children": (volatility_coupling,),
+            "kappas_children": tuple(
+                volatility_coupling for _ in range(len(children_idxs))
+            ),
             "kappas_parents": None,
             "psis_children": None,
             "psis_parents": None,

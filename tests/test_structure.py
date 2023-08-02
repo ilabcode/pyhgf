@@ -78,7 +78,7 @@ class TestStructure(TestCase):
             node_structure=node_structure,
         )
 
-        assert new_parameters_structure[1]["mu"] == 0.20007047
+        assert new_parameters_structure[1]["mu"] == 0.20007044
         assert new_parameters_structure[2]["pi"] == 0.9565813
 
     def test_find_branch(self):
