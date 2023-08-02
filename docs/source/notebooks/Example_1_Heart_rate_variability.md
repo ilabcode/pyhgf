@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -36,6 +36,7 @@ from systole import import_dataset1
 from systole.plots import plot_raw
 from bokeh.io import output_notebook
 from bokeh.plotting import show
+
 output_notebook()
 ```
 
@@ -104,7 +105,7 @@ with pm.Model() as three_level_hgf:
         hgf_logp_op(
             omega_1=-4.0,
             omega_2=omega_2,
-            omega_input=np.log(1e-4),
+            continuous_precision=1e4,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=1e4,

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -158,7 +158,7 @@ with pm.Model() as two_level_hgf:
         hgf_logp_op(
             omega_1=omega_1,
             omega_2=-2.0,
-            omega_input=np.log(1e-4),
+            continuous_precision=1e4,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=1e4,

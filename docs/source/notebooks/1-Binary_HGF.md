@@ -125,7 +125,7 @@ three_levels_hgf = HGF(
     kappas={"1": None, "2": 1.0},
     eta0=0.0,
     eta1=1.0,
-    pihat = jnp.inf,
+    binary_precision=jnp.inf,
 )
 ```
 
@@ -185,7 +185,7 @@ with pm.Model() as two_levels_binary_hgf:
         hgf_logp_op(
             omega_1=jnp.inf,
             omega_2=omega_2,
-            omega_input=jnp.inf,
+            continuous_precision=jnp.inf,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=0.0,
@@ -212,7 +212,7 @@ pm.model_to_graphviz(two_levels_binary_hgf)
 
 ```{code-cell} ipython3
 with two_levels_binary_hgf:
-    two_level_hgf_idata = pm.sample(chains=1)
+    two_level_hgf_idata = pm.sample(chains=2)
 ```
 
 ```{code-cell} ipython3
@@ -234,7 +234,6 @@ hgf_mcmc = HGF(
     initial_mu={"1": jnp.inf, "2": 0.5},
     initial_pi={"1": 0.0, "2": 1e4},
     omega={"1": jnp.inf, "2": omega_2},
-    omega_input=jnp.inf,
     rho={"1": 0.0, "2": 0.0},
     kappas={"1": 1.0}).input_data(
         input_data=timeserie
@@ -277,7 +276,7 @@ with pm.Model() as three_levels_binary_hgf:
             omega_1=jnp.inf,
             omega_2=omega_2,
             omega_3=omega_3,
-            omega_input=jnp.inf,
+            continuous_precision=jnp.inf,
             rho_1=0.0,
             rho_2=0.0,
             rho_3=0.0,
@@ -303,7 +302,7 @@ pm.model_to_graphviz(three_levels_binary_hgf)
 
 ```{code-cell} ipython3
 with three_levels_binary_hgf:
-    three_level_hgf_idata = pm.sample(chains=1)
+    three_level_hgf_idata = pm.sample(chains=2)
 ```
 
 ```{code-cell} ipython3
@@ -326,7 +325,6 @@ hgf_mcmc = HGF(
     initial_mu={"1": jnp.inf, "2": 0.5, "3": 0.0},
     initial_pi={"1": 0.0, "2": 1e4, "3": 1e1},
     omega={"1": jnp.inf, "2": omega_2, "3": omega_3},
-    omega_input=jnp.inf,
     rho={"1": 0.0, "2": 0.0, "3": 0.0},
     kappas={"1": 1.0, "2": 1.0}).input_data(
         input_data=timeserie

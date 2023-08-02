@@ -148,7 +148,7 @@ with pm.Model() as model:
         hgf_logp_op(
             omega_1=omega_1,
             omega_2=-10.0,
-            omega_input=np.log(1e-4),
+            continuous_precision=1e4,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=1e4,
@@ -241,7 +241,7 @@ with pm.Model() as two_levels_binary_hgf:
         hgf_logp_op(
             omega_1=jnp.nan,
             omega_2=omega_2,
-            omega_input=jnp.nan,
+            continuous_precision=jnp.nan,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=0.0,
@@ -281,4 +281,8 @@ plt.tight_layout()
 ```{code-cell} ipython3
 %load_ext watermark
 %watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
+```
+
+```{code-cell} ipython3
+
 ```

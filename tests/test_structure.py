@@ -18,13 +18,10 @@ class TestStructure(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "pihat": jnp.inf,
-            "eta0": 0.0,
-            "eta1": 1.0,
+            "pihat": 1e4,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
-            "omega": 1.0,
             "kappas_parents": None,
             "psis_parents": (1.0,),
         }
@@ -38,7 +35,7 @@ class TestStructure(TestCase):
             "kappas_children": None,
             "mu": 1.0,
             "nu": 1.0,
-            "omega": 1.0,
+            "omega": -3.0,
             "rho": 0.0,
         }
         node_parameters_2 = {
@@ -51,7 +48,7 @@ class TestStructure(TestCase):
             "kappas_children": (1.0,),
             "mu": 1.0,
             "nu": 1.0,
-            "omega": 1.0,
+            "omega": -3.0,
             "rho": 0.0,
         }
         node_structure = (
@@ -81,8 +78,8 @@ class TestStructure(TestCase):
             node_structure=node_structure,
         )
 
-        assert new_parameters_structure[1]["mu"] == 0.39578274
-        assert new_parameters_structure[2]["pi"] == 0.45746425
+        assert new_parameters_structure[1]["mu"] == 0.20007044
+        assert new_parameters_structure[2]["pi"] == 0.9565813
 
     def test_find_branch(self):
         """Test the find_branch function"""
