@@ -50,7 +50,7 @@ In this set, each update function is linked to a node from the node indexes $n \
 
 The dynamic of belief propagation dynamics (which part of the network should be updated and in which order) are controlled by the ordered update sequence
 
-$$\Sigma = [f_1(n_1), ..., f_i(n_j), f \in \mathcal{F}, n \in 1, ..., k ]$$,
+$$\Sigma = [f_1(n_1), ..., f_i(n_j), f \in \mathcal{F}, n \in 1, ..., k ]$$
 
 This list describes the sequence of function-to-nodes instructions that are executed during the inference and update processes.
 
