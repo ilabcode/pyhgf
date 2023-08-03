@@ -37,8 +37,8 @@ def plot_trajectories(
         If `True` plot each node's surprise together with sufficient statistics.
         If `False`, only the input node's surprise is depicted.
     figsize :
-        The width and height of the figure. Defaults to `(18, 9)` for a 2-levels model,
-        or to `(18, 12)` for a 3-levels model.
+        The width and height of the figure. Defaults to `(18, 9)` for a two-level model,
+        or to `(18, 12)` for a three-level model.
     axs :
         A list of Matplotlib axes instances where to draw the trajectories. This should
         correspond to the number of nodes in the structure. The default is `None`
@@ -360,13 +360,13 @@ def plot_nodes(
     hgf: "HGF",
     node_idxs: Union[int, List[int]],
     ci: bool = True,
-    surprise: bool = True,
-    children_inputs: bool = True,
-    show_current_state: bool = True,
+    show_surprise: bool = True,
+    show_observations: bool = True,
+    show_current_state: bool = False,
     figsize: Tuple[int, int] = (12, 5),
     axs: Optional[Union[List, Axes]] = None,
 ):
-    r"""Plot the trajectories of the nodes' sufficient statistics and surprise.
+    r"""Plot the sufficient statistics trajectories of a set of nodes.
 
     This function will plot :math:`\hat{\mu}`, :math:`\hat{\pi}` (converted into
     standard deviation) and the Gaussian surprise :math:`\mu` given :math:`\hat{\pi}`
@@ -377,24 +377,29 @@ def plot_nodes(
     Parameters
     ----------
     hgf :
-        An instance of the HGF model.
+        An instance of the HGF model class after inference over input data.
     node_idxs :
-        The node(s) index(es).
+        The index(es) of the probabilistic node(s) that should be plotted. If multiple
+        indexes are provided, multiple rows will be appended to the figure, one for
+        each node.
     ci :
-        Show the uncertainty around the values estimates (standard deviation).
-    surprise :
-        If `True` plot each node's surprise together with sufficient statistics.
-        If `False`, only the input node's surprise is depicted.
-    children_inputs :
-        If `True`, show the input received from the child nodes. In case of value
-        coupling, plot the mean of the node(s) below, in case of volatility coupling,
-        plot the precision of the nodes below.
+        Whether to show the uncertainty around the values estimates (using the standard
+        deviation :math:`\sqrt{\frac{1}{\hat{\pi}}}`).
+    show_surprise :
+        If `True` the surprise, defined as the negative log probability of the
+        observation given the expectation, is plotted in the backgroud of the figure
+        as grey shadded area.
+    show_observations :
+        If `True`, show the observations received from the child node(s). In the
+        situation of value coupled nodes, plot the mean :math:`\hat{\mu}` of the child
+        node(s). This feature is not supported in the situation of volatility coupling.
+        Defaults to `False`.
     show_current_state :
         If `True`, plot the current states (:math:`\mu` and :math:`\pi`) on the top of
         expected states (:math:`\hat{\mu} and :math:`\hat{\pi}). Defaults to `False`.
     figsize :
-        The width and height of the figure. Defaults to `(18, 9)` for a 2-levels model,
-        or to `(18, 12)` for a 3-levels model.
+        The width and height of the figure. Defaults to `(18, 9)` for a two-level model,
+        or to `(18, 12)` for a three-level model.
     axs :
         A list of Matplotlib axes instances where to draw the trajectories. This should
         correspond to the number of nodes in the structure. The default is `None`
@@ -463,7 +468,7 @@ def plot_nodes(
             mu,
             label=r"$\hat{\mu}$",
             color=color,
-            linewidth=0.5,
+            linewidth=1,
             zorder=2,
         )
 
@@ -511,14 +516,13 @@ def plot_nodes(
 
         # plotting surprise
         # -----------------
-        if surprise:
+        if show_surprise:
             surprise_ax = axs[i].twinx()
             surprise_ax.plot(
                 trajectories_df.time,
                 trajectories_df[f"x_{node_idx}_surprise"],
                 color="#2a2a2a",
                 linewidth=0.5,
-                linestyle="--",
                 zorder=-1,
                 label="Surprise",
             )
@@ -540,9 +544,19 @@ def plot_nodes(
 
         # plot the inputs from child nodes
         # --------------------------------
-        if children_inputs:
+        if show_observations:
             # value coupling
             if hgf.node_structure[node_idx].value_children is not None:
+                input_colors = plt.cm.cividis(
+                    np.linspace(
+                        0,
+                        1,
+                        len(
+                            hgf.node_structure[node_idx].value_children  # type: ignore
+                        ),
+                    )
+                )
+
                 for ii, child_idx in enumerate(
                     hgf.node_structure[node_idx].value_children  # type: ignore
                 ):
@@ -551,9 +565,18 @@ def plot_nodes(
                             trajectories_df.time,
                             trajectories_df[f"x_{child_idx}_mu"],
                             s=3,
-                            label=f"Input child - {ii}",
-                            zorder=10,
+                            label=f"Value child node - {ii}",
                             alpha=0.5,
+                            color=input_colors[ii],
+                            edgecolors="grey",
+                        )
+                        axs[i].plot(
+                            trajectories_df.time,
+                            trajectories_df[f"x_{child_idx}_mu"],
+                            linewidth=0.5,
+                            linestyle="--",
+                            alpha=0.5,
+                            color=input_colors[ii],
                         )
                     else:
                         child_idx = np.where(
@@ -563,9 +586,18 @@ def plot_nodes(
                             trajectories_df.time,
                             trajectories_df[f"observation_input_{child_idx}"],
                             s=3,
-                            label=f"Input child - {ii}",
-                            zorder=10,
-                            alpha=0.5,
+                            label=f"Value child node - {ii}",
+                            alpha=0.3,
+                            color=input_colors[ii],
+                            edgecolors="grey",
+                        )
+                        axs[i].plot(
+                            trajectories_df.time,
+                            trajectories_df[f"observation_input_{child_idx}"],
+                            linewidth=0.5,
+                            linestyle="--",
+                            alpha=0.3,
+                            color=input_colors[ii],
                         )
 
         axs[i].legend()
