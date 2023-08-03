@@ -72,7 +72,7 @@ two_levels_hgf = HGF(
 )
 ```
 
-This function creates an instance of a HGF model automatically parametrized for a 2-levels binary structure, so we do not have to worry about creating the node structure ourselves. This class also embed function to add new observations and plot results that we are going to use below. We can have a look at the node structure itself using the {ref}`pyhgf.plots.plot_network` function. This function will automatically dray the provided node structure using [Graphviz](https://github.com/xflr6/graphviz).
+This function creates an instance of a HGF model automatically parametrized for a two-level binary structure, so we do not have to worry about creating the node structure ourselves. This class also embed function to add new observations and plot results that we are going to use below. We can have a look at the node structure itself using the {ref}`pyhgf.plots.plot_network` function. This function will automatically dray the provided node structure using [Graphviz](https://github.com/xflr6/graphviz).
 
 ```{code-cell} ipython3
 two_levels_hgf.plot_network()
@@ -110,7 +110,7 @@ $$S(x) = -\log[Pr(x)]$$
 
 +++
 
-### The 3-levels binary Hierarchical Gaussian Filter
+### The three-level binary Hierarchical Gaussian Filter
 #### Create the model
 Here, we create a new {py:class}`pyhgf.model.HGF` instance, setting the number of levels to `3`. Note that we are extending the size of the dictionaries accordingly.
 
@@ -159,7 +159,7 @@ from pyhgf.distribution import HGFDistribution
 from pyhgf.response import first_level_binary_surprise
 ```
 
-### 2-levels model
+### two-level model
 #### Creating the model
 
 ```{code-cell} ipython3
@@ -248,7 +248,7 @@ hgf_mcmc.plot_trajectories()
 hgf_mcmc.surprise()
 ```
 
-### 3-levels model
+### three-level model
 #### Creating the model
 
 ```{code-cell} ipython3
