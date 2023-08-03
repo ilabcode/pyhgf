@@ -49,7 +49,7 @@ timeserie = load_data("continuous")
 ```
 
 ## Fitting the continuous HGF with fixed parameters
-### The 2-levels continuous Hierarchical Gaussian Filter
+### The two-level continuous Hierarchical Gaussian Filter
 #### Create the model
 
 +++
@@ -191,7 +191,7 @@ from pyhgf.distribution import HGFDistribution
 from pyhgf.response import first_level_gaussian_surprise
 ```
 
-### 2-levels model
+### two-level model
 #### Creating the model
 
 +++
@@ -292,7 +292,7 @@ hgf_mcmc.plot_trajectories()
 hgf_mcmc.surprise()
 ```
 
-### 3-levels model
+### three-level model
 #### Creating the model
 
 ```{code-cell} ipython3
