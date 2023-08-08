@@ -40,7 +40,7 @@ The *shape* of the hierarchical structure is defined by its [adjacency list](htt
 
 $$\xi = \{\xi_1, ..., \xi_{k} \}$$
 
-where every edge $\xi_k$ contains $m$ sets of node indexes, $m$ being the adjacency dimension (here we only consider value and volatility coupling, therefore $m=2$). 
+where every edge $\xi_k$ contains $m$ sets of node indexes, $m$ being the adjacency dimension (here we only consider value and volatility coupling, therefore $m=2$).
 
 The way beliefs are being updated, or the type of generic computation that is performed by the nodes are defined by the set of $n$ update functions
 
@@ -170,7 +170,7 @@ Hierarchical Gaussian Filters have often been described in terms of levels. For 
 
 *Multivariate descendency* refers to situations where a node exerts a predictive influence (and is updated backwards through prediction errors) on multiple children nodes, either via value or volatility coupling.
 
-##### Value coupling
+##### Continuous value coupling
 
 ```{code-cell} ipython3
 import numpy as np
@@ -219,7 +219,12 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-many_value_children_hgf.plot_nodes([3, 2], figsize=(12, 5));
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+many_value_children_hgf.plot_nodes([3, 2], figsize=(12, 5), show_observations=True)
+plt.tight_layout()
+sns.despine();
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -230,7 +235,7 @@ In this figure, we can observe the joint influence of the two input nodes over t
 
 +++
 
-##### Volatility coupling
+##### Continuous volatility coupling
 
 ```{code-cell} ipython3
 ---
@@ -277,13 +282,88 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-many_volatility_children_hgf.plot_nodes([4, 3, 2], figsize=(12, 8), show_observations=False);
+many_volatility_children_hgf.plot_nodes([4, 3, 2], figsize=(12, 8), show_observations=False)
+plt.tight_layout()
+sns.despine();
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 ```{note}
 In this figure, we can see that the two continuous nodes that are predicting the values of the two input nodes are directly influenced by the burst of noises alternatively appearing in the two input time series. This is reflected in changes in the underlying mean as the node tries to track the more volatile changes in the inputs, but critically, we can also observe changes around the precision of the expectations on both sides: if an input node is getting more noisy, the expectations around the second input node will also get more uncertain, and the surprise more important, due to the shared variance.
+```
+
++++
+
+##### Coupling with binary nodes
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input]
+---
+# simulate two binary outcomes from sinuosidal contingencies
+u_0_prob = (np.sin(np.arange(0, 1000)/45) + 1) / 2
+u_0 = np.random.binomial(p=u_0_prob, n=1)
+
+u_1_prob = (np.sin(np.arange(0, 1000)/90) + 1) / 2
+u_1 = np.random.binomial(p=u_1_prob, n=1)
+
+input_data = np.array([u_0, u_1]).T
+```
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+# creating a network that contains two binary child nodes
+# value coupled to one value parent node
+many_binary_children_hgf = (
+    HGF(model_type=None)
+    .add_input_node(kind="binary")
+    .add_input_node(kind="binary", input_idx=1)
+    .add_value_parent(children_idxs=[0])
+    .add_value_parent(children_idxs=[1])
+    .add_value_parent(children_idxs=[2, 3])
+    .add_volatility_parent(children_idxs=[4])
+)
+
+# plot the network
+many_binary_children_hgf.plot_network()
+```
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+many_binary_children_hgf.input_data(input_data=input_data);
+```
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input]
+---
+axs = many_binary_children_hgf.plot_trajectories(figsize=(12, 12))
+
+# plot the real contingencies
+axs[-2].plot(u_0_prob, label= "Contingencies - Input Node 0", linestyle=":")
+axs[-3].plot(u_1_prob, label= "Contingencies - Input Node 1", linestyle=":")
+axs[-2].legend()
+plt.tight_layout()
+sns.despine();
+```
+
+```{note}
+This figure shows the observations received by the two binary inputs (lower panels, the lines represent the real contingencies) and their joint influence on the expected values by the shared parent (i.e. shared binary node) and the value parent of the binary node.
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
