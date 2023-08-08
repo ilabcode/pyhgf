@@ -426,6 +426,7 @@ def plot_nodes(
                 linewidth=1,
                 zorder=2,
             )
+            axs[i].set_ylabel(rf"$\mu_{node_idx}$")
 
             # plotting standard deviation
             if ci is True:
