@@ -95,6 +95,8 @@ A Hierarchical Gaussian Filter is acting as a Bayesian filter when presented wit
 two_levels_hgf.plot_trajectories()
 ```
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 #### Surprise
 We can see that the surprise will increase when the time series exhibit more unexpected behaviours. The degree to which a given observation is expected will depend on the expected value and volatility in the input node, which is influenced by the values of higher-order nodes. One way to assess model fit is to look at the total binary surprise for each observation. These values can be returned from the fitted model using the `surprise` method:
 
@@ -347,5 +349,10 @@ hgf_mcmc.surprise()
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 
 ```
