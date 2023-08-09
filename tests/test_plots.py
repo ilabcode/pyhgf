@@ -39,7 +39,9 @@ class Testplots(TestCase):
         two_level_continuous.plot_network()
 
         # plot nodes
-        two_level_continuous.plot_nodes(node_idxs=2)
+        two_level_continuous.plot_nodes(
+            node_idxs=2, show_current_state=True, show_observations=True
+        )
 
         # Set up standard 3-level HGF for continuous inputs
         three_level_continuous = HGF(
@@ -62,7 +64,9 @@ class Testplots(TestCase):
         three_level_continuous.plot_network()
 
         # plot nodes
-        three_level_continuous.plot_nodes(node_idxs=2)
+        three_level_continuous.plot_nodes(
+            node_idxs=2, show_current_state=True, show_observations=True
+        )
 
         ##########
         # Binary #
@@ -94,7 +98,9 @@ class Testplots(TestCase):
         two_level_binary_hgf.plot_network()
 
         # plot node structures
-        two_level_binary_hgf.plot_nodes(node_idxs=2)
+        two_level_binary_hgf.plot_nodes(
+            node_idxs=2, show_current_state=True, show_observations=True
+        )
 
         three_level_binary_hgf = HGF(
             n_levels=3,
@@ -119,7 +125,9 @@ class Testplots(TestCase):
         three_level_binary_hgf.plot_network()
 
         # plot node structures
-        three_level_binary_hgf.plot_nodes(node_idxs=2)
+        three_level_binary_hgf.plot_nodes(
+            node_idxs=2, show_current_state=True, show_observations=True
+        )
 
 
 if __name__ == "__main__":
