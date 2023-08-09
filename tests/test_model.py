@@ -15,6 +15,20 @@ class Testmodel(TestCase):
     def test_HGF(self):
         """Test the model class"""
 
+        #####################
+        # Creating networks #
+        #####################
+
+        (
+            HGF(model_type=None)
+            .add_input_node(kind="continuous", input_idxs=0)
+            .add_input_node(kind="binary", input_idxs=1)
+            .add_value_parent(children_idxs=0)
+            .add_value_parent(children_idxs=1)
+            .add_volatility_parent(children_idxs=2)
+            .add_volatility_parent(children_idxs=2)
+        )
+
         ##############
         # Continuous #
         ##############
