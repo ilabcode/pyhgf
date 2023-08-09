@@ -30,7 +30,6 @@ import matplotlib.pyplot as plt
 from pyhgf import load_data
 from pyhgf.model import HGF
 import seaborn as sns
-from math import log
 ```
 
 In this notebook, we illustrate applications of the standard two-level and three-level Hierarchical Gaussian Filters (HGF) for continuous inputs. This class of models slightly differs from the previous binary example as input nodes here are not restricted to boolean variables but accept any observations on a continuous domain. Fitting continuous data allows using the HGF with any time series, which can find several applications in neuroscience (see for example the case study on physiological modelling using the Hierarchical Gaussian Filter {ref}`example_1`). The continuous HGF is built on to of the following probabilistic network:

@@ -587,6 +587,11 @@ VOPE
 
 ```
 
-```{code-cell} ipython3
++++
 
+# System configuration
+
+```{code-cell} ipython3
+%load_ext watermark
+%watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```
