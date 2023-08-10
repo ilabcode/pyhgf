@@ -26,8 +26,10 @@ class Testmodel(TestCase):
             .add_value_parent(children_idxs=0)
             .add_value_parent(children_idxs=1)
             .add_value_parent(children_idxs=[2, 3])
+            .add_value_parent(children_idxs=4)
+            .add_volatility_parent(children_idxs=[2, 3])
             .add_volatility_parent(children_idxs=2)
-            .add_volatility_parent(children_idxs=2)
+            .add_volatility_parent(children_idxs=7)
         )
 
         custom_hgf.input_data(input_data=np.array([0.2, 1]))
