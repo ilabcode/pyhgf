@@ -464,7 +464,7 @@ class HGF(object):
     def add_input_node(
         self,
         kind: str,
-        input_idx: int = 0,
+        input_idxs: Union[List, int] = 0,
         continuous_precision: Union[float, np.ndarray, ArrayLike] = 1e4,
         binary_precision: Union[float, np.ndarray, ArrayLike] = jnp.inf,
         eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
@@ -478,7 +478,7 @@ class HGF(object):
         kind :
             The kind of input that should be created (can be `"continuous"` or
             `"binary"`).
-        input_idx :
+        input_idxs :
             The index of the new input (defaults to `0`).
         continuous_precision :
             The continuous input precision (only relevant if `kind="continuous"`).
@@ -494,6 +494,9 @@ class HGF(object):
             Add more custom parameters to the input node.
 
         """
+        if isinstance(input_idxs, int):
+            input_idxs = [input_idxs]
+
         if kind == "continuous":
             input_node_parameters = {
                 "kappas_parents": None,
@@ -515,28 +518,29 @@ class HGF(object):
         if additional_parameters is not None:
             input_node_parameters = {**input_node_parameters, **additional_parameters}
 
-        if input_idx == 0:
-            # this is the first node, create the node structure
-            self.parameters_structure = {input_idx: input_node_parameters}
-            self.node_structure = (Indexes(None, None, None, None),)
-            self.input_nodes_idx = InputIndexes((input_idx,), (kind,))
-        else:
-            # update the node structure
-            self.parameters_structure[input_idx] = input_node_parameters
-            self.node_structure += (Indexes(None, None, None, None),)
+        for input_idx in input_idxs:
+            if input_idx == 0:
+                # this is the first node, create the node structure
+                self.parameters_structure = {input_idx: input_node_parameters}
+                self.node_structure = (Indexes(None, None, None, None),)
+                self.input_nodes_idx = InputIndexes((input_idx,), (kind,))
+            else:
+                # update the node structure
+                self.parameters_structure[input_idx] = input_node_parameters
+                self.node_structure += (Indexes(None, None, None, None),)
 
-            # add information about the new input node in the indexes
-            new_idx = self.input_nodes_idx.idx
-            new_idx += (input_idx,)
-            new_kind = self.input_nodes_idx.kind
-            new_kind += (kind,)
-            self.input_nodes_idx = InputIndexes(new_idx, new_kind)
+                # add information about the new input node in the indexes
+                new_idx = self.input_nodes_idx.idx
+                new_idx += (input_idx,)
+                new_kind = self.input_nodes_idx.kind
+                new_kind += (kind,)
+                self.input_nodes_idx = InputIndexes(new_idx, new_kind)
 
         return self
 
     def add_value_parent(
         self,
-        children_idxs: List,
+        children_idxs: Union[List, int],
         value_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
         mu: Union[float, np.ndarray, ArrayLike] = 0.0,
         mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
@@ -576,6 +580,9 @@ class HGF(object):
             Add more custom parameters to the node.
 
         """
+        if isinstance(children_idxs, int):
+            children_idxs = [children_idxs]
+
         # how many nodes in structure
         n_nodes = len(self.node_structure)
         parent_idx = n_nodes  # append a new parent in the structure
@@ -642,7 +649,7 @@ class HGF(object):
 
     def add_volatility_parent(
         self,
-        children_idxs: List,
+        children_idxs: Union[List, int],
         volatility_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
         mu: Union[float, np.ndarray, ArrayLike] = 0.0,
         mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
@@ -682,6 +689,9 @@ class HGF(object):
             Add more custom parameters to the node.
 
         """
+        if isinstance(children_idxs, int):
+            children_idxs = [children_idxs]
+
         # how many nodes in structure
         n_nodes = len(self.node_structure)
         parent_idx = n_nodes  # append a new parent in the structure

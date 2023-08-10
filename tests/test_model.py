@@ -15,6 +15,25 @@ class Testmodel(TestCase):
     def test_HGF(self):
         """Test the model class"""
 
+        #####################
+        # Creating networks #
+        #####################
+
+        custom_hgf = (
+            HGF(model_type=None)
+            .add_input_node(kind="continuous", input_idxs=0)
+            .add_input_node(kind="binary", input_idxs=1)
+            .add_value_parent(children_idxs=0)
+            .add_value_parent(children_idxs=1)
+            .add_value_parent(children_idxs=[2, 3])
+            .add_value_parent(children_idxs=4)
+            .add_volatility_parent(children_idxs=[2, 3])
+            .add_volatility_parent(children_idxs=2)
+            .add_volatility_parent(children_idxs=7)
+        )
+
+        custom_hgf.input_data(input_data=np.array([0.2, 1]))
+
         ##############
         # Continuous #
         ##############

@@ -130,9 +130,7 @@ a_custom_hgf.plot_network()
 ```{code-cell} ipython3
 another_custom_hgf = (
     HGF(model_type=None)
-    .add_input_node(kind="continuous", input_idx=0)
-    .add_input_node(kind="continuous", input_idx=1)
-    .add_input_node(kind="continuous", input_idx=2)
+    .add_input_node(kind="continuous", input_idxs=[0, 1, 2])
     .add_value_parent(children_idxs=[0])
     .add_value_parent(children_idxs=[1])
     .add_value_parent(children_idxs=[2])
@@ -195,7 +193,7 @@ input_data = np.array([u_0, u_1]).T
 many_value_children_hgf = (
     HGF(model_type=None)
     .add_input_node(kind="continuous")
-    .add_input_node(kind="continuous", input_idx=1)
+    .add_input_node(kind="continuous", input_idxs=1)
     .add_value_parent(children_idxs=[0, 1])
     .add_volatility_parent(children_idxs=[2])
 )
@@ -262,7 +260,7 @@ input_data = np.array([u_0, u_1]).T
 many_volatility_children_hgf = (
     HGF(model_type=None)
     .add_input_node(kind="continuous")
-    .add_input_node(kind="continuous", input_idx=1)
+    .add_input_node(kind="continuous", input_idxs=1)
     .add_value_parent(children_idxs=[0])
     .add_value_parent(children_idxs=[1])
     .add_volatility_parent(children_idxs=[2, 3])
@@ -325,7 +323,7 @@ slideshow:
 many_binary_children_hgf = (
     HGF(model_type=None)
     .add_input_node(kind="binary")
-    .add_input_node(kind="binary", input_idx=1)
+    .add_input_node(kind="binary", input_idxs=1)
     .add_value_parent(children_idxs=[0])
     .add_value_parent(children_idxs=[1])
     .add_value_parent(children_idxs=[2, 3])
@@ -438,6 +436,11 @@ Work in progress
 Work in progress
 ```
 
-```{code-cell} ipython3
++++
 
+# System configuration
+
+```{code-cell} ipython3
+%load_ext watermark
+%watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```

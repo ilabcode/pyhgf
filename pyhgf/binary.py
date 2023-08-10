@@ -249,14 +249,18 @@ def binary_input_update(
             # # 1.1.2 Look at the (optional) value parent's value parents (x3)
             # # and update the drift rate accordingly
             if node_structure[value_parent_value_parent_idxs].value_parents is not None:
-                for value_parent_value_parent_value_parent_idx in node_structure[
-                    value_parent_value_parent_idxs
-                ].value_parents:
+                for (
+                    value_parent_value_parent_value_parent_idx,
+                    psi_parent_parent,
+                ) in zip(
+                    node_structure[value_parent_value_parent_idxs].value_parents,
+                    parameters_structure[value_parent_value_parent_idxs][
+                        "psis_parents"
+                    ],
+                ):
                     # For each x2's value parents (optional)
                     driftrate += (
-                        parameters_structure[value_parent_value_parent_idxs][
-                            "psis_parents"
-                        ]
+                        psi_parent_parent
                         * parameters_structure[
                             value_parent_value_parent_value_parent_idx
                         ]["mu"]

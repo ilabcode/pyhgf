@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 def plot_trajectories(
     hgf: "HGF",
     ci: bool = True,
-    surprise: bool = True,
+    show_surprise: bool = True,
+    show_current_state: bool = False,
+    show_observations: bool = False,
     figsize: Tuple[int, int] = (18, 9),
     axs: Optional[Union[List, Axes]] = None,
 ) -> Axes:
@@ -33,9 +35,17 @@ def plot_trajectories(
         An instance of the HGF model.
     ci :
         Show the uncertainty around the values estimates (standard deviation).
-    surprise :
+    show_surprise :
         If `True` plot each node's surprise together with sufficient statistics.
         If `False`, only the input node's surprise is depicted.
+    show_current_state :
+        If `True`, plot the current states (:math:`\mu` and :math:`\pi`) on the top of
+        expected states (:math:`\hat{\mu} and :math:`\hat{\pi}). Defaults to `False`.
+    show_observations :
+        If `True`, show the observations received from the child node(s). In the
+        situation of value coupled nodes, plot the mean :math:`\hat{\mu}` of the child
+        node(s). This feature is not supported in the situation of volatility coupling.
+        Defaults to `False`.
     figsize :
         The width and height of the figure. Defaults to `(18, 9)` for a two-level model,
         or to `(18, 12)` for a three-level model.
@@ -119,7 +129,15 @@ def plot_trajectories(
     # plot the input node(s)
     # ----------------------
     for i, input_idx in enumerate(hgf.input_nodes_idx.idx):
-        plot_nodes(hgf=hgf, node_idxs=input_idx, axs=axs[-2 - i])
+        plot_nodes(
+            hgf=hgf,
+            node_idxs=input_idx,
+            axs=axs[-2 - i],
+            show_surprise=show_surprise,
+            show_current_state=show_current_state,
+            ci=ci,
+            show_observations=show_observations,
+        )
 
     # plot continuous and binary nodes
     # --------------------------------
@@ -128,7 +146,16 @@ def plot_trajectories(
         if node_idx not in hgf.input_nodes_idx.idx:
             # use different colors for each node
             color = next(palette)
-            plot_nodes(hgf=hgf, node_idxs=node_idx, axs=axs[ax_i], color=color)
+            plot_nodes(
+                hgf=hgf,
+                node_idxs=node_idx,
+                axs=axs[ax_i],
+                color=color,
+                show_surprise=show_surprise,
+                show_current_state=show_current_state,
+                ci=ci,
+                show_observations=show_observations,
+            )
             ax_i -= 1
 
     # plot the global surprise of the model
