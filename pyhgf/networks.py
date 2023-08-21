@@ -11,19 +11,19 @@ from jax.typing import ArrayLike
 from pyhgf.typing import UpdateSequence
 
 
-@partial(jit, static_argnames=("update_sequence", "node_structure", "input_nodes_idx"))
+@partial(jit, static_argnames=("update_sequence", "edges", "input_nodes_idx"))
 def beliefs_propagation(
     parameters_structure: Dict,
     data: ArrayLike,
     update_sequence: UpdateSequence,
-    node_structure: Tuple,
+    edges: Tuple,
     input_nodes_idx: Tuple = (0,),
 ) -> Tuple[Dict, Dict]:
     """Update the network's parameters after observing new data point(s).
 
     This function performs the beliefs propagation step at a time *t* triggered by the
     observation of a new batch of value(s). The way beliefs propagate is defined by the
-    `update_sequence` and the `node_structure`. A tuple of two new
+    `update_sequence` and the `edges`. A tuple of two new
     `parameter_structure` is then returned (the carryover and the accumulated in the
     context of :py:func:`jax.lax.scan`).
 
@@ -41,7 +41,7 @@ def beliefs_propagation(
         unit incrementation.
     update_sequence :
         The sequence of updates that will be applied to the node structure.
-    node_structure :
+    edges :
         The nodes structure.
     input_nodes_idx :
         An array of input indexes. The default is `[0]` (one input node, the first node
@@ -74,7 +74,7 @@ def beliefs_propagation(
             parameters_structure=parameters_structure,
             time_step=time_step,
             node_idx=node_idx,
-            node_structure=node_structure,
+            edges=edges,
             value=value,
         )
 
@@ -85,7 +85,7 @@ def beliefs_propagation(
 
 
 def trim_sequence(
-    exclude_node_idxs: List, update_sequence: UpdateSequence, node_structure: Tuple
+    exclude_node_idxs: List, update_sequence: UpdateSequence, edges: Tuple
 ) -> UpdateSequence:
     """Remove steps from an update sequence that depends on a set of nodes.
 
@@ -96,7 +96,7 @@ def trim_sequence(
         network.
     update_sequence :
         The sequence of updates that will be applied to the node structure.
-    node_structure :
+    edges :
         The nodes structure.
 
     Returns
@@ -107,9 +107,7 @@ def trim_sequence(
 
     """
     # list the nodes that depend on the root indexes
-    branch_list = list_branches(
-        node_idxs=exclude_node_idxs, node_structure=node_structure
-    )
+    branch_list = list_branches(node_idxs=exclude_node_idxs, edges=edges)
 
     # remove the update steps that are targetting the excluded nodes
     trimmed_update_sequence = tuple(
@@ -119,9 +117,7 @@ def trim_sequence(
     return trimmed_update_sequence
 
 
-def list_branches(
-    node_idxs: List, node_structure: Tuple, branch_list: List = []
-) -> List:
+def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List:
     """Return the branch of a network from a given set of root nodes.
 
     This function searches recursively and lists the parents above a given node. If all
@@ -133,7 +129,7 @@ def list_branches(
     node_idxs :
         A list of node indexes. The nodes can be input nodes or any other node in the
         network.
-    node_structure :
+    edges :
         The nodes structure.
     branch_list :
         The list of nodes that are already excluded (i.e )
@@ -151,8 +147,8 @@ def list_branches(
             [
                 i
                 for i in [
-                    node_structure[idx].value_parents,
-                    node_structure[idx].volatility_parents,
+                    edges[idx].value_parents,
+                    edges[idx].volatility_parents,
                 ]
                 if i is not None
             ]
@@ -163,8 +159,8 @@ def list_branches(
                 [
                     i
                     for i in [
-                        node_structure[parent_idx].value_children,
-                        node_structure[parent_idx].volatility_children,
+                        edges[parent_idx].value_children,
+                        edges[parent_idx].volatility_children,
                     ]
                     if i is not None
                 ]
@@ -172,7 +168,7 @@ def list_branches(
             # if this parent has only excluded children, add it to the exclusion list
             if np.all([i in branch_list for i in all_children]):
                 branch_list = list_branches(
-                    [parent_idx], node_structure, branch_list=branch_list
+                    [parent_idx], edges, branch_list=branch_list
                 )
 
     return branch_list

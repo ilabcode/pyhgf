@@ -59,7 +59,7 @@ class Testcontinuous(TestCase):
             node_parameters_1,
             node_parameters_2,
         )
-        node_structure = (
+        edges = (
             Indexes(None, None, None, None),
             Indexes(None, None, None, None),
             Indexes(None, None, None, None),
@@ -73,7 +73,7 @@ class Testcontinuous(TestCase):
         update_sequence = (sequence1,)
         new_parameters_structure, _ = beliefs_propagation(
             parameters_structure=parameters_structure,
-            node_structure=node_structure,
+            edges=edges,
             update_sequence=update_sequence,
             data=data,
         )
@@ -133,7 +133,7 @@ class Testcontinuous(TestCase):
             node_parameters_2,
         )
 
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
@@ -147,7 +147,7 @@ class Testcontinuous(TestCase):
 
         # apply beliefs propagation updates
         new_parameters_structure, _ = beliefs_propagation(
-            node_structure=node_structure,
+            edges=edges,
             parameters_structure=parameters_structure,
             update_sequence=update_sequence,
             data=data,
@@ -215,7 +215,7 @@ class Testcontinuous(TestCase):
             node_parameters_1,
             node_parameters_2,
         )
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
@@ -230,7 +230,7 @@ class Testcontinuous(TestCase):
         scan_fn = Partial(
             beliefs_propagation,
             update_sequence=update_sequence,
-            node_structure=node_structure,
+            edges=edges,
         )
 
         # Run the entire for loop

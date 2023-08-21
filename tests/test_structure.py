@@ -51,7 +51,7 @@ class TestStructure(TestCase):
             "omega": -3.0,
             "rho": 0.0,
         }
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
@@ -75,7 +75,7 @@ class TestStructure(TestCase):
             parameters_structure=parameters_structure,
             data=data,
             update_sequence=update_sequence,
-            node_structure=node_structure,
+            edges=edges,
         )
 
         assert new_parameters_structure[1]["mu"] == 0.20007044
@@ -83,19 +83,19 @@ class TestStructure(TestCase):
 
     def test_find_branch(self):
         """Test the find_branch function"""
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
             Indexes((4,), None, None, None),
             Indexes(None, None, (3,), None),
         )
-        branch_list = list_branches([0], node_structure, branch_list=[])
+        branch_list = list_branches([0], edges, branch_list=[])
         assert branch_list == [0, 1, 2]
 
     def test_trim_sequence(self):
         """Test the trim_sequence function"""
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
@@ -112,7 +112,7 @@ class TestStructure(TestCase):
         new_sequence = trim_sequence(
             exclude_node_idxs=[0],
             update_sequence=update_sequence,
-            node_structure=node_structure,
+            edges=edges,
         )
         assert len(new_sequence) == 2
         assert new_sequence[0][0] == 3

@@ -10,12 +10,12 @@ from jax.typing import ArrayLike
 from pyhgf.typing import NodeStructure
 
 
-@partial(jit, static_argnames=("node_structure", "node_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_node_update(
     parameters_structure: Dict,
     time_step: float,
     node_idx: int,
-    node_structure: NodeStructure,
+    edges: NodeStructure,
     **args
 ) -> Dict:
     """Update the value and volatility parent(s) of a continuous node.
@@ -47,7 +47,7 @@ def continuous_node_update(
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
-    node_structure :
+    edges :
         Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
         For each node, the index list value and volatility parents.
 
@@ -68,8 +68,8 @@ def continuous_node_update(
 
     """
     # list value and volatility parents
-    value_parents_idxs = node_structure[node_idx].value_parents
-    volatility_parents_idxs = node_structure[node_idx].volatility_parents
+    value_parents_idxs = edges[node_idx].value_parents
+    volatility_parents_idxs = edges[node_idx].volatility_parents
 
     # return here if no parents node are provided
     if (value_parents_idxs is None) and (volatility_parents_idxs is None):
@@ -85,12 +85,10 @@ def continuous_node_update(
         for value_parent_idx, psi in zip(value_parents_idxs, psis):
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
-            if node_structure[value_parent_idx].value_children[-1] == node_idx:
+            if edges[value_parent_idx].value_children[-1] == node_idx:
                 # list the value and volatility parents
-                value_parent_value_parents_idxs = node_structure[
-                    value_parent_idx
-                ].value_parents
-                value_parent_volatility_parents_idxs = node_structure[
+                value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
+                value_parent_volatility_parents_idxs = edges[
                     value_parent_idx
                 ].volatility_parents
 
@@ -125,7 +123,7 @@ def continuous_node_update(
                 # required for the multi-children situations
                 pi_children = 0.0
                 for child_idx, psi_child in zip(
-                    node_structure[value_parent_idx].value_children,
+                    edges[value_parent_idx].value_children,
                     parameters_structure[value_parent_idx]["psis_children"],
                 ):
                     pihat_child = parameters_structure[child_idx]["pihat"]
@@ -151,7 +149,7 @@ def continuous_node_update(
                 # multi-children situations
                 pe_children = 0.0
                 for child_idx, psi_child in zip(
-                    node_structure[value_parent_idx].value_children,
+                    edges[value_parent_idx].value_children,
                     parameters_structure[value_parent_idx]["psis_children"],
                 ):
                     vape_child = (
@@ -186,15 +184,12 @@ def continuous_node_update(
         ):
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
-            if (
-                node_structure[volatility_parent_idx].volatility_children[-1]
-                == node_idx
-            ):
+            if edges[volatility_parent_idx].volatility_children[-1] == node_idx:
                 # list the value and volatility parents
-                volatility_parent_value_parents_idx = node_structure[
+                volatility_parent_value_parents_idx = edges[
                     volatility_parent_idx
                 ].value_parents
-                volatility_parent_volatility_parents_idx = node_structure[
+                volatility_parent_volatility_parents_idx = edges[
                     volatility_parent_idx
                 ].volatility_parents
 
@@ -223,7 +218,7 @@ def continuous_node_update(
                 # gather volatility precisions from the child nodes
                 children_volatility_precision = 0.0
                 for child_idx, kappas_children in zip(
-                    node_structure[volatility_parent_idx].volatility_children,
+                    edges[volatility_parent_idx].volatility_children,
                     parameters_structure[volatility_parent_idx]["kappas_children"],
                 ):
                     nu_children = parameters_structure[child_idx]["nu"]
@@ -269,7 +264,7 @@ def continuous_node_update(
                 # gather volatility prediction errors from the child nodes
                 children_volatility_prediction_error = 0.0
                 for child_idx, kappas_children in zip(
-                    node_structure[volatility_parent_idx].volatility_children,
+                    edges[volatility_parent_idx].volatility_children,
                     parameters_structure[volatility_parent_idx]["kappas_children"],
                 ):
                     nu_children = parameters_structure[child_idx]["nu"]
@@ -309,12 +304,12 @@ def continuous_node_update(
     return parameters_structure
 
 
-@partial(jit, static_argnames=("node_structure", "node_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_input_update(
     parameters_structure: Dict,
     time_step: float,
     node_idx: int,
-    node_structure: NodeStructure,
+    edges: NodeStructure,
     value: float,
 ) -> Dict:
     """Update the input node structure.
@@ -336,7 +331,7 @@ def continuous_input_update(
         The parameter structure also incorporate the value and volatility coupling
         strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
         `"kappas_parents"`, `"kappas_children"`).
-    node_structure :
+    edges :
         Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
         For each node, the index list value and volatility parents.
     node_idx :
@@ -364,7 +359,7 @@ def continuous_input_update(
     parameters_structure[node_idx]["value"] = value
 
     # list value and volatility parents
-    value_parents_idxs = node_structure[node_idx].value_parents
+    value_parents_idxs = edges[node_idx].value_parents
 
     ########################
     # Update value parents #
@@ -373,12 +368,10 @@ def continuous_input_update(
         for value_parent_idx in value_parents_idxs:
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
-            if node_structure[value_parent_idx].value_children[-1] == node_idx:
+            if edges[value_parent_idx].value_children[-1] == node_idx:
                 # list value and volatility parents
-                value_parent_value_parents_idxs = node_structure[
-                    value_parent_idx
-                ].value_parents
-                value_parent_volatility_parents_idxs = node_structure[
+                value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
+                value_parent_volatility_parents_idxs = edges[
                     value_parent_idx
                 ].volatility_parents
 
@@ -412,7 +405,7 @@ def continuous_input_update(
                 # in the case of a multivariate descendency
                 pi_children = 0.0
                 for child_idx, psi_child in zip(
-                    node_structure[value_parent_idx].value_children,
+                    edges[value_parent_idx].value_children,
                     parameters_structure[value_parent_idx]["psis_children"],
                 ):
                     pihat_child = parameters_structure[child_idx]["pihat"]
@@ -442,7 +435,7 @@ def continuous_input_update(
                 # in the case of a multivariate descendency
                 pe_children = 0.0
                 for child_idx, psi_child in zip(
-                    node_structure[value_parent_idx].value_children,
+                    edges[value_parent_idx].value_children,
                     parameters_structure[value_parent_idx]["psis_children"],
                 ):
                     child_value_prediction_error = (

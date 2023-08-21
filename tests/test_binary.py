@@ -93,7 +93,7 @@ class Testbinary(TestCase):
             "rho": 0.0,
         }
 
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes((2,), None, (0,), None),
             Indexes(None, (3,), (1,), None),
@@ -115,7 +115,7 @@ class Testbinary(TestCase):
 
         # apply sequence
         new_parameters_structure, _ = beliefs_propagation(
-            node_structure=node_structure,
+            edges=edges,
             parameters_structure=parameters_structure,
             update_sequence=update_sequence,
             data=data,
@@ -146,7 +146,7 @@ class Testbinary(TestCase):
         scan_fn = Partial(
             beliefs_propagation,
             update_sequence=update_sequence,
-            node_structure=node_structure,
+            edges=edges,
         )
 
         # Run the entire for loop

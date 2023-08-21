@@ -69,7 +69,7 @@ from pyhgf.typing import Indexes
 parameters = {"mu": 0.0, "pi": 1.0}
 
 parameters_structure = (parameters, parameters, parameters)
-node_structure = (
+edges = (
     Indexes((1,), None, None, None),
     Indexes(None, (2,), (0,), None),
     Indexes(None, None, None, (1,)),
@@ -139,11 +139,11 @@ another_custom_hgf = (
 another_custom_hgf.plot_network()
 ```
 
-The structure of the probabilistic network is stored in the `node_structure` variable which consists of a tuple of `Indexes` that store the indexes of value/volatility parents/children for each node. For example, accessing the nodes connected to node `4` in the example above is done with:
+The structure of the probabilistic network is stored in the `edges` variable which consists of a tuple of `Indexes` that store the indexes of value/volatility parents/children for each node. For example, accessing the nodes connected to node `4` in the example above is done with:
 
 ```{code-cell} ipython3
 # the node structure
-another_custom_hgf.node_structure[4]
+another_custom_hgf.edges[4]
 ```
 
 ```{tip} Different types of coupling
@@ -395,7 +395,7 @@ The structure of the network and the node's parameters are the most static compo
 Update functions are the heart of the HGF filtering procedure, these functions implement the message-passing and parameter-updating steps between nodes. An update function in its simpler form is a Python function defined as
 
 ```python
-def update_fn(node_idx, parameters_structure, node_structure):
+def update_fn(node_idx, parameters_structure, edges):
 
     # some computation here
     # ---------------------

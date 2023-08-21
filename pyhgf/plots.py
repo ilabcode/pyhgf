@@ -120,7 +120,7 @@ def plot_trajectories(
 
     """
     trajectories_df = hgf.to_pandas()
-    n_nodes = len(hgf.node_structure)
+    n_nodes = len(hgf.edges)
     palette = itertools.cycle(sns.color_palette())
 
     if axs is None:
@@ -273,13 +273,13 @@ def plot_network(hgf: "HGF") -> "Source":
         )
 
     # create the rest of nodes
-    for i in range(len(hgf.node_structure)):
+    for i in range(len(hgf.edges)):
         # only if node is not an input node
         if i not in hgf.input_nodes_idx.idx:
             graphviz_structure.node(f"x_{i}", label=str(i), shape="circle")
 
     # connect value parents
-    for i, index in enumerate(hgf.node_structure):
+    for i, index in enumerate(hgf.edges):
         value_parents = index.value_parents
 
         if value_parents is not None:
@@ -290,7 +290,7 @@ def plot_network(hgf: "HGF") -> "Source":
                 )
 
     # connect volatility parents
-    for i, index in enumerate(hgf.node_structure):
+    for i, index in enumerate(hgf.edges):
         volatility_parents = index.volatility_parents
 
         if volatility_parents is not None:
@@ -463,12 +463,12 @@ def plot_nodes(
 
                 # if this is the value parent of an input node
                 # the CI should be treated diffeently
-                if hgf.node_structure[node_idx].value_children is not None:
+                if hgf.edges[node_idx].value_children is not None:
                     if np.any(
                         [
                             (
                                 i  # type : ignore
-                                in hgf.node_structure[  # type: ignore
+                                in hgf.edges[  # type: ignore
                                     node_idx  # type: ignore
                                 ].value_children  # type: ignore
                             )
@@ -477,7 +477,7 @@ def plot_nodes(
                         ]
                     ):
                         # get parent node
-                        parent_idx = hgf.node_structure[  # type: ignore
+                        parent_idx = hgf.edges[  # type: ignore
                             node_idx  # type: ignore
                         ].value_parents[
                             0
@@ -541,21 +541,17 @@ def plot_nodes(
             # --------------------------------
             if show_observations:
                 # value coupling
-                if hgf.node_structure[node_idx].value_children is not None:
+                if hgf.edges[node_idx].value_children is not None:
                     input_colors = plt.cm.cividis(
                         np.linspace(
                             0,
                             1,
-                            len(
-                                hgf.node_structure[
-                                    node_idx
-                                ].value_children  # type: ignore
-                            ),
+                            len(hgf.edges[node_idx].value_children),  # type: ignore
                         )
                     )
 
                     for ii, child_idx in enumerate(
-                        hgf.node_structure[node_idx].value_children  # type: ignore
+                        hgf.edges[node_idx].value_children  # type: ignore
                     ):
                         if child_idx not in hgf.input_nodes_idx.idx:
                             axs[i].scatter(
