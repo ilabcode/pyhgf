@@ -8,16 +8,16 @@ from jax.lax import scan
 from jax.tree_util import Partial
 
 from pyhgf import load_data
-from pyhgf.binary import (
+from pyhgf.networks import beliefs_propagation
+from pyhgf.typing import Indexes
+from pyhgf.updates.binary import (
     binary_input_update,
     binary_node_update,
     binary_surprise,
     gaussian_density,
     sgm,
 )
-from pyhgf.continuous import continuous_node_update
-from pyhgf.structure import beliefs_propagation
-from pyhgf.typing import Indexes
+from pyhgf.updates.continuous import continuous_node_update
 
 
 class Testbinary(TestCase):
@@ -93,13 +93,13 @@ class Testbinary(TestCase):
             "rho": 0.0,
         }
 
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes((2,), None, (0,), None),
             Indexes(None, (3,), (1,), None),
             Indexes(None, None, None, (2,)),
         )
-        parameters_structure = (
+        attributes = (
             input_node_parameters,
             node_parameters_1,
             node_parameters_2,
@@ -114,26 +114,26 @@ class Testbinary(TestCase):
         data = jnp.array([1.0, 1.0])
 
         # apply sequence
-        new_parameters_structure, _ = beliefs_propagation(
-            node_structure=node_structure,
-            parameters_structure=parameters_structure,
+        new_attributes, _ = beliefs_propagation(
+            edges=edges,
+            attributes=attributes,
             update_sequence=update_sequence,
             data=data,
         )
         for idx, val in zip(["surprise", "value"], [0.31326166, 1.0]):
-            assert jnp.isclose(new_parameters_structure[0][idx], val)
+            assert jnp.isclose(new_attributes[0][idx], val)
         for idx, val in zip(["mu", "muhat", "pihat"], [1.0, 0.7310586, 5.0861616]):
-            assert jnp.isclose(new_parameters_structure[1][idx], val)
+            assert jnp.isclose(new_attributes[1][idx], val)
         for idx, val in zip(
             ["mu", "muhat", "pi", "pihat", "nu"],
             [1.8515793, 1.0, 0.31581485, 0.11920292, 7.389056],
         ):
-            assert jnp.isclose(new_parameters_structure[2][idx], val)
+            assert jnp.isclose(new_attributes[2][idx], val)
         for idx, val in zip(
             ["mu", "muhat", "pi", "pihat", "nu"],
             [0.5611493, 1.0, 0.5380009, 0.26894143, 2.7182817],
         ):
-            assert jnp.isclose(new_parameters_structure[3][idx], val)
+            assert jnp.isclose(new_attributes[3][idx], val)
 
         # use scan
         timeserie = load_data("binary")
@@ -146,11 +146,11 @@ class Testbinary(TestCase):
         scan_fn = Partial(
             beliefs_propagation,
             update_sequence=update_sequence,
-            node_structure=node_structure,
+            edges=edges,
         )
 
         # Run the entire for loop
-        last, _ = scan(scan_fn, parameters_structure, data)
+        last, _ = scan(scan_fn, attributes, data)
         for idx, val in zip(["surprise", "value"], [3.1497865, 0.0]):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(["mu", "muhat", "pihat"], [0.0, 0.9571387, 24.37586]):

@@ -9,15 +9,18 @@
 API
 +++
 
+Updates
+-------
+
 Binary
-------
+******
 
 Core functionnalities to update *binary* node structures.
 
-.. currentmodule:: pyhgf.binary
+.. currentmodule:: pyhgf.updates.binary
 
 .. autosummary::
-   :toctree: generated/pyhgf.binary
+   :toctree: generated/pyhgf.updates.binary
 
     binary_node_update
     binary_input_update
@@ -27,14 +30,14 @@ Core functionnalities to update *binary* node structures.
 
 
 Continuous
-----------
+**********
 
 Core functionnalities to update *continuous* node structures.
 
-.. currentmodule:: pyhgf.continuous
+.. currentmodule:: pyhgf.updates.continuous
 
 .. autosummary::
-   :toctree: generated/pyhgf.continuous
+   :toctree: generated/pyhgf.updates.continuous
 
     continuous_node_update
     continuous_input_update
@@ -100,15 +103,15 @@ least the HGF instance as input after observation and returning surprise.
    total_gaussian_surprise
    first_level_binary_surprise
 
-Structure
----------
+Networks
+--------
 
-Utilities for manipulating node structures and applying sequences.
+Utilities for manipulating networks of probabilistic nodes.
 
-.. currentmodule:: pyhgf.structure
+.. currentmodule:: pyhgf.networks
 
 .. autosummary::
-   :toctree: generated/pyhgf.structure
+   :toctree: generated/pyhgf.networks
 
    beliefs_propagation
    trim_sequence

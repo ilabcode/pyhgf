@@ -8,16 +8,12 @@ from jax import jit
 from jax.lax import cond
 from jax.typing import ArrayLike
 
-from pyhgf.typing import NodeStructure
+from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("node_structure", "node_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def binary_node_update(
-    parameters_structure: Dict,
-    time_step: float,
-    node_idx: int,
-    node_structure: NodeStructure,
-    **args
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the value parent(s) of a binary node.
 
@@ -27,7 +23,7 @@ def binary_node_update(
 
     Parameters
     ----------
-    parameters_structure :
+    attributes :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
@@ -40,13 +36,13 @@ def binary_node_update(
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
-    node_structure :
+    edges :
         Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
         For each node, the index list value and volatility parents.
 
     Returns
     -------
-    parameters_structure :
+    attributes :
         The updated node structure.
 
     References
@@ -57,11 +53,11 @@ def binary_node_update(
 
     """
     # using the current node index, unwrap parameters and parents
-    value_parent_idxs = node_structure[node_idx].value_parents
+    value_parent_idxs = edges[node_idx].value_parents
 
     # Return here if no parents node are found
     if value_parent_idxs is None:
-        return parameters_structure
+        return attributes
 
     #############################################
     # Update the continuous value parents (x-2) #
@@ -70,11 +66,9 @@ def binary_node_update(
         for value_parent_idx in value_parent_idxs:
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
-            if node_structure[value_parent_idx].value_children[-1] == node_idx:
-                value_parent_value_parent_idxs = node_structure[
-                    value_parent_idx
-                ].value_parents
-                value_parent_volatility_parent_idxs = node_structure[
+            if edges[value_parent_idx].value_children[-1] == node_idx:
+                value_parent_value_parent_idxs = edges[value_parent_idx].value_parents
+                value_parent_volatility_parent_idxs = edges[
                     value_parent_idx
                 ].volatility_parents
 
@@ -82,20 +76,17 @@ def binary_node_update(
 
                 # 1.1 get new_nu (x2)
                 # 1.1.1 get logvol
-                logvol = parameters_structure[value_parent_idx]["omega"]
+                logvol = attributes[value_parent_idx]["omega"]
 
                 # 1.1.2 Look at the (optional) va_pa's volatility parents
                 # and update logvol accordingly
                 if value_parent_volatility_parent_idxs is not None:
                     for value_parent_volatility_parent_idx, k in zip(
                         value_parent_volatility_parent_idxs,
-                        parameters_structure[value_parent_idx]["kappas_parents"],
+                        attributes[value_parent_idx]["kappas_parents"],
                     ):
                         logvol += (
-                            k
-                            * parameters_structure[value_parent_volatility_parent_idx][
-                                "mu"
-                            ]
+                            k * attributes[value_parent_volatility_parent_idx]["mu"]
                         )
 
                 # 1.1.3 Compute new_nu
@@ -104,7 +95,7 @@ def binary_node_update(
 
                 # 1.2 Compute new value for nu and pihat
                 pihat_value_parent, nu_value_parent = [
-                    1 / (1 / parameters_structure[value_parent_idx]["pi"] + new_nu),
+                    1 / (1 / attributes[value_parent_idx]["pi"] + new_nu),
                     new_nu,
                 ]
 
@@ -114,10 +105,10 @@ def binary_node_update(
                 # required for the multi-children situations
                 pi_children = 0.0
                 for child_idx, psi_child in zip(
-                    node_structure[value_parent_idx].value_children,
-                    parameters_structure[value_parent_idx]["psis_children"],
+                    edges[value_parent_idx].value_children,
+                    attributes[value_parent_idx]["psis_children"],
                 ):
-                    pihat_child = parameters_structure[child_idx]["pihat"]
+                    pihat_child = attributes[child_idx]["pihat"]
                     pi_children += psi_child * (1 / pihat_child)
 
                 pi_value_parent = pihat_value_parent + pi_children
@@ -125,23 +116,22 @@ def binary_node_update(
                 # 3. get muhat_value_parent from value parent (x2)
 
                 # 3.1
-                driftrate = parameters_structure[value_parent_idx]["rho"]
+                driftrate = attributes[value_parent_idx]["rho"]
 
                 # 3.2 Look at the (optional) value parent's value parents
                 # and update driftrate accordingly
                 if value_parent_value_parent_idxs is not None:
                     for value_parent_value_parent_idx, psi in zip(
                         value_parent_value_parent_idxs,
-                        parameters_structure[value_parent_idx]["psis_parents"],
+                        attributes[value_parent_idx]["psis_parents"],
                     ):
                         driftrate += (
-                            psi
-                            * parameters_structure[value_parent_value_parent_idx]["mu"]
+                            psi * attributes[value_parent_value_parent_idx]["mu"]
                         )
 
                 # 3.3
                 muhat_value_parent = (
-                    parameters_structure[value_parent_idx]["mu"] + time_step * driftrate
+                    attributes[value_parent_idx]["mu"] + time_step * driftrate
                 )
 
                 # gather PE updates from other binray child nodes if the parent has many
@@ -149,12 +139,11 @@ def binary_node_update(
                 # multi-children situations
                 pe_children = 0.0
                 for child_idx, psi_child in zip(
-                    node_structure[value_parent_idx].value_children,
-                    parameters_structure[value_parent_idx]["psis_children"],
+                    edges[value_parent_idx].value_children,
+                    attributes[value_parent_idx]["psis_children"],
                 ):
                     vape_child = (
-                        parameters_structure[child_idx]["mu"]
-                        - parameters_structure[child_idx]["muhat"]
+                        attributes[child_idx]["mu"] - attributes[child_idx]["muhat"]
                     )
                     pe_children += (psi_child * vape_child) / pi_value_parent
 
@@ -162,21 +151,21 @@ def binary_node_update(
                 mu_value_parent = muhat_value_parent + pe_children
 
                 # 5. Update node's parameters and node's parents recursively
-                parameters_structure[value_parent_idx]["pihat"] = pihat_value_parent
-                parameters_structure[value_parent_idx]["pi"] = pi_value_parent
-                parameters_structure[value_parent_idx]["muhat"] = muhat_value_parent
-                parameters_structure[value_parent_idx]["mu"] = mu_value_parent
-                parameters_structure[value_parent_idx]["nu"] = nu_value_parent
+                attributes[value_parent_idx]["pihat"] = pihat_value_parent
+                attributes[value_parent_idx]["pi"] = pi_value_parent
+                attributes[value_parent_idx]["muhat"] = muhat_value_parent
+                attributes[value_parent_idx]["mu"] = mu_value_parent
+                attributes[value_parent_idx]["nu"] = nu_value_parent
 
-    return parameters_structure
+    return attributes
 
 
-@partial(jit, static_argnames=("node_structure", "node_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def binary_input_update(
-    parameters_structure: Dict,
+    attributes: Dict,
     time_step: float,
     node_idx: int,
-    node_structure: NodeStructure,
+    edges: Edges,
     value: float,
 ) -> Dict:
     """Update the input node structure given one binary observation.
@@ -190,7 +179,7 @@ def binary_input_update(
         The new observed value.
     time_step :
         The interval between the previous time point and the current time point.
-    parameters_structure :
+    attributes :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
@@ -198,7 +187,7 @@ def binary_input_update(
         `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"kappas"` is the volatility coupling strength.
         It should have the same length as the volatility parents' indexes.
-    node_structure :
+    edges :
         Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
         For each node, the index list value and volatility parents.
     node_idx :
@@ -207,7 +196,7 @@ def binary_input_update(
 
     Returns
     -------
-    parameters_structure :
+    attributes :
         The updated parameters structure.
 
     See Also
@@ -222,13 +211,13 @@ def binary_input_update(
 
     """
     # list value and volatility parents
-    value_parent_idxs = node_structure[node_idx].value_parents
-    volatility_parent_idxs = node_structure[node_idx].volatility_parents
+    value_parent_idxs = edges[node_idx].value_parents
+    volatility_parent_idxs = edges[node_idx].volatility_parents
 
     if (value_parent_idxs is None) and (volatility_parent_idxs is None):
-        return parameters_structure
+        return attributes
 
-    pihat = parameters_structure[node_idx]["pihat"]
+    pihat = attributes[node_idx]["pihat"]
 
     #######################################################
     # Update the value parent(s) of the binary input node #
@@ -236,40 +225,33 @@ def binary_input_update(
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
             # list the (unique) value parents
-            value_parent_value_parent_idxs = node_structure[
-                value_parent_idx
-            ].value_parents[0]
+            value_parent_value_parent_idxs = edges[value_parent_idx].value_parents[0]
 
             # 1. Compute new muhat_value_parent and pihat_value_parent
             # --------------------------------------------------------
             # 1.1 Compute new_muhat from continuous node parent (x2)
             # 1.1.1 get rho from the value parent of the binary node (x2)
-            driftrate = parameters_structure[value_parent_value_parent_idxs]["rho"]
+            driftrate = attributes[value_parent_value_parent_idxs]["rho"]
 
             # # 1.1.2 Look at the (optional) value parent's value parents (x3)
             # # and update the drift rate accordingly
-            if node_structure[value_parent_value_parent_idxs].value_parents is not None:
+            if edges[value_parent_value_parent_idxs].value_parents is not None:
                 for (
                     value_parent_value_parent_value_parent_idx,
                     psi_parent_parent,
                 ) in zip(
-                    node_structure[value_parent_value_parent_idxs].value_parents,
-                    parameters_structure[value_parent_value_parent_idxs][
-                        "psis_parents"
-                    ],
+                    edges[value_parent_value_parent_idxs].value_parents,
+                    attributes[value_parent_value_parent_idxs]["psis_parents"],
                 ):
                     # For each x2's value parents (optional)
                     driftrate += (
                         psi_parent_parent
-                        * parameters_structure[
-                            value_parent_value_parent_value_parent_idx
-                        ]["mu"]
+                        * attributes[value_parent_value_parent_value_parent_idx]["mu"]
                     )
 
             # 1.1.3 compute new_muhat
             muhat_value_parent = (
-                parameters_structure[value_parent_value_parent_idxs]["mu"]
-                + time_step * driftrate
+                attributes[value_parent_value_parent_idxs]["mu"] + time_step * driftrate
             )
 
             muhat_value_parent = sgm(muhat_value_parent)
@@ -277,8 +259,8 @@ def binary_input_update(
 
             # 2. Compute surprise
             # -------------------
-            eta0 = parameters_structure[node_idx]["eta0"]
-            eta1 = parameters_structure[node_idx]["eta1"]
+            eta0 = attributes[node_idx]["eta0"]
+            eta1 = attributes[node_idx]["eta1"]
 
             mu_value_parent, pi_value_parent, surprise = cond(
                 pihat == jnp.inf,
@@ -288,16 +270,16 @@ def binary_input_update(
             )
 
             # Update value parent's parameters
-            parameters_structure[value_parent_idx]["pihat"] = pihat_value_parent
-            parameters_structure[value_parent_idx]["pi"] = pi_value_parent
-            parameters_structure[value_parent_idx]["muhat"] = muhat_value_parent
-            parameters_structure[value_parent_idx]["mu"] = mu_value_parent
+            attributes[value_parent_idx]["pihat"] = pihat_value_parent
+            attributes[value_parent_idx]["pi"] = pi_value_parent
+            attributes[value_parent_idx]["muhat"] = muhat_value_parent
+            attributes[value_parent_idx]["mu"] = mu_value_parent
 
-    parameters_structure[node_idx]["surprise"] = surprise
-    parameters_structure[node_idx]["time_step"] = time_step
-    parameters_structure[node_idx]["value"] = value
+    attributes[node_idx]["surprise"] = surprise
+    attributes[node_idx]["time_step"] = time_step
+    attributes[node_idx]["value"] = value
 
-    return parameters_structure
+    return attributes
 
 
 def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike) -> ArrayLike:

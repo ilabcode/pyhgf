@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import jax.numpy as jnp
 
-from pyhgf.continuous import gaussian_surprise
+from pyhgf.updates.continuous import gaussian_surprise
 
 if TYPE_CHECKING:
     from pyhgf.model import HGF
@@ -72,7 +72,7 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
     # first we start with nodes that are value parents to input nodes
     input_parents_list = []
     for idx in hgf.input_nodes_idx.idx:
-        va_pa = hgf.node_structure[idx].value_parents[0]  # type: ignore
+        va_pa = hgf.edges[idx].value_parents[0]  # type: ignore
         input_parents_list.append(va_pa)
         surprise += jnp.sum(
             gaussian_surprise(
@@ -84,7 +84,7 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
 
     # then we do the same for every node that is not an input node
     # and not the parent of an input node
-    for i in range(len(hgf.node_structure)):
+    for i in range(len(hgf.edges)):
         if (i not in hgf.input_nodes_idx.idx) and (i not in input_parents_list):
             surprise += jnp.sum(
                 gaussian_surprise(

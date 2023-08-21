@@ -34,7 +34,7 @@ A let $\mathcal{N}_{k} = \{\theta, \xi, \mathcal{F}, \Sigma \}$ be a probabilist
 
 $$\theta = \{\theta_1, ..., \theta_{k}\}$$ 
 
-is the parameter set, and each parameter is a set of real values. Nodes' parameters can be used to register sufficient statistics of the distributions as well as various coupling weights. This component is registered as the `parameters_structure` dictionary.
+is the parameter set, and each parameter is a set of real values. Nodes' parameters can be used to register sufficient statistics of the distributions as well as various coupling weights. This component is registered as the `attributes` dictionary.
 
 The *shape* of the hierarchical structure is defined by its [adjacency list](https://en.wikipedia.org/wiki/Adjacency_list), which registers the connections between a node and other nodes from the network.
 
@@ -57,7 +57,7 @@ This list describes the sequence of function-to-nodes instructions that are exec
 ![graph_networks](../images/graph_networks.svg)
 
 ```{tip} Compatibility with JAX transformations
-One of the advantages of reasoning this way is that it dissociates variables that are transparent to the JAX framework and can be expressed as "PyTress" from variables that should be filtered before transformations. The variable `parameters_structure` ($\theta$) is typically expressed as a PyTree while the other variables that contain parametrized functions are filtered. See [the documattion](https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#jit-mechanics-tracing-and-static-variables) for further details on JAX transformations.
+One of the advantages of reasoning this way is that it dissociates variables that are transparent to the JAX framework and can be expressed as "PyTress" from variables that should be filtered before transformations. The variable `attributes` ($\theta$) is typically expressed as a PyTree while the other variables that contain parametrized functions are filtered. See [the documattion](https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#jit-mechanics-tracing-and-static-variables) for further details on JAX transformations.
 ```
 
 +++
@@ -68,8 +68,8 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 from pyhgf.typing import Indexes
 parameters = {"mu": 0.0, "pi": 1.0}
 
-parameters_structure = (parameters, parameters, parameters)
-node_structure = (
+attributes = (parameters, parameters, parameters)
+edges = (
     Indexes((1,), None, None, None),
     Indexes(None, (2,), (0,), None),
     Indexes(None, None, None, (1,)),
@@ -92,10 +92,10 @@ hgf.plot_network()
 
 ## Modifying the parameter structure
 
-The simpler change we can make on a network is to change the values of some of its parameters. The parameters are stored in the `parameters_structure` variable as a dictionary where the key (integers) are node indexes. Therefore, modifying the expected precision of the third node in the previous example is as simple as:
+The simpler change we can make on a network is to change the values of some of its parameters. The parameters are stored in the `attributes` variable as a dictionary where the key (integers) are node indexes. Therefore, modifying the expected precision of the third node in the previous example is as simple as:
 
 ```{code-cell} ipython3
-hgf.parameters_structure[3]["pi"] = 5.0
+hgf.attributes[3]["pi"] = 5.0
 ```
 
 However, modifying parameters values *manually* should not be that common as this is something we want the model to perform dynamically as we present new observations, but this can be used for example to generate prior predictive by sampling some parameter values from a distribution. 
@@ -139,11 +139,11 @@ another_custom_hgf = (
 another_custom_hgf.plot_network()
 ```
 
-The structure of the probabilistic network is stored in the `node_structure` variable which consists of a tuple of `Indexes` that store the indexes of value/volatility parents/children for each node. For example, accessing the nodes connected to node `4` in the example above is done with:
+The structure of the probabilistic network is stored in the `edges` variable which consists of a tuple of `Indexes` that store the indexes of value/volatility parents/children for each node. For example, accessing the nodes connected to node `4` in the example above is done with:
 
 ```{code-cell} ipython3
 # the node structure
-another_custom_hgf.node_structure[4]
+another_custom_hgf.edges[4]
 ```
 
 ```{tip} Different types of coupling
@@ -395,12 +395,12 @@ The structure of the network and the node's parameters are the most static compo
 Update functions are the heart of the HGF filtering procedure, these functions implement the message-passing and parameter-updating steps between nodes. An update function in its simpler form is a Python function defined as
 
 ```python
-def update_fn(node_idx, parameters_structure, node_structure):
+def update_fn(node_idx, attributes, edges):
 
     # some computation here
     # ---------------------
 
-    return new_parameters_structure
+    return new_attributes
 ```
 
 In other words, it is updating the parameters of the network by applying certain transformations using the node $i$ as a reference. This usually means that an observation has reached node $i$ and we want to send prediction error to the parent nodes and update their sufficient statistics. The function has access to the entire parameters and nodes structure, which means that it can retrieve parameters from parents, children, grandparents etc... But in practice, message-passing updates make heavy use of the mean-field approximation, which only requires accessing the most proximal nodes.

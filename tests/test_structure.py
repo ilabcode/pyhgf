@@ -5,9 +5,9 @@ from unittest import TestCase
 
 import jax.numpy as jnp
 
-from pyhgf.continuous import continuous_input_update, continuous_node_update
-from pyhgf.structure import beliefs_propagation, list_branches, trim_sequence
+from pyhgf.networks import beliefs_propagation, list_branches, trim_sequence
 from pyhgf.typing import Indexes
+from pyhgf.updates.continuous import continuous_input_update, continuous_node_update
 
 
 class TestStructure(TestCase):
@@ -51,12 +51,12 @@ class TestStructure(TestCase):
             "omega": -3.0,
             "rho": 0.0,
         }
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
         )
-        parameters_structure = (
+        attributes = (
             input_node_parameters,
             node_parameters_1,
             node_parameters_2,
@@ -71,31 +71,31 @@ class TestStructure(TestCase):
         data = jnp.array([0.2, 1.0])
 
         # apply sequence
-        new_parameters_structure, _ = beliefs_propagation(
-            parameters_structure=parameters_structure,
+        new_attributes, _ = beliefs_propagation(
+            attributes=attributes,
             data=data,
             update_sequence=update_sequence,
-            node_structure=node_structure,
+            edges=edges,
         )
 
-        assert new_parameters_structure[1]["mu"] == 0.20007044
-        assert new_parameters_structure[2]["pi"] == 0.9565813
+        assert new_attributes[1]["mu"] == 0.20007044
+        assert new_attributes[2]["pi"] == 0.9565813
 
     def test_find_branch(self):
         """Test the find_branch function"""
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
             Indexes((4,), None, None, None),
             Indexes(None, None, (3,), None),
         )
-        branch_list = list_branches([0], node_structure, branch_list=[])
+        branch_list = list_branches([0], edges, branch_list=[])
         assert branch_list == [0, 1, 2]
 
     def test_trim_sequence(self):
         """Test the trim_sequence function"""
-        node_structure = (
+        edges = (
             Indexes((1,), None, None, None),
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
@@ -112,7 +112,7 @@ class TestStructure(TestCase):
         new_sequence = trim_sequence(
             exclude_node_idxs=[0],
             update_sequence=update_sequence,
-            node_structure=node_structure,
+            edges=edges,
         )
         assert len(new_sequence) == 2
         assert new_sequence[0][0] == 3
