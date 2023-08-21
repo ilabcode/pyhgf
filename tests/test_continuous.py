@@ -54,7 +54,7 @@ class Testcontinuous(TestCase):
             "omega": 1.0,
             "rho": 0.0,
         }
-        parameters_structure = (
+        attributes = (
             input_node_parameters,
             node_parameters_1,
             node_parameters_2,
@@ -71,15 +71,15 @@ class Testcontinuous(TestCase):
         ###########################################
         sequence1 = 0, continuous_input_update
         update_sequence = (sequence1,)
-        new_parameters_structure, _ = beliefs_propagation(
-            parameters_structure=parameters_structure,
+        new_attributes, _ = beliefs_propagation(
+            attributes=attributes,
             edges=edges,
             update_sequence=update_sequence,
             data=data,
         )
 
-        assert parameters_structure[1] == new_parameters_structure[1]
-        assert parameters_structure[2] == new_parameters_structure[2]
+        assert attributes[1] == new_attributes[1]
+        assert attributes[2] == new_attributes[2]
 
     def test_gaussian_surprise(self):
         surprise = gaussian_surprise(
@@ -127,7 +127,7 @@ class Testcontinuous(TestCase):
             "omega": 1.0,
             "rho": 0.0,
         }
-        parameters_structure = (
+        attributes = (
             input_node_parameters,
             node_parameters_1,
             node_parameters_2,
@@ -146,25 +146,25 @@ class Testcontinuous(TestCase):
         data = jnp.array([0.2, 1.0])
 
         # apply beliefs propagation updates
-        new_parameters_structure, _ = beliefs_propagation(
+        new_attributes, _ = beliefs_propagation(
             edges=edges,
-            parameters_structure=parameters_structure,
+            attributes=attributes,
             update_sequence=update_sequence,
             data=data,
         )
 
         for idx, val in zip(["time_step", "value"], [1.0, 0.2]):
-            assert jnp.isclose(new_parameters_structure[0][idx], val)
+            assert jnp.isclose(new_attributes[0][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
             [10000.119, 0.11920292, 0.20000952, 1.0, 7.389056],
         ):
-            assert jnp.isclose(new_parameters_structure[1][idx], val)
+            assert jnp.isclose(new_attributes[1][idx], val)
         for idx, val in zip(
             ["pi", "pihat", "mu", "muhat", "nu"],
             [0.29854316, 0.26894143, -0.36260414, 1.0, 2.7182817],
         ):
-            assert jnp.isclose(new_parameters_structure[2][idx], val)
+            assert jnp.isclose(new_attributes[2][idx], val)
 
     def test_scan_loop(self):
         timeserie = load_data("continuous")
@@ -210,7 +210,7 @@ class Testcontinuous(TestCase):
             "rho": 0.0,
         }
 
-        parameters_structure = (
+        attributes = (
             input_node_parameters,
             node_parameters_1,
             node_parameters_2,
@@ -234,7 +234,7 @@ class Testcontinuous(TestCase):
         )
 
         # Run the entire for loop
-        last, _ = scan(scan_fn, parameters_structure, data)
+        last, _ = scan(scan_fn, attributes, data)
         for idx, val in zip(["time_step", "value"], [1.0, 0.8241]):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(

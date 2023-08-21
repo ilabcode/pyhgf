@@ -42,7 +42,7 @@ class HGF(object):
         A tuple of :py:class:`pyhgf.typing.Indexes` representing the nodes hierarchy.
     node_trajectories :
         The dynamic of the node's beliefs after updating.
-    parameters_structure :
+    attributes :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
@@ -143,7 +143,7 @@ class HGF(object):
         self.n_levels = n_levels
         self.edges: Edges
         self.node_trajectories: Dict
-        self.parameters_structure: Dict
+        self.attributes: Dict
         self.update_sequence: Optional[UpdateSequence] = None
 
         if model_type in ["continuous", "binary"]:
@@ -263,7 +263,7 @@ class HGF(object):
         # this is where the model loop over the input time series
         # at each input the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
-        _, node_trajectories = scan(scan_fn, self.parameters_structure, data)
+        _, node_trajectories = scan(scan_fn, self.attributes, data)
 
         # the node structure at each value update
         self.node_trajectories = node_trajectories
@@ -326,17 +326,15 @@ class HGF(object):
         ]
 
         # create the function that will be scanned
-        def switching_propagation(parameters_structure, scan_input):
+        def switching_propagation(attributes, scan_input):
             data, idx = scan_input
-            return switch(idx, branches_fn, parameters_structure, data)
+            return switch(idx, branches_fn, attributes, data)
 
         # wrap the inputs
         scan_input = data, branches_idx
 
         # scan over the input data and apply the switching belief propagation functions
-        _, node_trajectories = scan(
-            switching_propagation, self.parameters_structure, scan_input
-        )
+        _, node_trajectories = scan(switching_propagation, self.attributes, scan_input)
 
         # the node structure at each value update
         self.node_trajectories = node_trajectories
@@ -521,12 +519,12 @@ class HGF(object):
         for input_idx in input_idxs:
             if input_idx == 0:
                 # this is the first node, create the node structure
-                self.parameters_structure = {input_idx: input_node_parameters}
+                self.attributes = {input_idx: input_node_parameters}
                 self.edges = (Indexes(None, None, None, None),)
                 self.input_nodes_idx = InputIndexes((input_idx,), (kind,))
             else:
                 # update the node structure
-                self.parameters_structure[input_idx] = input_node_parameters
+                self.attributes[input_idx] = input_node_parameters
                 self.edges += (Indexes(None, None, None, None),)
 
                 # add information about the new input node in the indexes
@@ -610,7 +608,7 @@ class HGF(object):
         self.edges += (Indexes(None, None, tuple(children_idxs), None),)
 
         # add a new parameters to parameters structure
-        self.parameters_structure[parent_idx] = node_parameters
+        self.attributes[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
         structure_as_list: List[Indexes] = list(self.edges)
@@ -629,7 +627,7 @@ class HGF(object):
                     structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.parameters_structure[idx]["psis_parents"] += (value_coupling,)
+                self.attributes[idx]["psis_parents"] += (value_coupling,)
             else:
                 # append new index
                 new_value_parents_idx = (parent_idx,)
@@ -640,7 +638,7 @@ class HGF(object):
                     structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.parameters_structure[idx]["psis_parents"] = (value_coupling,)
+                self.attributes[idx]["psis_parents"] = (value_coupling,)
 
         # convert the list back to a tuple
         self.edges = tuple(structure_as_list)
@@ -721,7 +719,7 @@ class HGF(object):
         self.edges += (Indexes(None, None, None, tuple(children_idxs)),)
 
         # add a new parameter to the parameters structure
-        self.parameters_structure[parent_idx] = node_parameters
+        self.attributes[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
         structure_as_list: List[Indexes] = list(self.edges)
@@ -740,9 +738,7 @@ class HGF(object):
                     structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.parameters_structure[idx]["kappas_parents"] += (
-                    volatility_coupling,
-                )
+                self.attributes[idx]["kappas_parents"] += (volatility_coupling,)
             else:
                 # append new index
                 new_volatility_parents_idx = (parent_idx,)
@@ -753,9 +749,7 @@ class HGF(object):
                     structure_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.parameters_structure[idx]["kappas_parents"] = (
-                    volatility_coupling,
-                )
+                self.attributes[idx]["kappas_parents"] = (volatility_coupling,)
 
         # convert the list back to a tuple
         self.edges = tuple(structure_as_list)

@@ -56,7 +56,7 @@ class TestStructure(TestCase):
             Indexes(None, (2,), (0,), None),
             Indexes(None, None, None, (1,)),
         )
-        parameters_structure = (
+        attributes = (
             input_node_parameters,
             node_parameters_1,
             node_parameters_2,
@@ -71,15 +71,15 @@ class TestStructure(TestCase):
         data = jnp.array([0.2, 1.0])
 
         # apply sequence
-        new_parameters_structure, _ = beliefs_propagation(
-            parameters_structure=parameters_structure,
+        new_attributes, _ = beliefs_propagation(
+            attributes=attributes,
             data=data,
             update_sequence=update_sequence,
             edges=edges,
         )
 
-        assert new_parameters_structure[1]["mu"] == 0.20007044
-        assert new_parameters_structure[2]["pi"] == 0.9565813
+        assert new_attributes[1]["mu"] == 0.20007044
+        assert new_attributes[2]["pi"] == 0.9565813
 
     def test_find_branch(self):
         """Test the find_branch function"""

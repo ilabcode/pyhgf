@@ -12,7 +12,7 @@ from pyhgf.typing import Edges
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_node_update(
-    parameters_structure: Dict, time_step: float, node_idx: int, edges: Edges, **args
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the value and volatility parent(s) of a continuous node.
 
@@ -30,7 +30,7 @@ def continuous_node_update(
 
     Parameters
     ----------
-    parameters_structure :
+    attributes :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
         continuous nodes.
@@ -49,7 +49,7 @@ def continuous_node_update(
 
     Returns
     -------
-    parameters_structure :
+    attributes :
         The updated parameters structure.
 
     See Also
@@ -69,14 +69,14 @@ def continuous_node_update(
 
     # return here if no parents node are provided
     if (value_parents_idxs is None) and (volatility_parents_idxs is None):
-        return parameters_structure
+        return attributes
 
     ########################
     # Update value parents #
     ########################
     if value_parents_idxs is not None:
         # the strength of the value coupling between the base node and the parents nodes
-        psis = parameters_structure[node_idx]["psis_parents"]
+        psis = attributes[node_idx]["psis_parents"]
 
         for value_parent_idx, psi in zip(value_parents_idxs, psis):
             # if this child is the last one relative to this parent's family, all the
@@ -89,20 +89,17 @@ def continuous_node_update(
                 ].volatility_parents
 
                 # Compute new value for nu and pihat
-                logvol = parameters_structure[value_parent_idx]["omega"]
+                logvol = attributes[value_parent_idx]["omega"]
 
                 # Look at the (optional) va_pa's volatility parents
                 # and update logvol accordingly
                 if value_parent_volatility_parents_idxs is not None:
                     for value_parent_volatility_parents_idx, k in zip(
                         value_parent_volatility_parents_idxs,
-                        parameters_structure[value_parent_idx]["kappas_parents"],
+                        attributes[value_parent_idx]["kappas_parents"],
                     ):
                         logvol += (
-                            k
-                            * parameters_structure[value_parent_volatility_parents_idx][
-                                "mu"
-                            ]
+                            k * attributes[value_parent_volatility_parents_idx]["mu"]
                         )
 
                 # Estimate new_nu
@@ -110,7 +107,7 @@ def continuous_node_update(
                 new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
 
                 pihat_value_parent, nu_value_parent = [
-                    1 / (1 / parameters_structure[value_parent_idx]["pi"] + new_nu),
+                    1 / (1 / attributes[value_parent_idx]["pi"] + new_nu),
                     new_nu,
                 ]
 
@@ -120,24 +117,24 @@ def continuous_node_update(
                 pi_children = 0.0
                 for child_idx, psi_child in zip(
                     edges[value_parent_idx].value_children,
-                    parameters_structure[value_parent_idx]["psis_children"],
+                    attributes[value_parent_idx]["psis_children"],
                 ):
-                    pihat_child = parameters_structure[child_idx]["pihat"]
+                    pihat_child = attributes[child_idx]["pihat"]
                     pi_children += psi_child**2 * pihat_child
 
                 pi_value_parent = pihat_value_parent + pi_children
 
                 # Compute new muhat
-                driftrate = parameters_structure[value_parent_idx]["rho"]
+                driftrate = attributes[value_parent_idx]["rho"]
 
                 # Look at the (optional) va_pa's value parents
                 # and update drift rate accordingly
                 if value_parent_value_parents_idxs is not None:
                     for va_pa_va_pa in value_parent_value_parents_idxs:
-                        driftrate += psi * parameters_structure[va_pa_va_pa]["mu"]
+                        driftrate += psi * attributes[va_pa_va_pa]["mu"]
 
                 muhat_value_parent = (
-                    parameters_structure[value_parent_idx]["mu"] + time_step * driftrate
+                    attributes[value_parent_idx]["mu"] + time_step * driftrate
                 )
 
                 # gather PE updates from other nodes if the parent has many children
@@ -146,13 +143,12 @@ def continuous_node_update(
                 pe_children = 0.0
                 for child_idx, psi_child in zip(
                     edges[value_parent_idx].value_children,
-                    parameters_structure[value_parent_idx]["psis_children"],
+                    attributes[value_parent_idx]["psis_children"],
                 ):
                     vape_child = (
-                        parameters_structure[child_idx]["mu"]
-                        - parameters_structure[child_idx]["muhat"]
+                        attributes[child_idx]["mu"] - attributes[child_idx]["muhat"]
                     )
-                    pihat_child = parameters_structure[child_idx]["pihat"]
+                    pihat_child = attributes[child_idx]["pihat"]
                     pe_children += (
                         psi_child * pihat_child * vape_child
                     ) / pi_value_parent
@@ -160,20 +156,20 @@ def continuous_node_update(
                 mu_value_parent = muhat_value_parent + pe_children
 
                 # Update this parent's parameters
-                parameters_structure[value_parent_idx]["pihat"] = pihat_value_parent
-                parameters_structure[value_parent_idx]["pi"] = pi_value_parent
-                parameters_structure[value_parent_idx]["muhat"] = muhat_value_parent
-                parameters_structure[value_parent_idx]["mu"] = mu_value_parent
-                parameters_structure[value_parent_idx]["nu"] = nu_value_parent
+                attributes[value_parent_idx]["pihat"] = pihat_value_parent
+                attributes[value_parent_idx]["pi"] = pi_value_parent
+                attributes[value_parent_idx]["muhat"] = muhat_value_parent
+                attributes[value_parent_idx]["mu"] = mu_value_parent
+                attributes[value_parent_idx]["nu"] = nu_value_parent
 
     #############################
     # Update volatility parents #
     #############################
     if volatility_parents_idxs is not None:
         # the strength of the value coupling between the base node and the parents nodes
-        kappas_parents = parameters_structure[node_idx]["kappas_parents"]
+        kappas_parents = attributes[node_idx]["kappas_parents"]
 
-        nu = parameters_structure[node_idx]["nu"]
+        nu = attributes[node_idx]["nu"]
 
         for volatility_parent_idx, kappas_parent in zip(
             volatility_parents_idxs, kappas_parents
@@ -190,24 +186,23 @@ def continuous_node_update(
                 ].volatility_parents
 
                 # Compute new value for nu and pihat
-                logvol = parameters_structure[volatility_parent_idx]["omega"]
+                logvol = attributes[volatility_parent_idx]["omega"]
 
                 # Look at the (optional) vo_pa's volatility parents
                 # and update logvol accordingly
                 if volatility_parent_volatility_parents_idx is not None:
                     for vo_pa_vo_pa, k in zip(
                         volatility_parent_volatility_parents_idx,
-                        parameters_structure[volatility_parent_idx]["kappas_parents"],
+                        attributes[volatility_parent_idx]["kappas_parents"],
                     ):
-                        logvol += k * parameters_structure[vo_pa_vo_pa]["mu"]
+                        logvol += k * attributes[vo_pa_vo_pa]["mu"]
 
                 # Estimate new_nu
                 new_nu = time_step * jnp.exp(logvol)
                 new_nu = jnp.where(new_nu > 1e-128, new_nu, jnp.nan)
 
                 pihat_volatility_parent, nu_volatility_parent = [
-                    1
-                    / (1 / parameters_structure[volatility_parent_idx]["pi"] + new_nu),
+                    1 / (1 / attributes[volatility_parent_idx]["pi"] + new_nu),
                     new_nu,
                 ]
 
@@ -215,19 +210,16 @@ def continuous_node_update(
                 children_volatility_precision = 0.0
                 for child_idx, kappas_children in zip(
                     edges[volatility_parent_idx].volatility_children,
-                    parameters_structure[volatility_parent_idx]["kappas_children"],
+                    attributes[volatility_parent_idx]["kappas_children"],
                 ):
-                    nu_children = parameters_structure[child_idx]["nu"]
-                    pihat_children = parameters_structure[child_idx]["pihat"]
-                    pi_children = parameters_structure[child_idx]["pi"]
+                    nu_children = attributes[child_idx]["nu"]
+                    pihat_children = attributes[child_idx]["pihat"]
+                    pi_children = attributes[child_idx]["pi"]
                     vope_children = (
-                        1 / parameters_structure[child_idx]["pi"]
-                        + (
-                            parameters_structure[child_idx]["mu"]
-                            - parameters_structure[child_idx]["muhat"]
-                        )
+                        1 / attributes[child_idx]["pi"]
+                        + (attributes[child_idx]["mu"] - attributes[child_idx]["muhat"])
                         ** 2
-                    ) * parameters_structure[child_idx]["pihat"] - 1
+                    ) * attributes[child_idx]["pihat"] - 1
 
                     children_volatility_precision += (
                         0.5
@@ -244,35 +236,31 @@ def continuous_node_update(
                 )
 
                 # drift rate of the GRW
-                driftrate = parameters_structure[volatility_parent_idx]["rho"]
+                driftrate = attributes[volatility_parent_idx]["rho"]
 
                 # Look at the (optional) va_pa's value parents
                 # and update drift rate accordingly
                 if volatility_parent_value_parents_idx is not None:
                     for vo_pa_va_pa in volatility_parent_value_parents_idx:
-                        driftrate += psi * parameters_structure[vo_pa_va_pa]["mu"]
+                        driftrate += psi * attributes[vo_pa_va_pa]["mu"]
 
                 muhat_volatility_parent = (
-                    parameters_structure[volatility_parent_idx]["mu"]
-                    + time_step * driftrate
+                    attributes[volatility_parent_idx]["mu"] + time_step * driftrate
                 )
 
                 # gather volatility prediction errors from the child nodes
                 children_volatility_prediction_error = 0.0
                 for child_idx, kappas_children in zip(
                     edges[volatility_parent_idx].volatility_children,
-                    parameters_structure[volatility_parent_idx]["kappas_children"],
+                    attributes[volatility_parent_idx]["kappas_children"],
                 ):
-                    nu_children = parameters_structure[child_idx]["nu"]
-                    pihat_children = parameters_structure[child_idx]["pihat"]
+                    nu_children = attributes[child_idx]["nu"]
+                    pihat_children = attributes[child_idx]["pihat"]
                     vope_children = (
-                        1 / parameters_structure[child_idx]["pi"]
-                        + (
-                            parameters_structure[child_idx]["mu"]
-                            - parameters_structure[child_idx]["muhat"]
-                        )
+                        1 / attributes[child_idx]["pi"]
+                        + (attributes[child_idx]["mu"] - attributes[child_idx]["muhat"])
                         ** 2
-                    ) * parameters_structure[child_idx]["pihat"] - 1
+                    ) * attributes[child_idx]["pihat"] - 1
                     children_volatility_prediction_error += (
                         0.5
                         * kappas_children
@@ -287,22 +275,18 @@ def continuous_node_update(
                 )
 
                 # Update this parent's parameters
-                parameters_structure[volatility_parent_idx][
-                    "pihat"
-                ] = pihat_volatility_parent
-                parameters_structure[volatility_parent_idx]["pi"] = pi_volatility_parent
-                parameters_structure[volatility_parent_idx][
-                    "muhat"
-                ] = muhat_volatility_parent
-                parameters_structure[volatility_parent_idx]["mu"] = mu_volatility_parent
-                parameters_structure[volatility_parent_idx]["nu"] = nu_volatility_parent
+                attributes[volatility_parent_idx]["pihat"] = pihat_volatility_parent
+                attributes[volatility_parent_idx]["pi"] = pi_volatility_parent
+                attributes[volatility_parent_idx]["muhat"] = muhat_volatility_parent
+                attributes[volatility_parent_idx]["mu"] = mu_volatility_parent
+                attributes[volatility_parent_idx]["nu"] = nu_volatility_parent
 
-    return parameters_structure
+    return attributes
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_input_update(
-    parameters_structure: Dict,
+    attributes: Dict,
     time_step: float,
     node_idx: int,
     edges: Edges,
@@ -319,7 +303,7 @@ def continuous_input_update(
         The new observed value.
     time_step :
         The interval between the previous time point and the current time point.
-    parameters_structure :
+    attributes :
         The structure of nodes' parameters. Each parameter is a dictionary with the
         following parameters: `"pihat", "pi", "muhat", "mu", "nu", "omega"` for
         continuous nodes.
@@ -336,7 +320,7 @@ def continuous_input_update(
 
     Returns
     -------
-    parameters_structure :
+    attributes :
         The updated parameters structure.
 
     See Also
@@ -351,8 +335,8 @@ def continuous_input_update(
 
     """
     # store value and timestep in the node's parameters
-    parameters_structure[node_idx]["time_step"] = time_step
-    parameters_structure[node_idx]["value"] = value
+    attributes[node_idx]["time_step"] = time_step
+    attributes[node_idx]["value"] = value
 
     # list value and volatility parents
     value_parents_idxs = edges[node_idx].value_parents
@@ -372,20 +356,17 @@ def continuous_input_update(
                 ].volatility_parents
 
                 # Compute new value for nu and pihat
-                logvol = parameters_structure[value_parent_idx]["omega"]
+                logvol = attributes[value_parent_idx]["omega"]
 
                 # Look at the (optional) va_pa's volatility parents
                 # and update logvol accordingly
                 if value_parent_volatility_parents_idxs is not None:
                     for value_parent_volatility_parents_idx, k in zip(
                         value_parent_volatility_parents_idxs,
-                        parameters_structure[value_parent_idx]["kappas_parents"],
+                        attributes[value_parent_idx]["kappas_parents"],
                     ):
                         logvol += (
-                            k
-                            * parameters_structure[value_parent_volatility_parents_idx][
-                                "mu"
-                            ]
+                            k * attributes[value_parent_volatility_parents_idx]["mu"]
                         )
 
                 # Estimate new_nu
@@ -393,7 +374,7 @@ def continuous_input_update(
                 new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
 
                 pihat_value_parent, nu_value_parent = [
-                    1 / (1 / parameters_structure[value_parent_idx]["pi"] + new_nu),
+                    1 / (1 / attributes[value_parent_idx]["pi"] + new_nu),
                     new_nu,
                 ]
 
@@ -402,15 +383,15 @@ def continuous_input_update(
                 pi_children = 0.0
                 for child_idx, psi_child in zip(
                     edges[value_parent_idx].value_children,
-                    parameters_structure[value_parent_idx]["psis_children"],
+                    attributes[value_parent_idx]["psis_children"],
                 ):
-                    pihat_child = parameters_structure[child_idx]["pihat"]
+                    pihat_child = attributes[child_idx]["pihat"]
                     pi_children += psi_child**2 * pihat_child
 
                 pi_value_parent = pihat_value_parent + pi_children
 
                 # Compute new muhat
-                driftrate = parameters_structure[value_parent_idx]["rho"]
+                driftrate = attributes[value_parent_idx]["rho"]
 
                 # Look at the (optional) va_pa's value parents
                 # and update drift rate accordingly
@@ -419,12 +400,12 @@ def continuous_input_update(
                         value_parent_value_parents_idx
                     ) in value_parent_value_parents_idxs:
                         driftrate += (
-                            parameters_structure[value_parent_idx]["psis_parents"][0]
-                            * parameters_structure[value_parent_value_parents_idx]["mu"]
+                            attributes[value_parent_idx]["psis_parents"][0]
+                            * attributes[value_parent_value_parents_idx]["mu"]
                         )
 
                 muhat_value_parent = (
-                    parameters_structure[value_parent_idx]["mu"] + time_step * driftrate
+                    attributes[value_parent_idx]["mu"] + time_step * driftrate
                 )
 
                 # gather PE updates from other input nodes
@@ -432,12 +413,12 @@ def continuous_input_update(
                 pe_children = 0.0
                 for child_idx, psi_child in zip(
                     edges[value_parent_idx].value_children,
-                    parameters_structure[value_parent_idx]["psis_children"],
+                    attributes[value_parent_idx]["psis_children"],
                 ):
                     child_value_prediction_error = (
-                        parameters_structure[child_idx]["value"] - muhat_value_parent
+                        attributes[child_idx]["value"] - muhat_value_parent
                     )
-                    pihat_child = parameters_structure[child_idx]["pihat"]
+                    pihat_child = attributes[child_idx]["pihat"]
                     pe_children += (
                         psi_child * pihat_child * child_value_prediction_error
                     ) / pi_value_parent
@@ -445,13 +426,13 @@ def continuous_input_update(
                 mu_value_parent = muhat_value_parent + pe_children
 
                 # update input node's parameters
-                parameters_structure[value_parent_idx]["pihat"] = pihat_value_parent
-                parameters_structure[value_parent_idx]["pi"] = pi_value_parent
-                parameters_structure[value_parent_idx]["muhat"] = muhat_value_parent
-                parameters_structure[value_parent_idx]["mu"] = mu_value_parent
-                parameters_structure[value_parent_idx]["nu"] = nu_value_parent
+                attributes[value_parent_idx]["pihat"] = pihat_value_parent
+                attributes[value_parent_idx]["pi"] = pi_value_parent
+                attributes[value_parent_idx]["muhat"] = muhat_value_parent
+                attributes[value_parent_idx]["mu"] = mu_value_parent
+                attributes[value_parent_idx]["nu"] = nu_value_parent
 
-    return parameters_structure
+    return attributes
 
 
 def gaussian_surprise(

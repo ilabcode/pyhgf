@@ -13,7 +13,7 @@ from pyhgf.typing import UpdateSequence
 
 @partial(jit, static_argnames=("update_sequence", "edges", "input_nodes_idx"))
 def beliefs_propagation(
-    parameters_structure: Dict,
+    attributes: Dict,
     data: ArrayLike,
     update_sequence: UpdateSequence,
     edges: Tuple,
@@ -29,7 +29,7 @@ def beliefs_propagation(
 
     Parameters
     ----------
-    parameters_structure :
+    attributes :
         The dictionaries of nodes' parameters. This variable is updated and returned
         after the beliefs propagation step.
     data :
@@ -49,7 +49,7 @@ def beliefs_propagation(
 
     Returns
     -------
-    parameters_structure, parameters_structure :
+    attributes, attributes :
         A tuple of parameters structure (carryover and accumulated).
 
 
@@ -70,8 +70,8 @@ def beliefs_propagation(
             jnp.nan,
         )
 
-        parameters_structure = update_fn(
-            parameters_structure=parameters_structure,
+        attributes = update_fn(
+            attributes=attributes,
             time_step=time_step,
             node_idx=node_idx,
             edges=edges,
@@ -79,8 +79,8 @@ def beliefs_propagation(
         )
 
     return (
-        parameters_structure,
-        parameters_structure,
+        attributes,
+        attributes,
     )  # ("carryover", "accumulated")
 
 
