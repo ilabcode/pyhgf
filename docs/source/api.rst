@@ -108,10 +108,10 @@ Networks
 
 Utilities for manipulating networks of probabilistic nodes.
 
-.. currentmodule:: pyhgf.structure
+.. currentmodule:: pyhgf.networks
 
 .. autosummary::
-   :toctree: generated/pyhgf.structure
+   :toctree: generated/pyhgf.networks
 
    beliefs_propagation
    trim_sequence
