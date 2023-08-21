@@ -5,7 +5,7 @@ from unittest import TestCase
 
 import jax.numpy as jnp
 
-from pyhgf.structure import beliefs_propagation, list_branches, trim_sequence
+from pyhgf.networks import beliefs_propagation, list_branches, trim_sequence
 from pyhgf.typing import Indexes
 from pyhgf.updates.continuous import continuous_input_update, continuous_node_update
 

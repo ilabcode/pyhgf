@@ -8,7 +8,7 @@ from jax.lax import scan
 from jax.tree_util import Partial
 
 from pyhgf import load_data
-from pyhgf.structure import beliefs_propagation
+from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.continuous import (
     continuous_input_update,

@@ -103,10 +103,10 @@ least the HGF instance as input after observation and returning surprise.
    total_gaussian_surprise
    first_level_binary_surprise
 
-Structure
----------
+Networks
+--------
 
-Utilities for manipulating node structures and applying sequences.
+Utilities for manipulating networks of probabilistic nodes.
 
 .. currentmodule:: pyhgf.structure
 
