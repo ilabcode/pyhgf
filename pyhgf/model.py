@@ -9,16 +9,16 @@ from jax.lax import scan, switch
 from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
-from pyhgf.binary import binary_input_update, binary_node_update
-from pyhgf.continuous import (
-    continuous_input_update,
-    continuous_node_update,
-    gaussian_surprise,
-)
 from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
 from pyhgf.structure import beliefs_propagation
 from pyhgf.typing import Indexes, InputIndexes, NodeStructure, UpdateSequence
+from pyhgf.updates.binary import binary_input_update, binary_node_update
+from pyhgf.updates.continuous import (
+    continuous_input_update,
+    continuous_node_update,
+    gaussian_surprise,
+)
 
 
 class HGF(object):

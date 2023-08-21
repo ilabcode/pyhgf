@@ -8,16 +8,16 @@ from jax.lax import scan
 from jax.tree_util import Partial
 
 from pyhgf import load_data
-from pyhgf.binary import (
+from pyhgf.structure import beliefs_propagation
+from pyhgf.typing import Indexes
+from pyhgf.updates.binary import (
     binary_input_update,
     binary_node_update,
     binary_surprise,
     gaussian_density,
     sgm,
 )
-from pyhgf.continuous import continuous_node_update
-from pyhgf.structure import beliefs_propagation
-from pyhgf.typing import Indexes
+from pyhgf.updates.continuous import continuous_node_update
 
 
 class Testbinary(TestCase):

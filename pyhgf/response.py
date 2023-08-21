@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import jax.numpy as jnp
 
-from pyhgf.continuous import gaussian_surprise
+from pyhgf.updates.continuous import gaussian_surprise
 
 if TYPE_CHECKING:
     from pyhgf.model import HGF

@@ -9,15 +9,18 @@
 API
 +++
 
+Updates
+-------
+
 Binary
-------
+******
 
 Core functionnalities to update *binary* node structures.
 
-.. currentmodule:: pyhgf.binary
+.. currentmodule:: pyhgf.updates.binary
 
 .. autosummary::
-   :toctree: generated/pyhgf.binary
+   :toctree: generated/pyhgf.updates.binary
 
     binary_node_update
     binary_input_update
@@ -27,14 +30,14 @@ Core functionnalities to update *binary* node structures.
 
 
 Continuous
-----------
+**********
 
 Core functionnalities to update *continuous* node structures.
 
-.. currentmodule:: pyhgf.continuous
+.. currentmodule:: pyhgf.updates.continuous
 
 .. autosummary::
-   :toctree: generated/pyhgf.continuous
+   :toctree: generated/pyhgf.updates.continuous
 
     continuous_node_update
     continuous_input_update
