@@ -8,16 +8,12 @@ from jax import jit
 from jax.lax import cond
 from jax.typing import ArrayLike
 
-from pyhgf.typing import NodeStructure
+from pyhgf.typing import Edges
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def binary_node_update(
-    parameters_structure: Dict,
-    time_step: float,
-    node_idx: int,
-    edges: NodeStructure,
-    **args
+    parameters_structure: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the value parent(s) of a binary node.
 
@@ -174,7 +170,7 @@ def binary_input_update(
     parameters_structure: Dict,
     time_step: float,
     node_idx: int,
-    edges: NodeStructure,
+    edges: Edges,
     value: float,
 ) -> Dict:
     """Update the input node structure given one binary observation.

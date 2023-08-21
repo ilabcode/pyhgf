@@ -19,6 +19,6 @@ class InputIndexes(NamedTuple):
     kind: Tuple[str, ...]
 
 
-NodeStructure = Tuple[Indexes, ...]
+Edges = Tuple[Indexes, ...]
 
 UpdateSequence = Tuple[Tuple[int, Callable], ...]

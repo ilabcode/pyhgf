@@ -12,7 +12,7 @@ from jax.typing import ArrayLike
 from pyhgf.networks import beliefs_propagation
 from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
-from pyhgf.typing import Indexes, InputIndexes, NodeStructure, UpdateSequence
+from pyhgf.typing import Edges, Indexes, InputIndexes, UpdateSequence
 from pyhgf.updates.binary import binary_input_update, binary_node_update
 from pyhgf.updates.continuous import (
     continuous_input_update,
@@ -141,7 +141,7 @@ class HGF(object):
         self.model_type = model_type
         self.verbose = verbose
         self.n_levels = n_levels
-        self.edges: NodeStructure
+        self.edges: Edges
         self.node_trajectories: Dict
         self.parameters_structure: Dict
         self.update_sequence: Optional[UpdateSequence] = None
