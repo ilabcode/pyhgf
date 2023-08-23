@@ -116,3 +116,4 @@ Utilities for manipulating networks of probabilistic nodes.
    beliefs_propagation
    trim_sequence
    list_branches
+   fill_categorical_state_node

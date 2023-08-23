@@ -1,14 +1,17 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import jax.numpy as jnp
 import numpy as np
 from jax import jit
 from jax.typing import ArrayLike
 
-from pyhgf.typing import UpdateSequence
+from pyhgf.typing import Indexes, UpdateSequence
+
+if TYPE_CHECKING:
+    from pyhgf.model import HGF
 
 
 @partial(jit, static_argnames=("update_sequence", "edges", "input_nodes_idx"))
@@ -172,3 +175,79 @@ def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List
                 )
 
     return branch_list
+
+
+def fill_categorical_state_node(
+    hgf: "HGF", node_idx: int, implied_binary_parameters: Dict
+) -> "HGF":
+    """Generate a binary network implied by categorical state(-transition) nodes.
+
+    Parameters
+    ----------
+    hgf :
+        Instance of a HGF model.
+    node_idx :
+        Index to the categorical state node.
+    implied_binary_parameters :
+        Parameters for the set of implied binary HGFs.
+
+    Returns
+    -------
+    hgf :
+        The updated instance of the HGF model.
+
+    """
+    # add thew binary inputs
+    hgf.add_input_node(
+        kind="binary",
+        input_idxs=implied_binary_parameters["binary_idxs"],
+        binary_parameters={
+            key: implied_binary_parameters[key]
+            for key in ["eta0", "eta1", "binary_precision"]
+        },
+    )
+
+    # add the value dependency between the categorical and binary nodes
+    edges_as_list: List[Indexes] = list(hgf.edges)
+    edges_as_list[node_idx] = Indexes(
+        tuple(implied_binary_parameters["binary_idxs"]), None, None, None
+    )
+    for binary_idx in implied_binary_parameters["binary_idxs"]:
+        edges_as_list[binary_idx] = Indexes(None, None, (node_idx,), None)
+    hgf.edges = tuple(edges_as_list)
+
+    # loop over the number of categories and create as many second-levels binary HGF
+    for i in range(implied_binary_parameters["n_categories"]):
+        # binary state node
+        hgf.add_value_parent(
+            children_idxs=implied_binary_parameters["binary_idxs"][i],
+            value_coupling=1.0,
+            mu=implied_binary_parameters["mu_1"],
+            pi=implied_binary_parameters["pi_1"],
+        )
+
+    # add the continuous parent node
+    for i in range(implied_binary_parameters["n_categories"]):
+        hgf.add_value_parent(
+            children_idxs=implied_binary_parameters["binary_idxs"][i]
+            + implied_binary_parameters["n_categories"],
+            value_coupling=1.0,
+            mu=implied_binary_parameters["mu_2"],
+            pi=implied_binary_parameters["pi_2"],
+            omega=implied_binary_parameters["omega_2"],
+        )
+
+    # add the higher level volatility parents
+    # as a shared parents between the second level nodes
+    hgf.add_volatility_parent(
+        children_idxs=[
+            idx + 2 * implied_binary_parameters["n_categories"]
+            for idx in implied_binary_parameters["binary_idxs"]
+        ],
+        volatility_coupling=1.0,
+        mu=implied_binary_parameters["mu_3"],
+        pi=implied_binary_parameters["pi_3"],
+        omega=implied_binary_parameters["omega_3"],
+    )
+
+    return hgf
