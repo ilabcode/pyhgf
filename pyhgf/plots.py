@@ -265,11 +265,17 @@ def plot_network(hgf: "HGF") -> "Source":
 
     # set input nodes
     for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
+        if kind == "continuous":
+            label, shape = f"Co-{idx}", "oval"
+        elif kind == "binary":
+            label, shape = f"Bi-{idx}", "box"
+        elif kind == "categorical":
+            label, shape = f"Ca-{idx}", "diamond"
         graphviz_structure.node(
             f"x_{idx}",
-            label=f"{kind.capitalize()[0]}I - {idx}",
+            label=label,
             style="filled",
-            shape="octagon",
+            shape=shape,
         )
 
     # create the rest of nodes
@@ -453,7 +459,7 @@ def plot_nodes(
                 linewidth=1,
                 zorder=2,
             )
-            axs[i].set_ylabel(rf"$\mu_{node_idx}$")
+            axs[i].set_ylabel(rf"$\mu_{{{node_idx}}}$")
 
             # plotting standard deviation
             if ci is True:
