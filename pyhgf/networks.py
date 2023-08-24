@@ -439,30 +439,48 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     for inpt in hgf.input_nodes_idx.idx:
         structure_df[f"observation_input_{inpt}"] = hgf.node_trajectories[inpt]["value"]
 
-    # loop over nodes and store sufficient statistics with surprise
-    for i in range(1, len(hgf.node_trajectories)):
-        if i not in hgf.input_nodes_idx.idx:
-            structure_df[f"x_{i}_mu"] = hgf.node_trajectories[i]["mu"]
-            structure_df[f"x_{i}_pi"] = hgf.node_trajectories[i]["pi"]
-            structure_df[f"x_{i}_muhat"] = hgf.node_trajectories[i]["muhat"]
-            structure_df[f"x_{i}_pihat"] = hgf.node_trajectories[i]["pihat"]
-            if (i == 1) & (hgf.model_type == "continuous"):
-                surprise = gaussian_surprise(
-                    x=hgf.node_trajectories[0]["value"][1:],
-                    muhat=hgf.node_trajectories[i]["muhat"][:-1],
-                    pihat=hgf.node_trajectories[i]["pihat"][:-1],
-                )
-            else:
-                surprise = gaussian_surprise(
-                    x=hgf.node_trajectories[i]["mu"][1:],
-                    muhat=hgf.node_trajectories[i]["muhat"][:-1],
-                    pihat=hgf.node_trajectories[i]["pihat"][:-1],
-                )
-            # fill with nans when the model cannot fit
-            surprise = jnp.where(
-                jnp.isnan(hgf.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
+    # loop over non input nodes and store sufficient statistics with surprise
+    indexes = [
+        i
+        for i in range(1, len(hgf.node_trajectories))
+        if i not in hgf.input_nodes_idx.idx
+    ]
+    df = pd.DataFrame(
+        dict(
+            [
+                (f"x_{i}_{var}", hgf.node_trajectories[i][var])
+                for i in indexes
+                for var in ["mu", "pi", "muhat", "pihat"]
+            ]
+        )
+    )
+    structure_df = pd.concat([structure_df, df], axis=1)
+
+    # for value parents of continuous inputs nodes
+    continuous_parents_idxs = []
+    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
+        if kind == "continuous":
+            for par_idx in hgf.edges[idx].value_parents:  # type: ignore
+                continuous_parents_idxs.append(par_idx)
+
+    for i in indexes:
+        if i in continuous_parents_idxs:
+            surprise = gaussian_surprise(
+                x=hgf.node_trajectories[0]["value"][1:],
+                muhat=hgf.node_trajectories[i]["muhat"][:-1],
+                pihat=hgf.node_trajectories[i]["pihat"][:-1],
             )
-            structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
+        else:
+            surprise = gaussian_surprise(
+                x=hgf.node_trajectories[i]["mu"][1:],
+                muhat=hgf.node_trajectories[i]["muhat"][:-1],
+                pihat=hgf.node_trajectories[i]["pihat"][:-1],
+            )
+        # fill with nans when the model cannot fit
+        surprise = jnp.where(
+            jnp.isnan(hgf.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
+        )
+        structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
 
     # compute the global surprise over all node
     structure_df["surprise"] = structure_df.iloc[
