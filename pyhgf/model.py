@@ -13,11 +13,11 @@ from pyhgf.networks import (
     beliefs_propagation,
     fill_categorical_state_node,
     get_update_sequence,
+    to_pandas,
 )
 from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
 from pyhgf.typing import Edges, Indexes, InputIndexes, UpdateSequence
-from pyhgf.updates.continuous import gaussian_surprise
 
 
 class HGF(object):
@@ -246,7 +246,8 @@ class HGF(object):
         if time_steps is None:
             time_steps = np.ones(len(input_data))  # time steps vector
         if self.update_sequence is None:
-            raise ValueError("No update sequence found.")
+            self.set_update_sequence()
+            raise Warning("Generating an update sequence automatically.")
 
         # create the function that will be scaned
         scan_fn = Partial(
@@ -413,55 +414,7 @@ class HGF(object):
             the surprise of each node in the structure.
 
         """
-        # get time and time steps from the first input node
-        structure_df = pd.DataFrame(
-            {
-                "time_steps": self.node_trajectories[self.input_nodes_idx.idx[0]][
-                    "time_step"
-                ],
-                "time": jnp.cumsum(
-                    self.node_trajectories[self.input_nodes_idx.idx[0]]["time_step"]
-                ),
-            }
-        )
-
-        # add the observations from input nodes
-        for inpt in self.input_nodes_idx.idx:
-            structure_df[f"observation_input_{inpt}"] = self.node_trajectories[inpt][
-                "value"
-            ]
-
-        # loop over nodes and store sufficient statistics with surprise
-        for i in range(1, len(self.node_trajectories)):
-            if i not in self.input_nodes_idx.idx:
-                structure_df[f"x_{i}_mu"] = self.node_trajectories[i]["mu"]
-                structure_df[f"x_{i}_pi"] = self.node_trajectories[i]["pi"]
-                structure_df[f"x_{i}_muhat"] = self.node_trajectories[i]["muhat"]
-                structure_df[f"x_{i}_pihat"] = self.node_trajectories[i]["pihat"]
-                if (i == 1) & (self.model_type == "continuous"):
-                    surprise = gaussian_surprise(
-                        x=self.node_trajectories[0]["value"][1:],
-                        muhat=self.node_trajectories[i]["muhat"][:-1],
-                        pihat=self.node_trajectories[i]["pihat"][:-1],
-                    )
-                else:
-                    surprise = gaussian_surprise(
-                        x=self.node_trajectories[i]["mu"][1:],
-                        muhat=self.node_trajectories[i]["muhat"][:-1],
-                        pihat=self.node_trajectories[i]["pihat"][:-1],
-                    )
-                # fill with nans when the model cannot fit
-                surprise = jnp.where(
-                    jnp.isnan(self.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
-                )
-                structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
-
-        # compute the global surprise over all node
-        structure_df["surprise"] = structure_df.iloc[
-            :, structure_df.columns.str.contains("_surprise")
-        ].sum(axis=1, min_count=1)
-
-        return structure_df
+        return to_pandas(self)
 
     def add_input_node(
         self,

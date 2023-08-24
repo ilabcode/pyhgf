@@ -5,13 +5,18 @@ from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import jax.numpy as jnp
 import numpy as np
+import pandas as pd
 from jax import jit
 from jax.typing import ArrayLike
 
 from pyhgf.typing import Indexes, UpdateSequence
 from pyhgf.updates.binary import binary_input_update, binary_node_update
 from pyhgf.updates.categorical import categorical_input_update
-from pyhgf.updates.continuous import continuous_input_update, continuous_node_update
+from pyhgf.updates.continuous import (
+    continuous_input_update,
+    continuous_node_update,
+    gaussian_surprise,
+)
 
 if TYPE_CHECKING:
     from pyhgf.model import HGF
@@ -406,3 +411,62 @@ def get_update_sequence(
                 update_sequence += ((idx, categorical_input_update),)
 
     return update_sequence
+
+
+def to_pandas(hgf: "HGF") -> pd.DataFrame:
+    """Export the nodes trajectories and surprise as a Pandas data frame.
+
+    Returns
+    -------
+    structure_df :
+        Pandas data frame with the time series of sufficient statistics and
+        the surprise of each node in the structure.
+
+    """
+    # get time and time steps from the first input node
+    structure_df = pd.DataFrame(
+        {
+            "time_steps": hgf.node_trajectories[hgf.input_nodes_idx.idx[0]][
+                "time_step"
+            ],
+            "time": jnp.cumsum(
+                hgf.node_trajectories[hgf.input_nodes_idx.idx[0]]["time_step"]
+            ),
+        }
+    )
+
+    # add the observations from input nodes
+    for inpt in hgf.input_nodes_idx.idx:
+        structure_df[f"observation_input_{inpt}"] = hgf.node_trajectories[inpt]["value"]
+
+    # loop over nodes and store sufficient statistics with surprise
+    for i in range(1, len(hgf.node_trajectories)):
+        if i not in hgf.input_nodes_idx.idx:
+            structure_df[f"x_{i}_mu"] = hgf.node_trajectories[i]["mu"]
+            structure_df[f"x_{i}_pi"] = hgf.node_trajectories[i]["pi"]
+            structure_df[f"x_{i}_muhat"] = hgf.node_trajectories[i]["muhat"]
+            structure_df[f"x_{i}_pihat"] = hgf.node_trajectories[i]["pihat"]
+            if (i == 1) & (hgf.model_type == "continuous"):
+                surprise = gaussian_surprise(
+                    x=hgf.node_trajectories[0]["value"][1:],
+                    muhat=hgf.node_trajectories[i]["muhat"][:-1],
+                    pihat=hgf.node_trajectories[i]["pihat"][:-1],
+                )
+            else:
+                surprise = gaussian_surprise(
+                    x=hgf.node_trajectories[i]["mu"][1:],
+                    muhat=hgf.node_trajectories[i]["muhat"][:-1],
+                    pihat=hgf.node_trajectories[i]["pihat"][:-1],
+                )
+            # fill with nans when the model cannot fit
+            surprise = jnp.where(
+                jnp.isnan(hgf.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
+            )
+            structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
+
+    # compute the global surprise over all node
+    structure_df["surprise"] = structure_df.iloc[
+        :, structure_df.columns.str.contains("_surprise")
+    ].sum(axis=1, min_count=1)
+
+    return structure_df

@@ -30,6 +30,7 @@ class Testmodel(TestCase):
             .add_volatility_parent(children_idxs=[2, 3])
             .add_volatility_parent(children_idxs=2)
             .add_volatility_parent(children_idxs=7)
+            .set_update_sequence()
         )
 
         custom_hgf.input_data(input_data=np.array([0.2, 1]))
@@ -139,7 +140,7 @@ class Testmodel(TestCase):
         )
 
         # create a custom update series
-        update_sequence1 = three_level_binary_hgf.get_update_sequence()
+        update_sequence1 = three_level_binary_hgf.update_sequence
         update_sequence2 = update_sequence1[:2]
         update_branches = (update_sequence1, update_sequence2)
         branches_idx = np.random.binomial(n=1, p=0.5, size=len(timeseries))
