@@ -541,7 +541,9 @@ class HGF(object):
             }
         elif kind == "categorical":
             input_node_parameters = {
-                "surprise": jnp.nan,
+                "surprise": jnp.array(
+                    [jnp.nan] * categorical_parameters["n_categories"]
+                ),
                 "time_step": jnp.nan,
                 "xi": jnp.array(
                     [1.0 / categorical_parameters["n_categories"]]
@@ -589,7 +591,7 @@ class HGF(object):
                     "pi_2": 1.0,
                     "pi_3": 1.0,
                     "mu_1": 1 / categorical_parameters["n_categories"],
-                    "mu_2": 0.0,
+                    "mu_2": -jnp.log(categorical_parameters["n_categories"] - 1),
                     "mu_3": 0.0,
                     "omega_2": -4.0,
                     "omega_3": -4.0,

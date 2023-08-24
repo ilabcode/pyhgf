@@ -7,6 +7,7 @@ import jax.numpy as jnp
 from jax import jit
 
 from pyhgf.typing import Edges
+from pyhgf.updates.binary import binary_surprise
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
@@ -84,7 +85,9 @@ def categorical_input_update(
 
     # save the current sufficient statistics
     attributes[node_idx]["xi"] = new_xi
-
     attributes[node_idx]["time_step"] = time_step
+    attributes[node_idx]["surprise"] = binary_surprise(
+        x=current_values, muhat=attributes[node_idx]["xi"]
+    )
 
     return attributes
