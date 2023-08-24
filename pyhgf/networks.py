@@ -305,6 +305,23 @@ def get_update_sequence(
         ):
             continue
 
+        # if this node is part of a familly (the parent has multiple children)
+        # and this is not the last of the children, exit here
+        # we apply this principle for every value / volatility parent
+        is_youngest = False
+        if hgf.edges[node_idx].value_parents is not None:
+            for value_parents in hgf.edges[node_idx].value_parents:  # type: ignore
+                if hgf.edges[value_parents].value_children[-1] == node_idx:
+                    is_youngest = True
+        if hgf.edges[node_idx].volatility_parents is not None:
+            for volatility_parents in hgf.edges[
+                node_idx
+            ].volatility_parents:  # type: ignore
+                if hgf.edges[volatility_parents].volatility_children[-1] == node_idx:
+                    is_youngest = True
+        if not is_youngest:
+            continue
+
         # select the update function
         # --------------------------
 
