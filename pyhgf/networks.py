@@ -257,7 +257,10 @@ def fill_categorical_state_node(
 
 
 def get_update_sequence(
-    hgf: "HGF", node_idxs: Tuple[int, ...] = (0,), update_sequence: Tuple = ()
+    hgf: "HGF",
+    node_idxs: Tuple[int, ...] = (0,),
+    update_sequence: Tuple = (),
+    init=True,
 ) -> Tuple:
     """Generate an update sequence from the network's structure.
 
@@ -278,6 +281,8 @@ def get_update_sequence(
         (`None`), the function will start with the list of input nodes.
     update_sequence :
         The current state of the update sequence (for recursive evaluation).
+    init :
+        Use `init=False` for recursion.
 
     Returns
     -------
@@ -286,17 +291,15 @@ def get_update_sequence(
 
     """
     if len(update_sequence) == 0:
-        node_idxs = hgf.input_nodes_idx.idx
-
-        # list input nodes that should be ignored as they are wrapped inside
-        # other inputs, as this is the case for the categorical state nodes
-        exclude_node_idx = []
-        for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx):
-            if kind == "categorical":
-                exclude_node_idx.extend(
-                    list(hgf.edges[idx].value_parents)  # type: ignore
-                )
-        node_idxs = tuple([n for n in node_idxs if n not in exclude_node_idx])
+        # list all input nodes except categoricals
+        # that will be handled at the end of the recursion
+        node_idxs = tuple(
+            [
+                idx
+                for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx)
+                if kind != "categorical"
+            ]
+        )
 
     for node_idx in node_idxs:
         # if the node has no parent, exit here
@@ -342,7 +345,7 @@ def get_update_sequence(
             elif model_kind == "continuous":
                 update_fn = continuous_input_update
             elif model_kind == "categorical":
-                update_fn = categorical_input_update
+                continue
 
         # case 3 - this is the value parent of at least one binary input node
         if hgf.edges[node_idx].value_children is not None:
@@ -392,6 +395,14 @@ def get_update_sequence(
                                 hgf=hgf,
                                 node_idxs=(idx,),
                                 update_sequence=update_sequence,
+                                init=False,
                             )
+
+    # add the categorical update here, if any
+    if init is True:
+        for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx):
+            if kind == "categorical":
+                # create a new sequence step and add it to the list
+                update_sequence += ((idx, categorical_input_update),)
 
     return update_sequence
