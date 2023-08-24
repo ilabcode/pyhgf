@@ -9,6 +9,9 @@ from jax import jit
 from jax.typing import ArrayLike
 
 from pyhgf.typing import Indexes, UpdateSequence
+from pyhgf.updates.binary import binary_input_update, binary_node_update
+from pyhgf.updates.categorical import categorical_input_update
+from pyhgf.updates.continuous import continuous_input_update, continuous_node_update
 
 if TYPE_CHECKING:
     from pyhgf.model import HGF
@@ -251,3 +254,127 @@ def fill_categorical_state_node(
     )
 
     return hgf
+
+
+def get_update_sequence(
+    hgf: "HGF", node_idxs: Tuple[int, ...] = (0,), update_sequence: Tuple = ()
+) -> Tuple:
+    """Generate an update sequence from the network's structure.
+
+    THis function return an optimized update sequence considering the edges of the
+    network. The function ensures that the following principles apply:
+    1. all children have been updated before propagating to the parent(s) node.
+    2. the update function of an input node is chosen based on the node's type
+    (`"continuous"`, `"binary"` or `"categorical"`).
+    3. the update function of the parent of an input node is chosen based on the
+    node's type (`"continuous"`, `"binary"` or `"categorical"`).
+
+    Parameters
+    ----------
+    hgf :
+        An instance of the HGF model.
+    node_idxs :
+        The indexes of the current node(s) that should be evaluated. By default
+        (`None`), the function will start with the list of input nodes.
+    update_sequence :
+        The current state of the update sequence (for recursive evaluation).
+
+    Returns
+    -------
+    update_sequence :
+        The update sequence.
+
+    """
+    if len(update_sequence) == 0:
+        node_idxs = hgf.input_nodes_idx.idx
+
+        # list input nodes that should be ignored as they are wrapped inside
+        # other inputs, as this is the case for the categorical state nodes
+        exclude_node_idx = []
+        for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx):
+            if kind == "categorical":
+                exclude_node_idx.extend(
+                    list(hgf.edges[idx].value_parents)  # type: ignore
+                )
+        node_idxs = tuple([n for n in node_idxs if n not in exclude_node_idx])
+
+    for node_idx in node_idxs:
+        # if the node has no parent, exit here
+        if (hgf.edges[node_idx].value_parents is None) & (
+            hgf.edges[node_idx].volatility_parents is None
+        ):
+            continue
+
+        # select the update function
+        # --------------------------
+
+        # case 1 - default to a continuous node
+        update_fn = continuous_node_update
+
+        # case 2 - this is an input node
+        if node_idx in hgf.input_nodes_idx.idx:
+            model_kind = [
+                kind_
+                for kind_, idx_ in zip(
+                    hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx
+                )
+                if idx_ == node_idx
+            ][0]
+            if model_kind == "binary":
+                update_fn = binary_input_update
+            elif model_kind == "continuous":
+                update_fn = continuous_input_update
+            elif model_kind == "categorical":
+                update_fn = categorical_input_update
+
+        # case 3 - this is the value parent of at least one binary input node
+        if hgf.edges[node_idx].value_children is not None:
+            value_children_idx = hgf.edges[node_idx].value_children
+            for child_idx in value_children_idx:  # type: ignore
+                if child_idx in hgf.input_nodes_idx.idx:
+                    model_kind = [
+                        kind_
+                        for kind_, idx_ in zip(
+                            hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx
+                        )
+                        if idx_ == child_idx
+                    ][0]
+                    if model_kind == "binary":
+                        update_fn = binary_node_update
+
+        # create a new sequence step and add it to the list
+        new_sequence = node_idx, update_fn
+        update_sequence += (new_sequence,)
+
+        # search recursively for the next update steps - make sure that all the
+        # children have been updated before updating the parent(s)
+        # ---------------------------------------------------------------------
+
+        # loop over all possible dependencies (e.g. value, volatility coupling)
+        parents = hgf.edges[node_idx][:2]
+        for parent_types in parents:
+            if parent_types is not None:
+                for idx in parent_types:
+                    # get the list of all the children in the parent's family
+                    children_idxs = []
+                    if hgf.edges[idx].value_children is not None:
+                        children_idxs.extend(
+                            [*hgf.edges[idx].value_children]  # type: ignore
+                        )
+                    if hgf.edges[idx].volatility_children is not None:
+                        children_idxs.extend(
+                            [*hgf.edges[idx].volatility_children]  # type: ignore
+                        )
+
+                    if len(children_idxs) > 0:
+                        # only call the update on the parent(s) if the current node
+                        # is the last on the children's list (meaning that all the
+                        # other nodes have been updated)
+                        if children_idxs[-1] == node_idx:
+                            update_sequence = get_update_sequence(
+                                hgf=hgf,
+                                node_idxs=(idx,),
+                                update_sequence=update_sequence,
+                            )
+
+    return update_sequence

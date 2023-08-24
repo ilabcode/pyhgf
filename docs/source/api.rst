@@ -117,3 +117,4 @@ Utilities for manipulating networks of probabilistic nodes.
    trim_sequence
    list_branches
    fill_categorical_state_node
+   get_update_sequence
