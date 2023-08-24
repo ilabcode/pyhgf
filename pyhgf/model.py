@@ -222,7 +222,7 @@ class HGF(object):
                 )
 
             # get the update sequence from structure
-            self.update_sequence = self.get_update_sequence()
+            self.set_update_sequence()
 
     def input_data(
         self,
@@ -246,7 +246,7 @@ class HGF(object):
         if time_steps is None:
             time_steps = np.ones(len(input_data))  # time steps vector
         if self.update_sequence is None:
-            self.update_sequence = self.get_update_sequence()
+            raise ValueError("No update sequence found.")
 
         # create the function that will be scaned
         scan_fn = Partial(
@@ -822,27 +822,15 @@ class HGF(object):
 
         return self
 
-    def get_update_sequence(
+    def set_update_sequence(
         self, node_idxs: Tuple[int, ...] = (0,), update_sequence: Tuple = ()
-    ) -> Tuple:
+    ) -> "HGF":
         """Generate an update sequence from the network's structure.
 
-        Se :py:func:`pyhgf.networks.get_update_sequence` for more details.
-
-        Parameters
-        ----------
-        node_idxs :
-            The indexes of the current node(s) that should be evaluated. By default
-            (`None`), the function will start with the list of input nodes.
-        update_sequence :
-            The current state of the update sequence (for recursive evaluation).
-
-        Returns
-        -------
-        update_sequence :
-            The update sequence.
+        See :py:func:`pyhgf.networks.get_update_sequence` for more details.
 
         """
-        return get_update_sequence(
-            hgf=self, node_idxs=node_idxs, update_sequence=update_sequence
+        self.update_sequence = get_update_sequence(
+            hgf=self, node_idxs=(0,), update_sequence=()
         )
+        return self
