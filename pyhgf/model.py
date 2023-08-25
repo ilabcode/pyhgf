@@ -144,6 +144,7 @@ class HGF(object):
         self.node_trajectories: Dict
         self.attributes: Dict
         self.update_sequence: Optional[UpdateSequence] = None
+        self.scan_fn: Optional[Callable] = None
 
         if model_type in ["continuous", "binary"]:
             if self.verbose:
@@ -221,14 +222,49 @@ class HGF(object):
                     rho=rho["3"],
                 )
 
-            # get the update sequence from structure
+            # initialize the model so it is ready to receive new observations
+            self.init()
+
+    def init(self) -> "HGF":
+        """Initialize the update functions.
+
+        This step should be called after creating the network to compile the update
+        sequence and before providing any input data.
+
+        """
+        # create the update sequence automatically if not provided
+        if self.update_sequence is None:
             self.set_update_sequence()
+            if self.verbose:
+                print("... Create the update sequence from the network structure.")
+
+        # create the belief propagation function that will be scaned
+        if self.scan_fn is None:
+            self.scan_fn = Partial(
+                beliefs_propagation,
+                update_sequence=self.update_sequence,
+                edges=self.edges,
+                input_nodes_idx=self.input_nodes_idx.idx,
+            )
+            if self.verbose:
+                print("... Create the belief propagation function.")
+
+        # blanck call to cache the JIT-ed functions
+        _ = scan(
+            self.scan_fn,
+            self.attributes,
+            jnp.array([jnp.zeros(len(self.input_nodes_idx.idx) + 1)]),
+        )
+        if self.verbose:
+            print("... Cache the belief propagation function.")
+
+        return self
 
     def input_data(
         self,
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
-    ):
+    ) -> "HGF":
         """Add new observations.
 
         Parameters
@@ -245,17 +281,6 @@ class HGF(object):
             print((f"Adding {len(input_data)} new observations."))
         if time_steps is None:
             time_steps = np.ones(len(input_data))  # time steps vector
-        if self.update_sequence is None:
-            self.set_update_sequence()
-            raise Warning("Generating an update sequence automatically.")
-
-        # create the function that will be scaned
-        scan_fn = Partial(
-            beliefs_propagation,
-            update_sequence=self.update_sequence,
-            edges=self.edges,
-            input_nodes_idx=self.input_nodes_idx.idx,
-        )
 
         # concatenate data and time
         time_steps = time_steps[..., jnp.newaxis]
@@ -264,13 +289,12 @@ class HGF(object):
 
         data = jnp.concatenate((input_data, time_steps), dtype=float, axis=1)
 
-        # Run the entire for loop
-        # this is where the model loop over the input time series
-        # at each input the node structure is traversed and beliefs are updated
+        # this is where the model loop over the whole input time series
+        # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
-        _, node_trajectories = scan(scan_fn, self.attributes, data)
+        _, node_trajectories = scan(self.scan_fn, self.attributes, data)
 
-        # the node structure at each value update
+        # trajectories of the network attributes a each time point
         self.node_trajectories = node_trajectories
 
         return self
