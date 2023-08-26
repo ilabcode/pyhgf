@@ -56,7 +56,7 @@ def categorical_input_update(
     binary_input_update, continuous_input_update
 
     """
-    # get the new expected values from the implied binary inputs
+    # get the new expected values from the implied binary inputs (parents predictions)
     new_xi = jnp.array(
         [
             attributes[edges[vapa].value_parents[0]]["muhat"]
@@ -64,30 +64,31 @@ def categorical_input_update(
         ]
     )
 
-    # get the prediction error
-    current_values = jnp.array(
+    # the values observed at time k
+    attributes[node_idx]["value"] = jnp.array(
         [
             attributes[idx]["value"]
             for idx in edges[node_idx].value_parents  # type: ignore
         ]
     )
-    pe = attributes[node_idx]["xi"] - current_values
 
-    # get the differential of expectations
+    # the prediction error
+    pe = attributes[node_idx]["value"] - attributes[node_idx]["xi"]
+
+    # the differential of expectations (parents predictions at time k and k-1)
     delta_xi = new_xi - attributes[node_idx]["xi"]
 
-    # compute nu - hyperparameter of the implied Dirichlet distribution
+    # compute nu, hyperparameter of the Dirichlet distribution (also learning rate)
     nu = (pe / delta_xi) - 1
 
-    # mean of the Dirichlet distribution
-    mu = nu / jnp.sum(nu)
-    attributes[node_idx]["mu"] = mu
+    # prediction mean
+    attributes[node_idx]["mu"] = ((nu * new_xi) + 1) / jnp.sum(((nu * new_xi) + 1))
 
     # save the current sufficient statistics
     attributes[node_idx]["xi"] = new_xi
     attributes[node_idx]["time_step"] = time_step
     attributes[node_idx]["surprise"] = binary_surprise(
-        x=current_values, muhat=attributes[node_idx]["xi"]
+        x=attributes[node_idx]["value"], muhat=attributes[node_idx]["xi"]
     )
 
     return attributes

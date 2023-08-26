@@ -146,7 +146,10 @@ class HGF(object):
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
 
-        if model_type in ["continuous", "binary"]:
+        if model_type not in ["continuous", "binary"]:
+            if self.verbose:
+                print("Initializing a network with custom node structure.")
+        else:
             if self.verbose:
                 print(
                     (
@@ -154,7 +157,6 @@ class HGF(object):
                         f"with {self.n_levels} levels."
                     )
                 )
-
             #########
             # Input #
             #########
@@ -527,7 +529,7 @@ class HGF(object):
                     * categorical_parameters["n_categories"]
                 ),
                 "mu": jnp.zeros(categorical_parameters["n_categories"]),
-                "value": jnp.nan,
+                "value": jnp.array([jnp.nan] * categorical_parameters["n_categories"]),
             }
 
         # add more parameters (optional)

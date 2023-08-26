@@ -230,8 +230,9 @@ def fill_categorical_state_node(
         hgf.add_value_parent(
             children_idxs=implied_binary_parameters["binary_idxs"][i],
             value_coupling=1.0,
-            mu=implied_binary_parameters["mu_1"],
             pi=implied_binary_parameters["pi_1"],
+            mu=implied_binary_parameters["mu_1"],
+            mu_hat=implied_binary_parameters["mu_1"],
         )
 
     # add the continuous parent node
@@ -438,8 +439,24 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     )
 
     # add the observations from input nodes
-    for inpt in hgf.input_nodes_idx.idx:
-        structure_df[f"observation_input_{inpt}"] = hgf.node_trajectories[inpt]["value"]
+    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
+        if kind == "categorical":
+            df = pd.DataFrame(
+                dict(
+                    [
+                        (
+                            f"observation_input_{idx}_{i}",
+                            hgf.node_trajectories[0]["value"][:, i],
+                        )
+                        for i in range(hgf.node_trajectories[0]["value"].shape[1])
+                    ]
+                )
+            )
+            pd.concat([structure_df, df], axis=1)
+        else:
+            structure_df[f"observation_input_{idx}"] = hgf.node_trajectories[idx][
+                "value"
+            ]
 
     # loop over non input nodes and store sufficient statistics with surprise
     indexes = [
