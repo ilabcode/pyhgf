@@ -317,6 +317,8 @@ def get_update_sequence(
         # and this is not the last of the children, exit here
         # we apply this principle for every value / volatility parent
         is_youngest = False
+        if node_idx in hgf.input_nodes_idx.idx:
+            is_youngest = True  # always update input nodes
         if hgf.edges[node_idx].value_parents is not None:
             for value_parents in hgf.edges[node_idx].value_parents:  # type: ignore
                 if hgf.edges[value_parents].value_children[-1] == node_idx:
