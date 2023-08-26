@@ -196,6 +196,7 @@ many_value_children_hgf = (
     .add_input_node(kind="continuous", input_idxs=1)
     .add_value_parent(children_idxs=[0, 1])
     .add_volatility_parent(children_idxs=[2])
+    .init()
 )
 
 # plot the network
@@ -264,6 +265,7 @@ many_volatility_children_hgf = (
     .add_value_parent(children_idxs=[0])
     .add_value_parent(children_idxs=[1])
     .add_volatility_parent(children_idxs=[2, 3])
+    .init()
 )
 
 # plot the network
@@ -328,6 +330,7 @@ many_binary_children_hgf = (
     .add_value_parent(children_idxs=[1])
     .add_value_parent(children_idxs=[2, 3])
     .add_volatility_parent(children_idxs=[4])
+    .init()
 )
 
 # plot the network
