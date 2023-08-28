@@ -10,10 +10,17 @@ from jax import jit
 from jax.typing import ArrayLike
 
 from pyhgf.typing import Indexes, UpdateSequence
-from pyhgf.updates.binary import binary_input_update, binary_node_update
+from pyhgf.updates.binary import (
+    binary_input_prediction,
+    binary_input_update,
+    binary_node_prediction,
+    binary_node_update,
+)
 from pyhgf.updates.categorical import categorical_input_update
 from pyhgf.updates.continuous import (
+    continuous_input_prediction,
     continuous_input_update,
+    continuous_node_prediction,
     continuous_node_update,
     gaussian_surprise,
 )
@@ -242,6 +249,7 @@ def fill_categorical_state_node(
             + implied_binary_parameters["n_categories"],
             value_coupling=1.0,
             mu=implied_binary_parameters["mu_2"],
+            mu_hat=implied_binary_parameters["mu_hat_2"],
             pi=implied_binary_parameters["pi_2"],
             omega=implied_binary_parameters["omega_2"],
         )
@@ -265,9 +273,10 @@ def fill_categorical_state_node(
 def get_update_sequence(
     hgf: "HGF",
     node_idxs: Tuple[int, ...] = (0,),
-    update_sequence: Tuple = (),
-    init=True,
-) -> Tuple:
+    update_sequence: List = [],
+    prediction_sequence: List = [],
+    init: bool = True,
+) -> Tuple[List, ...]:
     """Generate an update sequence from the network's structure.
 
     THis function return an optimized update sequence considering the edges of the
@@ -287,13 +296,15 @@ def get_update_sequence(
         (`None`), the function will start with the list of input nodes.
     update_sequence :
         The current state of the update sequence (for recursive evaluation).
+    prediction_sequence :
+        The current state of the prediction sequence (for recursive evaluation).
     init :
         Use `init=False` for recursion.
 
     Returns
     -------
-    update_sequence :
-        The update sequence.
+    sequence :
+        The update sequence generated from the node structure.
 
     """
     if len(update_sequence) == 0:
@@ -330,14 +341,13 @@ def get_update_sequence(
             ].volatility_parents:  # type: ignore
                 if hgf.edges[volatility_parents].volatility_children[-1] == node_idx:
                     is_youngest = True
-        if not is_youngest:
-            continue
 
         # select the update function
         # --------------------------
 
         # case 1 - default to a continuous node
         update_fn = continuous_node_update
+        prediction_fn = continuous_node_prediction
 
         # case 2 - this is an input node
         if node_idx in hgf.input_nodes_idx.idx:
@@ -350,8 +360,10 @@ def get_update_sequence(
             ][0]
             if model_kind == "binary":
                 update_fn = binary_input_update
+                prediction_fn = binary_input_prediction
             elif model_kind == "continuous":
                 update_fn = continuous_input_update
+                prediction_fn = continuous_input_prediction
             elif model_kind == "categorical":
                 continue
 
@@ -369,10 +381,16 @@ def get_update_sequence(
                     ][0]
                     if model_kind == "binary":
                         update_fn = binary_node_update
+                        prediction_fn = binary_node_prediction
 
-        # create a new sequence step and add it to the list
-        new_sequence = node_idx, update_fn
-        update_sequence += (new_sequence,)
+        # create a new update and prediction sequence step and add it to the list
+        # only the youngest of the family is updated, but all nodes get predictions
+        if is_youngest:
+            new__update_sequence = node_idx, update_fn
+            update_sequence.append(new__update_sequence)
+
+        new_prediction_sequence = node_idx, prediction_fn
+        prediction_sequence.append(new_prediction_sequence)
 
         # search recursively for the next update steps - make sure that all the
         # children have been updated before updating the parent(s)
@@ -399,21 +417,22 @@ def get_update_sequence(
                         # is the last on the children's list (meaning that all the
                         # other nodes have been updated)
                         if children_idxs[-1] == node_idx:
-                            update_sequence = get_update_sequence(
+                            update_sequence, prediction_sequence = get_update_sequence(
                                 hgf=hgf,
                                 node_idxs=(idx,),
                                 update_sequence=update_sequence,
+                                prediction_sequence=prediction_sequence,
                                 init=False,
                             )
-
-    # add the categorical update here, if any
+    # final iteration
     if init is True:
+        # add the categorical update here, if any
         for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx):
             if kind == "categorical":
                 # create a new sequence step and add it to the list
-                update_sequence += ((idx, categorical_input_update),)
+                update_sequence.append((idx, categorical_input_update))
 
-    return update_sequence
+    return update_sequence, prediction_sequence
 
 
 def to_pandas(hgf: "HGF") -> pd.DataFrame:
@@ -485,21 +504,22 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     for i in indexes:
         if i in continuous_parents_idxs:
             surprise = gaussian_surprise(
-                x=hgf.node_trajectories[0]["value"][1:],
-                muhat=hgf.node_trajectories[i]["muhat"][:-1],
-                pihat=hgf.node_trajectories[i]["pihat"][:-1],
+                x=hgf.node_trajectories[0]["value"],
+                muhat=hgf.node_trajectories[i]["muhat"],
+                pihat=hgf.node_trajectories[i]["pihat"],
             )
         else:
             surprise = gaussian_surprise(
-                x=hgf.node_trajectories[i]["mu"][1:],
-                muhat=hgf.node_trajectories[i]["muhat"][:-1],
-                pihat=hgf.node_trajectories[i]["pihat"][:-1],
+                x=hgf.node_trajectories[i]["mu"],
+                muhat=hgf.node_trajectories[i]["muhat"],
+                pihat=hgf.node_trajectories[i]["pihat"],
             )
+
         # fill with nans when the model cannot fit
         surprise = jnp.where(
-            jnp.isnan(hgf.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
+            jnp.isnan(hgf.node_trajectories[i]["mu"]), jnp.nan, surprise
         )
-        structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
+        structure_df[f"x_{i}_surprise"] = surprise
 
     # compute the global surprise over all node
     structure_df["surprise"] = structure_df.iloc[

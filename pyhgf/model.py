@@ -520,15 +520,18 @@ class HGF(object):
             }
         elif kind == "categorical":
             input_node_parameters = {
-                "surprise": jnp.array(
-                    [jnp.nan] * categorical_parameters["n_categories"]
-                ),
+                "binary_surprise": jnp.nan,
+                "kl_divergence": jnp.nan,
                 "time_step": jnp.nan,
+                "alpha": jnp.ones(categorical_parameters["n_categories"]),
                 "xi": jnp.array(
                     [1.0 / categorical_parameters["n_categories"]]
                     * categorical_parameters["n_categories"]
                 ),
-                "mu": jnp.zeros(categorical_parameters["n_categories"]),
+                "mu": jnp.array(
+                    [1.0 / categorical_parameters["n_categories"]]
+                    * categorical_parameters["n_categories"]
+                ),
                 "value": jnp.array([jnp.nan] * categorical_parameters["n_categories"]),
             }
 
@@ -569,8 +572,9 @@ class HGF(object):
                     "pi_1": 1.0,
                     "pi_2": 1.0,
                     "pi_3": 1.0,
-                    "mu_1": 1 / categorical_parameters["n_categories"],
+                    "mu_1": 0.0,
                     "mu_2": -jnp.log(categorical_parameters["n_categories"] - 1),
+                    "mu_hat_2": -jnp.log(categorical_parameters["n_categories"] - 1),
                     "mu_3": 0.0,
                     "omega_2": -4.0,
                     "omega_3": -4.0,
@@ -803,15 +807,18 @@ class HGF(object):
 
         return self
 
-    def set_update_sequence(
-        self, node_idxs: Tuple[int, ...] = (0,), update_sequence: Tuple = ()
-    ) -> "HGF":
+    def set_update_sequence(self) -> "HGF":
         """Generate an update sequence from the network's structure.
 
         See :py:func:`pyhgf.networks.get_update_sequence` for more details.
 
         """
-        self.update_sequence = get_update_sequence(
-            hgf=self, node_idxs=(0,), update_sequence=()
+        update_sequence, prediction_sequence = get_update_sequence(
+            hgf=self, update_sequence=[], prediction_sequence=[]
         )
+        # generate the prediction sequence here, in reverse order
+        prediction_sequence.reverse()
+        prediction_sequence.extend(update_sequence)
+        self.update_sequence = tuple(prediction_sequence)
+
         return self

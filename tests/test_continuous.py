@@ -11,7 +11,9 @@ from pyhgf import load_data
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.continuous import (
+    continuous_input_prediction,
     continuous_input_update,
+    continuous_node_prediction,
     continuous_node_update,
     gaussian_surprise,
 )
@@ -69,8 +71,9 @@ class Testcontinuous(TestCase):
         ###########################################
         # No value parent - no volatility parents #
         ###########################################
-        sequence1 = 0, continuous_input_update
-        update_sequence = (sequence1,)
+        sequence1 = 0, continuous_input_prediction
+        sequence2 = 0, continuous_input_update
+        update_sequence = (sequence1, sequence2)
         new_attributes, _ = beliefs_propagation(
             attributes=attributes,
             edges=edges,
@@ -140,9 +143,11 @@ class Testcontinuous(TestCase):
         )
 
         # create update sequence
-        sequence1 = 0, continuous_input_update
-        sequence2 = 1, continuous_node_update
-        update_sequence = (sequence1, sequence2)
+        sequence1 = 0, continuous_input_prediction
+        sequence2 = 1, continuous_node_prediction
+        sequence3 = 0, continuous_input_update
+        sequence4 = 1, continuous_node_update
+        update_sequence = (sequence1, sequence2, sequence3, sequence4)
         data = jnp.array([0.2, 1.0])
 
         # apply beliefs propagation updates
@@ -222,9 +227,11 @@ class Testcontinuous(TestCase):
         )
 
         # create update sequence
-        sequence1 = 0, continuous_input_update
-        sequence2 = 1, continuous_node_update
-        update_sequence = (sequence1, sequence2)
+        sequence1 = 0, continuous_input_prediction
+        sequence2 = 1, continuous_node_prediction
+        sequence3 = 0, continuous_input_update
+        sequence4 = 1, continuous_node_update
+        update_sequence = (sequence1, sequence2, sequence3, sequence4)
 
         # create the function that will be scaned
         scan_fn = Partial(

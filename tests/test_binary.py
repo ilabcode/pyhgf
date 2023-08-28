@@ -11,13 +11,15 @@ from pyhgf import load_data
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.binary import (
+    binary_input_prediction,
     binary_input_update,
+    binary_node_prediction,
     binary_node_update,
     binary_surprise,
     gaussian_density,
     sgm,
 )
-from pyhgf.updates.continuous import continuous_node_update
+from pyhgf.updates.continuous import continuous_node_prediction, continuous_node_update
 
 
 class Testbinary(TestCase):
@@ -107,10 +109,20 @@ class Testbinary(TestCase):
         )
 
         # create update sequence
-        sequence1 = 0, binary_input_update
-        sequence2 = 1, binary_node_update
-        sequence3 = 2, continuous_node_update
-        update_sequence = (sequence1, sequence2, sequence3)
+        sequence1 = 0, binary_input_prediction
+        sequence2 = 1, binary_node_prediction
+        sequence3 = 2, continuous_node_prediction
+        sequence4 = 0, binary_input_update
+        sequence5 = 1, binary_node_update
+        sequence6 = 2, continuous_node_update
+        update_sequence = (
+            sequence1,
+            sequence2,
+            sequence3,
+            sequence4,
+            sequence5,
+            sequence6,
+        )
         data = jnp.array([1.0, 1.0])
 
         # apply sequence

@@ -35,9 +35,9 @@ def first_level_gaussian_surprise(hgf: "HGF", response_function_parameters=None)
     # the input value at time t is compared to the Gaussian prediction at t-1
     surprise = jnp.sum(
         gaussian_surprise(
-            x=hgf.node_trajectories[0]["value"][1:],
-            muhat=hgf.node_trajectories[1]["muhat"][:-1],
-            pihat=hgf.node_trajectories[1]["pihat"][:-1],
+            x=hgf.node_trajectories[0]["value"],
+            muhat=hgf.node_trajectories[1]["muhat"],
+            pihat=hgf.node_trajectories[1]["pihat"],
         )
     )
 
@@ -76,9 +76,9 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
         input_parents_list.append(va_pa)
         surprise += jnp.sum(
             gaussian_surprise(
-                x=hgf.node_trajectories[idx]["value"][1:],
-                muhat=hgf.node_trajectories[va_pa]["muhat"][:-1],
-                pihat=hgf.node_trajectories[va_pa]["pihat"][:-1],
+                x=hgf.node_trajectories[idx]["value"],
+                muhat=hgf.node_trajectories[va_pa]["muhat"],
+                pihat=hgf.node_trajectories[va_pa]["pihat"],
             )
         )
 
@@ -88,9 +88,9 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
         if (i not in hgf.input_nodes_idx.idx) and (i not in input_parents_list):
             surprise += jnp.sum(
                 gaussian_surprise(
-                    x=hgf.node_trajectories[i]["mu"][1:],
-                    muhat=hgf.node_trajectories[i]["muhat"][:-1],
-                    pihat=hgf.node_trajectories[i]["pihat"][:-1],
+                    x=hgf.node_trajectories[i]["mu"],
+                    muhat=hgf.node_trajectories[i]["muhat"],
+                    pihat=hgf.node_trajectories[i]["pihat"],
                 )
             )
 
