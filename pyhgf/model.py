@@ -524,6 +524,7 @@ class HGF(object):
                 "kl_divergence": jnp.nan,
                 "time_step": jnp.nan,
                 "alpha": jnp.ones(categorical_parameters["n_categories"]),
+                "pe": jnp.zeros(categorical_parameters["n_categories"]),
                 "xi": jnp.array(
                     [1.0 / categorical_parameters["n_categories"]]
                     * categorical_parameters["n_categories"]
