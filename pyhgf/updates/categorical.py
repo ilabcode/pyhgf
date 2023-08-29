@@ -131,7 +131,6 @@ def dirichlet_kullback_leibler(alpha_1: ArrayLike, alpha_2: ArrayLike) -> Array:
     alpha_2 :
         The concentration parameters for the distribution :math:`Q`.
 
-
     Returns
     -------
     kl :
