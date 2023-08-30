@@ -14,6 +14,7 @@ class Testbinary(TestCase):
         input_data = np.array(
             [np.random.multinomial(n=1, pvals=[0.1, 0.2, 0.7]) for _ in range(3)]
         ).T
+        input_data = np.vstack([[0.0] * input_data.shape[1], input_data])
 
         # create the categorical HGF
         categorical_hgf = (
