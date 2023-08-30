@@ -74,6 +74,10 @@ def categorical_input_update(
     nu = (pe / delta_xi) - 1
     alpha = (nu * new_xi) + 1  # concentration parameters for the Dirichlet
 
+    # in case alpha contains NaNs (e.g. after the first time step,
+    # due to the absence of belief evolution)
+    alpha = jnp.where(jnp.isnan(alpha), 1.0, alpha)
+
     # now retrieve the values observed at time k
     attributes[node_idx]["value"] = jnp.array(
         [

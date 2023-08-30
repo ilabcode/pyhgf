@@ -185,8 +185,8 @@ class HGF(object):
                 value_coupling=1.0,
                 mu=initial_mu["1"],
                 pi=initial_pi["1"],
-                omega=omega["1"] if self.model_type != "binary" else np.nan,
-                rho=rho["1"] if self.model_type != "binary" else np.nan,
+                omega=omega["1"] if self.model_type != "binary" else jnp.nan,
+                rho=rho["1"] if self.model_type != "binary" else jnp.nan,
             )
 
             #########
@@ -255,7 +255,7 @@ class HGF(object):
         _ = scan(
             self.scan_fn,
             self.attributes,
-            jnp.array([jnp.zeros(len(self.input_nodes_idx.idx) + 1)]),
+            jnp.array([jnp.ones(len(self.input_nodes_idx.idx) + 1)]),
         )
         if self.verbose:
             print("... Cache the belief propagation function.")
@@ -520,8 +520,8 @@ class HGF(object):
             }
         elif kind == "categorical":
             input_node_parameters = {
-                "binary_surprise": jnp.nan,
-                "kl_divergence": jnp.nan,
+                "binary_surprise": 0.0,
+                "kl_divergence": 0.0,
                 "time_step": jnp.nan,
                 "alpha": jnp.ones(categorical_parameters["n_categories"]),
                 "pe": jnp.zeros(categorical_parameters["n_categories"]),
@@ -533,7 +533,7 @@ class HGF(object):
                     [1.0 / categorical_parameters["n_categories"]]
                     * categorical_parameters["n_categories"]
                 ),
-                "value": jnp.array([jnp.nan] * categorical_parameters["n_categories"]),
+                "value": jnp.zeros(categorical_parameters["n_categories"]),
             }
 
         # add more parameters (optional)
@@ -598,7 +598,6 @@ class HGF(object):
         mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
         pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
-        nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
@@ -621,8 +620,6 @@ class HGF(object):
         pi_hat :
             The expected precision of the Gaussian distribution (inverse variance) for
             the next observation.
-        nu :
-            Stochasticity coupling.
         omega :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
@@ -649,7 +646,7 @@ class HGF(object):
             "kappas_parents": None,
             "psis_children": tuple(value_coupling for _ in range(len(children_idxs))),
             "psis_parents": None,
-            "nu": nu,
+            "nu": 0.0,
             "omega": omega,
             "rho": rho,
         }
@@ -705,7 +702,6 @@ class HGF(object):
         mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
         pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
-        nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
@@ -728,8 +724,6 @@ class HGF(object):
         pi_hat :
             The expected precision of the Gaussian distribution (inverse variance) for
             the next observation.
-        nu :
-            Stochasticity coupling.
         omega :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
@@ -758,7 +752,7 @@ class HGF(object):
             "kappas_parents": None,
             "psis_children": None,
             "psis_parents": None,
-            "nu": nu,
+            "nu": 0.0,
             "omega": omega,
             "rho": rho,
         }

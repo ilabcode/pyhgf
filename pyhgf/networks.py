@@ -82,11 +82,8 @@ def beliefs_propagation(
         node_idx, update_fn = sequence
 
         # if we are updating an input node, select the value that should be passed
-        value = jnp.where(
-            jnp.isin(node_idx, input_nodes_idx),
-            jnp.nansum(jnp.equal(input_nodes_idx, node_idx) * values),
-            jnp.nan,
-        )
+        # otherwise, just pass 0.0 and the value will be ignored
+        value = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * values)
 
         attributes = update_fn(
             attributes=attributes,

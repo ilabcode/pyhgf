@@ -164,14 +164,7 @@ def continuous_node_update(
     # Update volatility parents #
     #############################
     if volatility_parents_idxs is not None:
-        # the strength of the value coupling between the base node and the parents nodes
-        kappas_parents = attributes[node_idx]["kappas_parents"]
-
-        nu = attributes[node_idx]["nu"]
-
-        for volatility_parent_idx, kappas_parent in zip(
-            volatility_parents_idxs, kappas_parents
-        ):
+        for volatility_parent_idx in volatility_parents_idxs:
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
             if edges[volatility_parent_idx].volatility_children[-1] == node_idx:
