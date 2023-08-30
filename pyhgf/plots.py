@@ -577,28 +577,6 @@ def plot_nodes(
                                 alpha=0.5,
                                 color=input_colors[ii],
                             )
-                        else:
-                            child_idx = np.where(
-                                np.array(hgf.input_nodes_idx.idx) == child_idx
-                            )[0][0]
-                            axs[i].scatter(
-                                trajectories_df.time,
-                                trajectories_df[f"observation_input_{child_idx}"],
-                                s=3,
-                                label=f"Value child node - {ii}",
-                                alpha=0.3,
-                                color=input_colors[ii],
-                                edgecolors="grey",
-                            )
-                            axs[i].plot(
-                                trajectories_df.time,
-                                trajectories_df[f"observation_input_{child_idx}"],
-                                linewidth=0.5,
-                                linestyle="--",
-                                alpha=0.3,
-                                color=input_colors[ii],
-                            )
-                            axs[i].legend()
 
             # plotting surprise
             # -----------------

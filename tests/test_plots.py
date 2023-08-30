@@ -4,6 +4,7 @@ import unittest
 from unittest import TestCase
 
 import jax.numpy as jnp
+import numpy as np
 
 from pyhgf import load_data
 from pyhgf.model import HGF
@@ -128,6 +129,32 @@ class Testplots(TestCase):
         three_level_binary_hgf.plot_nodes(
             node_idxs=2, show_current_state=True, show_observations=True
         )
+
+        #############
+        # Categorical
+        # -----------
+
+        # generate some categorical inputs data
+        input_data = np.array(
+            [np.random.multinomial(n=1, pvals=[0.1, 0.2, 0.7]) for _ in range(3)]
+        ).T
+
+        # create the categorical HGF
+        categorical_hgf = (
+            HGF(model_type=None, verbose=False)
+            .add_input_node(
+                kind="categorical",
+                categorical_parameters={"n_categories": 10},
+                binary_parameters={"omega_2": -2.0},
+            )
+            .init()
+        )
+
+        # fitting the model forwards
+        categorical_hgf.input_data(input_data=input_data.T)
+
+        # plot node structures
+        categorical_hgf.plot_network()
 
 
 if __name__ == "__main__":
