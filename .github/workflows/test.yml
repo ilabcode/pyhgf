@@ -29,8 +29,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install graphviz
-        pip install jax=0.4.14
-        pip install jaxlib=0.4.14
+        pip install jax==0.4.14
+        pip install jaxlib==0.4.14
         pip install -r requirements-tests.txt
         pip install ipykernel coverage pytest pytest-cov
         python -m ipykernel install --user --name python3
