@@ -30,6 +30,7 @@ class Testmodel(TestCase):
             .add_volatility_parent(children_idxs=[2, 3])
             .add_volatility_parent(children_idxs=2)
             .add_volatility_parent(children_idxs=7)
+            .init()
         )
 
         custom_hgf.input_data(input_data=np.array([0.2, 1]))
@@ -56,7 +57,7 @@ class Testmodel(TestCase):
         surprise = (
             two_level_continuous_hgf.surprise()
         )  # Sum the surprise for this model
-        assert jnp.isclose(surprise, -676.51306)
+        assert jnp.isclose(surprise, -1194.0071)
         assert len(two_level_continuous_hgf.node_trajectories[1]["mu"]) == 614
 
         # three-level
@@ -72,11 +73,11 @@ class Testmodel(TestCase):
         )
         three_level_continuous_hgf.input_data(input_data=timeserie)
         surprise = three_level_continuous_hgf.surprise()
-        assert jnp.isclose(surprise, -394.20514)
+        assert jnp.isclose(surprise, -976.2536)
 
         # test an alternative response function
         sp = total_gaussian_surprise(three_level_continuous_hgf)
-        assert jnp.isclose(sp, 1646.3826)
+        assert jnp.isclose(sp, 1065.8903)
 
         ##########
         # Binary #
@@ -139,7 +140,7 @@ class Testmodel(TestCase):
         )
 
         # create a custom update series
-        update_sequence1 = three_level_binary_hgf.get_update_sequence()
+        update_sequence1 = three_level_binary_hgf.update_sequence
         update_sequence2 = update_sequence1[:2]
         update_branches = (update_sequence1, update_sequence2)
         branches_idx = np.random.binomial(n=1, p=0.5, size=len(timeseries))

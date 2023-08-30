@@ -9,16 +9,15 @@ from jax.lax import scan, switch
 from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
-from pyhgf.networks import beliefs_propagation
+from pyhgf.networks import (
+    beliefs_propagation,
+    fill_categorical_state_node,
+    get_update_sequence,
+    to_pandas,
+)
 from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
 from pyhgf.typing import Edges, Indexes, InputIndexes, UpdateSequence
-from pyhgf.updates.binary import binary_input_update, binary_node_update
-from pyhgf.updates.continuous import (
-    continuous_input_update,
-    continuous_node_update,
-    gaussian_surprise,
-)
 
 
 class HGF(object):
@@ -145,8 +144,12 @@ class HGF(object):
         self.node_trajectories: Dict
         self.attributes: Dict
         self.update_sequence: Optional[UpdateSequence] = None
+        self.scan_fn: Optional[Callable] = None
 
-        if model_type in ["continuous", "binary"]:
+        if model_type not in ["continuous", "binary"]:
+            if self.verbose:
+                print("Initializing a network with custom node structure.")
+        else:
             if self.verbose:
                 print(
                     (
@@ -154,20 +157,24 @@ class HGF(object):
                         f"with {self.n_levels} levels."
                     )
                 )
-
             #########
             # Input #
             #########
             if model_type == "continuous":
                 self.add_input_node(
-                    kind="continuous", continuous_precision=continuous_precision
+                    kind="continuous",
+                    continuous_parameters={
+                        "continuous_precision": continuous_precision
+                    },
                 )
             elif model_type == "binary":
                 self.add_input_node(
                     kind="binary",
-                    eta0=eta0,
-                    eta1=eta1,
-                    binary_precision=binary_precision,
+                    binary_parameters={
+                        "eta0": eta0,
+                        "eta1": eta1,
+                        "binary_precision": binary_precision,
+                    },
                 )
 
             #########
@@ -178,8 +185,8 @@ class HGF(object):
                 value_coupling=1.0,
                 mu=initial_mu["1"],
                 pi=initial_pi["1"],
-                omega=omega["1"] if self.model_type != "binary" else np.nan,
-                rho=rho["1"] if self.model_type != "binary" else np.nan,
+                omega=omega["1"] if self.model_type != "binary" else jnp.nan,
+                rho=rho["1"] if self.model_type != "binary" else jnp.nan,
             )
 
             #########
@@ -217,14 +224,49 @@ class HGF(object):
                     rho=rho["3"],
                 )
 
-            # get the update sequence from structure
-            self.update_sequence = self.get_update_sequence()
+            # initialize the model so it is ready to receive new observations
+            self.init()
+
+    def init(self) -> "HGF":
+        """Initialize the update functions.
+
+        This step should be called after creating the network to compile the update
+        sequence and before providing any input data.
+
+        """
+        # create the update sequence automatically if not provided
+        if self.update_sequence is None:
+            self.set_update_sequence()
+            if self.verbose:
+                print("... Create the update sequence from the network structure.")
+
+        # create the belief propagation function that will be scaned
+        if self.scan_fn is None:
+            self.scan_fn = Partial(
+                beliefs_propagation,
+                update_sequence=self.update_sequence,
+                edges=self.edges,
+                input_nodes_idx=self.input_nodes_idx.idx,
+            )
+            if self.verbose:
+                print("... Create the belief propagation function.")
+
+        # blanck call to cache the JIT-ed functions
+        _ = scan(
+            self.scan_fn,
+            self.attributes,
+            jnp.array([jnp.ones(len(self.input_nodes_idx.idx) + 1)]),
+        )
+        if self.verbose:
+            print("... Cache the belief propagation function.")
+
+        return self
 
     def input_data(
         self,
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
-    ):
+    ) -> "HGF":
         """Add new observations.
 
         Parameters
@@ -241,16 +283,6 @@ class HGF(object):
             print((f"Adding {len(input_data)} new observations."))
         if time_steps is None:
             time_steps = np.ones(len(input_data))  # time steps vector
-        if self.update_sequence is None:
-            self.update_sequence = self.get_update_sequence()
-
-        # create the function that will be scaned
-        scan_fn = Partial(
-            beliefs_propagation,
-            update_sequence=self.update_sequence,
-            edges=self.edges,
-            input_nodes_idx=self.input_nodes_idx.idx,
-        )
 
         # concatenate data and time
         time_steps = time_steps[..., jnp.newaxis]
@@ -259,13 +291,12 @@ class HGF(object):
 
         data = jnp.concatenate((input_data, time_steps), dtype=float, axis=1)
 
-        # Run the entire for loop
-        # this is where the model loop over the input time series
-        # at each input the node structure is traversed and beliefs are updated
+        # this is where the model loop over the whole input time series
+        # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
-        _, node_trajectories = scan(scan_fn, self.attributes, data)
+        _, node_trajectories = scan(self.scan_fn, self.attributes, data)
 
-        # the node structure at each value update
+        # trajectories of the network attributes a each time point
         self.node_trajectories = node_trajectories
 
         return self
@@ -409,107 +440,100 @@ class HGF(object):
             the surprise of each node in the structure.
 
         """
-        # get time and time steps from the first input node
-        structure_df = pd.DataFrame(
-            {
-                "time_steps": self.node_trajectories[self.input_nodes_idx.idx[0]][
-                    "time_step"
-                ],
-                "time": jnp.cumsum(
-                    self.node_trajectories[self.input_nodes_idx.idx[0]]["time_step"]
-                ),
-            }
-        )
-
-        # add the observations from input nodes
-        for inpt in self.input_nodes_idx.idx:
-            structure_df[f"observation_input_{inpt}"] = self.node_trajectories[inpt][
-                "value"
-            ]
-
-        # loop over nodes and store sufficient statistics with surprise
-        for i in range(1, len(self.node_trajectories)):
-            if i not in self.input_nodes_idx.idx:
-                structure_df[f"x_{i}_mu"] = self.node_trajectories[i]["mu"]
-                structure_df[f"x_{i}_pi"] = self.node_trajectories[i]["pi"]
-                structure_df[f"x_{i}_muhat"] = self.node_trajectories[i]["muhat"]
-                structure_df[f"x_{i}_pihat"] = self.node_trajectories[i]["pihat"]
-                if (i == 1) & (self.model_type == "continuous"):
-                    surprise = gaussian_surprise(
-                        x=self.node_trajectories[0]["value"][1:],
-                        muhat=self.node_trajectories[i]["muhat"][:-1],
-                        pihat=self.node_trajectories[i]["pihat"][:-1],
-                    )
-                else:
-                    surprise = gaussian_surprise(
-                        x=self.node_trajectories[i]["mu"][1:],
-                        muhat=self.node_trajectories[i]["muhat"][:-1],
-                        pihat=self.node_trajectories[i]["pihat"][:-1],
-                    )
-                # fill with nans when the model cannot fit
-                surprise = jnp.where(
-                    jnp.isnan(self.node_trajectories[i]["mu"][1:]), jnp.nan, surprise
-                )
-                structure_df[f"x_{i}_surprise"] = np.insert(surprise, 0, np.nan)
-
-        # compute the global surprise over all node
-        structure_df["surprise"] = structure_df.iloc[
-            :, structure_df.columns.str.contains("_surprise")
-        ].sum(axis=1, min_count=1)
-
-        return structure_df
+        return to_pandas(self)
 
     def add_input_node(
         self,
         kind: str,
         input_idxs: Union[List, int] = 0,
-        continuous_precision: Union[float, np.ndarray, ArrayLike] = 1e4,
-        binary_precision: Union[float, np.ndarray, ArrayLike] = jnp.inf,
-        eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
-        eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
+        continuous_parameters: Dict = {"continuous_precision": 1e4},
+        binary_parameters: Dict = {
+            "eta0": 0.0,
+            "eta1": 1.0,
+            "binary_precision": jnp.inf,
+        },
+        categorical_parameters: Dict = {"n_categories": 4},
         additional_parameters: Optional[Dict] = None,
     ):
         """Create an input node.
 
+        Three types of input nodes are supported:
+
+        - `continuous`: receive a continuous observation as input. The parameter
+        `continuous_precision` is required.
+        - `binary` receive a single boolean as observation. The parameters
+        `binary_precision`, `eta0` and `eta1` are required.
+        - `categorical` receive a boolean array as observation. The parameters are
+        `n_categories` required.
+
+        .. note:
+           When using `categorical`, the implied `n` binary HGFs are automatically
+           created with a shared volatility parent at the third level, resulting in a
+           network with `3n + 2` nodes in total.
+
         Parameters
         ----------
         kind :
-            The kind of input that should be created (can be `"continuous"` or
-            `"binary"`).
+            The kind of input that should be created (can be `"continuous"`, `"binary"`
+            or `"categorical"`).
         input_idxs :
             The index of the new input (defaults to `0`).
-        continuous_precision :
-            The continuous input precision (only relevant if `kind="continuous"`).
-            Defaults to `1e4`.
-        binary_precision :
-            The binary input precision (only relevant if `kind="binary"`). Default to
+        continuous_parameters :
+            Parameters provided to the continuous input node. Contains:
+            - `continuous_precision` (the precision of the observations), which
+              defaults to `1e4`.
+        binary_parameters :
+            Parameters provided to the binary input node. Contains:
+            - `binary_precision`, the binary input precision, which defaults to
             `jnp.inf`.
-        eta0 :
-            The lower bound of the binary process (only relevant if `kind="binary"`).
-        eta1 :
-            The lower bound of the binary process (only relevant if `kind="binary"`).
+            - `eta0`, the lower bound of the binary process. Defaults to `0.0`.
+            - `eta1`, the higher bound of the binary process. Defaults to `1.0`.
+        categorical_parameters :
+            Parameters provided to the categorical input node. Contains:
+            - `n_categories`, the number of categories implied by the categorical state
+            node(s).
+            .. note::
+               When using a categorical state node, the `binary_parameters` can be used
+               to parametrize the implied collection of binray HGFs.
         additional_parameters :
             Add more custom parameters to the input node.
 
         """
-        if isinstance(input_idxs, int):
+        if not isinstance(input_idxs, list):
             input_idxs = [input_idxs]
 
         if kind == "continuous":
             input_node_parameters = {
                 "kappas_parents": None,
-                "pihat": continuous_precision,
+                "pihat": continuous_parameters["continuous_precision"],
                 "time_step": jnp.nan,
                 "value": jnp.nan,
             }
         elif kind == "binary":
             input_node_parameters = {
-                "pihat": binary_precision,
-                "eta0": eta0,
-                "eta1": eta1,
+                "pihat": binary_parameters["binary_precision"],
+                "eta0": binary_parameters["eta0"],
+                "eta1": binary_parameters["eta1"],
                 "surprise": jnp.nan,
                 "time_step": jnp.nan,
                 "value": jnp.nan,
+            }
+        elif kind == "categorical":
+            input_node_parameters = {
+                "binary_surprise": 0.0,
+                "kl_divergence": 0.0,
+                "time_step": jnp.nan,
+                "alpha": jnp.ones(categorical_parameters["n_categories"]),
+                "pe": jnp.zeros(categorical_parameters["n_categories"]),
+                "xi": jnp.array(
+                    [1.0 / categorical_parameters["n_categories"]]
+                    * categorical_parameters["n_categories"]
+                ),
+                "mu": jnp.array(
+                    [1.0 / categorical_parameters["n_categories"]]
+                    * categorical_parameters["n_categories"]
+                ),
+                "value": jnp.zeros(categorical_parameters["n_categories"]),
             }
 
         # add more parameters (optional)
@@ -534,6 +558,36 @@ class HGF(object):
                 new_kind += (kind,)
                 self.input_nodes_idx = InputIndexes(new_idx, new_kind)
 
+            # if we are creating a categorical state or state-transition node
+            # we have to generate the implied binary network(s) here
+            if kind == "categorical":
+                implied_binary_parameters = {
+                    "eta0": 0.0,
+                    "eta1": 1.0,
+                    "binary_precision": jnp.inf,
+                    "binary_idxs": [
+                        i + len(self.edges)
+                        for i in range(categorical_parameters["n_categories"])
+                    ],
+                    "n_categories": categorical_parameters["n_categories"],
+                    "pi_1": 1.0,
+                    "pi_2": 1.0,
+                    "pi_3": 1.0,
+                    "mu_1": 0.0,
+                    "mu_2": -jnp.log(categorical_parameters["n_categories"] - 1),
+                    "mu_hat_2": -jnp.log(categorical_parameters["n_categories"] - 1),
+                    "mu_3": 0.0,
+                    "omega_2": -4.0,
+                    "omega_3": -4.0,
+                }
+                implied_binary_parameters.update(binary_parameters)
+
+                self = fill_categorical_state_node(
+                    self,
+                    node_idx=input_idx,
+                    implied_binary_parameters=implied_binary_parameters,
+                )
+
         return self
 
     def add_value_parent(
@@ -544,7 +598,6 @@ class HGF(object):
         mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
         pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
-        nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
@@ -567,8 +620,6 @@ class HGF(object):
         pi_hat :
             The expected precision of the Gaussian distribution (inverse variance) for
             the next observation.
-        nu :
-            Stochasticity coupling.
         omega :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
@@ -578,7 +629,7 @@ class HGF(object):
             Add more custom parameters to the node.
 
         """
-        if isinstance(children_idxs, int):
+        if not isinstance(children_idxs, list):
             children_idxs = [children_idxs]
 
         # how many nodes in structure
@@ -595,7 +646,7 @@ class HGF(object):
             "kappas_parents": None,
             "psis_children": tuple(value_coupling for _ in range(len(children_idxs))),
             "psis_parents": None,
-            "nu": nu,
+            "nu": 0.0,
             "omega": omega,
             "rho": rho,
         }
@@ -611,37 +662,35 @@ class HGF(object):
         self.attributes[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
-        structure_as_list: List[Indexes] = list(self.edges)
+        edges_as_list: List[Indexes] = list(self.edges)
 
         for idx in children_idxs:
             # add this node as parent and set value coupling
-            if structure_as_list[idx].value_parents is not None:
+            if edges_as_list[idx].value_parents is not None:
                 # append new index
-                new_value_parents_idx = structure_as_list[idx].value_parents + (
-                    parent_idx,
-                )
-                structure_as_list[idx] = Indexes(
+                new_value_parents_idx = edges_as_list[idx].value_parents + (parent_idx,)
+                edges_as_list[idx] = Indexes(
                     new_value_parents_idx,
-                    structure_as_list[idx].volatility_parents,
-                    structure_as_list[idx].value_children,
-                    structure_as_list[idx].volatility_children,
+                    edges_as_list[idx].volatility_parents,
+                    edges_as_list[idx].value_children,
+                    edges_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
                 self.attributes[idx]["psis_parents"] += (value_coupling,)
             else:
                 # append new index
                 new_value_parents_idx = (parent_idx,)
-                structure_as_list[idx] = Indexes(
+                edges_as_list[idx] = Indexes(
                     new_value_parents_idx,
-                    structure_as_list[idx].volatility_parents,
-                    structure_as_list[idx].value_children,
-                    structure_as_list[idx].volatility_children,
+                    edges_as_list[idx].volatility_parents,
+                    edges_as_list[idx].value_children,
+                    edges_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
                 self.attributes[idx]["psis_parents"] = (value_coupling,)
 
         # convert the list back to a tuple
-        self.edges = tuple(structure_as_list)
+        self.edges = tuple(edges_as_list)
 
         return self
 
@@ -653,7 +702,6 @@ class HGF(object):
         mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
         pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
-        nu: Union[float, np.ndarray, ArrayLike] = jnp.nan,
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
@@ -676,8 +724,6 @@ class HGF(object):
         pi_hat :
             The expected precision of the Gaussian distribution (inverse variance) for
             the next observation.
-        nu :
-            Stochasticity coupling.
         omega :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
@@ -687,7 +733,7 @@ class HGF(object):
             Add more custom parameters to the node.
 
         """
-        if isinstance(children_idxs, int):
+        if not isinstance(children_idxs, list):
             children_idxs = [children_idxs]
 
         # how many nodes in structure
@@ -706,7 +752,7 @@ class HGF(object):
             "kappas_parents": None,
             "psis_children": None,
             "psis_parents": None,
-            "nu": nu,
+            "nu": 0.0,
             "omega": omega,
             "rho": rho,
         }
@@ -722,138 +768,52 @@ class HGF(object):
         self.attributes[parent_idx] = node_parameters
 
         # convert the structure to a list to modify it
-        structure_as_list: List[Indexes] = list(self.edges)
+        edges_as_list: List[Indexes] = list(self.edges)
 
         for idx in children_idxs:
             # add this node as a parent and set value coupling
-            if structure_as_list[idx].volatility_parents is not None:
+            if edges_as_list[idx].volatility_parents is not None:
                 # append new index
-                new_volatility_parents_idx = structure_as_list[
-                    idx
-                ].volatility_parents + (parent_idx,)
-                structure_as_list[idx] = Indexes(
-                    structure_as_list[idx].value_parents,
+                new_volatility_parents_idx = edges_as_list[idx].volatility_parents + (
+                    parent_idx,
+                )
+                edges_as_list[idx] = Indexes(
+                    edges_as_list[idx].value_parents,
                     new_volatility_parents_idx,
-                    structure_as_list[idx].value_children,
-                    structure_as_list[idx].volatility_children,
+                    edges_as_list[idx].value_children,
+                    edges_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
                 self.attributes[idx]["kappas_parents"] += (volatility_coupling,)
             else:
                 # append new index
                 new_volatility_parents_idx = (parent_idx,)
-                structure_as_list[idx] = Indexes(
-                    structure_as_list[idx].value_parents,
+                edges_as_list[idx] = Indexes(
+                    edges_as_list[idx].value_parents,
                     new_volatility_parents_idx,
-                    structure_as_list[idx].value_children,
-                    structure_as_list[idx].volatility_children,
+                    edges_as_list[idx].value_children,
+                    edges_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
                 self.attributes[idx]["kappas_parents"] = (volatility_coupling,)
 
         # convert the list back to a tuple
-        self.edges = tuple(structure_as_list)
+        self.edges = tuple(edges_as_list)
 
         return self
 
-    def get_update_sequence(
-        self, node_idxs: Tuple[int, ...] = (0,), update_sequence: Tuple = ()
-    ) -> Tuple:
-        """Automated creation of the update sequence from the network's structure.
+    def set_update_sequence(self) -> "HGF":
+        """Generate an update sequence from the network's structure.
 
-        The function ensures that the following rules apply:
-        1. all children have been updated before propagating to the parent(s) node.
-        2. the update function of an input node is chosen based on the node's type
-        (`"continuous"` or `"binary"`).
-        3. the update function of the parent of an input node is chosen based on the
-        node's type (`"continuous"` or `"binary"`).
-
-        Parameters
-        ----------
-        node_idxs :
-            The indexes of the current node(s) that should be evaluated. By default
-            (`None`), the function will start with the list of input nodes.
-        update_sequence :
-            The current state of the update sequence (for recursive evaluation).
-
-        Returns
-        -------
-        update_sequence :
-            The update sequence.
+        See :py:func:`pyhgf.networks.get_update_sequence` for more details.
 
         """
-        if len(update_sequence) == 0:
-            node_idxs = self.input_nodes_idx.idx
+        update_sequence, prediction_sequence = get_update_sequence(
+            hgf=self, update_sequence=[], prediction_sequence=[]
+        )
+        # generate the prediction sequence here, in reverse order
+        prediction_sequence.reverse()
+        prediction_sequence.extend(update_sequence)
+        self.update_sequence = tuple(prediction_sequence)
 
-        for node_idx in node_idxs:
-            # if the node has no parent, exit here
-            if (self.edges[node_idx].value_parents is None) & (
-                self.edges[node_idx].volatility_parents is None
-            ):
-                continue
-
-            # select the update function
-            # --------------------------
-
-            # case 1 - default to a continuous node
-            update_fn = continuous_node_update
-
-            # case 2 - this is an input node
-            if node_idx in self.input_nodes_idx.idx:
-                model_kind = [
-                    kind_
-                    for kind_, idx_ in zip(
-                        self.input_nodes_idx.kind, self.input_nodes_idx.idx
-                    )
-                    if idx_ == node_idx
-                ][0]
-                if model_kind == "binary":
-                    update_fn = binary_input_update
-                elif model_kind == "continuous":
-                    update_fn = continuous_input_update
-
-            # case 3 - this is the value parent of at least one binary input node
-            if self.edges[node_idx].value_children is not None:
-                value_children_idx = self.edges[node_idx].value_children
-                for child_idx in value_children_idx:  # type: ignore
-                    if child_idx in self.input_nodes_idx.idx:
-                        model_kind = [
-                            kind_
-                            for kind_, idx_ in zip(
-                                self.input_nodes_idx.kind, self.input_nodes_idx.idx
-                            )
-                            if idx_ == child_idx
-                        ][0]
-                        if model_kind == "binary":
-                            update_fn = binary_node_update
-
-            # create a new sequence step and add it to the list
-            new_sequence = node_idx, update_fn
-            update_sequence += (new_sequence,)
-
-            # search recursively for the next update steps - make sure that all the
-            # children have been updated before updating the parent(s)
-            # ---------------------------------------------------------------------
-
-            # loop over all possible dependencies (e.g. value, volatility coupling)
-            parents = self.edges[node_idx][:2]
-            for parent_types in parents:
-                if parent_types is not None:
-                    for idx in parent_types:
-                        # get the list of all the children in the parent's family
-                        children_idxs = []
-                        if self.edges[idx].value_children is not None:
-                            children_idxs.extend([*self.edges[idx].value_children])
-                        if self.edges[idx].volatility_children is not None:
-                            children_idxs.extend([*self.edges[idx].volatility_children])
-
-                        if len(children_idxs) > 0:
-                            # only call the update on the parent(s) if the current node
-                            # is the last on the children's list (meaning that all the
-                            # other nodes have been updated)
-                            if children_idxs[-1] == node_idx:
-                                update_sequence = self.get_update_sequence(
-                                    node_idxs=(idx,), update_sequence=update_sequence
-                                )
-
-        return update_sequence
+        return self

@@ -79,7 +79,7 @@ class TestStructure(TestCase):
         )
 
         assert new_attributes[1]["mu"] == 0.20007044
-        assert new_attributes[2]["pi"] == 0.9565813
+        assert new_attributes[2]["pi"] == 0.95843744
 
     def test_find_branch(self):
         """Test the find_branch function"""

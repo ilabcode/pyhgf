@@ -33,7 +33,7 @@ def hgf_logp(
     response_function: Callable,
     model_type: str,
     n_levels: int,
-    response_function_parameters: Optional[List[Optional[Tuple]]] = None,
+    response_function_parameters: List[Tuple] = [()],
     time_steps: Optional[List] = None,
 ) -> float:
     r"""Log probability from HGF model(s) given input data and parameter(s).
