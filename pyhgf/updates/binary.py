@@ -503,8 +503,8 @@ def binary_surprise(
 ) -> ArrayLike:
     r"""Surprise at a binary outcome.
 
-    The surprise ellicited by a binary observation :math:`x` mean :math:`\hat{\mu}`
-    and expected probability :math:`\hat{\pi}` is given by:
+    The surprise ellicited by a binary observation :math:`x` under the expected
+    probability :math:`\hat{\mu}` is given by:
 
     .. math::
 

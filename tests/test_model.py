@@ -82,7 +82,7 @@ class Testmodel(TestCase):
         ##########
         # Binary #
         ##########
-        timeseries = load_data("binary")
+        u, _ = load_data("binary")
 
         # two-level
         # ---------
@@ -100,7 +100,7 @@ class Testmodel(TestCase):
         )
 
         # Provide new observations
-        two_level_binary_hgf = two_level_binary_hgf.input_data(timeseries)
+        two_level_binary_hgf = two_level_binary_hgf.input_data(u)
         surprise = two_level_binary_hgf.surprise()
         assert jnp.isclose(surprise, 215.58821)
 
@@ -118,7 +118,7 @@ class Testmodel(TestCase):
             eta1=1.0,
             binary_precision=jnp.inf,
         )
-        three_level_binary_hgf.input_data(input_data=timeseries)
+        three_level_binary_hgf.input_data(input_data=u)
         surprise = three_level_binary_hgf.surprise()
         assert jnp.isclose(surprise, 215.59067)
 
@@ -143,12 +143,12 @@ class Testmodel(TestCase):
         update_sequence1 = three_level_binary_hgf.update_sequence
         update_sequence2 = update_sequence1[:2]
         update_branches = (update_sequence1, update_sequence2)
-        branches_idx = np.random.binomial(n=1, p=0.5, size=len(timeseries))
+        branches_idx = np.random.binomial(n=1, p=0.5, size=len(u))
 
         three_level_binary_hgf.input_custom_sequence(
             update_branches=update_branches,
             branches_idx=branches_idx,
-            input_data=timeseries,
+            input_data=u,
         )
 
 

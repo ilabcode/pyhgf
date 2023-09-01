@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -67,7 +67,7 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-observations = load_data("binary")
+u, _ = load_data("binary")
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -89,7 +89,7 @@ agent = HGF(
     initial_mu={"1": .0, "2": .5},
     initial_pi={"1": .0, "2": 1e4},
     omega={"2": -4.0},
-).input_data(input_data=observations)
+).input_data(input_data=u)
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -137,7 +137,7 @@ tags: [hide-input]
 ---
 plt.figure(figsize=(12, 3))
 jitter = responses * .1 + (1-responses) * -.1
-plt.scatter(np.arange(len(observations)), observations, label="Observations", color="#4c72b0", edgecolor="k", alpha=.2)
+plt.scatter(np.arange(len(u)), u, label="Observations", color="#4c72b0", edgecolor="k", alpha=.2)
 plt.scatter(np.arange(len(responses)), responses + jitter, label="Responses", color="#c44e52", alpha=.2, edgecolor="k")
 plt.plot(agent.node_trajectories[1]["muhat"], label="Beliefs", linestyle="--")
 plt.legend()
@@ -210,6 +210,8 @@ def response_function(hgf, response_function_parameters):
     return jnp.sum(jnp.where(responses, -jnp.log(beliefs), -jnp.log(1.0 - beliefs)))
 ```
 
+This function takes the expected probability from the binary node and uses it to predict the participant's decision. The surprise is computed using the binary surprise (see {py:func}`pyhgf.update.binary.binary_surprise`). This corresponds to the standard binary softmax response function that is also accessible from the {py:func}`pyhgf.response.binary_softmax` function.
+
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 ```{note}
@@ -252,7 +254,7 @@ import arviz as az
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
-    input_data=[observations],
+    input_data=[u],
     response_function=response_function,
     response_function_parameters=[(responses, )]
 )

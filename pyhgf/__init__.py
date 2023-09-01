@@ -1,12 +1,16 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-import pkg_resources  # type: ignore
-from numpy import loadtxt
+import pkgutil
+from io import BytesIO
+from typing import Tuple, Union
+
+import numpy as np
+import pandas as pd
 
 __version__ = "0.0.6"
 
 
-def load_data(dataset: str):
+def load_data(dataset: str) -> Union[Tuple[np.ndarray, ...], np.ndarray]:
     """Load dataset for continuous or binary HGF.
 
     Parameters
@@ -22,22 +26,40 @@ def load_data(dataset: str):
     Notes
     -----
     The continuous time series is the standard USD-CHF conversion rates over time used
-    in the Matlab examples. The binary dataset is from Iglesias et al. (2013) [#].
+    in the Matlab examples.
+
+    The binary dataset is from Iglesias et al. (2013) [#] (see the full dataset
+    `here <https://www.research-collection.ethz.ch/handle/20.500.11850/454711)>`_. The
+    binary set consist of one vector *u*, the observations, and one vector *y*, the
+    decisions.
 
     References
     ----------
-    .. [#] Iglesias, S., Mathys, C., Brodersen, K. H., Kasper, L., Piccirelli, M., den
-    Ouden, H. E. M., & Stephan, K. E. (2013). Hierarchical Prediction Errors in Midbrain
-    and Basal Forebrain during Sensory Learning. In Neuron (Vol. 80, Issue 2, pp.
-    519–530). Elsevier BV. https://doi.org/10.1016/j.neuron.2013.09.009
+    .. [#] Iglesias, S., Kasper, L., Harrison, S. J., Manka, R., Mathys, C., & Stephan,
+      K. E. (2021). Cholinergic and dopaminergic effects on prediction error and
+      uncertainty responses during sensory associative learning. In NeuroImage (Vol.
+      226, p. 117590). Elsevier BV. https://doi.org/10.1016/j.neuroimage.2020.117590
 
     """
     if dataset == "continuous":
-        data = loadtxt(pkg_resources.resource_filename("pyhgf", "/data/usdchf.dat"))
+        data = pd.read_csv(
+            BytesIO(pkgutil.get_data(__name__, "data/usdchf.txt")),  # type: ignore
+            names=["x"],
+        ).x.to_numpy()
     elif dataset == "binary":
-        data = loadtxt(
-            pkg_resources.resource_filename("pyhgf", "/data/binary_input.dat")
-        )
+        u = pd.read_csv(
+            BytesIO(
+                pkgutil.get_data(__name__, "data/binary_input.txt")  # type: ignore
+            ),
+            names=["x"],
+        ).x.to_numpy()
+        y = pd.read_csv(
+            BytesIO(
+                pkgutil.get_data(__name__, "data/binary_response.txt")  # type: ignore
+            ),
+            names=["x"],
+        ).x.to_numpy()
+        data = (u, y)
     else:
         raise ValueError("Invalid dataset argument. Should be 'continous' or 'binary'.")
 

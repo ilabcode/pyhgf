@@ -148,11 +148,11 @@ class Testbinary(TestCase):
             assert jnp.isclose(new_attributes[3][idx], val)
 
         # use scan
-        timeserie = load_data("binary")
+        u, _ = load_data("binary")
 
         # Create the data (value and time steps vectors) - only use the 5 first trials
         # as the priors are ill defined here
-        data = jnp.array([timeserie, jnp.ones(len(timeserie), dtype=int)]).T[:5]
+        data = jnp.array([u, jnp.ones(len(u), dtype=int)]).T[:5]
 
         # create the function that will be scaned
         scan_fn = Partial(

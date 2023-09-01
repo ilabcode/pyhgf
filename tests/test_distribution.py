@@ -59,12 +59,12 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        timeserie = load_data("binary")
+        u, _ = load_data("binary")
         jax_logp = jit(
             Partial(
                 hgf_logp,
                 n_levels=2,
-                input_data=[timeserie],
+                input_data=[u],
                 response_function=first_level_binary_surprise,
                 model_type="binary",
                 response_function_parameters=None,
@@ -152,14 +152,14 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        timeserie = load_data("binary")
+        u, _ = load_data("binary")
 
         grad_logp = jit(
             grad(
                 Partial(
                     hgf_logp,
                     n_levels=2,
-                    input_data=[timeserie],
+                    input_data=[u],
                     response_function=first_level_binary_surprise,
                     model_type="binary",
                     response_function_parameters=None,
@@ -247,10 +247,10 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        timeserie = load_data("binary")
+        u, _ = load_data("binary")
 
         hgf_logp_op = HGFDistribution(
-            input_data=[timeserie],
+            input_data=[u],
             model_type="binary",
             n_levels=2,
             response_function=first_level_binary_surprise,
@@ -315,11 +315,11 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        timeserie = load_data("binary")
+        u, _ = load_data("binary")
 
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="binary",
-            input_data=[timeserie],
+            input_data=[u],
             n_levels=2,
             response_function=first_level_binary_surprise,
             response_function_parameters=None,
@@ -398,12 +398,12 @@ class TestDistribution(TestCase):
         ##########
 
         # Create the data (value and time vectors)
-        timeserie = load_data("binary")
+        u, _ = load_data("binary")
 
         hgf_logp_op = HGFDistribution(
             n_levels=2,
             model_type="binary",
-            input_data=[timeserie],
+            input_data=[u],
             response_function=first_level_binary_surprise,
             response_function_parameters=(np.array(1), 1),
         )
