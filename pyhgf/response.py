@@ -3,14 +3,19 @@
 from typing import TYPE_CHECKING
 
 import jax.numpy as jnp
+from jax import Array
+from jax.typing import ArrayLike
 
+from pyhgf.updates.binary import binary_surprise
 from pyhgf.updates.continuous import gaussian_surprise
 
 if TYPE_CHECKING:
     from pyhgf.model import HGF
 
 
-def first_level_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
+def first_level_gaussian_surprise(
+    hgf: "HGF", response_function_parameters=None
+) -> Array:
     """Gaussian surprise at the first level of a probabilistic network.
 
     .. note::
@@ -47,7 +52,7 @@ def first_level_gaussian_surprise(hgf: "HGF", response_function_parameters=None)
     )
 
 
-def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
+def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Array:
     """Sum of the Gaussian surprise across the probabilistic network.
 
     .. note::
@@ -100,7 +105,7 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None):
     )
 
 
-def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None):
+def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None) -> Array:
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
@@ -130,5 +135,34 @@ def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None):
 
     # Sum the surprise for this model
     surprise = jnp.sum(this_surprise)
+
+    return surprise
+
+
+def binary_softmax(hgf: "HGF", response_function_parameters=ArrayLike) -> Array:
+    """Surprise under the binary sofmax model.
+
+    Parameters
+    ----------
+    hgf :
+        An instance of the HGF model.
+    response_function_parameters :
+        The additionnal parameters should include the vector of decisions at time *k*
+        [0 or 1].
+
+    Returns
+    -------
+    surprise :
+        The surprise under the binary sofmax model.
+
+    """
+    # the expected values at the first level of the HGF
+    beliefs = hgf.node_trajectories[1]["muhat"]
+
+    # the sum of the binary surprises
+    surprise = jnp.sum(binary_surprise(x=response_function_parameters, muhat=beliefs))
+
+    # ensure that inf is returned if the model cannot fit
+    surprise = jnp.where(jnp.isnan(surprise), jnp.inf, surprise)
 
     return surprise

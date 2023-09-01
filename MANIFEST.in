@@ -1,2 +1,3 @@
-include pyhgf/data/usdchf.dat
-include pyhgf/data/binary_input.dat
+include pyhgf/data/usdchf.txt
+include pyhgf/data/binary_input.txt
+include pyhgf/data/binary_response.txt

@@ -74,7 +74,7 @@ class Testplots(TestCase):
         # --------
 
         # Read binary input
-        timeserie = load_data("binary")
+        u, _ = load_data("binary")
 
         two_level_binary_hgf = HGF(
             n_levels=2,
@@ -87,7 +87,7 @@ class Testplots(TestCase):
             eta0=0.0,
             eta1=1.0,
             binary_precision=jnp.inf,
-        ).input_data(timeserie)
+        ).input_data(u)
 
         # plot trajectories
         two_level_binary_hgf.plot_trajectories()
@@ -114,7 +114,7 @@ class Testplots(TestCase):
             eta0=0.0,
             eta1=1.0,
             binary_precision=jnp.inf,
-        ).input_data(timeserie)
+        ).input_data(u)
 
         # plot trajectories
         three_level_binary_hgf.plot_trajectories()
