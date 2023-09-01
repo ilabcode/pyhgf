@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -13,7 +13,7 @@ kernelspec:
 ---
 
 (hgf_exercises)=
-# Hierarchical Gaussian Filter modelling exercises
+# Using the Hierarchical Gaussian Filter: practical exercises
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
@@ -35,11 +35,13 @@ import arviz as az
 timeseries = load_data("continuous")
 ```
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 In this notebook you are going to learn the core principles on which the HGF is built, you will build agents that can filter new observations and update their beliefs about hidden states of the world and try to optimize them so they are getting less and less surprised about what is happening. Finally, you will create an agent that tries to optimize its behaviour when facing (almost) unpredictable events.
 
 +++
 
-## Theory: Modeling belief updating under uncertainty
+## Modeling belief updating under uncertainty: the continuous Hierarchical Gaussian Filter
 ### Gaussian random walks
 
 The generative model on which the HGF is built is a generalisation of the [Gaussian Random Walk](https://en.wikipedia.org/wiki/Random_walk#Gaussian_random_walk) (GRW). A GRW generate a new observation $x_1^{(k)}$ at each time step $k$ from a normal distribution and using the previous observation $x_1^{(k-1)}$ such as:
@@ -307,4 +309,58 @@ trajectories.groupby(trajectories["time"].dt.date, as_index=False)[["x_1_mu", "p
 
 ```{code-cell} ipython3
 # 3 - compute the surprise: how surprised are the agents if it was raining and no umbrella etc...
+```
+
+## Bayesian reinforcement learning using the HGF
+
++++
+
+### The binary Hierarchical Gaussian Filter
+
+```{code-cell} ipython3
+timeserie = load_data("binary")
+```
+
+```{code-cell} ipython3
+two_levels_hgf = HGF(
+    n_levels=2,
+    model_type="binary",
+    initial_mu={"1": .0, "2": .5},
+    initial_pi={"1": .0, "2": 1e4},
+    omega={"2": -3.0},
+)
+```
+
+```{code-cell} ipython3
+two_levels_hgf.plot_network()
+```
+
+```{code-cell} ipython3
+two_levels_hgf = two_levels_hgf.input_data(input_data=timeserie)
+```
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+two_levels_hgf.plot_trajectories();
+```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+### Modelling behaviours using a response function
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+### Model comparison
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+
 ```
