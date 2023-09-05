@@ -15,7 +15,7 @@ kernelspec:
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 (hgf_exercises)=
-# An introduction to Hierarchical Gaussian Filters trough practical exercises
+# An introduction to Hierarchical Gaussian Filters through practical exercises
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
@@ -40,13 +40,13 @@ timeseries = load_data("continuous")
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-In this tutorial, we introduce the continuous and binary Hierarchical Gaussian Filters and describe their application in the context of computational psychiatry research.
+In this tutorial, we introduce the continuous and binary Hierarchical Gaussian Filters and describe their application in computational psychiatry research.
 
-We start by reviewing the core principles on which the HGF is built: a generative model of embedded stochastic processes to describes hidden states of the world. In the first part, we review the mathematical description of such processes and how to implement them in Python.
+We start by reviewing the core principles on which the HGF is built: a generative model of embedded stochastic processes to describe hidden states of the world. In the first part, we review the mathematical description of such operations and how to implement them in Python.
 
-In the second part, we apply this model to real world data (weather dataset) by creating an agent that *uses* this model to filter sensory information and update internal beliefs about hidden states of the world. We then try to apply Bayesian inference over some of the agent's parameters.
+In the second part, we apply this model to real-world data (weather dataset) by creating an agent that *uses* this model to filter sensory information and update internal beliefs about hidden states of the world. We then try to apply Bayesian inference over some of the agent's parameters.
 
-In the third part we introduce the binary Hierarchical Gaussian filter and consider experimental designs familiar in reiforcement learning, where the agent tries to learn the association between stimuli, or the occurence of binary events. Then again,- we apply Bayesian inference, and try to compare the performamce of our model with alternative explanations of an agent's behaviours.
+In the third part, we introduce the binary Hierarchical Gaussian filter and consider experimental designs familiar in reinforcement learning, where the agent tries to learn the association between stimuli, or the occurrence of binary events. Then again,- we apply Bayesian inference and try to compare the performance of our model with alternative explanations of an agent's behaviours.
 
 +++
 
@@ -71,18 +71,18 @@ Using the equation above, write a Python code that implements a Gaussian random 
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-We have simulated above a simple GRW. At each time point, this process is fully described by the probability distribution and the sufficients statistics of this probability distribution (the mean and the variance). Using these values, we can also derive expected values (uising the current mean) and expected precision (using the current variance).
+We have simulated above a simple GRW. At each time point, this process is fully described by the probability distribution and the sufficient statistics of this probability distribution (the mean and the variance). Using these values, we can also derive expected values (using the current mean) and expected precision (using the current variance).
 
-The HGF hierarchically generalize this process by making the parameters of a stochastic process depend on another GRW at a different level. In [PyHGF](https://github.com/ilabcode/pyhgf) we use a *nodalized* version of this framework {cite:p}`weber:2023`, and consider that each stochastic process is a node in a network, connected with other node through probabilistic dependencies: **value coupling** (targetting the value $\mu$ of the child node) or **volatility coupling** (targetting the volatility $\sigma^2$ of the child node).
+The HGF hierarchically generalize this process by making the parameters of a stochastic process depend on another GRW at a different level. In [PyHGF](https://github.com/ilabcode/pyhgf) we use a *nodalized* version of this framework {cite:p}`weber:2023`, and consider that each stochastic process is a node in a network, connected with other nodes through probabilistic dependencies: **value coupling** (targetting the value $\mu$ of the child node) or **volatility coupling** (targetting the volatility $\sigma^2$ of the child node).
 
-Let's consider for example a network consitued of two nodes $x_1$ and $x_2$, as it is found in the continuous HGF {cite:p}`2014:mathys`. The node $x_1$ is performing a GRW as previously described. We can add a dependency on the mean of the distribution (**value coupling**) by assuming that $x_1$ inherit this value directly from $x_2$, instead of using its own previous value. Mathematically, this would write:
+Let's consider for example a network constituted of two nodes $x_1$ and $x_2$, as it is found in the continuous HGF {cite:p}`2014:mathys`. The node $x_1$ is performing a GRW as previously described. We can add a dependency on the mean of the distribution (**value coupling**) by assuming that $x_1$ inherits this value directly from $x_2$, instead of using its own previous value. Mathematically, this would write:
 
 $$
 x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \sigma_2^2) \\
 x_1^{(k)} \sim \mathcal{N}(x_2^{(k)}, \, \sigma_1^2) \\
 $$
 
-Note that this generative process reads top-down: the node higher in the hierarchy ($x_2$) generates new values and pass them to the child nodes.
+Note that this generative process reads top-down: the node higher in the hierarchy ($x_2$) generates new values and passes them to the child nodes.
 
 We can also arrange things differently, for example assuming  that $x_1$ runs the GRW as usual, but this time it is paired with $x_2$ via **volatility coupling**. This means that for state $x_1$, the mean of the Gaussian random walk on time point $k$ is given by its previous value $x_1^{(k-1)}$, while the step size (or variance) depends on the current value of the higher level state, $x_2^{(k)}$.
 
@@ -103,7 +103,7 @@ x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 $$
 
 ```{hint}
-Here the volatility is not simply inherited from the higher node, it is mixed with another quantity ($\omega_2$). This is because we don't want the parent node to explain all the variance alone, the child node ($x_1$) also has a parameter for it own variance and expect some variability by itself. The parent node can weight on this by adding or removing variance in the final quantity. $\omega$ is sometimes refered to as the *tonic* part of the variance, or the *evolution rate*, while $x_2$ is the *phasic* part of the variance.
+Here the volatility is not simply inherited from the higher node, it is mixed with another quantity ($\omega_2$). This is because we don't want the parent node to explain all the variance alone, the child node ($x_1$) also has a parameter for its own variance and expects some variability by itself. The parent node can weigh on this by adding or removing variance in the final quantity. $\omega$ is sometimes refered to as the *tonic* part of the variance, or the *evolution rate*, while $x_2$ is the *phasic* part of the variance.
 ```
 
 ```{admonition} Exercise 2
@@ -120,11 +120,11 @@ Here the volatility is not simply inherited from the higher node, it is mixed wi
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-Hierarchical Filters are built on this notion that we can embed stochatic nodes and make them depends on each others and use this as a generative model of hidden states of the world.
+Hierarchical Filters are built on the notion that we can embed stochastic nodes and make them depend on each other and use this as a generative model of hidden states of the world.
 
-We therefore want to create agents that can use this principle to filter the sensory inputs they receive. But this time we have to think the other way. We do not want to generate data top-down (as in the function you wrote above), we already have the dat in the form of sensory inputs. We want to provide this sensory input to the model and update the probabilistic nodes accordingly, so that they continue to predict the next sensory input reasonably well.
+We therefore want to create agents that can use this principle to filter the sensory inputs they receive. But this time we have to think the other way. We do not want to generate data top-down (as in the function you wrote above), we already have the data in the form of sensory inputs. We want to provide this sensory input to the model and update the probabilistic nodes accordingly so that they continue to predict the next sensory input reasonably well.
 
-This requires to propagate updates on the sufficient statistics and send prediction-error to the parent nodes. The pyhgf package implements this process with the corresponding update equation so the model can take as input a time series and infer the more likely generative structure that created the values. This can be extremely useful if you want to work with time series that have varying levels of volatility (i.e. meta-volatility). In the following example, we illustrate how we can use the Hierarchical Gaussian Filter to filter and predict inputs in a continuous node.
+This requires propagating updates on sufficient statistics and sending precision-weighted prediction errors to the parent nodes. The pyhgf package implements this process with the corresponding update equation so the model can take as input a time series and infer the more likely generative structure that created the values. This can be extremely useful if you want to work with time series that have varying levels of volatility (i.e. meta-volatility). In the following example, we illustrate how we can use the Hierarchical Gaussian Filter to filter and predict inputs in a continuous node.
 
 ```{code-cell} ipython3
 # create a two-levels continuous HGF
@@ -166,7 +166,7 @@ two_levels_continuous_hgf.surprise()
 +++
 
 ```{admonition} Exercise 3
-$\omega$ represents the tonic part of the variance (the part that is not affected by the parent node). Using the code example above, create another model with different values for $\omega$ at the second level. What is the consequence of changing this value on the beliefs trajectories? What is the "best" model in this context?
+$\omega$ represents the tonic part of the variance (the part that is not affected by the parent node). Using the code example above, create another model with different values for $\omega$ at the second level. What is the consequence of changing this value on the belief trajectories? What is the "best" model in this context?
 ```
 
 +++
@@ -175,9 +175,9 @@ $\omega$ represents the tonic part of the variance (the part that is not affecte
 
 +++
 
-So far we have been running the HGF forward by fixing the values of the parameters beforehand. This is an important part of the modelling process as we can retrieve the beliefs trajectories, which indicates how the agent might use sensory informations to adapt to the environment, as well as the surprise associated with these observation, which indicates *how well* the agent adapted to the environment. 
+So far we have been running the HGF forward by fixing the values of the parameters beforehand. This is an important part of the modelling process as we can retrieve the belief trajectories, which indicates how the agent might use sensory information to adapt to the environment, as well as the surprise associated with these observations, which indicates *how well* the agent adapted to the environment. 
 
-In the context of analysing data from a task, we do not want to fit the data manually and retrieve the trajectories from every possible set of parameters. Instead, we want to perform Bayesian inference over these parameter and estimate the posterior of the probability distribution. Here we are going to perform this step using Hamiltonian Monte Carlo sampling as implemented in PyMC.
+In the context of analysing data from a task, we do not want to fit the data manually and retrieve the trajectories from every possible set of parameters. Instead, we want to perform Bayesian inference over these parameters and estimate the posterior of the probability distribution. Here we are going to perform this step using Hamiltonian Monte Carlo sampling as implemented in PyMC.
 
 ```{code-cell} ipython3
 import pymc as pm
@@ -226,7 +226,7 @@ pm.model_to_graphviz(two_level_hgf)
 
 ```{code-cell} ipython3
 with two_level_hgf:
-    idata = pm.sample(chains=2)
+    idata = pm.sample(chains=4)
 ```
 
 ```{code-cell} ipython3
@@ -252,7 +252,7 @@ In the previous section, we introduced the computational concept behind the Hier
 1. How to fit the HGF to a time series with continuous inputs.
 2. How to find the posterior distribution over some parameters given sensory data and a response function.
 
-For the time left before the break, you are going to apply this knowledge to more practical context: filtering the world weather. We will use data from {cite:p}`pfenninger:2016, staffell:2016` that is made available at [the following database](https://renewables.ninja/). This database contains hourly recordings of various weather parameters that have been tracked over one year at a different positions in the world. The data from Aarhus can be loaded using the following function call:
+For the time left before the break, you are going to apply this knowledge to a more practical context: filtering the world's weather. We will use data from {cite:p}`pfenninger:2016, staffell:2016` that is made available at [the following database](https://renewables.ninja/). This database contains hourly recordings of various weather parameters that have been tracked over one year at different positions in the world. The data from Aarhus can be loaded using the following function call:
 
 ```{code-cell} ipython3
 ---
@@ -300,26 +300,28 @@ hgf.plot_trajectories();
 
 ```{admonition} Exercises 4
 - Select a city and download a recording OR use the data frame loaded above.
-- Fit an agent using one of the variable and compute the posterior probability over this parameter.
+- Fit an agent using one of the variables and compute the posterior probability over this parameter.
 ```
 
 +++
 
 ## Bayesian reinforcement learning: the binary HGF
 
-```{code-cell} ipython3
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-```
+In the first part of the tutorial, we introduced the continuous Hierarchical Gaussian Filter and detailed how it is built on top of hierarchical GRW. This model is intended to work with continuous input variables. In this regard, it can be seen as a generalization of the Kalman filter. However, several experimental contexts require working with variables that have discrete states.
+
+The binary HGF can be seen as an extension of the continuous HGF, with the exception that it has a binary input node except one a continuous one. Handling such binary variables can be useful, for example in the context of reinforcement learning where we want the agent to learn the association between two states in the world. Such experiments, like the [one-armed badit task](https://en.wikipedia.org/wiki/Multi-armed_bandit) we will illustrate below, produce two types of information at each trial:
+- the action $y$
+- the observation $u$ about the association between the stimuli and the outcomes
+
+We can load an example dataset from {cite:p}`Iglesias2021` using the following command.
 
 ```{code-cell} ipython3
 u, y = load_data("binary")
 ```
 
 ### The binary Hierarchical Gaussian Filter
-
-```{code-cell} ipython3
-
-```
 
 ```{code-cell} ipython3
 two_levels_hgf = HGF(
@@ -354,7 +356,8 @@ To control for this possibility, we define a simple alternative model below. Thi
 
 +++
 
-### Biased random
+### Model comparison
+#### Biased random
 
 ```{code-cell} ipython3
 from pyhgf.response import binary_softmax
@@ -392,10 +395,11 @@ az.plot_trace(biased_random_idata);
 ```
 
 ```{code-cell} ipython3
+%%capture --no-display
 az.waic(biased_random_idata)
 ```
 
-### A simple Rescorla-Wagner model
+#### Rescorla-Wagner
 
 ```{code-cell} ipython3
 ---
@@ -456,43 +460,9 @@ az.plot_trace(rw_idata);
 ```
 
 ```{code-cell} ipython3
+%%capture --no-display
 az.waic(rw_idata)
 ```
-
-```{code-cell} ipython3
-import matplotlib.pyplot as plt
-learning_rate = 1.0
-action_precision = 2.0
-def rw_update(new_observation, current_belief):
-
-    # sigmoid transform the beliefs at t-1 (into [0,1])
-    transformed_old_value = 1 / (1 + np.exp(-current_belief))
-
-    # get the new value using the RW update
-    new_belief = current_belief + learning_rate * (new_observation - transformed_old_value)
-
-    return new_belief
-
-beliefs = [0.0]
-for i in u:
-    new_belief = rw_update(i, beliefs[-1])
-    beliefs.append(new_belief)
-plt.plot(beliefs)
-```
-
-+++ {"editable": true, "slideshow": {"slide_type": ""}}
-
-### Modelling behaviours using a response function
-
-```{code-cell} ipython3
-learning_rate
-```
-
-+++ {"editable": true, "slideshow": {"slide_type": ""}}
-
-### Model comparison
-
-+++
 
 #### Two-level HGF
 
@@ -544,6 +514,7 @@ az.plot_trace(two_levels_idata);
 ```
 
 ```{code-cell} ipython3
+%%capture --no-display
 az.waic(two_levels_idata)
 ```
 
@@ -605,31 +576,8 @@ az.plot_trace(three_levels_idata);
 ```
 
 ```{code-cell} ipython3
+%%capture --no-display
 az.waic(three_levels_idata)
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
 ```
 
 ```{code-cell} ipython3
@@ -638,39 +586,47 @@ editable: true
 slideshow:
   slide_type: ''
 ---
+%%capture --no-display
 az.compare(
     {
         "biased_random": biased_random_idata, 
         "RW": rw_idata, 
         "two-level": two_levels_idata, 
         "three-level": three_levels_idata
-    }, 
-    ic="waic"
+    }
 )
 ```
 
-```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
----
-az.waic(biased_random_idata)
-```
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+### Posterior predictive sampling
+
++++
+
+import matplotlib.pyplot as plt
+learning_rate = 1.0
+action_precision = 2.0
+def rw_update(new_observation, current_belief):
+
+    # sigmoid transform the beliefs at t-1 (into [0,1])
+    transformed_old_value = 1 / (1 + np.exp(-current_belief))
+
+    # get the new value using the RW update
+    new_belief = current_belief + learning_rate * (new_observation - transformed_old_value)
+
+    return new_belief
+
+beliefs = [0.0]
+for i in u:
+    new_belief = rw_update(i, beliefs[-1])
+    beliefs.append(new_belief)
+plt.plot(beliefs)
+
++++
+
+# System configuration
 
 ```{code-cell} ipython3
-az.waic(two_levels_idata)
-```
-
-```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
----
-
-```
-
-```{code-cell} ipython3
-
+%load_ext watermark
+%watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```
