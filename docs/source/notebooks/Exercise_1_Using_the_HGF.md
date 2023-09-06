@@ -40,6 +40,11 @@ import jax.numpy as jnp
 import arviz as az
 import matplotlib.pyplot as plt
 import seaborn as sns
+from pyhgf.response import binary_softmax
+import pymc as pm
+import arviz as az
+import pytensor.tensor as pt
+from pytensor import scan, function
 
 # load an example time series for continuous inputs
 timeseries = load_data("continuous")
@@ -334,9 +339,9 @@ u, y = load_data("binary")
 two_levels_hgf = HGF(
     n_levels=2,
     model_type="binary",
-    initial_mu={"1": .0, "2": .5},
-    initial_pi={"1": .0, "2": 1.0},
-    omega={"2": -3.0},
+    initial_mu={"1": .0, "2": 0.0},
+    initial_pi={"1": np.nan, "2": 1.0},
+    omega={"2": -0.5},
 )
 ```
 
@@ -349,6 +354,10 @@ two_levels_hgf = two_levels_hgf.input_data(input_data=u)
 ```
 
 ```{code-cell} ipython3
+two_levels_hgf.surprise(response_function=binary_softmax, response_function_parameters=y)
+```
+
+```{code-cell} ipython3
 ---
 editable: true
 slideshow:
@@ -357,22 +366,15 @@ slideshow:
 two_levels_hgf.plot_trajectories();
 ```
 
-When modelling, we always want to control for alternative, simpler explanations. It might be that our subjects are dynamically updating their beliefs in accordance with our assumptions. However, sometimes, they might just be responding rather randomly and not show much learning at all.
-
-To control for this possibility, we define a simple alternative model below. This model just takes random actions with a single fixed probability. It does not integrate the data from the task at all.
-
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 ### Model comparison
+
+When modelling, we always want to control for alternative, simpler explanations. It might be that our subjects are dynamically updating their beliefs in accordance with our assumptions. However, sometimes, they might just be responding rather randomly and not show much learning at all. It might also be that they are using a simple learning model that does not require to use of the HGF to capture higher-order volatility. We want to analyse the data using all these models and compare how well they can explain the participant's responses.
+
 #### Biased random
 
-```{code-cell} ipython3
-from pyhgf.response import binary_softmax
-import pymc as pm
-import arviz as az
-import pytensor.tensor as pt
-from pytensor import scan, function
-```
+To control for this possibility, we define the simplier alternative model below. This model just takes random actions with a single fixed probability. It does not integrate the data from the task at all.
 
 ```{code-cell} ipython3
 def logp(value, action_probability):
@@ -419,13 +421,13 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-def rw_update(new_observation, new_response, current_belief, current_action_probability, learning_rate, action_precision):
+def rw_update(new_observation, new_response, current_belief, current_action_probability, learning_rate):
 
     # pass previous belief through softmax to get action probability
-    action_probability = 1 / (1 + pt.exp(-action_precision * current_belief))
+    action_probability = 1 / (1 + pt.exp(-current_belief))
 
     # compute the error associated with the actual responses
-    error = pt.log(pt.power(action_probability, new_response) * pt.power((1 - action_probability), 1-new_response))
+    error = new_response * pt.log(action_probability) + (1 - new_response) * pt.log(1-action_probability)
 
     # sigmoid transform the previous beliefs at t-1 (into [0,1])
     transformed_old_value = 1 / (1 + pt.exp(-current_belief))
@@ -437,7 +439,7 @@ def rw_update(new_observation, new_response, current_belief, current_action_prob
 ```
 
 ```{code-cell} ipython3
-def logp(value, learning_rate, action_precision):
+def logp(value, learning_rate):
 
     observations = pt.as_tensor_variable(u, dtype="int32")
     responses = pt.as_tensor_variable(y, dtype="int32")
@@ -448,7 +450,7 @@ def logp(value, learning_rate, action_precision):
     results, updates = scan(
         fn=rw_update, 
         sequences=[observations, responses], 
-        non_sequences=[learning_rate, action_precision],
+        non_sequences=[learning_rate],
         outputs_info=[curret_belief, error]
     )
 
@@ -464,8 +466,7 @@ def logp(value, learning_rate, action_precision):
 with pm.Model() as rw_model:
     y_data = pm.ConstantData("y_data", y)
     lr = pm.Normal("lr", 0.0, 2.0)
-    ap = pm.HalfNormal("ap", 5.0)
-    hgf = pm.DensityDist('hgf', lr, ap, logp=logp, observed=y_data)
+    hgf = pm.DensityDist('hgf', lr, logp=logp, observed=y_data)
 ```
 
 ```{code-cell} ipython3
@@ -490,13 +491,16 @@ az.loo(rw_idata)
 We can visualize the belief updating using this model as:
 
 ```{code-cell} ipython3
+rw_idata
+```
+
+```{code-cell} ipython3
 ---
 editable: true
 slideshow:
   slide_type: ''
 ---
 learning_rate = az.summary(rw_idata)["mean"].lr
-action_precision = az.summary(rw_idata)["mean"].ap
 
 def rw_update(new_observation, current_belief):
 
@@ -516,9 +520,20 @@ beliefs = 1 / (1 + np.exp(-np.array(beliefs)))
 ```
 
 ```{code-cell} ipython3
+from pyhgf.updates.binary import binary_surprise
+
+binary_surprise(y, two_levels_hgf.to_pandas().x_1_muhat.to_numpy()).sum()
+```
+
+```{code-cell} ipython3
+binary_surprise(y, beliefs[:-1]).sum()
+```
+
+```{code-cell} ipython3
 plt.figure(figsize=(12, 3))
 plt.plot(beliefs)
-plt.scatter(np.arange(len(y)), y, alpha=.4, edgecolor="k")
+plt.plot(two_levels_hgf.to_pandas().x_1_muhat.to_numpy())
+plt.scatter(np.arange(len(u)), u, alpha=.4, edgecolor="k")
 sns.despine()
 ```
 
@@ -558,7 +573,7 @@ def logp(value, omega_2):
 ```{code-cell} ipython3
 with pm.Model() as two_levels_binary_hgf:
     y_data = pm.ConstantData("y_data", y)
-    omega_2 = pm.Uniform("omega_2", -4.0, 0.0)
+    omega_2 = pm.Normal("omega_2", -5.0, 2.0)
     hgf = pm.DensityDist('hgf', omega_2, logp=logp, observed=y_data)
 ```
 
@@ -596,11 +611,11 @@ hgf_logp_op = HGFDistribution(
 ```
 
 ```{code-cell} ipython3
-def logp(value, omega_2, mu_2):
+def logp(value, omega_2):
     return hgf_logp_op(
             omega_1=jnp.inf,
             omega_2=omega_2,
-            omega_3=-4.0,
+            omega_3=-6.0,
             continuous_precision=jnp.inf,
             rho_1=0.0,
             rho_2=0.0,
@@ -609,8 +624,8 @@ def logp(value, omega_2, mu_2):
             pi_2=1.0,
             pi_3=1.0,
             mu_1=jnp.inf,
-            mu_2=mu_2,
-            mu_3=0.0,
+            mu_2=0.0,
+            mu_3=1.0,
             kappa_1=1.0,
             kappa_2=1.0,
         )
@@ -624,9 +639,8 @@ slideshow:
 ---
 with pm.Model() as three_levels_binary_hgf:
     y_data = pm.ConstantData("y_data", y)
-    omega_2 = pm.Uniform("omega_2", -4.0, 0.0)
-    mu_2 = pm.Normal("mu_2", 0.0, 2.0)
-    hgf = pm.DensityDist('hgf', omega_2, mu_2, logp=logp, observed=y_data)
+    omega_2 = pm.Normal("omega_2", -5.0, 2.0)
+    hgf = pm.DensityDist('hgf', omega_2, logp=logp, observed=y_data)
 ```
 
 ```{code-cell} ipython3
@@ -691,13 +705,12 @@ fig, axs = plt.subplots(nrows=4, figsize=(12, 7))
 
 for _ in range(20):
 
-    omega_2 = np.random.normal(-0.8, 0.2)
-    mu_2 = np.random.normal(0.5, 1.2)
+    omega_2 = np.random.normal(-1.7, 0.2)
     
     three_levels_df = HGF(
         n_levels=3,
         model_type="binary",
-        initial_mu={"1": .0, "2": mu_2, "3": 0.0},
+        initial_mu={"1": .0, "2": 0.0, "3": 1.0},
         initial_pi={"1": .0, "2": 1.0, "3": 1.0},
         omega={"2": omega_2, "3": -6.0},
         verbose=False
@@ -759,4 +772,8 @@ slideshow:
 ---
 %load_ext watermark
 %watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
+```
+
+```{code-cell} ipython3
+
 ```
