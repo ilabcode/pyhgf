@@ -27,12 +27,19 @@ if 'google.colab' in sys.modules:
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 from pyhgf import load_data
 from pyhgf.model import HGF
 from pyhgf.distribution import HGFDistribution
 import pandas as pd
 import jax.numpy as jnp
 import arviz as az
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # load an example time series for continuous inputs
 timeseries = load_data("continuous")
@@ -328,7 +335,7 @@ two_levels_hgf = HGF(
     n_levels=2,
     model_type="binary",
     initial_mu={"1": .0, "2": .5},
-    initial_pi={"1": .0, "2": 1e4},
+    initial_pi={"1": .0, "2": 1.0},
     omega={"2": -3.0},
 )
 ```
@@ -395,8 +402,13 @@ az.plot_trace(biased_random_idata);
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture --no-display
-az.waic(biased_random_idata)
+az.loo(biased_random_idata)
 ```
 
 #### Rescorla-Wagner
@@ -407,15 +419,21 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-def rw_update(new_observation, current_belief, learning_rate):
+def rw_update(new_observation, new_response, current_belief, current_action_probability, learning_rate, action_precision):
 
-    # sigmoid transform the beliefs at t-1 (into [0,1])
+    # pass previous belief through softmax to get action probability
+    action_probability = 1 / (1 + pt.exp(-action_precision * current_belief))
+
+    # compute the error associated with the actual responses
+    error = pt.log(pt.power(action_probability, new_response) * pt.power((1 - action_probability), 1-new_response))
+
+    # sigmoid transform the previous beliefs at t-1 (into [0,1])
     transformed_old_value = 1 / (1 + pt.exp(-current_belief))
 
     # get the new value using the RW update
     new_belief = current_belief + learning_rate * (new_observation - transformed_old_value)
 
-    return new_belief
+    return new_belief, error
 ```
 
 ```{code-cell} ipython3
@@ -425,19 +443,19 @@ def logp(value, learning_rate, action_precision):
     responses = pt.as_tensor_variable(y, dtype="int32")
     outputs_info = pt.as_tensor_variable(np.asarray(0.0, observations.dtype))
     curret_belief = pt.zeros(1, dtype="float")
+    error = pt.zeros(1, dtype="float")
     
     results, updates = scan(
         fn=rw_update, 
-        sequences=observations, 
-        non_sequences=[learning_rate],
-        outputs_info=[curret_belief]
+        sequences=[observations, responses], 
+        non_sequences=[learning_rate, action_precision],
+        outputs_info=[curret_belief, error]
     )
-    
-    # pass this belief through softmax to get action probability
-    action_probability = 1 / (1 + pt.exp(-action_precision * results))
+
+    _, error = results
     
     # compute the log probability associated with the actual responses
-    logp = pt.sum(pt.log(pt.power(action_probability[:, 0], responses) * pt.power((1 - action_probability[:, 0]), 1-responses)))
+    logp = pt.sum(error)
 
     return logp
 ```
@@ -460,8 +478,48 @@ az.plot_trace(rw_idata);
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture --no-display
-az.waic(rw_idata)
+az.loo(rw_idata)
+```
+
+We can visualize the belief updating using this model as:
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+learning_rate = az.summary(rw_idata)["mean"].lr
+action_precision = az.summary(rw_idata)["mean"].ap
+
+def rw_update(new_observation, current_belief):
+
+    # sigmoid transform the beliefs at t-1 (into [0,1])
+    transformed_old_value = 1 / (1 + np.exp(-current_belief))
+
+    # get the new value using the RW update
+    new_belief = current_belief + learning_rate * (new_observation - transformed_old_value)
+
+    return new_belief
+
+beliefs = [0.0]
+for i in u:
+    new_belief = rw_update(i, beliefs[-1])
+    beliefs.append(new_belief)
+beliefs = 1 / (1 + np.exp(-np.array(beliefs)))
+```
+
+```{code-cell} ipython3
+plt.figure(figsize=(12, 3))
+plt.plot(beliefs)
+plt.scatter(np.arange(len(y)), y, alpha=.4, edgecolor="k")
+sns.despine()
 ```
 
 #### Two-level HGF
@@ -487,10 +545,10 @@ def logp(value, omega_2):
             rho_2=0.0,
             rho_3=jnp.nan,
             pi_1=0.0,
-            pi_2=1e4,
+            pi_2=1.0,
             pi_3=jnp.nan,
             mu_1=jnp.inf,
-            mu_2=0.5,
+            mu_2=0.0,
             mu_3=jnp.nan,
             kappa_1=1.0,
             kappa_2=jnp.nan,
@@ -514,8 +572,13 @@ az.plot_trace(two_levels_idata);
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture --no-display
-az.waic(two_levels_idata)
+az.loo(two_levels_idata)
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -533,20 +596,20 @@ hgf_logp_op = HGFDistribution(
 ```
 
 ```{code-cell} ipython3
-def logp(value, omega_2, omega_3):
+def logp(value, omega_2, mu_2):
     return hgf_logp_op(
             omega_1=jnp.inf,
             omega_2=omega_2,
-            omega_3=omega_3,
+            omega_3=-4.0,
             continuous_precision=jnp.inf,
             rho_1=0.0,
             rho_2=0.0,
             rho_3=0.0,
             pi_1=0.0,
-            pi_2=1e4,
-            pi_3=1e1,
+            pi_2=1.0,
+            pi_3=1.0,
             mu_1=jnp.inf,
-            mu_2=0.0,
+            mu_2=mu_2,
             mu_3=0.0,
             kappa_1=1.0,
             kappa_2=1.0,
@@ -562,8 +625,8 @@ slideshow:
 with pm.Model() as three_levels_binary_hgf:
     y_data = pm.ConstantData("y_data", y)
     omega_2 = pm.Uniform("omega_2", -4.0, 0.0)
-    omega_3 = pm.Normal("omega_3", -4.0, 5.0)
-    hgf = pm.DensityDist('hgf', omega_2, omega_3, logp=logp, observed=y_data)
+    mu_2 = pm.Normal("mu_2", 0.0, 2.0)
+    hgf = pm.DensityDist('hgf', omega_2, mu_2, logp=logp, observed=y_data)
 ```
 
 ```{code-cell} ipython3
@@ -572,12 +635,18 @@ with three_levels_binary_hgf:
 ```
 
 ```{code-cell} ipython3
-az.plot_trace(three_levels_idata);
+az.plot_trace(three_levels_idata)
+plt.tight_layout();
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture --no-display
-az.waic(three_levels_idata)
+az.loo(three_levels_idata)
 ```
 
 ```{code-cell} ipython3
@@ -603,30 +672,91 @@ az.compare(
 
 +++
 
-import matplotlib.pyplot as plt
-learning_rate = 1.0
-action_precision = 2.0
-def rw_update(new_observation, current_belief):
+Another way to assess model fitting is to use a posterior predictive check (i.e. we want to ensure that the posterior distribution would be well suited to predict the data at hand). This is usually done by sampling from the posterior distribution and comparing it with the observations. We can do something that approaches this procedure by sampling the parameters of the HGF from the posterior distribution obtained in the previous steps and plotting the resulting trajectories. We can retrieve the parameters of the posterior distributions from our previous fit:
 
-    # sigmoid transform the beliefs at t-1 (into [0,1])
-    transformed_old_value = 1 / (1 + np.exp(-current_belief))
+```{code-cell} ipython3
+az.summary(three_levels_idata)
+```
 
-    # get the new value using the RW update
-    new_belief = current_belief + learning_rate * (new_observation - transformed_old_value)
+And use them to sample new parameters from the same distribution and plot the beliefs trajectories accordingly:
 
-    return new_belief
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input]
+---
+fig, axs = plt.subplots(nrows=4, figsize=(12, 7))
 
-beliefs = [0.0]
-for i in u:
-    new_belief = rw_update(i, beliefs[-1])
-    beliefs.append(new_belief)
-plt.plot(beliefs)
+for _ in range(20):
 
-+++
+    omega_2 = np.random.normal(-0.8, 0.2)
+    mu_2 = np.random.normal(0.5, 1.2)
+    
+    three_levels_df = HGF(
+        n_levels=3,
+        model_type="binary",
+        initial_mu={"1": .0, "2": mu_2, "3": 0.0},
+        initial_pi={"1": .0, "2": 1.0, "3": 1.0},
+        omega={"2": omega_2, "3": -6.0},
+        verbose=False
+    ).input_data(input_data=u).to_pandas()
+    
+    axs[0].plot(
+        three_levels_df.time, 
+        three_levels_df.x_3_muhat,
+        alpha=.4,
+        linewidth=.5,
+        color="#c44e52"
+    )
+    
+    axs[1].plot(
+        three_levels_df.time, 
+        three_levels_df.x_2_muhat,
+        alpha=.4,
+        linewidth=.5,
+        color="#55a868"
+    )
+    
+    axs[2].plot(
+        three_levels_df.time, 
+        three_levels_df.x_1_muhat,
+        alpha=.4,
+        linewidth=.5,
+        color="#4c72b0"
+    )
+
+
+    axs[3].plot(
+        three_levels_df.time, 
+        three_levels_df.surprise,
+        alpha=.4,
+        linewidth=.5,
+        color="#2a2a2a"
+    )
+
+axs[2].scatter(
+    three_levels_df.time, 
+    three_levels_df.observation_input_0,
+    alpha=0.4,
+    edgecolor="k"
+)
+axs[3].set_title("Surprise", loc="left")
+plt.tight_layout()
+sns.despine()
+```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 # System configuration
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %load_ext watermark
 %watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```
