@@ -56,5 +56,5 @@ if __name__ == "__main__":
         install_requires=get_requirements(),
         include_package_data=True,
         package_data={"": ["pyhgf/pyhgf/data/*.dat"]},
-        packages=find_packages(where="pyhgf"),
+        packages=find_packages(),
     )
