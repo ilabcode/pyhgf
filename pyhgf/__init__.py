@@ -7,6 +7,12 @@ from typing import Tuple, Union
 import numpy as np
 import pandas as pd
 
+from .pyhgf import updates
+
+__all__ = [
+    "updates",
+]
+
 __version__ = "0.0.7"
 
 
