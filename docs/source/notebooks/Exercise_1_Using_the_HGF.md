@@ -321,13 +321,13 @@ hgf.plot_trajectories();
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-In the first part of the tutorial, we introduced the continuous Hierarchical Gaussian Filter and detailed how it is built on top of hierarchical GRW. This model is intended to work with continuous input variables. In this regard, it can be seen as a generalization of the Kalman filter. However, several experimental contexts require working with variables that have discrete states.
+In the first part of the tutorial, we introduced the continuous Hierarchical Gaussian Filter and detailed how it is built on top of hierarchical GRW. This model is intended to work with continuous input variables. In this regard, it can be seen as a generalization of the Kalman filter. However, several experiments require working with variables that have discrete states.
 
-The binary HGF can be seen as an extension of the continuous HGF, with the exception that it has a binary input node except one a continuous one. Handling such binary variables can be useful, for example in the context of reinforcement learning where we want the agent to learn the association between two states in the world. Such experiments, like the [one-armed badit task](https://en.wikipedia.org/wiki/Multi-armed_bandit) we will illustrate below, produce two types of information at each trial:
-- the action $y$
-- the observation $u$ about the association between the stimuli and the outcomes
+The binary HGF can be seen as an extension of the continuous HGF, with the exception that it has a binary input node except one a continuous one. Handling such binary variables can be useful, for example for reinforcement learning paradigms where we want the agent to learn the association between two states in the world. Such experiments, like the [one-armed badit task](https://en.wikipedia.org/wiki/Multi-armed_bandit) that we will be using below, generally produce two types of information at each trial:
+- the action $y$, as a boolean variable, that is registering the decision made by the agent at time $t$, at the beginning of the trial.
+- the observation $u$ about the association between the stimuli and the outcomes, as a boolean (e.g. `1` if Stim_1 -> Outcome_1 and Stim_2 -> Outcome_2, `0` otherwise). 
 
-We can load an example dataset from {cite:p}`Iglesias2021` using the following command.
+We can load an example dataset from {cite:p}`Iglesias2021` using the following command that will return a vector of observations $u$ and a vector of decision $y$.
 
 ```{code-cell} ipython3
 u, y = load_data("binary")
@@ -335,27 +335,33 @@ u, y = load_data("binary")
 
 ### The binary Hierarchical Gaussian Filter
 
++++
+
+Fitting data to a binary HGF is quite similar to the continuous one (note that ```model_type="binary"```).
+
 ```{code-cell} ipython3
 two_levels_hgf = HGF(
     n_levels=2,
     model_type="binary",
     initial_mu={"1": .0, "2": 0.0},
     initial_pi={"1": np.nan, "2": 1.0},
-    omega={"2": -0.5},
+    omega={"2": -5},
 )
 ```
+
+This is a two-level binary HGF, so we have one continuous node predicting the outcomes of a binary state node.
 
 ```{code-cell} ipython3
 two_levels_hgf.plot_network()
 ```
 
+The observations about the associations are provided as input data and will be the sensory information the agent uses to update its beliefs.
+
 ```{code-cell} ipython3
 two_levels_hgf = two_levels_hgf.input_data(input_data=u)
 ```
 
-```{code-cell} ipython3
-two_levels_hgf.surprise(response_function=binary_softmax, response_function_parameters=y)
-```
+The node trajectories illustrate how new binary outcomes change the expectations about the associations between the stimuli.
 
 ```{code-cell} ipython3
 ---
@@ -368,13 +374,40 @@ two_levels_hgf.plot_trajectories();
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
+We now have a model with beliefs trajectories and we want to see how these beliefs can explain the behaviour of the participant. This is where we will use the decision vector $y$ together with a response model. Designing response models that are adapted to the task is a central part of the modelling process (you can read more on this in the {ref}`custom_response_functions` section). Here, we use the `binary_softmax`, which means that we assume the expected probability at the first level of the model predicts the decision. 
+
+```{code-cell} ipython3
+two_levels_hgf.surprise(
+    response_function=binary_softmax,  # the response model
+    response_function_parameters=y     # the decision vector
+)
+```
+
+Once we have these two piece of information, we are ready to compute the surprise, which will indicates how well our model could prediction the behavior of the participant.
+
++++
+
+```{hint}
+The actions, or decisions, initiated by the agent are not influencing the way beliefs about the hidden states of the world are being updated (this is NOT active inference). This is for sure a limitation of the model, but it also means that the belief updating and the response model can be processed separately. In other words, no matter what actions the agent is taking along the way, this will not change the way sensory evidence is updating beliefs.
+```
+
++++
+
+```{admonition} Exercises 5
+- Using the examples above, can you diagnose the performances of the agent?
+- What could make it better?
+- Can you try to change the parameters and get an agent with better performances (i.e. minimizing the surprise)?
+```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 ### Model comparison
 
 When modelling, we always want to control for alternative, simpler explanations. It might be that our subjects are dynamically updating their beliefs in accordance with our assumptions. However, sometimes, they might just be responding rather randomly and not show much learning at all. It might also be that they are using a simple learning model that does not require to use of the HGF to capture higher-order volatility. We want to analyse the data using all these models and compare how well they can explain the participant's responses.
 
 #### Biased random
 
-To control for this possibility, we define the simplier alternative model below. This model just takes random actions with a single fixed probability. It does not integrate the data from the task at all.
+To control for this possibility, we define the simpler alternative model below. This model just takes random actions with a single fixed probability. It does not integrate the data from the task at all. Here, we write our models using [PyTensor](https://pytensor.readthedocs.io/en/latest/), which is the tensor library on which [PyMC](https://www.pymc.io/welcome.html) is built, and sample the model the same way. We start by creating a log probability function, that measures the model error when observing the response data. Note that we do not need the observation $u$ here, as our assumption is that the agent is not using it.
 
 ```{code-cell} ipython3
 def logp(value, action_probability):
@@ -390,7 +423,7 @@ def logp(value, action_probability):
 ```{code-cell} ipython3
 with pm.Model() as biased_random_model:
     y_data = pm.ConstantData("y_data", y)
-    bias = pm.Beta("bias", 1.0, 1.0)
+    bias = pm.Beta("bias", 1.0, 1.0)  # a simple bias toward deciding 1 vs. 0
     biased_random = pm.DensityDist('biased_random', bias, logp=logp, observed=y_data)
 ```
 
@@ -402,6 +435,8 @@ with biased_random_model:
 ```{code-cell} ipython3
 az.plot_trace(biased_random_idata);
 ```
+
+Assess model fitting, here using leave-one-out cross-validation from the [Arviz](https://python.arviz.org/en/stable/api/generated/arviz.loo.html) library.
 
 ```{code-cell} ipython3
 ---
@@ -415,6 +450,10 @@ az.loo(biased_random_idata)
 
 #### Rescorla-Wagner
 
++++
+
+Another popular model in reinforcement learning is the [Rescorla-Wagner model](https://en.wikipedia.org/wiki/Rescorla%E2%80%93Wagner_model), which assumes that the agent uses prediction errors from the previous observation to update its beliefs. Here we create a simple Rescorla-Wagner and try to optimize the learning rate to predict the agent decisions.
+
 ```{code-cell} ipython3
 ---
 editable: true
@@ -422,6 +461,7 @@ slideshow:
   slide_type: ''
 ---
 def rw_update(new_observation, new_response, current_belief, current_action_probability, learning_rate):
+    """The decision and update step at time t."""
 
     # pass previous belief through softmax to get action probability
     action_probability = 1 / (1 + pt.exp(-current_belief))
@@ -440,6 +480,7 @@ def rw_update(new_observation, new_response, current_belief, current_action_prob
 
 ```{code-cell} ipython3
 def logp(value, learning_rate):
+    """Compute the sum of log probabilities."""
 
     observations = pt.as_tensor_variable(u, dtype="int32")
     responses = pt.as_tensor_variable(y, dtype="int32")
@@ -465,7 +506,7 @@ def logp(value, learning_rate):
 ```{code-cell} ipython3
 with pm.Model() as rw_model:
     y_data = pm.ConstantData("y_data", y)
-    lr = pm.Normal("lr", 0.0, 2.0)
+    lr = pm.Normal("lr", 0.0, 2.0)  # learning rate
     hgf = pm.DensityDist('hgf', lr, logp=logp, observed=y_data)
 ```
 
@@ -489,10 +530,6 @@ az.loo(rw_idata)
 ```
 
 We can visualize the belief updating using this model as:
-
-```{code-cell} ipython3
-rw_idata
-```
 
 ```{code-cell} ipython3
 ---
@@ -530,16 +567,31 @@ binary_surprise(y, beliefs[:-1]).sum()
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input]
+---
 plt.figure(figsize=(12, 3))
-plt.plot(beliefs)
-plt.plot(two_levels_hgf.to_pandas().x_1_muhat.to_numpy())
+plt.plot(beliefs, label="R-W belief updates")
 plt.scatter(np.arange(len(u)), u, alpha=.4, edgecolor="k")
+plt.legend()
 sns.despine()
 ```
 
 #### Two-level HGF
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+Finally, we can model the behaviour using the two-level or the three-level HGF. The two-level model should generate prediction similar to what we have with the Rescorla-Wagner model, while the three-level HGF is adding a layer of volatility and therefore could take advantage of higher-level dynamics of volatility.
+
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
@@ -550,6 +602,11 @@ hgf_logp_op = HGFDistribution(
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 def logp(value, omega_2):
     return hgf_logp_op(
             omega_1=jnp.inf,
@@ -571,6 +628,11 @@ def logp(value, omega_2):
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 with pm.Model() as two_levels_binary_hgf:
     y_data = pm.ConstantData("y_data", y)
     omega_2 = pm.Normal("omega_2", -5.0, 2.0)
@@ -578,11 +640,21 @@ with pm.Model() as two_levels_binary_hgf:
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 with two_levels_binary_hgf:
     two_levels_idata = pm.sample(chains=4, idata_kwargs={"log_likelihood": True})
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 az.plot_trace(two_levels_idata);
 ```
 
@@ -601,6 +673,11 @@ az.loo(two_levels_idata)
 #### Three-level HGF
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 hgf_logp_op = HGFDistribution(
     n_levels=3,
     model_type="binary",
@@ -611,6 +688,11 @@ hgf_logp_op = HGFDistribution(
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 def logp(value, omega_2):
     return hgf_logp_op(
             omega_1=jnp.inf,
@@ -644,11 +726,21 @@ with pm.Model() as three_levels_binary_hgf:
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 with three_levels_binary_hgf:
     three_levels_idata = pm.sample(chains=4, idata_kwargs={"log_likelihood": True})
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 az.plot_trace(three_levels_idata)
 plt.tight_layout();
 ```
@@ -688,9 +780,7 @@ az.compare(
 
 Another way to assess model fitting is to use a posterior predictive check (i.e. we want to ensure that the posterior distribution would be well suited to predict the data at hand). This is usually done by sampling from the posterior distribution and comparing it with the observations. We can do something that approaches this procedure by sampling the parameters of the HGF from the posterior distribution obtained in the previous steps and plotting the resulting trajectories. We can retrieve the parameters of the posterior distributions from our previous fit:
 
-```{code-cell} ipython3
-az.summary(three_levels_idata)
-```
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 And use them to sample new parameters from the same distribution and plot the beliefs trajectories accordingly:
 
@@ -705,7 +795,10 @@ fig, axs = plt.subplots(nrows=4, figsize=(12, 7))
 
 for _ in range(20):
 
-    omega_2 = np.random.normal(-1.7, 0.2)
+    omega_2 = np.random.normal(
+        az.summary(three_levels_idata)["mean"].omega_2, 
+        az.summary(three_levels_idata)["sd"].omega_2
+    )
     
     three_levels_df = HGF(
         n_levels=3,
@@ -775,5 +868,10 @@ slideshow:
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 
 ```
