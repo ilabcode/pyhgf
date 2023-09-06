@@ -236,7 +236,6 @@ def fill_categorical_state_node(
             value_coupling=1.0,
             pi=implied_binary_parameters["pi_1"],
             mu=implied_binary_parameters["mu_1"],
-            mu_hat=implied_binary_parameters["mu_1"],
         )
 
     # add the continuous parent node
@@ -246,7 +245,6 @@ def fill_categorical_state_node(
             + implied_binary_parameters["n_categories"],
             value_coupling=1.0,
             mu=implied_binary_parameters["mu_2"],
-            mu_hat=implied_binary_parameters["mu_hat_2"],
             pi=implied_binary_parameters["pi_2"],
             omega=implied_binary_parameters["omega_2"],
         )

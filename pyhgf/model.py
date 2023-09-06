@@ -74,7 +74,7 @@ class HGF(object):
             "2": -3.0,
             "3": -3.0,
         },
-        kappas: Dict = {"1": 1.0, "2": 0.0},
+        kappas: Dict = {"1": 1.0, "2": 1.0},
         eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
         eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
         binary_precision: Union[float, np.ndarray, ArrayLike] = jnp.inf,
@@ -575,7 +575,6 @@ class HGF(object):
                     "pi_3": 1.0,
                     "mu_1": 0.0,
                     "mu_2": -jnp.log(categorical_parameters["n_categories"] - 1),
-                    "mu_hat_2": -jnp.log(categorical_parameters["n_categories"] - 1),
                     "mu_3": 0.0,
                     "omega_2": -4.0,
                     "omega_3": -4.0,
@@ -595,9 +594,7 @@ class HGF(object):
         children_idxs: Union[List, int],
         value_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
         mu: Union[float, np.ndarray, ArrayLike] = 0.0,
-        mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
-        pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
@@ -612,14 +609,11 @@ class HGF(object):
             The value_coupling between the child and parent node. This is will be
             appended to the `psis` parameters in the parent and child node(s).
         mu :
-            The mean of the Gaussian distribution.
-        mu_hat :
-            The expected mean of the Gaussian distribution for the next observation.
+            The mean of the Gaussian distribution. This value is passed both to the
+            current and expected states.
         pi :
-            The precision of the Gaussian distribution (inverse variance).
-        pi_hat :
-            The expected precision of the Gaussian distribution (inverse variance) for
-            the next observation.
+            The precision of the Gaussian distribution (inverse variance). This
+            value is passed both to the current and expected states.
         omega :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
@@ -639,9 +633,9 @@ class HGF(object):
         # parent's parameter
         node_parameters = {
             "mu": mu,
-            "muhat": mu_hat,
+            "muhat": mu,
             "pi": pi,
-            "pihat": pi_hat,
+            "pihat": pi,
             "kappas_children": None,
             "kappas_parents": None,
             "psis_children": tuple(value_coupling for _ in range(len(children_idxs))),
@@ -699,9 +693,7 @@ class HGF(object):
         children_idxs: Union[List, int],
         volatility_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
         mu: Union[float, np.ndarray, ArrayLike] = 0.0,
-        mu_hat: Union[float, np.ndarray, ArrayLike] = 0.0,
         pi: Union[float, np.ndarray, ArrayLike] = 1.0,
-        pi_hat: Union[float, np.ndarray, ArrayLike] = 1.0,
         omega: Union[float, np.ndarray, ArrayLike] = -4.0,
         rho: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
@@ -716,14 +708,11 @@ class HGF(object):
             The volatility coupling between the child and parent node. This is will be
             appended to the `kappas` parameters in the parent and child node(s).
         mu :
-            The mean of the Gaussian distribution.
-        mu_hat :
-            The expected mean of the Gaussian distribution for the next observation.
+            The mean of the Gaussian distribution. This value is passed both to the
+            current and expected states.
         pi :
-            The precision of the Gaussian distribution (inverse variance).
-        pi_hat :
-            The expected precision of the Gaussian distribution (inverse variance) for
-            the next observation.
+            The precision of the Gaussian distribution (inverse variance). This
+            value is passed both to the current and expected states.
         omega :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
@@ -743,9 +732,9 @@ class HGF(object):
         # parent's parameter
         node_parameters = {
             "mu": mu,
-            "muhat": mu_hat,
+            "muhat": mu,
             "pi": pi,
-            "pihat": pi_hat,
+            "pihat": pi,
             "kappas_children": tuple(
                 volatility_coupling for _ in range(len(children_idxs))
             ),
