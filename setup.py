@@ -57,5 +57,5 @@ if __name__ == "__main__":
         include_package_data=True,
         package_dir = {"": "src"},
         package_data={"": ["pyhgf/src/pyhgf/data/*.dat"]},
-        packages=find_packages(),
+        packages=find_packages(where='src'),
     )
