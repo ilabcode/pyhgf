@@ -52,9 +52,10 @@ if __name__ == "__main__":
         long_description=open("README.md", encoding='utf-8').read(),
         long_description_content_type="text/markdown",
         license="GPL-3.0",
-        version=get_version("pyhgf/__init__.py"),
+        version=get_version("src/pyhgf/__init__.py"),
         install_requires=get_requirements(),
         include_package_data=True,
-        package_data={"": ["pyhgf/pyhgf/data/*.dat"]},
+        package_dir = {"": "src"},
+        package_data={"": ["pyhgf/src/pyhgf/data/*.dat"]},
         packages=find_packages(),
     )
