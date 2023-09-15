@@ -9,13 +9,15 @@
 API
 +++
 
-Updates
--------
+Nodes updates
+-------------
+
+Update functions used to update the posteriors or predict outcomes of probabilistic nodes. These functions call intenaly the more specific update function listed in the posterior and prediction sections below.
 
 Binary
 ******
 
-Core functionnalities to update *binary* node structures.
+Core functionnalities to update *binary* nodes.
 
 .. currentmodule:: pyhgf.updates.binary
 
@@ -32,7 +34,7 @@ Core functionnalities to update *binary* node structures.
 Continuous
 **********
 
-Core functionnalities to update *continuous* node structures.
+Core functionnalities to update *continuous* nodes.
 
 .. currentmodule:: pyhgf.updates.continuous
 
@@ -40,8 +42,48 @@ Core functionnalities to update *continuous* node structures.
    :toctree: generated/pyhgf.updates.continuous
 
     continuous_node_update
+    continuous_node_prediction
     continuous_input_update
+    continuous_input_prediction
     gaussian_surprise
+
+Categorical
+***********
+
+Core functionnalities to update *categorical* nodes.
+
+.. currentmodule:: pyhgf.updates.categorical
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.categorical
+
+    categorical_input_update
+    dirichlet_kullback_leibler
+
+Posterior updates
+-----------------
+
+Continuous
+::::::::::
+
+.. currentmodule:: pyhgf.updates.posterior.continuous
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.posterior.continuous
+
+    update_mean_value_parent
+    update_precision_value_parent
+    update_value_parent
+    update_volatility_parent
+    update_precision_volatility_parent
+    update_mean_volatility_parent
+
+Prediction updates
+------------------
+
+Continuous
+::::::::::
+
 
 Distribution
 ------------
