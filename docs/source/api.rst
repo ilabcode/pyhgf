@@ -66,10 +66,10 @@ Prediction error steps
 Continuous
 ==========
 
-.. currentmodule:: pyhgf.updates.posterior.continuous
+.. currentmodule:: pyhgf.updates.prediction_error.continuous
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.posterior.continuous
+   :toctree: generated/pyhgf.updates.prediction_error.continuous
 
     prediction_error_mean_value_parent
     prediction_error_precision_value_parent
@@ -87,7 +87,7 @@ Continuous
 .. currentmodule:: pyhgf.updates.prediction_error.continuous
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.posterior.continuous
+   :toctree: generated/pyhgf.updates.prediction_error.continuous
 
     prediction_mean_value_parent
     prediction_precision_value_parent
