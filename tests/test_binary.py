@@ -19,7 +19,10 @@ from pyhgf.updates.binary import (
     gaussian_density,
     sgm,
 )
-from pyhgf.updates.continuous import continuous_node_prediction, continuous_node_update
+from pyhgf.updates.continuous import (
+    continuous_node_prediction,
+    continuous_node_prediction_error,
+)
 
 
 class Testbinary(TestCase):
@@ -114,7 +117,7 @@ class Testbinary(TestCase):
         sequence3 = 2, continuous_node_prediction
         sequence4 = 0, binary_input_update
         sequence5 = 1, binary_node_update
-        sequence6 = 2, continuous_node_update
+        sequence6 = 2, continuous_node_prediction_error
         update_sequence = (
             sequence1,
             sequence2,

@@ -8,17 +8,21 @@ from jax import Array, jit
 from jax.typing import ArrayLike
 
 from pyhgf.typing import Edges
-from pyhgf.updates.posterior.continuous import (
-    update_value_parent,
-    update_volatility_parent,
+from pyhgf.updates.prediction.continuous import (
+    prediction_value_parent,
+    prediction_volatility_parent,
+)
+from pyhgf.updates.prediction_error.continuous import (
+    prediction_error_value_parent,
+    prediction_error_volatility_parent,
 )
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def continuous_node_update(
+def continuous_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
-    """Update the posterior of the value and volatility parent(s) of a continuous node.
+    """Prediction-error step for the value and volatility parents of a continuous node.
 
     Updating the node's parents is a two-step process:
     1. Update value parent(s).
@@ -82,7 +86,9 @@ def continuous_node_update(
                     pi_value_parent,
                     mu_value_parent,
                     nu_value_parent,
-                ) = update_value_parent(attributes, edges, time_step, value_parent_idx)
+                ) = prediction_error_value_parent(
+                    attributes, edges, time_step, value_parent_idx
+                )
 
                 # Update this parent's parameters
                 attributes[value_parent_idx]["pi"] = pi_value_parent
@@ -101,7 +107,7 @@ def continuous_node_update(
                     pi_volatility_parent,
                     mu_volatility_parent,
                     nu_volatility_parent,
-                ) = update_volatility_parent(
+                ) = prediction_error_volatility_parent(
                     attributes, edges, time_step, volatility_parent_idx
                 )
 
@@ -117,7 +123,7 @@ def continuous_node_update(
 def continuous_node_prediction(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
-    """Update the value and volatility parent(s) of a continuous node.
+    """Prediction step for the value and volatility parents of a continuous node.
 
     Updating the node's parents is a two-step process:
     1. Update value parent(s).
@@ -178,116 +184,30 @@ def continuous_node_prediction(
     # Update value parents #
     ########################
     if value_parents_idxs is not None:
-        # the strength of the value coupling between the base node and the parents nodes
-        psis = attributes[node_idx]["psis_parents"]
+        for value_parent_idx in value_parents_idxs:
+            (pihat_value_parent, muhat_value_parent) = prediction_value_parent(
+                attributes, edges, time_step, value_parent_idx
+            )
 
-        for value_parent_idx, psi in zip(value_parents_idxs, psis):
-            # if this child is the last one relative to this parent's family, all the
-            # children will update the parent at once, otherwise just pass and wait
-            if edges[value_parent_idx].value_children[-1] == node_idx:
-                # list the value and volatility parents
-                value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
-                value_parent_volatility_parents_idxs = edges[
-                    value_parent_idx
-                ].volatility_parents
-
-                # Compute new value for nu and pihat
-                logvol = attributes[value_parent_idx]["omega"]
-
-                # Look at the (optional) va_pa's volatility parents
-                # and update logvol accordingly
-                if value_parent_volatility_parents_idxs is not None:
-                    for value_parent_volatility_parents_idx, k in zip(
-                        value_parent_volatility_parents_idxs,
-                        attributes[value_parent_idx]["kappas_parents"],
-                    ):
-                        logvol += (
-                            k * attributes[value_parent_volatility_parents_idx]["mu"]
-                        )
-
-                # Estimate new_nu
-                nu = time_step * jnp.exp(logvol)
-                new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-
-                pihat_value_parent = 1 / (
-                    1 / attributes[value_parent_idx]["pi"] + new_nu
-                )
-
-                # Compute new muhat
-                driftrate = attributes[value_parent_idx]["rho"]
-
-                # Look at the (optional) va_pa's value parents
-                # and update drift rate accordingly
-                if value_parent_value_parents_idxs is not None:
-                    for va_pa_va_pa in value_parent_value_parents_idxs:
-                        driftrate += psi * attributes[va_pa_va_pa]["mu"]
-
-                muhat_value_parent = (
-                    attributes[value_parent_idx]["mu"] + time_step * driftrate
-                )
-
-                # Update this parent's parameters
-                attributes[value_parent_idx]["pihat"] = pihat_value_parent
-                attributes[value_parent_idx]["muhat"] = muhat_value_parent
+            # Update this parent's parameters
+            attributes[value_parent_idx]["pihat"] = pihat_value_parent
+            attributes[value_parent_idx]["muhat"] = muhat_value_parent
 
     #############################
     # Update volatility parents #
     #############################
     if volatility_parents_idxs is not None:
-        # the strength of the value coupling between the base node and the parents nodes
-        kappas_parents = attributes[node_idx]["kappas_parents"]
+        for volatility_parent_idx in volatility_parents_idxs:
+            (
+                pihat_volatility_parent,
+                muhat_volatility_parent,
+            ) = prediction_volatility_parent(
+                attributes, edges, time_step, volatility_parent_idx
+            )
 
-        nu = attributes[node_idx]["nu"]
-
-        for volatility_parent_idx, kappas_parent in zip(
-            volatility_parents_idxs, kappas_parents
-        ):
-            # if this child is the last one relative to this parent's family, all the
-            # children will update the parent at once, otherwise just pass and wait
-            if edges[volatility_parent_idx].volatility_children[-1] == node_idx:
-                # list the value and volatility parents
-                volatility_parent_value_parents_idx = edges[
-                    volatility_parent_idx
-                ].value_parents
-                volatility_parent_volatility_parents_idx = edges[
-                    volatility_parent_idx
-                ].volatility_parents
-
-                # Compute new value for nu and pihat
-                logvol = attributes[volatility_parent_idx]["omega"]
-
-                # Look at the (optional) vo_pa's volatility parents
-                # and update logvol accordingly
-                if volatility_parent_volatility_parents_idx is not None:
-                    for vo_pa_vo_pa, k in zip(
-                        volatility_parent_volatility_parents_idx,
-                        attributes[volatility_parent_idx]["kappas_parents"],
-                    ):
-                        logvol += k * attributes[vo_pa_vo_pa]["mu"]
-
-                # Estimate new_nu
-                new_nu = time_step * jnp.exp(logvol)
-                new_nu = jnp.where(new_nu > 1e-128, new_nu, jnp.nan)
-                pihat_volatility_parent = 1 / (
-                    1 / attributes[volatility_parent_idx]["pi"] + new_nu
-                )
-
-                # drift rate of the GRW
-                driftrate = attributes[volatility_parent_idx]["rho"]
-
-                # Look at the (optional) va_pa's value parents
-                # and update drift rate accordingly
-                if volatility_parent_value_parents_idx is not None:
-                    for vo_pa_va_pa in volatility_parent_value_parents_idx:
-                        driftrate += psi * attributes[vo_pa_va_pa]["mu"]
-
-                muhat_volatility_parent = (
-                    attributes[volatility_parent_idx]["mu"] + time_step * driftrate
-                )
-
-                # Update this parent's parameters
-                attributes[volatility_parent_idx]["pihat"] = pihat_volatility_parent
-                attributes[volatility_parent_idx]["muhat"] = muhat_volatility_parent
+            # Update this parent's parameters
+            attributes[volatility_parent_idx]["pihat"] = pihat_volatility_parent
+            attributes[volatility_parent_idx]["muhat"] = muhat_volatility_parent
 
     return attributes
 

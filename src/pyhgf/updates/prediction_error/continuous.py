@@ -11,7 +11,7 @@ from pyhgf.typing import Edges
 
 
 @partial(jit, static_argnames=("edges", "value_parent_idx"))
-def update_mean_value_parent(
+def prediction_error_mean_value_parent(
     attributes: Dict,
     edges: Edges,
     time_step: float,
@@ -52,7 +52,7 @@ def update_mean_value_parent(
 
 
 @partial(jit, static_argnames=("edges", "value_parent_idx"))
-def update_precision_value_parent(
+def prediction_error_precision_value_parent(
     attributes: Dict, edges: Edges, time_step: float, value_parent_idx: int
 ) -> Array:
     # list the value and volatility parents
@@ -96,7 +96,7 @@ def update_precision_value_parent(
 
 
 @partial(jit, static_argnames=("edges", "value_parent_idx"))
-def update_value_parent(
+def prediction_error_value_parent(
     attributes: Dict,
     edges: Edges,
     time_step: float,
@@ -132,10 +132,10 @@ def update_value_parent(
     nu_value_parent :
 
     """
-    pi_value_parent, nu_value_parent = update_precision_value_parent(
+    pi_value_parent, nu_value_parent = prediction_error_precision_value_parent(
         attributes, edges, time_step, value_parent_idx
     )
-    mu_value_parent = update_mean_value_parent(
+    mu_value_parent = prediction_error_mean_value_parent(
         attributes, edges, time_step, value_parent_idx, pi_value_parent
     )
 
@@ -143,7 +143,7 @@ def update_value_parent(
 
 
 @partial(jit, static_argnames=("edges", "volatility_parent_idx"))
-def update_volatility_parent(
+def prediction_error_volatility_parent(
     attributes: Dict,
     edges: Edges,
     time_step: float,
@@ -179,10 +179,13 @@ def update_volatility_parent(
     nu_value_parent :
 
     """
-    pi_volatility_parent, nu_volatility_parent = update_precision_volatility_parent(
+    (
+        pi_volatility_parent,
+        nu_volatility_parent,
+    ) = prediction_error_precision_volatility_parent(
         attributes, edges, time_step, volatility_parent_idx
     )
-    mu_volatility_parent = update_mean_volatility_parent(
+    mu_volatility_parent = prediction_error_mean_volatility_parent(
         attributes, edges, time_step, volatility_parent_idx, pi_volatility_parent
     )
 
@@ -190,7 +193,7 @@ def update_volatility_parent(
 
 
 @partial(jit, static_argnames=("edges", "volatility_parent_idx"))
-def update_precision_volatility_parent(
+def prediction_error_precision_volatility_parent(
     attributes: Dict, edges: Edges, time_step: float, volatility_parent_idx: int
 ) -> Array:
     # list the value parents of the volatility parent
@@ -249,7 +252,7 @@ def update_precision_volatility_parent(
 
 
 @partial(jit, static_argnames=("edges", "volatility_parent_idx"))
-def update_mean_volatility_parent(
+def prediction_error_mean_volatility_parent(
     attributes, edges, time_step, volatility_parent_idx, pi_volatility_parent: ArrayLike
 ) -> Array:
     # list the volatility parents of the volatility parent

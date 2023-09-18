@@ -21,7 +21,7 @@ from pyhgf.updates.continuous import (
     continuous_input_prediction,
     continuous_input_update,
     continuous_node_prediction,
-    continuous_node_update,
+    continuous_node_prediction_error,
     gaussian_surprise,
 )
 
@@ -341,7 +341,7 @@ def get_update_sequence(
         # --------------------------
 
         # case 1 - default to a continuous node
-        update_fn = continuous_node_update
+        update_fn = continuous_node_prediction_error
         prediction_fn = continuous_node_prediction
 
         # case 2 - this is an input node

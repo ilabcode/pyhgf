@@ -12,10 +12,10 @@ API
 Nodes updates
 -------------
 
-Update functions used to update the posteriors or predict outcomes of probabilistic nodes. These functions call intenaly the more specific update function listed in the posterior and prediction sections below.
+Update functions used for prediction and prediction-error steps during the belief propagation over the network of probabilistic nodes. These functions call intenaly the more specific update function listed in the prediction and prediction-error sections below.
 
 Binary
-******
+======
 
 Core functionnalities to update *binary* nodes.
 
@@ -32,7 +32,7 @@ Core functionnalities to update *binary* nodes.
 
 
 Continuous
-**********
+==========
 
 Core functionnalities to update *continuous* nodes.
 
@@ -41,14 +41,14 @@ Core functionnalities to update *continuous* nodes.
 .. autosummary::
    :toctree: generated/pyhgf.updates.continuous
 
-    continuous_node_update
+    continuous_node_prediction_error
     continuous_node_prediction
     continuous_input_update
     continuous_input_prediction
     gaussian_surprise
 
 Categorical
-***********
+===========
 
 Core functionnalities to update *categorical* nodes.
 
@@ -60,29 +60,40 @@ Core functionnalities to update *categorical* nodes.
     categorical_input_update
     dirichlet_kullback_leibler
 
-Posterior updates
------------------
+Prediction error steps
+----------------------
 
 Continuous
-::::::::::
+==========
 
 .. currentmodule:: pyhgf.updates.posterior.continuous
 
 .. autosummary::
    :toctree: generated/pyhgf.updates.posterior.continuous
 
-    update_mean_value_parent
-    update_precision_value_parent
-    update_value_parent
-    update_volatility_parent
-    update_precision_volatility_parent
-    update_mean_volatility_parent
+    prediction_error_mean_value_parent
+    prediction_error_precision_value_parent
+    prediction_error_value_parent
+    prediction_error_volatility_parent
+    prediction_error_precision_volatility_parent
+    prediction_error_mean_volatility_parent
 
-Prediction updates
-------------------
+Prediction steps
+----------------
 
 Continuous
-::::::::::
+==========
+
+.. currentmodule:: pyhgf.updates.prediction_error.continuous
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.posterior.continuous
+
+    prediction_mean_value_parent
+    prediction_precision_value_parent
+    prediction_value_parent
+    prediction_precision_volatility_parent
+    prediction_mean_volatility_parent
 
 
 Distribution

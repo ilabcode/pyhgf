@@ -14,7 +14,7 @@ from pyhgf.updates.continuous import (
     continuous_input_prediction,
     continuous_input_update,
     continuous_node_prediction,
-    continuous_node_update,
+    continuous_node_prediction_error,
     gaussian_surprise,
 )
 
@@ -146,7 +146,7 @@ class Testcontinuous(TestCase):
         sequence1 = 0, continuous_input_prediction
         sequence2 = 1, continuous_node_prediction
         sequence3 = 0, continuous_input_update
-        sequence4 = 1, continuous_node_update
+        sequence4 = 1, continuous_node_prediction_error
         update_sequence = (sequence1, sequence2, sequence3, sequence4)
         data = jnp.array([0.2, 1.0])
 
@@ -230,7 +230,7 @@ class Testcontinuous(TestCase):
         sequence1 = 0, continuous_input_prediction
         sequence2 = 1, continuous_node_prediction
         sequence3 = 0, continuous_input_update
-        sequence4 = 1, continuous_node_update
+        sequence4 = 1, continuous_node_prediction_error
         update_sequence = (sequence1, sequence2, sequence3, sequence4)
 
         # create the function that will be scaned
