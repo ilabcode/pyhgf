@@ -8,7 +8,7 @@ import jax.numpy as jnp
 from pyhgf.networks import beliefs_propagation, list_branches, trim_sequence
 from pyhgf.typing import Indexes
 from pyhgf.updates.continuous import (
-    continuous_input_update,
+    continuous_input_prediction_error,
     continuous_node_prediction_error,
 )
 
@@ -66,7 +66,7 @@ class TestStructure(TestCase):
         )
 
         # create update sequence
-        sequence1 = 0, continuous_input_update
+        sequence1 = 0, continuous_input_prediction_error
         sequence2 = 1, continuous_node_prediction_error
         update_sequence = (sequence1, sequence2)
 
@@ -106,7 +106,7 @@ class TestStructure(TestCase):
             Indexes(None, None, (3,), None),
         )
         update_sequence = (
-            (0, continuous_input_update),
+            (0, continuous_input_prediction_error),
             (1, continuous_node_prediction_error),
             (2, continuous_node_prediction_error),
             (3, continuous_node_prediction_error),

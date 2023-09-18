@@ -19,7 +19,7 @@ from pyhgf.updates.binary import (
 from pyhgf.updates.categorical import categorical_input_update
 from pyhgf.updates.continuous import (
     continuous_input_prediction,
-    continuous_input_update,
+    continuous_input_prediction_error,
     continuous_node_prediction,
     continuous_node_prediction_error,
     gaussian_surprise,
@@ -357,7 +357,7 @@ def get_update_sequence(
                 update_fn = binary_input_update
                 prediction_fn = binary_input_prediction
             elif model_kind == "continuous":
-                update_fn = continuous_input_update
+                update_fn = continuous_input_prediction_error
                 prediction_fn = continuous_input_prediction
             elif model_kind == "categorical":
                 continue

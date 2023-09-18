@@ -9,6 +9,7 @@ from jax.typing import ArrayLike
 
 from pyhgf.typing import Edges
 from pyhgf.updates.prediction.continuous import (
+    prediction_input_value_parent,
     prediction_value_parent,
     prediction_volatility_parent,
 )
@@ -213,7 +214,7 @@ def continuous_node_prediction(
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def continuous_input_update(
+def continuous_input_prediction_error(
     attributes: Dict,
     time_step: float,
     node_idx: int,
@@ -424,49 +425,8 @@ def continuous_input_prediction(
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
             if edges[value_parent_idx].value_children[-1] == node_idx:
-                # list value and volatility parents
-                value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
-                value_parent_volatility_parents_idxs = edges[
-                    value_parent_idx
-                ].volatility_parents
-
-                # Compute new value for nu and pihat
-                logvol = attributes[value_parent_idx]["omega"]
-
-                # Look at the (optional) va_pa's volatility parents
-                # and update logvol accordingly
-                if value_parent_volatility_parents_idxs is not None:
-                    for value_parent_volatility_parents_idx, k in zip(
-                        value_parent_volatility_parents_idxs,
-                        attributes[value_parent_idx]["kappas_parents"],
-                    ):
-                        logvol += (
-                            k * attributes[value_parent_volatility_parents_idx]["mu"]
-                        )
-
-                # Estimate new_nu
-                nu = time_step * jnp.exp(logvol)
-                new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-                pihat_value_parent = 1 / (
-                    1 / attributes[value_parent_idx]["pi"] + new_nu
-                )
-
-                # Compute new muhat
-                driftrate = attributes[value_parent_idx]["rho"]
-
-                # Look at the (optional) va_pa's value parents
-                # and update drift rate accordingly
-                if value_parent_value_parents_idxs is not None:
-                    for (
-                        value_parent_value_parents_idx
-                    ) in value_parent_value_parents_idxs:
-                        driftrate += (
-                            attributes[value_parent_idx]["psis_parents"][0]
-                            * attributes[value_parent_value_parents_idx]["mu"]
-                        )
-
-                muhat_value_parent = (
-                    attributes[value_parent_idx]["mu"] + time_step * driftrate
+                pihat_value_parent, muhat_value_parent = prediction_input_value_parent(
+                    attributes, edges, time_step, value_parent_idx
                 )
 
                 # update input node's parameters

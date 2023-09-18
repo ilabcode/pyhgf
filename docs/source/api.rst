@@ -9,13 +9,13 @@
 API
 +++
 
-Nodes updates
--------------
+Updates functions
+-----------------
 
-Update functions used for prediction and prediction-error steps during the belief propagation over the network of probabilistic nodes. These functions call intenaly the more specific update function listed in the prediction and prediction-error sections below.
+The `updates` module contains the update function used both for prediction and prediction-error steps during the belief propagation. These functions call intenaly the more specific update function listed in the prediction and prediction-error sub-modules.
 
-Binary
-======
+Updating binary nodes
+=====================
 
 Core functionnalities to update *binary* nodes.
 
@@ -31,8 +31,8 @@ Core functionnalities to update *binary* nodes.
     binary_surprise
 
 
-Continuous
-==========
+Updating continuous nodes
+=========================
 
 Core functionnalities to update *continuous* nodes.
 
@@ -47,8 +47,8 @@ Core functionnalities to update *continuous* nodes.
     continuous_input_prediction
     gaussian_surprise
 
-Categorical
-===========
+Updating categorical nodes
+==========================
 
 Core functionnalities to update *categorical* nodes.
 
@@ -61,10 +61,12 @@ Core functionnalities to update *categorical* nodes.
     dirichlet_kullback_leibler
 
 Prediction error steps
-----------------------
+======================
 
-Continuous
-==========
+Propagate prediction errors to the value and volatility parents of a given node.
+
+Continuous nodes
+~~~~~~~~~~~~~~~~
 
 .. currentmodule:: pyhgf.updates.prediction_error.continuous
 
@@ -79,10 +81,12 @@ Continuous
     prediction_error_mean_volatility_parent
 
 Prediction steps
-----------------
+================
 
-Continuous
-==========
+Compute the expectation for future observation given the influence of parent nodes.
+
+Continuous nodes
+~~~~~~~~~~~~~~~~
 
 .. currentmodule:: pyhgf.updates.prediction_error.continuous
 

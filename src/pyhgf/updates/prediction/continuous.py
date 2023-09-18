@@ -212,3 +212,77 @@ def prediction_volatility_parent(
     )
 
     return pi_volatility_parent, mu_volatility_parent
+
+
+@partial(jit, static_argnames=("edges", "value_parent_idx"))
+def prediction_input_value_parent(
+    attributes: Dict,
+    edges: Edges,
+    time_step: float,
+    value_parent_idx: int,
+) -> Array:
+    muhat_value_parent = prediction_input_mean_value_parent(
+        attributes, edges, time_step, value_parent_idx
+    )
+    pihat_value_parent = prediction_input_precision_value_parent(
+        attributes, edges, time_step, value_parent_idx
+    )
+
+    return pihat_value_parent, muhat_value_parent
+
+
+@partial(jit, static_argnames=("edges", "value_parent_idx"))
+def prediction_input_mean_value_parent(
+    attributes: Dict,
+    edges: Edges,
+    time_step: float,
+    value_parent_idx: int,
+) -> Array:
+    # list value parents
+    value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
+
+    # Compute new muhat
+    driftrate = attributes[value_parent_idx]["rho"]
+
+    # Look at the (optional) va_pa's value parents
+    # and update drift rate accordingly
+    if value_parent_value_parents_idxs is not None:
+        for value_parent_value_parents_idx in value_parent_value_parents_idxs:
+            driftrate += (
+                attributes[value_parent_idx]["psis_parents"][0]
+                * attributes[value_parent_value_parents_idx]["mu"]
+            )
+
+    muhat_value_parent = attributes[value_parent_idx]["mu"] + time_step * driftrate
+
+    return muhat_value_parent
+
+
+@partial(jit, static_argnames=("edges", "value_parent_idx"))
+def prediction_input_precision_value_parent(
+    attributes: Dict,
+    edges: Edges,
+    time_step: float,
+    value_parent_idx: int,
+) -> Array:
+    # list volatility parents
+    value_parent_volatility_parents_idxs = edges[value_parent_idx].volatility_parents
+
+    # Compute new value for nu and pihat
+    logvol = attributes[value_parent_idx]["omega"]
+
+    # Look at the (optional) va_pa's volatility parents
+    # and update logvol accordingly
+    if value_parent_volatility_parents_idxs is not None:
+        for value_parent_volatility_parents_idx, k in zip(
+            value_parent_volatility_parents_idxs,
+            attributes[value_parent_idx]["kappas_parents"],
+        ):
+            logvol += k * attributes[value_parent_volatility_parents_idx]["mu"]
+
+    # Estimate new_nu
+    nu = time_step * jnp.exp(logvol)
+    new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
+    pihat_value_parent = 1 / (1 / attributes[value_parent_idx]["pi"] + new_nu)
+
+    return pihat_value_parent
