@@ -24,8 +24,10 @@ Core functionnalities to update *binary* nodes.
 .. autosummary::
    :toctree: generated/pyhgf.updates.binary
 
-    binary_node_update
-    binary_input_update
+    binary_node_prediction
+    binary_input_prediction
+    binary_node_prediction_error
+    binary_input_prediction_error
 
 Updating continuous nodes
 =========================
