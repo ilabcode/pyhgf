@@ -12,9 +12,9 @@ from jax.typing import ArrayLike
 from pyhgf.typing import Indexes, UpdateSequence
 from pyhgf.updates.binary import (
     binary_input_prediction,
-    binary_input_update,
+    binary_input_prediction_error,
     binary_node_prediction,
-    binary_node_update,
+    binary_node_prediction_error,
 )
 from pyhgf.updates.categorical import categorical_input_update
 from pyhgf.updates.continuous import (
@@ -354,7 +354,7 @@ def get_update_sequence(
                 if idx_ == node_idx
             ][0]
             if model_kind == "binary":
-                update_fn = binary_input_update
+                update_fn = binary_input_prediction_error
                 prediction_fn = binary_input_prediction
             elif model_kind == "continuous":
                 update_fn = continuous_input_prediction_error
@@ -375,7 +375,7 @@ def get_update_sequence(
                         if idx_ == child_idx
                     ][0]
                     if model_kind == "binary":
-                        update_fn = binary_node_update
+                        update_fn = binary_node_prediction_error
                         prediction_fn = binary_node_prediction
 
         # create a new update and prediction sequence step and add it to the list

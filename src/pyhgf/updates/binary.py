@@ -9,10 +9,11 @@ from jax.lax import cond
 from jax.typing import ArrayLike
 
 from pyhgf.typing import Edges
+from pyhgf.updates.prediction.binary import prediction_value_parent
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def binary_node_update(
+def binary_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the value parent(s) of a binary node.
@@ -203,68 +204,24 @@ def binary_node_prediction(
     if value_parent_idxs is None:
         return attributes
 
-    ############################################################
-    # Update predictions in the continuous value parents (x-2) #
-    ############################################################
+    ################################################################
+    # Update the predictions of the continuous value parents (x-2) #
+    ################################################################
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
-            # if this child is the last one relative to this parent's family, all the
-            # children will update the parent at once, otherwise just pass and wait
-            if edges[value_parent_idx].value_children[-1] == node_idx:
-                value_parent_value_parent_idxs = edges[value_parent_idx].value_parents
-                value_parent_volatility_parent_idxs = edges[
-                    value_parent_idx
-                ].volatility_parents
+            pihat_value_parent, muhat_value_parent = prediction_value_parent(
+                attributes, edges, time_step, value_parent_idx
+            )
 
-                # get log volatility
-                logvol = attributes[value_parent_idx]["omega"]
-
-                # look at the va_pa's volatility parents and update accordingly
-                if value_parent_volatility_parent_idxs is not None:
-                    for value_parent_volatility_parent_idx, k in zip(
-                        value_parent_volatility_parent_idxs,
-                        attributes[value_parent_idx]["kappas_parents"],
-                    ):
-                        logvol += (
-                            k * attributes[value_parent_volatility_parent_idx]["mu"]
-                        )
-
-                # compute new_nu
-                nu = time_step * jnp.exp(logvol)
-                new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-
-                # compute new value for pihat
-                pihat_value_parent = 1 / (
-                    1 / attributes[value_parent_idx]["pi"] + new_nu
-                )
-
-                # drift rate
-                driftrate = attributes[value_parent_idx]["rho"]
-
-                # look at value parent's value parents and update driftrate accordingly
-                if value_parent_value_parent_idxs is not None:
-                    for value_parent_value_parent_idx, psi in zip(
-                        value_parent_value_parent_idxs,
-                        attributes[value_parent_idx]["psis_parents"],
-                    ):
-                        driftrate += (
-                            psi * attributes[value_parent_value_parent_idx]["mu"]
-                        )
-
-                # compute new muhat
-                muhat_value_parent = (
-                    attributes[value_parent_idx]["mu"] + time_step * driftrate
-                )
-
-                # update the parent nodes' parameters
-                attributes[value_parent_idx]["pihat"] = pihat_value_parent
-                attributes[value_parent_idx]["muhat"] = muhat_value_parent
+            # update the parent nodes' parameters
+            attributes[value_parent_idx]["pihat"] = pihat_value_parent
+            attributes[value_parent_idx]["muhat"] = muhat_value_parent
 
     return attributes
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def binary_input_update(
+def binary_input_prediction_error(
     attributes: Dict,
     time_step: float,
     node_idx: int,

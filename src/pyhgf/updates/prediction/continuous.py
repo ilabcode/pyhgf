@@ -98,7 +98,6 @@ def prediction_value_parent(
         The precision (:math:`\\pi`) of the value parent.
     mu_value_parent :
         The mean (:math:`\\mu`) of the value parent.
-    nu_value_parent :
 
     """
 

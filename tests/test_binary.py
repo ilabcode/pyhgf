@@ -12,9 +12,9 @@ from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.binary import (
     binary_input_prediction,
-    binary_input_update,
+    binary_input_prediction_error,
     binary_node_prediction,
-    binary_node_update,
+    binary_node_prediction_error,
     binary_surprise,
     gaussian_density,
     sgm,
@@ -115,8 +115,8 @@ class Testbinary(TestCase):
         sequence1 = 0, binary_input_prediction
         sequence2 = 1, binary_node_prediction
         sequence3 = 2, continuous_node_prediction
-        sequence4 = 0, binary_input_update
-        sequence5 = 1, binary_node_update
+        sequence4 = 0, binary_input_prediction_error
+        sequence5 = 1, binary_node_prediction_error
         sequence6 = 2, continuous_node_prediction_error
         update_sequence = (
             sequence1,

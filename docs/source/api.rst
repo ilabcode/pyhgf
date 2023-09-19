@@ -102,6 +102,18 @@ Continuous nodes
     prediction_precision_volatility_parent
     prediction_mean_volatility_parent
 
+Binary nodes
+~~~~~~~~~~~~
+
+.. currentmodule:: pyhgf.updates.prediction.binary
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction.binary
+
+    prediction_mean_value_parent
+    prediction_precision_value_parent
+    prediction_value_parent
+
 
 Distribution
 ------------
