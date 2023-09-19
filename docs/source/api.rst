@@ -79,6 +79,9 @@ Continuous nodes
     prediction_error_volatility_parent
     prediction_error_precision_volatility_parent
     prediction_error_mean_volatility_parent
+    prediction_error_input_value_parent
+    prediction_error_input_mean_value_parent
+    prediction_error_input_precision_value_parent
 
 Prediction steps
 ================
@@ -88,10 +91,10 @@ Compute the expectation for future observation given the influence of parent nod
 Continuous nodes
 ~~~~~~~~~~~~~~~~
 
-.. currentmodule:: pyhgf.updates.prediction_error.continuous
+.. currentmodule:: pyhgf.updates.prediction.continuous
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.continuous
+   :toctree: generated/pyhgf.updates.prediction.continuous
 
     prediction_mean_value_parent
     prediction_precision_value_parent

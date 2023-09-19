@@ -14,6 +14,7 @@ from pyhgf.updates.prediction.continuous import (
     prediction_volatility_parent,
 )
 from pyhgf.updates.prediction_error.continuous import (
+    prediction_error_input_value_parent,
     prediction_error_value_parent,
     prediction_error_volatility_parent,
 )
@@ -277,81 +278,13 @@ def continuous_input_prediction_error(
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
             if edges[value_parent_idx].value_children[-1] == node_idx:
-                # list value and volatility parents
-                value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
-                value_parent_volatility_parents_idxs = edges[
-                    value_parent_idx
-                ].volatility_parents
-
-                # Compute new value for nu and pihat
-                logvol = attributes[value_parent_idx]["omega"]
-
-                # Look at the (optional) va_pa's volatility parents
-                # and update logvol accordingly
-                if value_parent_volatility_parents_idxs is not None:
-                    for value_parent_volatility_parents_idx, k in zip(
-                        value_parent_volatility_parents_idxs,
-                        attributes[value_parent_idx]["kappas_parents"],
-                    ):
-                        logvol += (
-                            k * attributes[value_parent_volatility_parents_idx]["mu"]
-                        )
-
-                # Estimate new_nu
-                nu = time_step * jnp.exp(logvol)
-                new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-
-                pihat_value_parent, nu_value_parent = [
-                    1 / (1 / attributes[value_parent_idx]["pi"] + new_nu),
-                    new_nu,
-                ]
-
-                # gather precisions updates from other input nodes
-                # in the case of a multivariate descendency
-                pi_children = 0.0
-                for child_idx, psi_child in zip(
-                    edges[value_parent_idx].value_children,
-                    attributes[value_parent_idx]["psis_children"],
-                ):
-                    pihat_child = attributes[child_idx]["pihat"]
-                    pi_children += psi_child**2 * pihat_child
-
-                pi_value_parent = pihat_value_parent + pi_children
-
-                # Compute new muhat
-                driftrate = attributes[value_parent_idx]["rho"]
-
-                # Look at the (optional) va_pa's value parents
-                # and update drift rate accordingly
-                if value_parent_value_parents_idxs is not None:
-                    for (
-                        value_parent_value_parents_idx
-                    ) in value_parent_value_parents_idxs:
-                        driftrate += (
-                            attributes[value_parent_idx]["psis_parents"][0]
-                            * attributes[value_parent_value_parents_idx]["mu"]
-                        )
-
-                muhat_value_parent = (
-                    attributes[value_parent_idx]["mu"] + time_step * driftrate
+                (
+                    pi_value_parent,
+                    nu_value_parent,
+                    mu_value_parent,
+                ) = prediction_error_input_value_parent(
+                    attributes, edges, time_step, value_parent_idx
                 )
-
-                # gather PE updates from other input nodes
-                # in the case of a multivariate descendency
-                pe_children = 0.0
-                for child_idx, psi_child in zip(
-                    edges[value_parent_idx].value_children,
-                    attributes[value_parent_idx]["psis_children"],
-                ):
-                    child_value_prediction_error = (
-                        attributes[child_idx]["value"] - muhat_value_parent
-                    )
-                    pihat_child = attributes[child_idx]["pihat"]
-                    pe_children += (
-                        psi_child * pihat_child * child_value_prediction_error
-                    ) / pi_value_parent
-
-                mu_value_parent = muhat_value_parent + pe_children
 
                 # update input node's parameters
                 attributes[value_parent_idx]["pi"] = pi_value_parent
