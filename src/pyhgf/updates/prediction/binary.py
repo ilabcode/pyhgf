@@ -73,9 +73,9 @@ def prediction_value_parent(
 
     Updating the posterior distribution of the value parent is a two-step process:
     1. Update the posterior precision using
-    :py:fun:`continuous_node_update_precision_value_parent`.
+    :py:func:`pyhgf.updates.prediction.binary.prediction_precision_value_parent`.
     2. Update the posterior mean value using
-    :py:fun:`continuous_node_update_mean_value_parent`.
+    :py:func:`pyhgf.updates.prediction.binary.prediction_mean_value_parent`.
 
     Parameters
     ----------
