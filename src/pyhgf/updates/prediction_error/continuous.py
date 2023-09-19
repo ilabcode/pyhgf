@@ -153,9 +153,9 @@ def prediction_error_volatility_parent(
 
     Updating the posterior distribution of the volatility parent is a two-step process:
     1. Update the posterior precision using
-    :py:fun:`update_precision_volatility_parent`.
+    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_precision_volatility_parent`.
     2. Update the posterior mean value using
-    :py:fun:`update_mean_volatility_parent`.
+    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_mean_volatility_parent`.
 
     Parameters
     ----------
