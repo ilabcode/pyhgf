@@ -1,11 +1,9 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Union
+from typing import Dict
 
-import jax.numpy as jnp
-from jax import Array, jit
-from jax.typing import ArrayLike
+from jax import jit
 
 from pyhgf.typing import Edges
 from pyhgf.updates.prediction.continuous import (
@@ -367,48 +365,3 @@ def continuous_input_prediction(
                 attributes[value_parent_idx]["muhat"] = muhat_value_parent
 
     return attributes
-
-
-def gaussian_surprise(
-    x: Union[float, ArrayLike],
-    muhat: Union[float, ArrayLike],
-    pihat: Union[float, ArrayLike],
-) -> Array:
-    r"""Surprise at an outcome under a Gaussian prediction.
-
-    The surprise elicited by an observation :math:`x` under a Gaussian distribution
-    with expected mean :math:`\hat{\mu}` and expected precision :math:`\hat{\pi}` is
-    given by:
-
-    .. math::
-
-       \frac{1}{2} \log(2 \pi) - \log(\hat{\pi}) + \hat{\pi}\sqrt{x - \hat{\mu}}
-
-    where :math:`\pi` is the mathematical constant.
-
-    Parameters
-    ----------
-    x :
-        The outcome.
-    muhat :
-        The expected mean of the Gaussian distribution.
-    pihat :
-        The expected precision of the Gaussian distribution.
-
-    Returns
-    -------
-    surprise :
-        The Gaussian surprise.
-
-    Examples
-    --------
-    >>> from pyhgf.continuous import gaussian_surprise
-    >>> gaussian_surprise(x=2.0, muhat=0.0, pihat=1.0)
-    `Array(2.9189386, dtype=float32, weak_type=True)`
-
-    """
-    return jnp.array(0.5) * (
-        jnp.log(jnp.array(2.0) * jnp.pi)
-        - jnp.log(pihat)
-        + pihat * jnp.square(jnp.subtract(x, muhat))
-    )

@@ -6,8 +6,7 @@ import jax.numpy as jnp
 from jax import Array
 from jax.typing import ArrayLike
 
-from pyhgf.updates.binary import binary_surprise
-from pyhgf.updates.continuous import gaussian_surprise
+from pyhgf.math import binary_surprise, gaussian_surprise
 
 if TYPE_CHECKING:
     from pyhgf.model import HGF

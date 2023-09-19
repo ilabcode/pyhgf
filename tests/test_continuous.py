@@ -8,6 +8,7 @@ from jax.lax import scan
 from jax.tree_util import Partial
 
 from pyhgf import load_data
+from pyhgf.math import gaussian_surprise
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.continuous import (
@@ -15,7 +16,6 @@ from pyhgf.updates.continuous import (
     continuous_input_prediction_error,
     continuous_node_prediction,
     continuous_node_prediction_error,
-    gaussian_surprise,
 )
 
 

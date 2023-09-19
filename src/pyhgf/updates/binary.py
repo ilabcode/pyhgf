@@ -1,15 +1,18 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Union
+from typing import Dict
 
 import jax.numpy as jnp
 from jax import jit
 from jax.lax import cond
-from jax.typing import ArrayLike
 
+from pyhgf.math import binary_surprise, gaussian_density, sgm
 from pyhgf.typing import Edges
-from pyhgf.updates.prediction.binary import prediction_value_parent
+from pyhgf.updates.prediction.binary import (
+    prediction_input_value_parent,
+    prediction_value_parent,
+)
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
@@ -401,96 +404,15 @@ def binary_input_prediction(
     #######################################################
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
-            # list the (unique) value parents
-            value_parent_value_parent_idxs = edges[value_parent_idx].value_parents[0]
-
-            # 1. Compute new muhat_value_parent and pihat_value_parent
-            # --------------------------------------------------------
-            # 1.1 Compute new_muhat from continuous node parent (x2)
-            # 1.1.1 get rho from the value parent of the binary node (x2)
-            driftrate = attributes[value_parent_value_parent_idxs]["rho"]
-
-            # # 1.1.2 Look at the (optional) value parent's value parents (x3)
-            # # and update the drift rate accordingly
-            if edges[value_parent_value_parent_idxs].value_parents is not None:
-                for (
-                    value_parent_value_parent_value_parent_idx,
-                    psi_parent_parent,
-                ) in zip(
-                    edges[value_parent_value_parent_idxs].value_parents,
-                    attributes[value_parent_value_parent_idxs]["psis_parents"],
-                ):
-                    # For each x2's value parents (optional)
-                    driftrate += (
-                        psi_parent_parent
-                        * attributes[value_parent_value_parent_value_parent_idx]["mu"]
-                    )
-
-            # 1.1.3 compute new_muhat
-            muhat_value_parent = (
-                attributes[value_parent_value_parent_idxs]["mu"] + time_step * driftrate
+            pihat_value_parent, muhat_value_parent = prediction_input_value_parent(
+                attributes, edges, time_step, value_parent_idx
             )
-
-            muhat_value_parent = sgm(muhat_value_parent)
-            pihat_value_parent = 1 / (muhat_value_parent * (1 - muhat_value_parent))
 
             # Update value parent's parameters
             attributes[value_parent_idx]["pihat"] = pihat_value_parent
             attributes[value_parent_idx]["muhat"] = muhat_value_parent
 
     return attributes
-
-
-def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike) -> ArrayLike:
-    """Gaussian density as defined by mean and precision."""
-    return pi / jnp.sqrt(2 * jnp.pi) * jnp.exp(-pi / 2 * (x - mu) ** 2)
-
-
-def sgm(
-    x,
-    lower_bound: Union[ArrayLike, float] = 0.0,
-    upper_bound: Union[ArrayLike, float] = 1.0,
-) -> ArrayLike:
-    """Logistic sigmoid function."""
-    return (upper_bound - lower_bound) / (1 + jnp.exp(-x)) + lower_bound
-
-
-def binary_surprise(
-    x: Union[float, ArrayLike], muhat: Union[float, ArrayLike]
-) -> ArrayLike:
-    r"""Surprise at a binary outcome.
-
-    The surprise ellicited by a binary observation :math:`x` under the expected
-    probability :math:`\hat{\mu}` is given by:
-
-    .. math::
-
-       \begin{cases}
-            -\log(\hat{\mu}),& \text{if } x=1\\
-            -\log(1 - \hat{\mu}), & \text{if } x=0\\
-        \end{cases}
-
-    Parameters
-    ----------
-    x :
-        The outcome.
-    muhat :
-        The mean of the Bernoulli distribution.
-
-    Returns
-    -------
-    surprise :
-        The binary surprise.
-
-
-    Examples
-    --------
-    >>> from pyhgf.binary import binary_surprise
-    >>> binary_surprise(x=1.0, muhat=0.7)
-    `Array(0.35667497, dtype=float32, weak_type=True)`
-
-    """
-    return jnp.where(x, -jnp.log(muhat), -jnp.log(jnp.array(1.0) - muhat))
 
 
 def input_surprise_inf(op):

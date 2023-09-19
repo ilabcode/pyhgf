@@ -8,8 +8,8 @@ from jax import Array, jit
 from jax.scipy.special import digamma, gamma
 from jax.typing import ArrayLike
 
+from pyhgf.math import binary_surprise
 from pyhgf.typing import Edges
-from pyhgf.updates.binary import binary_surprise
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))

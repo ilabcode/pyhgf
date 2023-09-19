@@ -8,6 +8,7 @@ from jax.lax import scan
 from jax.tree_util import Partial
 
 from pyhgf import load_data
+from pyhgf.math import binary_surprise, gaussian_density, sgm
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.binary import (
@@ -15,9 +16,6 @@ from pyhgf.updates.binary import (
     binary_input_prediction_error,
     binary_node_prediction,
     binary_node_prediction_error,
-    binary_surprise,
-    gaussian_density,
-    sgm,
 )
 from pyhgf.updates.continuous import (
     continuous_node_prediction,

@@ -9,6 +9,7 @@ import pandas as pd
 from jax import jit
 from jax.typing import ArrayLike
 
+from pyhgf.math import gaussian_surprise
 from pyhgf.typing import Indexes, UpdateSequence
 from pyhgf.updates.binary import (
     binary_input_prediction,
@@ -22,7 +23,6 @@ from pyhgf.updates.continuous import (
     continuous_input_prediction_error,
     continuous_node_prediction,
     continuous_node_prediction_error,
-    gaussian_surprise,
 )
 
 if TYPE_CHECKING:
