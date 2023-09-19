@@ -109,7 +109,7 @@ def plot_trajectories(
             kappas={"1": None, "2": 1.0},
             eta0=0.0,
             eta1=1.0,
-            pihat = jnp.inf,
+            binary_precision = jnp.inf,
         )
 
         # Feed input
