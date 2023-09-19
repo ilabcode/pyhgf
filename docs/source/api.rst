@@ -26,10 +26,6 @@ Core functionnalities to update *binary* nodes.
 
     binary_node_update
     binary_input_update
-    gaussian_density
-    sgm
-    binary_surprise
-
 
 Updating continuous nodes
 =========================
@@ -45,7 +41,6 @@ Core functionnalities to update *continuous* nodes.
     continuous_node_prediction
     continuous_input_update
     continuous_input_prediction
-    gaussian_surprise
 
 Updating categorical nodes
 ==========================
@@ -58,7 +53,6 @@ Core functionnalities to update *categorical* nodes.
    :toctree: generated/pyhgf.updates.categorical
 
     categorical_input_update
-    dirichlet_kullback_leibler
 
 Prediction error steps
 ======================
@@ -206,3 +200,19 @@ Utilities for manipulating networks of probabilistic nodes.
    list_branches
    fill_categorical_state_node
    get_update_sequence
+
+Math
+----
+
+Math functions and probability densities.
+
+.. currentmodule:: pyhgf.math
+
+.. autosummary::
+   :toctree: generated/pyhgf.math
+
+    gaussian_density
+    sigmoid
+    binary_surprise
+    gaussian_surprise
+    dirichlet_kullback_leibler

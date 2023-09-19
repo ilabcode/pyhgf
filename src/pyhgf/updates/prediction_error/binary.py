@@ -8,7 +8,7 @@ from jax import Array, jit
 from jax.lax import cond
 from jax.typing import ArrayLike
 
-from pyhgf.math import binary_surprise, gaussian_density, sgm
+from pyhgf.math import binary_surprise, gaussian_density, sigmoid
 from pyhgf.typing import Edges
 
 
@@ -215,7 +215,7 @@ def prediction_error_input_value_parent(
         attributes[value_parent_value_parent_idxs]["mu"] + time_step * driftrate
     )
 
-    muhat_value_parent = sgm(muhat_value_parent)
+    muhat_value_parent = sigmoid(muhat_value_parent)
 
     # read parameters from the binary input
     # for now only one binary input can be child of the binary node

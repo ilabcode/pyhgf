@@ -4,6 +4,7 @@ from typing import Union
 
 import jax.numpy as jnp
 from jax import Array
+from jax.scipy.special import digamma, gamma
 from jax.typing import ArrayLike
 
 
@@ -12,8 +13,8 @@ def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike) -> ArrayLike:
     return pi / jnp.sqrt(2 * jnp.pi) * jnp.exp(-pi / 2 * (x - mu) ** 2)
 
 
-def sgm(
-    x,
+def sigmoid(
+    x: Union[ArrayLike, float],
     lower_bound: Union[ArrayLike, float] = 0.0,
     upper_bound: Union[ArrayLike, float] = 1.0,
 ) -> ArrayLike:
@@ -101,4 +102,47 @@ def gaussian_surprise(
         jnp.log(jnp.array(2.0) * jnp.pi)
         - jnp.log(pihat)
         + pihat * jnp.square(jnp.subtract(x, muhat))
+    )
+
+
+def dirichlet_kullback_leibler(alpha_1: ArrayLike, alpha_2: ArrayLike) -> Array:
+    r"""Compute the Kullback-Leibler divergence between two Dirichlet distributions.
+
+    The Kullback-Leibler divergence from the distribution :math:`Q` to the distribution
+    :math:`P`, two Dirichlet distributions parametrized by :math:`\\alpha_2` and
+    :math:`\\alpha_1` (respectively) is given by the following equation:
+
+    .. math::
+       KL[P||Q] = \\
+       \\ln{\\frac{\\Gamma(\\sum_{i=1}^k\\alpha_{1i})} \\
+       {\\Gamma(\\sum_{i=1}^k\\alpha_{2i})}} + \\
+       \\sum_{i=1}^k \\ln{\\frac{\\Gamma(\\alpha_{2i})}{\\Gamma(\\alpha_{1i})}} + \\
+       \\sum_{i=1}^k(\\alpha_{1i} -\\
+       \\alpha_{2i})\\left[\\psi(\alpha_{1i})-\\psi(\\sum_{i=1}^k\alpha_{1i})\\right]
+
+    Parameters
+    ----------
+    alpha_1 :
+        The concentration parameters for the distribution :math:`P`.
+    alpha_2 :
+        The concentration parameters for the distribution :math:`Q`.
+
+    Returns
+    -------
+    kl :
+        The Kullback-Leibler divergence of distribution :math:`P` from distribution
+        :math:`Q`.
+
+    References
+    ----------
+    .. [1] https://statproofbook.github.io/P/dir-kl.html
+    .. [2] Penny, William D. (2001): "KL-Divergences of Normal, Gamma, Dirichlet and
+       Wishart densities" ; in: University College, London , p. 2, eqs. 8-9 ;
+       URL: https://www.fil.ion.ucl.ac.uk/~wpenny/publications/densities.ps .
+
+    """
+    return (
+        jnp.log(gamma(alpha_1.sum()) / gamma(alpha_2.sum()))
+        + jnp.sum(jnp.log(gamma(alpha_2) / gamma(alpha_1)))
+        + jnp.sum((alpha_1 - alpha_2) * (digamma(alpha_1) - digamma(alpha_1.sum())))
     )

@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 import jax.numpy as jnp
 from jax import Array, jit
 
-from pyhgf.math import sgm
+from pyhgf.math import sigmoid
 from pyhgf.typing import Edges
 
 
@@ -173,7 +173,7 @@ def prediction_input_value_parent(
         attributes[value_parent_value_parent_idxs]["mu"] + time_step * driftrate
     )
 
-    muhat_value_parent = sgm(muhat_value_parent)
+    muhat_value_parent = sigmoid(muhat_value_parent)
     pihat_value_parent = 1 / (muhat_value_parent * (1 - muhat_value_parent))
 
     return pihat_value_parent, muhat_value_parent
