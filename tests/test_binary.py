@@ -8,7 +8,7 @@ from jax.lax import scan
 from jax.tree_util import Partial
 
 from pyhgf import load_data
-from pyhgf.math import binary_surprise, gaussian_density, sgm
+from pyhgf.math import binary_surprise, gaussian_density, sigmoid
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.binary import (
@@ -33,7 +33,7 @@ class Testbinary(TestCase):
         assert jnp.all(jnp.isclose(surprise, 0.24197073))
 
     def test_sgm(self):
-        assert jnp.all(jnp.isclose(sgm(jnp.array([0.3, 0.3])), 0.5744425))
+        assert jnp.all(jnp.isclose(sigmoid(jnp.array([0.3, 0.3])), 0.5744425))
 
     def test_binary_surprise(self):
         surprise = binary_surprise(
