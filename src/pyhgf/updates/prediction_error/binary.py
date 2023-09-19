@@ -157,12 +157,6 @@ def prediction_error_input_value_parent(
 ) -> Tuple[Array, ...]:
     """Update the mean and precision of the value parent of a binary node.
 
-    Updating the posterior distribution of the value parent is a two-step process:
-    1. Update the posterior precision using
-    :py:fun:`continuous_node_update_precision_value_parent`.
-    2. Update the posterior mean value using
-    :py:fun:`continuous_node_update_mean_value_parent`.
-
     Parameters
     ----------
     attributes :
