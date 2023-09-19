@@ -3,17 +3,17 @@
 from functools import partial
 from typing import Dict
 
-import jax.numpy as jnp
 from jax import jit
-from jax.lax import cond
 
-from pyhgf.math import binary_surprise, gaussian_density, sgm
 from pyhgf.typing import Edges
 from pyhgf.updates.prediction.binary import (
     prediction_input_value_parent,
     prediction_value_parent,
 )
-from pyhgf.updates.prediction_error.binary import prediction_error_value_parent
+from pyhgf.updates.prediction_error.binary import (
+    prediction_error_input_value_parent,
+    prediction_error_value_parent,
+)
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
@@ -201,6 +201,10 @@ def binary_input_prediction_error(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
+    # store value and time step in the node's parameters
+    attributes[node_idx]["value"] = value
+    attributes[node_idx]["time_step"] = time_step
+
     # list value and volatility parents
     value_parent_idxs = edges[node_idx].value_parents
     volatility_parent_idxs = edges[node_idx].volatility_parents
@@ -208,55 +212,17 @@ def binary_input_prediction_error(
     if (value_parent_idxs is None) and (volatility_parent_idxs is None):
         return attributes
 
-    pihat = attributes[node_idx]["pihat"]
-
-    #######################################################
-    # Update the value parent(s) of the binary input node #
-    #######################################################
+    ####################################################
+    # Update the value parent of the binary input node #
+    ####################################################
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
-            # list the (unique) value parents
-            value_parent_value_parent_idxs = edges[value_parent_idx].value_parents[0]
-
-            # 1. Compute new muhat_value_parent and pihat_value_parent
-            # --------------------------------------------------------
-            # 1.1 Compute new_muhat from continuous node parent (x2)
-            # 1.1.1 get rho from the value parent of the binary node (x2)
-            driftrate = attributes[value_parent_value_parent_idxs]["rho"]
-
-            # # 1.1.2 Look at the (optional) value parent's value parents (x3)
-            # # and update the drift rate accordingly
-            if edges[value_parent_value_parent_idxs].value_parents is not None:
-                for (
-                    value_parent_value_parent_value_parent_idx,
-                    psi_parent_parent,
-                ) in zip(
-                    edges[value_parent_value_parent_idxs].value_parents,
-                    attributes[value_parent_value_parent_idxs]["psis_parents"],
-                ):
-                    # For each x2's value parents (optional)
-                    driftrate += (
-                        psi_parent_parent
-                        * attributes[value_parent_value_parent_value_parent_idx]["mu"]
-                    )
-
-            # 1.1.3 compute new_muhat
-            muhat_value_parent = (
-                attributes[value_parent_value_parent_idxs]["mu"] + time_step * driftrate
-            )
-
-            muhat_value_parent = sgm(muhat_value_parent)
-
-            # 2. Compute surprise
-            # -------------------
-            eta0 = attributes[node_idx]["eta0"]
-            eta1 = attributes[node_idx]["eta1"]
-
-            mu_value_parent, pi_value_parent, surprise = cond(
-                pihat == jnp.inf,
-                input_surprise_inf,
-                input_surprise_reg,
-                (pihat, value, eta1, eta0, muhat_value_parent),
+            (
+                pi_value_parent,
+                mu_value_parent,
+                surprise,
+            ) = prediction_error_input_value_parent(
+                attributes, edges, time_step, value_parent_idx
             )
 
             # Update value parent's parameters
@@ -264,8 +230,6 @@ def binary_input_prediction_error(
             attributes[value_parent_idx]["mu"] = mu_value_parent
 
     attributes[node_idx]["surprise"] = surprise
-    attributes[node_idx]["time_step"] = time_step
-    attributes[node_idx]["value"] = value
 
     return attributes
 
@@ -341,40 +305,3 @@ def binary_input_prediction(
             attributes[value_parent_idx]["muhat"] = muhat_value_parent
 
     return attributes
-
-
-def input_surprise_inf(op):
-    """Apply special case if pihat is `jnp.inf` (just pass the value through)."""
-    _, value, _, _, muhat_value_parent = op
-    mu_value_parent = value
-    pi_value_parent = jnp.inf
-    surprise = binary_surprise(value, muhat_value_parent)
-
-    return mu_value_parent, pi_value_parent, surprise
-
-
-def input_surprise_reg(op):
-    """Compute the surprise, mu_value_parent and pi_value_parent."""
-    pihat, value, eta1, eta0, muhat_value_parent = op
-
-    # Likelihood under eta1
-    und1 = jnp.exp(-pihat / 2 * (value - eta1) ** 2)
-
-    # Likelihood under eta0
-    und0 = jnp.exp(-pihat / 2 * (value - eta0) ** 2)
-
-    # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
-    mu_value_parent = (
-        muhat_value_parent
-        * und1
-        / (muhat_value_parent * und1 + (1 - muhat_value_parent) * und0)
-    )
-    pi_value_parent = 1 / (mu_value_parent * (1 - mu_value_parent))
-
-    # Surprise
-    surprise = -jnp.log(
-        muhat_value_parent * gaussian_density(value, eta1, pihat)
-        + (1 - muhat_value_parent) * gaussian_density(value, eta0, pihat)
-    )
-
-    return mu_value_parent, pi_value_parent, surprise

@@ -94,6 +94,9 @@ Binary nodes
     prediction_error_mean_value_parent
     prediction_error_precision_value_parent
     prediction_error_value_parent
+    prediction_error_input_value_parent
+    input_surprise_inf
+    input_surprise_reg
 
 Prediction steps
 ================

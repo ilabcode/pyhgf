@@ -262,8 +262,9 @@ def continuous_input_prediction_error(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    # store value in the node's parameters
+    # store value and time step in the node's parameters
     attributes[node_idx]["value"] = value
+    attributes[node_idx]["time_step"] = time_step
 
     # list value and volatility parents
     value_parents_idxs = edges[node_idx].value_parents
