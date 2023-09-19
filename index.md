@@ -59,7 +59,7 @@ from pyhgf.model import HGF
 from pyhgf import load_data
 
 # Load time series example data
-u, _ = load_data("binary")
+u, _ = pyhgf.updates.prediction_error.continuous
 
 # This is where we define all the model parameters - You can control the value of
 # different variables at different levels using the corresponding dictionary.

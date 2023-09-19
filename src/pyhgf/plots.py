@@ -86,7 +86,7 @@ def plot_trajectories(
         hgf.input_data(input_data=timeserie)
 
         # Plot
-        hgf.plot_trajectories()
+        hgf.plot_trajectories();
 
     Visualization of nodes' trajectories from a three-level binary HGF model.
 
@@ -97,7 +97,7 @@ def plot_trajectories(
         import jax.numpy as jnp
 
         # Read binary input
-        timeserie = load_data("binary")
+        u, _ = load_data("binary")
 
         three_levels_hgf = HGF(
             n_levels=3,
@@ -116,7 +116,7 @@ def plot_trajectories(
         three_levels_hgf = three_levels_hgf.input_data(timeserie)
 
         # Plot
-        three_levels_hgf.plot_trajectories()
+        three_levels_hgf.plot_trajectories();
 
     """
     trajectories_df = hgf.to_pandas()
