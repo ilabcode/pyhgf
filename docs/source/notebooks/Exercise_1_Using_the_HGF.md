@@ -374,7 +374,7 @@ two_levels_hgf.plot_trajectories();
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-We now have a model with beliefs trajectories and we want to see how these beliefs can explain the behaviour of the participant. This is where we will use the decision vector $y$ together with a response model. Designing response models that are adapted to the task is a central part of the modelling process (you can read more on this in the {ref}`custom_response_functions` section). Here, we use the `binary_softmax`, which means that we assume the expected probability at the first level of the model predicts the decision. 
+We now have a model with beliefs trajectories and we want to see how these beliefs can explain the behaviour of the participant. This is where we will use the decision vector $y$ together with a response model. Designing response models that are adapted to the task is a central part of the modelling process (you can read more on this in the {ref}`custom_response_functions` section). Here, we use the `binary_softmax`, which means that we assume the expected probability at the first level of the model predicts the decision.
 
 ```{code-cell} ipython3
 two_levels_hgf.surprise(
@@ -554,16 +554,6 @@ for i in u:
     new_belief = rw_update(i, beliefs[-1])
     beliefs.append(new_belief)
 beliefs = 1 / (1 + np.exp(-np.array(beliefs)))
-```
-
-```{code-cell} ipython3
-from pyhgf.updates.binary import binary_surprise
-
-binary_surprise(y, two_levels_hgf.to_pandas().x_1_muhat.to_numpy()).sum()
-```
-
-```{code-cell} ipython3
-binary_surprise(y, beliefs[:-1]).sum()
 ```
 
 ```{code-cell} ipython3

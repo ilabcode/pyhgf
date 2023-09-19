@@ -8,18 +8,19 @@ from jax.lax import scan
 from jax.tree_util import Partial
 
 from pyhgf import load_data
+from pyhgf.math import binary_surprise, gaussian_density, sigmoid
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.binary import (
     binary_input_prediction,
-    binary_input_update,
+    binary_input_prediction_error,
     binary_node_prediction,
-    binary_node_update,
-    binary_surprise,
-    gaussian_density,
-    sgm,
+    binary_node_prediction_error,
 )
-from pyhgf.updates.continuous import continuous_node_prediction, continuous_node_update
+from pyhgf.updates.continuous import (
+    continuous_node_prediction,
+    continuous_node_prediction_error,
+)
 
 
 class Testbinary(TestCase):
@@ -32,7 +33,7 @@ class Testbinary(TestCase):
         assert jnp.all(jnp.isclose(surprise, 0.24197073))
 
     def test_sgm(self):
-        assert jnp.all(jnp.isclose(sgm(jnp.array([0.3, 0.3])), 0.5744425))
+        assert jnp.all(jnp.isclose(sigmoid(jnp.array([0.3, 0.3])), 0.5744425))
 
     def test_binary_surprise(self):
         surprise = binary_surprise(
@@ -112,9 +113,9 @@ class Testbinary(TestCase):
         sequence1 = 0, binary_input_prediction
         sequence2 = 1, binary_node_prediction
         sequence3 = 2, continuous_node_prediction
-        sequence4 = 0, binary_input_update
-        sequence5 = 1, binary_node_update
-        sequence6 = 2, continuous_node_update
+        sequence4 = 0, binary_input_prediction_error
+        sequence5 = 1, binary_node_prediction_error
+        sequence6 = 2, continuous_node_prediction_error
         update_sequence = (
             sequence1,
             sequence2,

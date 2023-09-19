@@ -56,7 +56,7 @@ from pyhgf.model import HGF
 from pyhgf import load_data
 
 # Load time series example data
-timeserie = load_data("binary")
+u, _ = load_data("binary")
 
 # This is where we define all the model parameters - You can control the value of
 # different variables at different levels using the corresponding dictionary.
@@ -69,7 +69,7 @@ hgf = HGF(
 )
 
 # add new observations
-hgf.input_data(input_data=timeserie)
+hgf.input_data(input_data=u)
 
 # compute the model's surprise (-log(p))
 surprise = hgf.surprise()

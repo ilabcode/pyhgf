@@ -1,18 +1,23 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Union
+from typing import Dict
 
-import jax.numpy as jnp
 from jax import jit
-from jax.lax import cond
-from jax.typing import ArrayLike
 
 from pyhgf.typing import Edges
+from pyhgf.updates.prediction.binary import (
+    prediction_input_value_parent,
+    prediction_value_parent,
+)
+from pyhgf.updates.prediction_error.binary import (
+    prediction_error_input_value_parent,
+    prediction_error_value_parent,
+)
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def binary_node_update(
+def binary_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the value parent(s) of a binary node.
@@ -67,86 +72,13 @@ def binary_node_update(
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
             if edges[value_parent_idx].value_children[-1] == node_idx:
-                value_parent_value_parent_idxs = edges[value_parent_idx].value_parents
-                value_parent_volatility_parent_idxs = edges[
-                    value_parent_idx
-                ].volatility_parents
-
-                # get logvolatility
-                logvol = attributes[value_parent_idx]["omega"]
-
-                # 1.1.2 Look at the (optional) va_pa's volatility parents
-                # and update logvol accordingly
-                if value_parent_volatility_parent_idxs is not None:
-                    for value_parent_volatility_parent_idx, k in zip(
-                        value_parent_volatility_parent_idxs,
-                        attributes[value_parent_idx]["kappas_parents"],
-                    ):
-                        logvol += (
-                            k * attributes[value_parent_volatility_parent_idx]["mu"]
-                        )
-
-                # 1.1.3 Compute new_nu
-                nu = time_step * jnp.exp(logvol)
-                new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-
-                # 1.2 Compute new value for nu and pihat
-                pihat_value_parent, nu_value_parent = [
-                    1 / (1 / attributes[value_parent_idx]["pi"] + new_nu),
-                    new_nu,
-                ]
-
-                # 2.
-                # gather precision updates from other binray input nodes
-                # this part corresponds to the sum over children
-                # required for the multi-children situations
-                pi_children = 0.0
-                for child_idx, psi_child in zip(
-                    edges[value_parent_idx].value_children,
-                    attributes[value_parent_idx]["psis_children"],
-                ):
-                    pihat_child = attributes[child_idx]["pihat"]
-                    pi_children += psi_child * (1 / pihat_child)
-
-                pi_value_parent = pihat_value_parent + pi_children
-
-                # 3. get muhat_value_parent from value parent (x2)
-
-                # 3.1
-                driftrate = attributes[value_parent_idx]["rho"]
-
-                # 3.2 Look at the (optional) value parent's value parents
-                # and update driftrate accordingly
-                if value_parent_value_parent_idxs is not None:
-                    for value_parent_value_parent_idx, psi in zip(
-                        value_parent_value_parent_idxs,
-                        attributes[value_parent_idx]["psis_parents"],
-                    ):
-                        driftrate += (
-                            psi * attributes[value_parent_value_parent_idx]["mu"]
-                        )
-
-                # 3.3
-                muhat_value_parent = (
-                    attributes[value_parent_idx]["mu"] + time_step * driftrate
+                (
+                    pi_value_parent,
+                    mu_value_parent,
+                    nu_value_parent,
+                ) = prediction_error_value_parent(
+                    attributes, edges, time_step, value_parent_idx
                 )
-
-                # gather PE updates from other binray child nodes if the parent has many
-                # this part corresponds to the sum of children required for the
-                # multi-children situations
-                pe_children = 0.0
-                for child_idx, psi_child in zip(
-                    edges[value_parent_idx].value_children,
-                    attributes[value_parent_idx]["psis_children"],
-                ):
-                    vape_child = (
-                        attributes[child_idx]["mu"] - attributes[child_idx]["muhat"]
-                    )
-                    pe_children += (psi_child * vape_child) / pi_value_parent
-
-                # 4.
-                mu_value_parent = muhat_value_parent + pe_children
-
                 # 5. Update node's parameters and node's parents recursively
                 attributes[value_parent_idx]["pi"] = pi_value_parent
                 attributes[value_parent_idx]["mu"] = mu_value_parent
@@ -203,68 +135,24 @@ def binary_node_prediction(
     if value_parent_idxs is None:
         return attributes
 
-    ############################################################
-    # Update predictions in the continuous value parents (x-2) #
-    ############################################################
+    ################################################################
+    # Update the predictions of the continuous value parents (x-2) #
+    ################################################################
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
-            # if this child is the last one relative to this parent's family, all the
-            # children will update the parent at once, otherwise just pass and wait
-            if edges[value_parent_idx].value_children[-1] == node_idx:
-                value_parent_value_parent_idxs = edges[value_parent_idx].value_parents
-                value_parent_volatility_parent_idxs = edges[
-                    value_parent_idx
-                ].volatility_parents
+            pihat_value_parent, muhat_value_parent = prediction_value_parent(
+                attributes, edges, time_step, value_parent_idx
+            )
 
-                # get log volatility
-                logvol = attributes[value_parent_idx]["omega"]
-
-                # look at the va_pa's volatility parents and update accordingly
-                if value_parent_volatility_parent_idxs is not None:
-                    for value_parent_volatility_parent_idx, k in zip(
-                        value_parent_volatility_parent_idxs,
-                        attributes[value_parent_idx]["kappas_parents"],
-                    ):
-                        logvol += (
-                            k * attributes[value_parent_volatility_parent_idx]["mu"]
-                        )
-
-                # compute new_nu
-                nu = time_step * jnp.exp(logvol)
-                new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-
-                # compute new value for pihat
-                pihat_value_parent = 1 / (
-                    1 / attributes[value_parent_idx]["pi"] + new_nu
-                )
-
-                # drift rate
-                driftrate = attributes[value_parent_idx]["rho"]
-
-                # look at value parent's value parents and update driftrate accordingly
-                if value_parent_value_parent_idxs is not None:
-                    for value_parent_value_parent_idx, psi in zip(
-                        value_parent_value_parent_idxs,
-                        attributes[value_parent_idx]["psis_parents"],
-                    ):
-                        driftrate += (
-                            psi * attributes[value_parent_value_parent_idx]["mu"]
-                        )
-
-                # compute new muhat
-                muhat_value_parent = (
-                    attributes[value_parent_idx]["mu"] + time_step * driftrate
-                )
-
-                # update the parent nodes' parameters
-                attributes[value_parent_idx]["pihat"] = pihat_value_parent
-                attributes[value_parent_idx]["muhat"] = muhat_value_parent
+            # update the parent nodes' parameters
+            attributes[value_parent_idx]["pihat"] = pihat_value_parent
+            attributes[value_parent_idx]["muhat"] = muhat_value_parent
 
     return attributes
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def binary_input_update(
+def binary_input_prediction_error(
     attributes: Dict,
     time_step: float,
     node_idx: int,
@@ -313,6 +201,10 @@ def binary_input_update(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
+    # store value and time step in the node's parameters
+    attributes[node_idx]["value"] = value
+    attributes[node_idx]["time_step"] = time_step
+
     # list value and volatility parents
     value_parent_idxs = edges[node_idx].value_parents
     volatility_parent_idxs = edges[node_idx].volatility_parents
@@ -320,55 +212,17 @@ def binary_input_update(
     if (value_parent_idxs is None) and (volatility_parent_idxs is None):
         return attributes
 
-    pihat = attributes[node_idx]["pihat"]
-
-    #######################################################
-    # Update the value parent(s) of the binary input node #
-    #######################################################
+    ####################################################
+    # Update the value parent of the binary input node #
+    ####################################################
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
-            # list the (unique) value parents
-            value_parent_value_parent_idxs = edges[value_parent_idx].value_parents[0]
-
-            # 1. Compute new muhat_value_parent and pihat_value_parent
-            # --------------------------------------------------------
-            # 1.1 Compute new_muhat from continuous node parent (x2)
-            # 1.1.1 get rho from the value parent of the binary node (x2)
-            driftrate = attributes[value_parent_value_parent_idxs]["rho"]
-
-            # # 1.1.2 Look at the (optional) value parent's value parents (x3)
-            # # and update the drift rate accordingly
-            if edges[value_parent_value_parent_idxs].value_parents is not None:
-                for (
-                    value_parent_value_parent_value_parent_idx,
-                    psi_parent_parent,
-                ) in zip(
-                    edges[value_parent_value_parent_idxs].value_parents,
-                    attributes[value_parent_value_parent_idxs]["psis_parents"],
-                ):
-                    # For each x2's value parents (optional)
-                    driftrate += (
-                        psi_parent_parent
-                        * attributes[value_parent_value_parent_value_parent_idx]["mu"]
-                    )
-
-            # 1.1.3 compute new_muhat
-            muhat_value_parent = (
-                attributes[value_parent_value_parent_idxs]["mu"] + time_step * driftrate
-            )
-
-            muhat_value_parent = sgm(muhat_value_parent)
-
-            # 2. Compute surprise
-            # -------------------
-            eta0 = attributes[node_idx]["eta0"]
-            eta1 = attributes[node_idx]["eta1"]
-
-            mu_value_parent, pi_value_parent, surprise = cond(
-                pihat == jnp.inf,
-                input_surprise_inf,
-                input_surprise_reg,
-                (pihat, value, eta1, eta0, muhat_value_parent),
+            (
+                pi_value_parent,
+                mu_value_parent,
+                surprise,
+            ) = prediction_error_input_value_parent(
+                attributes, edges, time_step, value_parent_idx
             )
 
             # Update value parent's parameters
@@ -376,8 +230,6 @@ def binary_input_update(
             attributes[value_parent_idx]["mu"] = mu_value_parent
 
     attributes[node_idx]["surprise"] = surprise
-    attributes[node_idx]["time_step"] = time_step
-    attributes[node_idx]["value"] = value
 
     return attributes
 
@@ -444,130 +296,12 @@ def binary_input_prediction(
     #######################################################
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
-            # list the (unique) value parents
-            value_parent_value_parent_idxs = edges[value_parent_idx].value_parents[0]
-
-            # 1. Compute new muhat_value_parent and pihat_value_parent
-            # --------------------------------------------------------
-            # 1.1 Compute new_muhat from continuous node parent (x2)
-            # 1.1.1 get rho from the value parent of the binary node (x2)
-            driftrate = attributes[value_parent_value_parent_idxs]["rho"]
-
-            # # 1.1.2 Look at the (optional) value parent's value parents (x3)
-            # # and update the drift rate accordingly
-            if edges[value_parent_value_parent_idxs].value_parents is not None:
-                for (
-                    value_parent_value_parent_value_parent_idx,
-                    psi_parent_parent,
-                ) in zip(
-                    edges[value_parent_value_parent_idxs].value_parents,
-                    attributes[value_parent_value_parent_idxs]["psis_parents"],
-                ):
-                    # For each x2's value parents (optional)
-                    driftrate += (
-                        psi_parent_parent
-                        * attributes[value_parent_value_parent_value_parent_idx]["mu"]
-                    )
-
-            # 1.1.3 compute new_muhat
-            muhat_value_parent = (
-                attributes[value_parent_value_parent_idxs]["mu"] + time_step * driftrate
+            pihat_value_parent, muhat_value_parent = prediction_input_value_parent(
+                attributes, edges, time_step, value_parent_idx
             )
-
-            muhat_value_parent = sgm(muhat_value_parent)
-            pihat_value_parent = 1 / (muhat_value_parent * (1 - muhat_value_parent))
 
             # Update value parent's parameters
             attributes[value_parent_idx]["pihat"] = pihat_value_parent
             attributes[value_parent_idx]["muhat"] = muhat_value_parent
 
     return attributes
-
-
-def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike) -> ArrayLike:
-    """Gaussian density as defined by mean and precision."""
-    return pi / jnp.sqrt(2 * jnp.pi) * jnp.exp(-pi / 2 * (x - mu) ** 2)
-
-
-def sgm(
-    x,
-    lower_bound: Union[ArrayLike, float] = 0.0,
-    upper_bound: Union[ArrayLike, float] = 1.0,
-) -> ArrayLike:
-    """Logistic sigmoid function."""
-    return (upper_bound - lower_bound) / (1 + jnp.exp(-x)) + lower_bound
-
-
-def binary_surprise(
-    x: Union[float, ArrayLike], muhat: Union[float, ArrayLike]
-) -> ArrayLike:
-    r"""Surprise at a binary outcome.
-
-    The surprise ellicited by a binary observation :math:`x` under the expected
-    probability :math:`\hat{\mu}` is given by:
-
-    .. math::
-
-       \begin{cases}
-            -\log(\hat{\mu}),& \text{if } x=1\\
-            -\log(1 - \hat{\mu}), & \text{if } x=0\\
-        \end{cases}
-
-    Parameters
-    ----------
-    x :
-        The outcome.
-    muhat :
-        The mean of the Bernoulli distribution.
-
-    Returns
-    -------
-    surprise :
-        The binary surprise.
-
-
-    Examples
-    --------
-    >>> from pyhgf.binary import binary_surprise
-    >>> binary_surprise(x=1.0, muhat=0.7)
-    `Array(0.35667497, dtype=float32, weak_type=True)`
-
-    """
-    return jnp.where(x, -jnp.log(muhat), -jnp.log(jnp.array(1.0) - muhat))
-
-
-def input_surprise_inf(op):
-    """Apply special case if pihat is `jnp.inf` (just pass the value through)."""
-    _, value, _, _, muhat_value_parent = op
-    mu_value_parent = value
-    pi_value_parent = jnp.inf
-    surprise = binary_surprise(value, muhat_value_parent)
-
-    return mu_value_parent, pi_value_parent, surprise
-
-
-def input_surprise_reg(op):
-    """Compute the surprise, mu_value_parent and pi_value_parent."""
-    pihat, value, eta1, eta0, muhat_value_parent = op
-
-    # Likelihood under eta1
-    und1 = jnp.exp(-pihat / 2 * (value - eta1) ** 2)
-
-    # Likelihood under eta0
-    und0 = jnp.exp(-pihat / 2 * (value - eta0) ** 2)
-
-    # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
-    mu_value_parent = (
-        muhat_value_parent
-        * und1
-        / (muhat_value_parent * und1 + (1 - muhat_value_parent) * und0)
-    )
-    pi_value_parent = 1 / (mu_value_parent * (1 - mu_value_parent))
-
-    # Surprise
-    surprise = -jnp.log(
-        muhat_value_parent * gaussian_density(value, eta1, pihat)
-        + (1 - muhat_value_parent) * gaussian_density(value, eta0, pihat)
-    )
-
-    return mu_value_parent, pi_value_parent, surprise
