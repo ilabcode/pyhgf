@@ -16,6 +16,27 @@ def prediction_mean_value_parent(
     time_step: float,
     value_parent_idx: int,
 ) -> Array:
+    r"""Expected value for the mean of the value parent.
+
+    Parameters
+    ----------
+    attributes :
+        The attributes of the probabilistic nodes.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
+    time_step :
+        The interval between the previous time point and the current time point.
+    value_parent_idx :
+        Pointer to the node that will be updated.
+
+    Returns
+    -------
+    muhat_value_parent :
+        The expected value for the mean of the value parent (:math:`\\hat{\\mu}`).
+
+    """
     # list the value and volatility parents
     value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
 
@@ -40,6 +61,27 @@ def prediction_mean_value_parent(
 def prediction_precision_value_parent(
     attributes: Dict, edges: Edges, time_step: float, value_parent_idx: int
 ) -> Array:
+    r"""Expected value for the precision of the value parent.
+
+    Parameters
+    ----------
+    attributes :
+        The attributes of the probabilistic nodes.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
+    time_step :
+        The interval between the previous time point and the current time point.
+    value_parent_idx :
+        Pointer to the node that will be updated.
+
+    Returns
+    -------
+    pihat_value_parent :
+        The expected value for the mean of the value parent (:math:`\\hat{\\pi}`).
+
+    """
     # list the value and volatility parents
     value_parent_volatility_parents_idxs = edges[value_parent_idx].volatility_parents
 
@@ -82,11 +124,11 @@ def prediction_value_parent(
     Parameters
     ----------
     attributes :
-        The nodes' parameters.
+        The attributes of the probabilistic nodes.
     edges :
-        The edges of the network as a tuple of :py:class:`pyhgf.typing.Indexes` with
-        the same length as node number. For each node, the index list value and
-        volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     time_step :
         The interval between the previous time point and the current time point.
     value_parent_idx :
@@ -173,7 +215,7 @@ def prediction_volatility_parent(
     time_step: float,
     volatility_parent_idx: int,
 ) -> Tuple[Array, ...]:
-    """Prediction step for the volatility parent(s) of a continuous node.
+    r"""Prediction step for the volatility parent(s) of a continuous node.
 
     Updating the posterior distribution of the volatility parent is a two-step process:
     1. Update the posterior precision using
@@ -184,11 +226,11 @@ def prediction_volatility_parent(
     Parameters
     ----------
     attributes :
-        The nodes' parameters.
+        The attributes of the probabilistic nodes.
     edges :
-        The edges of the network as a tuple of :py:class:`pyhgf.typing.Indexes` with
-        the same length as node number. For each node, the index list value and
-        volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     time_step :
         The interval between the previous time point and the current time point.
     volatility_parent_idx :

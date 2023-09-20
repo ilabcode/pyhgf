@@ -38,13 +38,13 @@ class HGF(object):
         The number of hierarchies in the model, including the input vector. Cannot be
         less than 2.
     edges :
-        A tuple of :py:class:`pyhgf.typing.Indexes` representing the nodes hierarchy.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     node_trajectories :
         The dynamic of the node's beliefs after updating.
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
         strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
@@ -640,7 +640,6 @@ class HGF(object):
             "kappas_parents": None,
             "psis_children": tuple(value_coupling for _ in range(len(children_idxs))),
             "psis_parents": None,
-            "nu": 0.0,
             "omega": omega,
             "rho": rho,
         }
@@ -741,7 +740,6 @@ class HGF(object):
             "kappas_parents": None,
             "psis_children": None,
             "psis_parents": None,
-            "nu": 0.0,
             "omega": omega,
             "rho": rho,
         }

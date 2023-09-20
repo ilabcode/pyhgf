@@ -20,6 +20,29 @@ def prediction_error_mean_value_parent(
     value_parent_idx: int,
     pi_value_parent: ArrayLike,
 ) -> Array:
+    r"""Sending prediction-errors to the mean of the value parent.
+
+    Parameters
+    ----------
+    attributes :
+        The attributes of the probabilistic nodes.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
+    time_step :
+        The interval between the previous time point and the current time point.
+    value_parent_idx :
+        Pointer to the node that will be updated.
+    pi_value_parent :
+        The precision of the value parent that has already been updated.
+
+    Returns
+    -------
+    mu_value_parent :
+        The expected value for the mean of the value parent (:math:`\\mu`).
+
+    """
     value_parent_value_parent_idxs = edges[value_parent_idx].value_parents
 
     # 3. get muhat_value_parent from value parent (x2)
@@ -60,6 +83,27 @@ def prediction_error_mean_value_parent(
 def prediction_error_precision_value_parent(
     attributes: Dict, edges: Edges, time_step: float, value_parent_idx: int
 ) -> Array:
+    r"""Sending prediction-errors to the precision of the value parent.
+
+    Parameters
+    ----------
+    attributes :
+        The attributes of the probabilistic nodes.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
+    time_step :
+        The interval between the previous time point and the current time point.
+    value_parent_idx :
+        Pointer to the node that will be updated.
+
+    Returns
+    -------
+    pi_value_parent :
+        The expected value for the mean of the value parent (:math:`\\pi`).
+
+    """
     value_parent_volatility_parent_idxs = edges[value_parent_idx].volatility_parents
 
     # get logvolatility
@@ -79,10 +123,7 @@ def prediction_error_precision_value_parent(
     new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
 
     # 1.2 Compute new value for nu and pihat
-    pihat_value_parent, nu_value_parent = [
-        1 / (1 / attributes[value_parent_idx]["pi"] + new_nu),
-        new_nu,
-    ]
+    pihat_value_parent = 1 / (1 / attributes[value_parent_idx]["pi"] + new_nu)
 
     # 2.
     # gather precision updates from other binray input nodes
@@ -98,7 +139,7 @@ def prediction_error_precision_value_parent(
 
     pi_value_parent = pihat_value_parent + pi_children
 
-    return pi_value_parent, nu_value_parent
+    return pi_value_parent
 
 
 @partial(jit, static_argnames=("edges", "value_parent_idx"))
@@ -119,11 +160,11 @@ def prediction_error_value_parent(
     Parameters
     ----------
     attributes :
-        The nodes' parameters.
+        The attributes of the probabilistic nodes.
     edges :
-        The edges of the network as a tuple of :py:class:`pyhgf.typing.Indexes` with
-        the same length as node number. For each node, the index list value and
-        volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     time_step :
         The interval between the previous time point and the current time point.
     value_parent_idx :
@@ -138,14 +179,14 @@ def prediction_error_value_parent(
     nu_value_parent :
 
     """
-    pi_value_parent, nu_value_parent = prediction_error_precision_value_parent(
+    pi_value_parent = prediction_error_precision_value_parent(
         attributes, edges, time_step, value_parent_idx
     )
     mu_value_parent = prediction_error_mean_value_parent(
         attributes, edges, time_step, value_parent_idx, pi_value_parent
     )
 
-    return pi_value_parent, mu_value_parent, nu_value_parent
+    return pi_value_parent, mu_value_parent
 
 
 @partial(jit, static_argnames=("edges", "value_parent_idx"))
@@ -155,16 +196,16 @@ def prediction_error_input_value_parent(
     time_step: float,
     value_parent_idx: int,
 ) -> Tuple[Array, ...]:
-    """Update the mean and precision of the value parent of a binary node.
+    r"""Update the mean and precision of the value parent of a binary input node.
 
     Parameters
     ----------
     attributes :
-        The nodes' parameters.
+        The attributes of the probabilistic nodes.
     edges :
-        The edges of the network as a tuple of :py:class:`pyhgf.typing.Indexes` with
-        the same length as node number. For each node, the index list value and
-        volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     time_step :
         The interval between the previous time point and the current time point.
     value_parent_idx :
@@ -176,7 +217,8 @@ def prediction_error_input_value_parent(
         The precision (:math:`\\pi`) of the value parent.
     mu_value_parent :
         The mean (:math:`\\mu`) of the value parent.
-    nu_value_parent :
+    surprise :
+        The binary surprise.
 
     """
     # list the (unique) value parents

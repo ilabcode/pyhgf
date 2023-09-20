@@ -39,7 +39,6 @@ class Testcontinuous(TestCase):
             "kappas_parents": None,
             "kappas_children": None,
             "mu": 1.0,
-            "nu": 1.0,
             "omega": 1.0,
             "rho": 0.0,
         }
@@ -52,7 +51,6 @@ class Testcontinuous(TestCase):
             "kappas_parents": None,
             "kappas_children": None,
             "mu": 1.0,
-            "nu": 1.0,
             "omega": 1.0,
             "rho": 0.0,
         }
@@ -113,7 +111,6 @@ class Testcontinuous(TestCase):
             "kappas_parents": (1.0,),
             "kappas_children": None,
             "mu": 1.0,
-            "nu": 1.0,
             "omega": 1.0,
             "rho": 0.0,
         }
@@ -126,7 +123,6 @@ class Testcontinuous(TestCase):
             "kappas_parents": None,
             "kappas_children": (1.0,),
             "mu": 1.0,
-            "nu": 1.0,
             "omega": 1.0,
             "rho": 0.0,
         }
@@ -161,13 +157,13 @@ class Testcontinuous(TestCase):
         for idx, val in zip(["time_step", "value"], [1.0, 0.2]):
             assert jnp.isclose(new_attributes[0][idx], val)
         for idx, val in zip(
-            ["pi", "pihat", "mu", "muhat", "nu"],
-            [10000.119, 0.11920292, 0.20000952, 1.0, 7.389056],
+            ["pi", "pihat", "mu", "muhat"],
+            [10000.119, 0.11920292, 0.20000952, 1.0],
         ):
             assert jnp.isclose(new_attributes[1][idx], val)
         for idx, val in zip(
-            ["pi", "pihat", "mu", "muhat", "nu"],
-            [0.29854316, 0.26894143, -0.36260414, 1.0, 2.7182817],
+            ["pi", "pihat", "mu", "muhat"],
+            [0.29854316, 0.26894143, -0.36260414, 1.0],
         ):
             assert jnp.isclose(new_attributes[2][idx], val)
 
@@ -197,7 +193,6 @@ class Testcontinuous(TestCase):
             "kappas_parents": (1.0,),
             "kappas_children": None,
             "mu": 1.0,
-            "nu": 1.0,
             "omega": -3.0,
             "rho": 0.0,
         }
@@ -210,7 +205,6 @@ class Testcontinuous(TestCase):
             "kappas_parents": None,
             "kappas_children": (1.0,),
             "mu": 1.0,
-            "nu": 1.0,
             "omega": -3.0,
             "rho": 0.0,
         }
@@ -245,13 +239,13 @@ class Testcontinuous(TestCase):
         for idx, val in zip(["time_step", "value"], [1.0, 0.8241]):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(
-            ["pi", "pihat", "mu", "muhat", "nu"],
-            [22792.508, 12792.507, 0.80494785, 0.7899765, 3.3479002e-05],
+            ["pi", "pihat", "mu", "muhat"],
+            [22792.508, 12792.507, 0.80494785, 0.7899765],
         ):
             assert jnp.isclose(last[1][idx], val)
         for idx, val in zip(
-            ["pi", "pihat", "mu", "muhat", "nu"],
-            [1.4523009, 1.4297459, -6.9464974, -7.3045917, 0.049787067],
+            ["pi", "pihat", "mu", "muhat"],
+            [1.4523009, 1.4297459, -6.9464974, -7.3045917],
         ):
             assert jnp.isclose(last[2][idx], val)
 
