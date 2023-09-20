@@ -37,7 +37,6 @@ class TestStructure(TestCase):
             "kappas_parents": (1.0,),
             "kappas_children": None,
             "mu": 1.0,
-            "nu": 1.0,
             "omega": -3.0,
             "rho": 0.0,
         }
@@ -50,7 +49,6 @@ class TestStructure(TestCase):
             "kappas_parents": None,
             "kappas_children": (1.0,),
             "mu": 1.0,
-            "nu": 1.0,
             "omega": -3.0,
             "rho": 0.0,
         }

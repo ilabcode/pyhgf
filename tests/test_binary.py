@@ -65,7 +65,6 @@ class Testbinary(TestCase):
             "kappas_parents": None,
             "kappas_children": None,
             "mu": 1.0,
-            "nu": 1.0,
             "omega": 1.0,
             "rho": 0.0,
         }
@@ -78,7 +77,6 @@ class Testbinary(TestCase):
             "kappas_parents": (1.0,),
             "kappas_children": None,
             "mu": 1.0,
-            "nu": 1.0,
             "omega": 1.0,
             "rho": 0.0,
         }
@@ -91,7 +89,6 @@ class Testbinary(TestCase):
             "kappas_parents": None,
             "kappas_children": (1.0,),
             "mu": 1.0,
-            "nu": 1.0,
             "omega": 1.0,
             "rho": 0.0,
         }
@@ -138,13 +135,13 @@ class Testbinary(TestCase):
         for idx, val in zip(["mu", "muhat", "pihat"], [1.0, 0.7310586, 5.0861616]):
             assert jnp.isclose(new_attributes[1][idx], val)
         for idx, val in zip(
-            ["mu", "muhat", "pi", "pihat", "nu"],
-            [1.8515793, 1.0, 0.31581485, 0.11920292, 7.389056],
+            ["mu", "muhat", "pi", "pihat"],
+            [1.8515793, 1.0, 0.31581485, 0.11920292],
         ):
             assert jnp.isclose(new_attributes[2][idx], val)
         for idx, val in zip(
-            ["mu", "muhat", "pi", "pihat", "nu"],
-            [0.5611493, 1.0, 0.5380009, 0.26894143, 2.7182817],
+            ["mu", "muhat", "pi", "pihat"],
+            [0.5611493, 1.0, 0.5380009, 0.26894143],
         ):
             assert jnp.isclose(new_attributes[3][idx], val)
 
@@ -169,13 +166,11 @@ class Testbinary(TestCase):
         for idx, val in zip(["mu", "muhat", "pihat"], [0.0, 0.9571387, 24.37586]):
             assert jnp.isclose(last[1][idx], val)
         for idx, val in zip(
-            ["mu", "muhat", "pi", "pihat", "nu"],
-            [-2.358439, 3.1059794, 0.17515838, 0.13413419, 2.1602433],
+            ["mu", "muhat", "pi", "pihat"],
+            [-2.358439, 3.1059794, 0.17515838, 0.13413419],
         ):
             assert jnp.isclose(last[2][idx], val)
-        for idx, val in zip(
-            ["muhat", "pihat", "nu"], [-0.22977911, 0.14781797, 2.7182817]
-        ):
+        for idx, val in zip(["muhat", "pihat"], [-0.22977911, 0.14781797]):
             assert jnp.isclose(last[3][idx], val)
 
 

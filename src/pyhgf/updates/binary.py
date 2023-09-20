@@ -29,9 +29,7 @@ def binary_node_prediction_error(
     Parameters
     ----------
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
         strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
@@ -42,8 +40,9 @@ def binary_node_prediction_error(
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
     edges :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
-        For each node, the index list value and volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
 
     Returns
     -------
@@ -75,14 +74,12 @@ def binary_node_prediction_error(
                 (
                     pi_value_parent,
                     mu_value_parent,
-                    nu_value_parent,
                 ) = prediction_error_value_parent(
                     attributes, edges, time_step, value_parent_idx
                 )
                 # 5. Update node's parameters and node's parents recursively
                 attributes[value_parent_idx]["pi"] = pi_value_parent
                 attributes[value_parent_idx]["mu"] = mu_value_parent
-                attributes[value_parent_idx]["nu"] = nu_value_parent
 
     return attributes
 
@@ -100,9 +97,7 @@ def binary_node_prediction(
     Parameters
     ----------
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
         strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
@@ -113,8 +108,9 @@ def binary_node_prediction(
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
     edges :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
-        For each node, the index list value and volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
 
     Returns
     -------
@@ -171,16 +167,15 @@ def binary_input_prediction_error(
     time_step :
         The interval between the previous time point and the current time point.
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"kappas"` is the volatility coupling strength.
         It should have the same length as the volatility parents' indexes.
     edges :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
-        For each node, the index list value and volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
@@ -254,16 +249,15 @@ def binary_input_prediction(
     time_step :
         The interval between the previous time point and the current time point.
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"kappas"` is the volatility coupling strength.
         It should have the same length as the volatility parents' indexes.
     edges :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
-        For each node, the index list value and volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.

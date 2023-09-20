@@ -33,16 +33,15 @@ def categorical_input_update(
     time_step :
         The interval between the previous time point and the current time point.
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"kappas"` is the volatility coupling strength.
         It should have the same length as the volatility parents' indexes.
     edges :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
-        For each node, the index list value and volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     node_idx :
         Pointer to the node that needs to be updated.
 

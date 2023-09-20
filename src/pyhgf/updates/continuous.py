@@ -39,21 +39,21 @@ def continuous_node_prediction_error(
     Parameters
     ----------
     attributes :
-        The nodes' parameters.
+        The attributes of the probabilistic nodes.
     time_step :
         The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
     edges :
-        The edges of the network as a tuple of :py:class:`pyhgf.typing.Indexes` with
-        the same length as node number. For each node, the index list value and
-        volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
 
     Returns
     -------
     attributes :
-        The updated nodes' parameters.
+        The updated attributes of the probabilistic nodes.
 
     See Also
     --------
@@ -82,18 +82,13 @@ def continuous_node_prediction_error(
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
             if edges[value_parent_idx].value_children[-1] == node_idx:
-                (
-                    pi_value_parent,
-                    mu_value_parent,
-                    nu_value_parent,
-                ) = prediction_error_value_parent(
+                (pi_value_parent, mu_value_parent) = prediction_error_value_parent(
                     attributes, edges, time_step, value_parent_idx
                 )
 
                 # Update this parent's parameters
                 attributes[value_parent_idx]["pi"] = pi_value_parent
                 attributes[value_parent_idx]["mu"] = mu_value_parent
-                attributes[value_parent_idx]["nu"] = nu_value_parent
 
     #############################
     # Update volatility parents #
@@ -106,7 +101,6 @@ def continuous_node_prediction_error(
                 (
                     pi_volatility_parent,
                     mu_volatility_parent,
-                    nu_volatility_parent,
                 ) = prediction_error_volatility_parent(
                     attributes, edges, time_step, volatility_parent_idx
                 )
@@ -114,7 +108,6 @@ def continuous_node_prediction_error(
                 # Update this parent's parameters
                 attributes[volatility_parent_idx]["pi"] = pi_volatility_parent
                 attributes[volatility_parent_idx]["mu"] = mu_volatility_parent
-                attributes[volatility_parent_idx]["nu"] = nu_volatility_parent
 
     return attributes
 
@@ -140,9 +133,7 @@ def continuous_node_prediction(
     Parameters
     ----------
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "psis", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
         strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
@@ -153,13 +144,14 @@ def continuous_node_prediction(
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
     edges :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with the same length as node number.
-        For each node, the index list value and volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
 
     Returns
     -------
     attributes :
-        The updated parameters structure.
+        The updated attributes of the probabilistic nodes.
 
     See Also
     --------
@@ -232,16 +224,15 @@ def continuous_input_prediction_error(
     time_step :
         The interval between the previous time point and the current time point.
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
         strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
         `"kappas_parents"`, `"kappas_children"`).
     edges :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
-        For each node, the index list value and volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
@@ -249,7 +240,7 @@ def continuous_input_prediction_error(
     Returns
     -------
     attributes :
-        The updated parameters structure.
+        The updated attributes of the probabilistic nodes.
 
     See Also
     --------
@@ -279,7 +270,6 @@ def continuous_input_prediction_error(
             if edges[value_parent_idx].value_children[-1] == node_idx:
                 (
                     pi_value_parent,
-                    nu_value_parent,
                     mu_value_parent,
                 ) = prediction_error_input_value_parent(
                     attributes, edges, time_step, value_parent_idx
@@ -288,7 +278,6 @@ def continuous_input_prediction_error(
                 # update input node's parameters
                 attributes[value_parent_idx]["pi"] = pi_value_parent
                 attributes[value_parent_idx]["mu"] = mu_value_parent
-                attributes[value_parent_idx]["nu"] = nu_value_parent
 
     return attributes
 
@@ -313,16 +302,15 @@ def continuous_input_prediction(
     time_step :
         The interval between the previous time point and the current time point.
     attributes :
-        The structure of nodes' parameters. Each parameter is a dictionary with the
-        following parameters: `"pihat", "pi", "muhat", "mu", "nu", "omega"` for
-        continuous nodes.
+        The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
         strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
         `"kappas_parents"`, `"kappas_children"`).
     edges :
-        Tuple of :py:class:`pyhgf.typing.Indexes` with same length than number of node.
-        For each node, the index list value and volatility parents.
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
@@ -330,7 +318,7 @@ def continuous_input_prediction(
     Returns
     -------
     attributes :
-        The updated parameters structure.
+        The updated attributes of the probabilistic nodes.
 
     See Also
     --------
