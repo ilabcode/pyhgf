@@ -24,10 +24,10 @@ Core functionnalities to update *binary* nodes.
 .. autosummary::
    :toctree: generated/pyhgf.updates.binary
 
-    binary_node_prediction
-    binary_input_prediction
     binary_node_prediction_error
+    binary_node_prediction
     binary_input_prediction_error
+    binary_input_prediction
 
 Updating continuous nodes
 =========================
@@ -61,24 +61,6 @@ Prediction error steps
 
 Propagate prediction errors to the value and volatility parents of a given node.
 
-Continuous nodes
-~~~~~~~~~~~~~~~~
-
-.. currentmodule:: pyhgf.updates.prediction_error.continuous
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.continuous
-
-    prediction_error_mean_value_parent
-    prediction_error_precision_value_parent
-    prediction_error_value_parent
-    prediction_error_volatility_parent
-    prediction_error_precision_volatility_parent
-    prediction_error_mean_volatility_parent
-    prediction_error_input_value_parent
-    prediction_error_input_mean_value_parent
-    prediction_error_input_precision_value_parent
-
 Binary nodes
 ~~~~~~~~~~~~
 
@@ -94,24 +76,24 @@ Binary nodes
     input_surprise_inf
     input_surprise_reg
 
+Continuous nodes
+~~~~~~~~~~~~~~~~
+
+.. currentmodule:: pyhgf.updates.prediction_error.continuous
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.continuous
+
+    prediction_error_mean_value_parent
+    prediction_error_precision_value_parent
+    prediction_error_precision_volatility_parent
+    prediction_error_mean_volatility_parent
+    prediction_error_input_mean_value_parent
+
 Prediction steps
 ================
 
 Compute the expectation for future observation given the influence of parent nodes.
-
-Continuous nodes
-~~~~~~~~~~~~~~~~
-
-.. currentmodule:: pyhgf.updates.prediction.continuous
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.prediction.continuous
-
-    prediction_mean_value_parent
-    prediction_precision_value_parent
-    prediction_value_parent
-    prediction_precision_volatility_parent
-    prediction_mean_volatility_parent
 
 Binary nodes
 ~~~~~~~~~~~~
@@ -121,8 +103,18 @@ Binary nodes
 .. autosummary::
    :toctree: generated/pyhgf.updates.prediction.binary
 
-    prediction_input_value_parent
+    predict_input_value_parent
 
+Continuous nodes
+~~~~~~~~~~~~~~~~
+
+.. currentmodule:: pyhgf.updates.prediction.continuous
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction.continuous
+
+    predict_mean
+    predict_precision
 
 Distribution
 ------------

@@ -1,7 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Tuple
+from typing import Dict
 
 import jax.numpy as jnp
 from jax import Array, jit
@@ -102,99 +102,6 @@ def prediction_error_precision_value_parent(
     pi_value_parent = pihat_value_parent + pi_children
 
     return pi_value_parent
-
-
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
-def prediction_error_value_parent(
-    attributes: Dict,
-    edges: Edges,
-    value_parent_idx: int,
-) -> Tuple[Array, ...]:
-    r"""Update the mean and precision of the value parent of a continuous node.
-
-    Updating the posterior distribution of the value parent is a two-step process:
-    #. Update the posterior precision using
-    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_precision_value_parent`.
-    #. Update the posterior mean value using
-    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_mean_value_parent`.
-
-    Parameters
-    ----------
-    attributes :
-        The attributes of the probabilistic nodes.
-    edges :
-        The edges of the network as a tuple of :py:class:`pyhgf.typing.Indexes` with
-        the same length as node number. For each node, the index list value and
-        volatility parents.
-    value_parent_idx :
-        Pointer to the value parent node.
-
-    Returns
-    -------
-    pi_value_parent :
-        The precision (:math:`\\pi`) of the value parent.
-    mu_value_parent :
-        The mean (:math:`\\mu`) of the value parent.
-
-    """
-    # Estimate the precision of the posterior distribution
-    pi_value_parent = prediction_error_precision_value_parent(
-        attributes, edges, value_parent_idx
-    )
-    # Estimate the mean of the posterior distribution
-    mu_value_parent = prediction_error_mean_value_parent(
-        attributes, edges, value_parent_idx, pi_value_parent
-    )
-
-    return pi_value_parent, mu_value_parent
-
-
-@partial(jit, static_argnames=("edges", "volatility_parent_idx"))
-def prediction_error_volatility_parent(
-    attributes: Dict,
-    edges: Edges,
-    time_step: float,
-    volatility_parent_idx: int,
-) -> Tuple[Array, ...]:
-    """Update the mean and precision of the volatility parent of a continuous node.
-
-    Updating the posterior distribution of the volatility parent is a two-step process:
-    #. Update the posterior precision using
-    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_precision_volatility_parent`.
-    #. Update the posterior mean value using
-    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_mean_volatility_parent`.
-
-    Parameters
-    ----------
-    attributes :
-        The attributes of the probabilistic nodes.
-    edges :
-        The edges of the network as a tuple of :py:class:`pyhgf.typing.Indexes` with
-        the same length as node number. For each node, the index list value and
-        volatility parents.
-    time_step :
-        The interval between the previous time point and the current time point.
-    volatility_parent_idx :
-        Pointer to the value parent node.
-
-    Returns
-    -------
-    pi_volatility_parent :
-        The precision (:math:`\\pi`) of the value parent.
-    mu_volatility_parent :
-        The mean (:math:`\\mu`) of the value parent.
-
-    """
-    # Estimate the new precision of the volatility parent
-    pi_volatility_parent = prediction_error_precision_volatility_parent(
-        attributes, edges, time_step, volatility_parent_idx
-    )
-    # Estimate the new mean of the volatility parent
-    mu_volatility_parent = prediction_error_mean_volatility_parent(
-        attributes, edges, time_step, volatility_parent_idx, pi_volatility_parent
-    )
-
-    return pi_volatility_parent, mu_volatility_parent
 
 
 @partial(jit, static_argnames=("edges", "volatility_parent_idx"))
@@ -340,51 +247,6 @@ def prediction_error_mean_volatility_parent(
 
 
 @partial(jit, static_argnames=("edges", "value_parent_idx"))
-def prediction_error_input_value_parent(
-    attributes: Dict,
-    edges: Edges,
-    value_parent_idx: int,
-) -> Array:
-    r"""Update the mean and precision of the value parent of a continuous input node.
-
-    Updating the posterior distribution of the value parent is a two-step process:
-    #. Update the posterior precision using
-    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_input_precision_value_parent`.
-    #. Update the posterior mean value using
-    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_input_mean_value_parent`.
-
-    Parameters
-    ----------
-    attributes :
-        The attributes of the probabilistic nodes.
-    edges :
-        The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
-    value_parent_idx :
-        Pointer to the node that will be updated.
-
-    Returns
-    -------
-    pi_value_parent :
-        The updated value for the mean of the value parent (:math:`\\pi`).
-    mu_value_parent :
-        The updated value for the mean of the value parent (:math:`\\mu`).
-
-    """
-    # Estimate the new precision of the value parent
-    pi_value_parent = prediction_error_input_precision_value_parent(
-        attributes, edges, value_parent_idx
-    )
-    # Estimate the new mean of the value parent
-    mu_value_parent = prediction_error_input_mean_value_parent(
-        attributes, edges, value_parent_idx, pi_value_parent
-    )
-
-    return pi_value_parent, mu_value_parent
-
-
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
 def prediction_error_input_mean_value_parent(
     attributes: Dict,
     edges: Edges,
@@ -434,49 +296,3 @@ def prediction_error_input_mean_value_parent(
     mu_value_parent = muhat_value_parent + pe_children
 
     return mu_value_parent
-
-
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
-def prediction_error_input_precision_value_parent(
-    attributes: Dict,
-    edges: Edges,
-    value_parent_idx: int,
-) -> Array:
-    r"""Send prediction-error to the precision of a continuous input's value parent.
-
-    Parameters
-    ----------
-    attributes :
-        The attributes of the probabilistic nodes.
-    edges :
-        The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
-    value_parent_idx :
-        Pointer to the node that will be updated.
-
-    Returns
-    -------
-    pi_value_parent :
-        The updated value for the mean of the value parent (:math:`\\pi`).
-
-    """
-    # Get the current expected precision for the volatility parent
-    # The prediction sequence was triggered by the new observation so this value is
-    # already in the node attributes
-    pihat_value_parent = attributes[value_parent_idx]["pihat"]
-
-    # gather precisions updates from other input nodes
-    # in the case of a multivariate descendency
-    pi_children = 0.0
-    for child_idx, psi_child in zip(
-        edges[value_parent_idx].value_children,
-        attributes[value_parent_idx]["psis_children"],
-    ):
-        pihat_child = attributes[child_idx]["pihat"]
-        pi_children += psi_child**2 * pihat_child
-
-    # Compute the new precision of the value parent
-    pi_value_parent = pihat_value_parent + pi_children
-
-    return pi_value_parent
