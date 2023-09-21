@@ -4,11 +4,11 @@
 
 # The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
-pyhgf is a Python library that implements the generalized, nodalized and multilevel Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library can create and manipulate graph neural networks that perform belief update through the diffusion of precision-weighted prediction errors under new observations. The core functions are derivable, JIT-able, and are designed to interface smoothly with other libraries in the JAX ecosystem for Bayesian inference.
+pyhgf is a Python library that implements the generalized, nodalized and multilevel Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library can create and manipulate graph neural networks that perform belief update through the diffusion of precision-weighted prediction errors under new observations. The core functions are derivable, JIT-able, and are designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement leanring or Bayesian inference.
 
-* 🎓 [What is a Hierarchical Gaussian Filter?](https://ilabcode.github.io/pyhgf/theory.html)  
-* 📖 [API Documentation](https://ilabcode.github.io/pyhgf/)  
-* ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/tutorials.html)  
+* 🎓 [How to create and manipulate networks of probabilistic nodes](https://ilabcode.github.io/pyhgf/notebooks/0-Creating_networks.html#creating-and-manipulating-networks-of-probabilistic-nodes)  
+* 📖 [API Documentation](https://ilabcode.github.io/pyhgf/api.html)  
+* ✏️ [Tutorials, examples and exercises](https://ilabcode.github.io/pyhgf/tutorials.html)  
 
 ## Getting started
 
@@ -28,12 +28,12 @@ The nodalized Hierarchical Gaussian Filter consists of a network of probabilisti
 
 More generally, pyhgf operates on graph neural networks that can be defined and updated through the following variables:
 
-* The node parameters (dictionary) that store each node's parameters (value, precision, learning rates, volatility coupling, ...).
-* The node structure (tuple) that lists, for each node, the indexes of the value and volatility parents.
+* The nodes attributes (dictionary) that store each node's parameters (value, precision, learning rates, volatility coupling, ...).
+* The edges (tuple) that lists, for each node, the indexes of the value and volatility parents.
 * A set of update functions that operate on any of the 3 other variables, starting from a target node.
 * An update sequence (tuple) that define the order in which the update functions are called, and the target node.
 
-![png](./docs/source/images/graph_networks.svg)
+![png](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_networks.svg)
 
 Value parent and volatility parent are nodes themself. Any node can be a value and/or volatility parent for other nodes and have multiple value and/or volatility parents. A filtering structure consists of nodes embedding other nodes hierarchically. Nodes are parametrized by their sufficient statistic and parents. The transformations between nodes can be linear, non-linear, or any function (thus a *generalization* of the HGF).
 
@@ -43,7 +43,7 @@ The resulting probabilistic network operates as a filter toward new observation.
 
 The Hierarchical Gaussian Filter for binary and continuous inputs as it was described in Mathys et al. (2011, 2014), and later implemented in the Matlab Tapas toolbox (Frässle et al. 2021), can be seen as a special case of this node structure such as:
 
-![Figure2](./docs/source/images/hgf.png)
+![Figure2](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/hgf.png)
 
 The pyhgf package includes pre-implemented standard HGF models that can be used together with other neural network libraries of Bayesian inference tools. It is also possible for the user to build custom network structures that would match specific needs.
 
@@ -83,7 +83,7 @@ hgf.plot_trajectories()
 `Add 320 new binary observations.`  
 `Model's surprise = 203.29249572753906`
 
-![png](./docs/source/images/trajectories.png)
+![png](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/trajectories.png)
 
 # Acknoledgements
 
