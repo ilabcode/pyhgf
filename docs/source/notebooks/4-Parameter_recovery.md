@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -106,6 +106,7 @@ with pm.Model() as model:
             omega_1=omega_1,
             omega_2=-10.0,
             continuous_precision=1e4,
+            binary_precision=jnp.nan,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=1e4,

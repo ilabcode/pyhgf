@@ -277,6 +277,7 @@ with pm.Model() as sigmoid_hgf:
             omega_1=jnp.inf,
             omega_2=omega_2,
             continuous_precision=jnp.nan,
+            binary_precision=jnp.inf,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=0.0,

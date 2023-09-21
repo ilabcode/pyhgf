@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -106,6 +106,7 @@ with pm.Model() as three_level_hgf:
             omega_1=-4.0,
             omega_2=omega_2,
             continuous_precision=1e4,
+            binary_precision=1e4,
             rho_1=0.0,
             rho_2=0.0,
             pi_1=1e4,
