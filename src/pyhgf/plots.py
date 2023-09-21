@@ -113,7 +113,7 @@ def plot_trajectories(
         )
 
         # Feed input
-        three_levels_hgf = three_levels_hgf.input_data(timeserie)
+        three_levels_hgf = three_levels_hgf.input_data(u)
 
         # Plot
         three_levels_hgf.plot_trajectories();

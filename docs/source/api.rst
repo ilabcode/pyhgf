@@ -41,7 +41,7 @@ Core functionnalities to update *continuous* nodes.
 
     continuous_node_prediction_error
     continuous_node_prediction
-    continuous_input_update
+    continuous_input_prediction_error
     continuous_input_prediction
 
 Updating categorical nodes
