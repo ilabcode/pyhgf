@@ -14,11 +14,10 @@ from pyhgf.typing import Edges
 def prediction_error_mean_value_parent(
     attributes: Dict,
     edges: Edges,
-    time_step: float,
     value_parent_idx: int,
     pi_value_parent: ArrayLike,
 ) -> Array:
-    r"""Send prediction-error to the mean of the value parent.
+    r"""Send prediction-error and update the mean of a value parent (continuous).
 
     Parameters
     ----------
@@ -28,10 +27,8 @@ def prediction_error_mean_value_parent(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    time_step :
-        The interval between the previous time point and the current time point.
     value_parent_idx :
-        Pointer to the node that will be updated.
+        Pointer to the value parent node that will be updated.
     pi_value_parent :
         The precision of the value parent that has already been updated.
 
@@ -41,25 +38,13 @@ def prediction_error_mean_value_parent(
         The updated value for the mean of the value parent (:math:`\\mu`).
 
     """
-    # list the value and volatility parents
-    value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
+    # Get the current expected precision for the volatility parent
+    # The prediction sequence was triggered by the new observation so this value is
+    # already in the node attributes
+    muhat_value_parent = attributes[value_parent_idx]["muhat"]
 
-    # Compute new muhat
-    driftrate = attributes[value_parent_idx]["rho"]
-
-    # Look at the (optional) valu parents of the value parents and update drift rate
-    if value_parent_value_parents_idxs is not None:
-        for va_pa_va_pa, psi in zip(
-            value_parent_value_parents_idxs,
-            attributes[value_parent_idx]["psis_parents"],
-        ):
-            driftrate += psi * attributes[va_pa_va_pa]["mu"]
-
-    muhat_value_parent = attributes[value_parent_idx]["mu"] + time_step * driftrate
-
-    # gather PE updates from other nodes if the parent has many children
-    # this part corresponds to the sum of children required for the
-    # multi-children situations
+    # Gather prediction errors from all child nodes if the parent has many children
+    # This part corresponds to the sum of children for the multi-children situations
     pe_children = 0.0
     for child_idx, psi_child in zip(
         edges[value_parent_idx].value_children,
@@ -69,6 +54,7 @@ def prediction_error_mean_value_parent(
         pihat_child = attributes[child_idx]["pihat"]
         pe_children += (psi_child * pihat_child * vape_child) / pi_value_parent
 
+    # Estimate the new mean of the value parent
     mu_value_parent = muhat_value_parent + pe_children
 
     return mu_value_parent
@@ -76,9 +62,9 @@ def prediction_error_mean_value_parent(
 
 @partial(jit, static_argnames=("edges", "value_parent_idx"))
 def prediction_error_precision_value_parent(
-    attributes: Dict, edges: Edges, time_step: float, value_parent_idx: int
+    attributes: Dict, edges: Edges, value_parent_idx: int
 ) -> Array:
-    r"""Send prediction-error to the precision of the value parent.
+    r"""Send prediction-error and update the precision of a value parent (continuous).
 
     Parameters
     ----------
@@ -88,41 +74,22 @@ def prediction_error_precision_value_parent(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    time_step :
-        The interval between the previous time point and the current time point.
     value_parent_idx :
-        Pointer to the node that will be updated.
+        Pointer to the value parent node that will be updated.
 
     Returns
     -------
     pi_value_parent :
-        The updated value for the mean of the value parent (:math:`\\pi`).
+        The updated value for the precision of the value parent (:math:`\\pi`).
 
     """
-    # list the value and volatility parents
-    value_parent_volatility_parents_idxs = edges[value_parent_idx].volatility_parents
+    # Get the current expected mean for the volatility parent
+    # The prediction sequence was triggered by the new observation so this value is
+    # already in the node attributes
+    pihat_value_parent = attributes[value_parent_idx]["pihat"]
 
-    # Compute new value for nu and pihat
-    logvol = attributes[value_parent_idx]["omega"]
-
-    # Look at the (optional) va_pa's volatility parents
-    # and update logvol accordingly
-    if value_parent_volatility_parents_idxs is not None:
-        for value_parent_volatility_parents_idx, k in zip(
-            value_parent_volatility_parents_idxs,
-            attributes[value_parent_idx]["kappas_parents"],
-        ):
-            logvol += k * attributes[value_parent_volatility_parents_idx]["mu"]
-
-    # Estimate new_nu
-    nu = time_step * jnp.exp(logvol)
-    new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-
-    pihat_value_parent = 1 / (1 / attributes[value_parent_idx]["pi"] + new_nu)
-
-    # gather precision updates from other nodes if the parent has many
-    # children - this part corresponds to the sum over children
-    # required for the multi-children situations
+    # Gather precision updates from all child nodes if the parent has many children.
+    # This part corresponds to the sum over children for the multi-children situations.
     pi_children = 0.0
     for child_idx, psi_child in zip(
         edges[value_parent_idx].value_children,
@@ -131,6 +98,7 @@ def prediction_error_precision_value_parent(
         pihat_child = attributes[child_idx]["pihat"]
         pi_children += psi_child**2 * pihat_child
 
+    # Estimate new value for the precision of the value parent
     pi_value_parent = pihat_value_parent + pi_children
 
     return pi_value_parent
@@ -140,15 +108,14 @@ def prediction_error_precision_value_parent(
 def prediction_error_value_parent(
     attributes: Dict,
     edges: Edges,
-    time_step: float,
     value_parent_idx: int,
 ) -> Tuple[Array, ...]:
     r"""Update the mean and precision of the value parent of a continuous node.
 
     Updating the posterior distribution of the value parent is a two-step process:
-    1. Update the posterior precision using
+    #. Update the posterior precision using
     :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_precision_value_parent`.
-    2. Update the posterior mean value using
+    #. Update the posterior mean value using
     :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_mean_value_parent`.
 
     Parameters
@@ -159,8 +126,6 @@ def prediction_error_value_parent(
         The edges of the network as a tuple of :py:class:`pyhgf.typing.Indexes` with
         the same length as node number. For each node, the index list value and
         volatility parents.
-    time_step :
-        The interval between the previous time point and the current time point.
     value_parent_idx :
         Pointer to the value parent node.
 
@@ -172,11 +137,13 @@ def prediction_error_value_parent(
         The mean (:math:`\\mu`) of the value parent.
 
     """
+    # Estimate the precision of the posterior distribution
     pi_value_parent = prediction_error_precision_value_parent(
-        attributes, edges, time_step, value_parent_idx
+        attributes, edges, value_parent_idx
     )
+    # Estimate the mean of the posterior distribution
     mu_value_parent = prediction_error_mean_value_parent(
-        attributes, edges, time_step, value_parent_idx, pi_value_parent
+        attributes, edges, value_parent_idx, pi_value_parent
     )
 
     return pi_value_parent, mu_value_parent
@@ -192,9 +159,9 @@ def prediction_error_volatility_parent(
     """Update the mean and precision of the volatility parent of a continuous node.
 
     Updating the posterior distribution of the volatility parent is a two-step process:
-    1. Update the posterior precision using
+    #. Update the posterior precision using
     :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_precision_volatility_parent`.
-    2. Update the posterior mean value using
+    #. Update the posterior mean value using
     :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_mean_volatility_parent`.
 
     Parameters
@@ -212,15 +179,17 @@ def prediction_error_volatility_parent(
 
     Returns
     -------
-    pi_value_parent :
+    pi_volatility_parent :
         The precision (:math:`\\pi`) of the value parent.
-    mu_value_parent :
+    mu_volatility_parent :
         The mean (:math:`\\mu`) of the value parent.
 
     """
+    # Estimate the new precision of the volatility parent
     pi_volatility_parent = prediction_error_precision_volatility_parent(
         attributes, edges, time_step, volatility_parent_idx
     )
+    # Estimate the new mean of the volatility parent
     mu_volatility_parent = prediction_error_mean_volatility_parent(
         attributes, edges, time_step, volatility_parent_idx, pi_volatility_parent
     )
@@ -232,7 +201,7 @@ def prediction_error_volatility_parent(
 def prediction_error_precision_volatility_parent(
     attributes: Dict, edges: Edges, time_step: float, volatility_parent_idx: int
 ) -> Array:
-    r"""Send prediction-error to the precision of the volatility parent.
+    r"""Send prediction-error and update the precision of the volatility parent.
 
     Parameters
     ----------
@@ -253,28 +222,10 @@ def prediction_error_precision_volatility_parent(
         The updated value for the mean of the value parent (:math:`\\pi`).
 
     """
-    # list the value parents of the volatility parent
-    volatility_parent_volatility_parents_idx = edges[
-        volatility_parent_idx
-    ].volatility_parents
-
-    # Compute new value for nu and pihat
-    logvol = attributes[volatility_parent_idx]["omega"]
-
-    # Look at the (optional) vo_pa's volatility parents
-    # and update logvol accordingly
-    if volatility_parent_volatility_parents_idx is not None:
-        for vo_pa_vo_pa, k in zip(
-            volatility_parent_volatility_parents_idx,
-            attributes[volatility_parent_idx]["kappas_parents"],
-        ):
-            logvol += k * attributes[vo_pa_vo_pa]["mu"]
-
-    # Estimate new_nu
-    new_nu = time_step * jnp.exp(logvol)
-    new_nu = jnp.where(new_nu > 1e-128, new_nu, jnp.nan)
-
-    pihat_volatility_parent = 1 / (1 / attributes[volatility_parent_idx]["pi"] + new_nu)
+    # Get the current expected precision for the volatility parent
+    # The prediction sequence was triggered by the new observation so this value is
+    # already in the node attributes
+    pihat_volatility_parent = attributes[volatility_parent_idx]["pihat"]
 
     # gather volatility precisions from the child nodes
     children_volatility_precision = 0.0
@@ -308,8 +259,8 @@ def prediction_error_precision_volatility_parent(
             * (1 + (1 - 1 / (nu_children * pi_children)) * vope_children)
         )
 
+    # Estimate the new precision of the volatility parent
     pi_volatility_parent = pihat_volatility_parent + children_volatility_precision
-
     pi_volatility_parent = jnp.where(
         pi_volatility_parent <= 0, jnp.nan, pi_volatility_parent
     )
@@ -321,7 +272,7 @@ def prediction_error_precision_volatility_parent(
 def prediction_error_mean_volatility_parent(
     attributes, edges, time_step, volatility_parent_idx, pi_volatility_parent: ArrayLike
 ) -> Array:
-    r"""Send prediction-error to the mean of the volatility parent.
+    r"""Send prediction-error and update the mean of the volatility parent.
 
     Parameters
     ----------
@@ -342,26 +293,12 @@ def prediction_error_mean_volatility_parent(
         The updated value for the mean of the value parent (:math:`\\pi`).
 
     """
-    # list the volatility parents of the volatility parent
-    volatility_parent_value_parents_idx = edges[volatility_parent_idx].value_parents
+    # Get the current expected mean for the volatility parent
+    # The prediction sequence was triggered by the new observation so this value is
+    # already in the node attributes
+    muhat_volatility_parent = attributes[volatility_parent_idx]["muhat"]
 
-    # drift rate of the GRW
-    driftrate = attributes[volatility_parent_idx]["rho"]
-
-    # Look at the (optional) va_pa's value parents
-    # and update drift rate accordingly
-    if volatility_parent_value_parents_idx is not None:
-        for vo_pa_va_pa, psi in zip(
-            volatility_parent_value_parents_idx,
-            attributes[volatility_parent_idx]["psi_parents"],
-        ):
-            driftrate += psi * attributes[vo_pa_va_pa]["mu"]
-
-    muhat_volatility_parent = (
-        attributes[volatility_parent_idx]["mu"] + time_step * driftrate
-    )
-
-    # gather volatility prediction errors from the child nodes
+    # Gather volatility prediction errors from the child nodes
     children_volatility_prediction_error = 0.0
     for child_idx, kappas_children in zip(
         edges[volatility_parent_idx].volatility_children,
@@ -394,6 +331,7 @@ def prediction_error_mean_volatility_parent(
             * vope_children
         )
 
+    # Estimate the new mean of the volatility parent
     mu_volatility_parent = (
         muhat_volatility_parent + children_volatility_prediction_error
     )
@@ -405,10 +343,15 @@ def prediction_error_mean_volatility_parent(
 def prediction_error_input_value_parent(
     attributes: Dict,
     edges: Edges,
-    time_step: float,
     value_parent_idx: int,
 ) -> Array:
-    r"""Send prediction-error to the value parent of a continuous input node.
+    r"""Update the mean and precision of the value parent of a continuous input node.
+
+    Updating the posterior distribution of the value parent is a two-step process:
+    #. Update the posterior precision using
+    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_input_precision_value_parent`.
+    #. Update the posterior mean value using
+    :py:func:`pyhgf.updates.prediction_error.continuous.prediction_error_input_mean_value_parent`.
 
     Parameters
     ----------
@@ -418,8 +361,6 @@ def prediction_error_input_value_parent(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    time_step :
-        The interval between the previous time point and the current time point.
     value_parent_idx :
         Pointer to the node that will be updated.
 
@@ -431,11 +372,13 @@ def prediction_error_input_value_parent(
         The updated value for the mean of the value parent (:math:`\\mu`).
 
     """
+    # Estimate the new precision of the value parent
     pi_value_parent = prediction_error_input_precision_value_parent(
-        attributes, edges, time_step, value_parent_idx
+        attributes, edges, value_parent_idx
     )
+    # Estimate the new mean of the value parent
     mu_value_parent = prediction_error_input_mean_value_parent(
-        attributes, edges, time_step, value_parent_idx, pi_value_parent
+        attributes, edges, value_parent_idx, pi_value_parent
     )
 
     return pi_value_parent, mu_value_parent
@@ -445,7 +388,6 @@ def prediction_error_input_value_parent(
 def prediction_error_input_mean_value_parent(
     attributes: Dict,
     edges: Edges,
-    time_step: float,
     value_parent_idx: int,
     pi_value_parent: ArrayLike,
 ) -> Array:
@@ -459,33 +401,19 @@ def prediction_error_input_mean_value_parent(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    time_step :
-        The interval between the previous time point and the current time point.
     value_parent_idx :
-        Pointer to the node that will be updated.
+        Pointer to the value parent node that will be updated.
 
     Returns
     -------
     mu_value_parent :
-        The updated value for the mean of the value parent (:math:`\\pi`).
+        The updated value for the mean of the value parent (:math:`\\mu`).
 
     """
-    # list value parents
-    value_parent_value_parents_idxs = edges[value_parent_idx].value_parents
-
-    # Compute new muhat
-    driftrate = attributes[value_parent_idx]["rho"]
-
-    # Look at the (optional) va_pa's value parents
-    # and update drift rate accordingly
-    if value_parent_value_parents_idxs is not None:
-        for value_parent_value_parents_idx in value_parent_value_parents_idxs:
-            driftrate += (
-                attributes[value_parent_idx]["psis_parents"][0]
-                * attributes[value_parent_value_parents_idx]["mu"]
-            )
-
-    muhat_value_parent = attributes[value_parent_idx]["mu"] + time_step * driftrate
+    # Get the current expected mean for the volatility parent.
+    # The prediction sequence was triggered by the new observation so this value is
+    # already in the node attributes.
+    muhat_value_parent = attributes[value_parent_idx]["muhat"]
 
     # gather PE updates from other input nodes
     # in the case of a multivariate descendency
@@ -502,6 +430,7 @@ def prediction_error_input_mean_value_parent(
             psi_child * pihat_child * child_value_prediction_error
         ) / pi_value_parent
 
+    # Compute the new mean of the value parent
     mu_value_parent = muhat_value_parent + pe_children
 
     return mu_value_parent
@@ -511,7 +440,6 @@ def prediction_error_input_mean_value_parent(
 def prediction_error_input_precision_value_parent(
     attributes: Dict,
     edges: Edges,
-    time_step: float,
     value_parent_idx: int,
 ) -> Array:
     r"""Send prediction-error to the precision of a continuous input's value parent.
@@ -524,8 +452,6 @@ def prediction_error_input_precision_value_parent(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    time_step :
-        The interval between the previous time point and the current time point.
     value_parent_idx :
         Pointer to the node that will be updated.
 
@@ -535,26 +461,10 @@ def prediction_error_input_precision_value_parent(
         The updated value for the mean of the value parent (:math:`\\pi`).
 
     """
-    # List volatility parents
-    value_parent_volatility_parents_idxs = edges[value_parent_idx].volatility_parents
-
-    # Compute new value for nu and pihat
-    logvol = attributes[value_parent_idx]["omega"]
-
-    # Look at the (optional) va_pa's volatility parents
-    # and update logvol accordingly
-    if value_parent_volatility_parents_idxs is not None:
-        for value_parent_volatility_parents_idx, k in zip(
-            value_parent_volatility_parents_idxs,
-            attributes[value_parent_idx]["kappas_parents"],
-        ):
-            logvol += k * attributes[value_parent_volatility_parents_idx]["mu"]
-
-    # Estimate new_nu
-    nu = time_step * jnp.exp(logvol)
-    new_nu = jnp.where(nu > 1e-128, nu, jnp.nan)
-
-    pihat_value_parent = 1 / (1 / attributes[value_parent_idx]["pi"] + new_nu)
+    # Get the current expected precision for the volatility parent
+    # The prediction sequence was triggered by the new observation so this value is
+    # already in the node attributes
+    pihat_value_parent = attributes[value_parent_idx]["pihat"]
 
     # gather precisions updates from other input nodes
     # in the case of a multivariate descendency
@@ -566,6 +476,7 @@ def prediction_error_input_precision_value_parent(
         pihat_child = attributes[child_idx]["pihat"]
         pi_children += psi_child**2 * pihat_child
 
+    # Compute the new precision of the value parent
     pi_value_parent = pihat_value_parent + pi_children
 
     return pi_value_parent

@@ -6,10 +6,8 @@ from typing import Dict
 from jax import jit
 
 from pyhgf.typing import Edges
-from pyhgf.updates.prediction.binary import (
-    prediction_input_value_parent,
-    prediction_value_parent,
-)
+from pyhgf.updates.continuous import prediction_value_parent
+from pyhgf.updates.prediction.binary import prediction_input_value_parent
 from pyhgf.updates.prediction_error.binary import (
     prediction_error_input_value_parent,
     prediction_error_value_parent,
@@ -74,9 +72,7 @@ def binary_node_prediction_error(
                 (
                     pi_value_parent,
                     mu_value_parent,
-                ) = prediction_error_value_parent(
-                    attributes, edges, time_step, value_parent_idx
-                )
+                ) = prediction_error_value_parent(attributes, edges, value_parent_idx)
                 # 5. Update node's parameters and node's parents recursively
                 attributes[value_parent_idx]["pi"] = pi_value_parent
                 attributes[value_parent_idx]["mu"] = mu_value_parent
@@ -216,9 +212,7 @@ def binary_input_prediction_error(
                 pi_value_parent,
                 mu_value_parent,
                 surprise,
-            ) = prediction_error_input_value_parent(
-                attributes, edges, time_step, value_parent_idx
-            )
+            ) = prediction_error_input_value_parent(attributes, edges, value_parent_idx)
 
             # Update value parent's parameters
             attributes[value_parent_idx]["pi"] = pi_value_parent

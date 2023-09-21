@@ -83,7 +83,7 @@ def continuous_node_prediction_error(
             # children will update the parent at once, otherwise just pass and wait
             if edges[value_parent_idx].value_children[-1] == node_idx:
                 (pi_value_parent, mu_value_parent) = prediction_error_value_parent(
-                    attributes, edges, time_step, value_parent_idx
+                    attributes, edges, value_parent_idx
                 )
 
                 # Update this parent's parameters
@@ -272,7 +272,7 @@ def continuous_input_prediction_error(
                     pi_value_parent,
                     mu_value_parent,
                 ) = prediction_error_input_value_parent(
-                    attributes, edges, time_step, value_parent_idx
+                    attributes, edges, value_parent_idx
                 )
 
                 # update input node's parameters
