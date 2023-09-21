@@ -121,9 +121,6 @@ Binary nodes
 .. autosummary::
    :toctree: generated/pyhgf.updates.prediction.binary
 
-    prediction_mean_value_parent
-    prediction_precision_value_parent
-    prediction_value_parent
     prediction_input_value_parent
 
 
