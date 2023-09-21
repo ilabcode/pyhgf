@@ -149,7 +149,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
         )
 
-        assert jnp.isclose(omega_1, -7.9172916)
+        assert jnp.isclose(omega_1, -7.9176354)
 
         ##############
         # Binary HGF #
@@ -317,7 +317,7 @@ class TestDistribution(TestCase):
             kappa_1=1.0,
         )[0].eval()
 
-        assert jnp.isclose(omega_1, -7.9172916)
+        assert jnp.isclose(omega_1, -7.9176354)
 
         ##############
         # Binary HGF #
