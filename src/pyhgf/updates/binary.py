@@ -6,8 +6,8 @@ from typing import Dict
 from jax import jit
 
 from pyhgf.typing import Edges
-from pyhgf.updates.continuous import prediction_value_parent
-from pyhgf.updates.prediction.binary import prediction_input_value_parent
+from pyhgf.updates.continuous import predict_mean, predict_precision
+from pyhgf.updates.prediction.binary import predict_input_value_parent
 from pyhgf.updates.prediction_error.binary import (
     prediction_error_input_value_parent,
     prediction_error_value_parent,
@@ -132,7 +132,10 @@ def binary_node_prediction(
     ################################################################
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
-            pihat_value_parent, muhat_value_parent = prediction_value_parent(
+            pihat_value_parent = predict_precision(
+                attributes, edges, time_step, value_parent_idx
+            )
+            muhat_value_parent = predict_mean(
                 attributes, edges, time_step, value_parent_idx
             )
 
@@ -284,7 +287,7 @@ def binary_input_prediction(
     #######################################################
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
-            pihat_value_parent, muhat_value_parent = prediction_input_value_parent(
+            pihat_value_parent, muhat_value_parent = predict_input_value_parent(
                 attributes, edges, time_step, value_parent_idx
             )
 

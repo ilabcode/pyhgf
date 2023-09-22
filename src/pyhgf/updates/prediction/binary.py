@@ -10,7 +10,7 @@ from pyhgf.typing import Edges
 
 
 @partial(jit, static_argnames=("edges", "value_parent_idx"))
-def prediction_input_value_parent(
+def predict_input_value_parent(
     attributes: Dict,
     edges: Edges,
     time_step: float,
