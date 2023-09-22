@@ -9,14 +9,14 @@ from pyhgf.math import sigmoid
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
-def predict_input_value_parent(
+@partial(jit, static_argnames=("edges", "node_idx"))
+def predict_binary_state_node(
     attributes: Dict,
     edges: Edges,
     time_step: float,
-    value_parent_idx: int,
+    node_idx: int,
 ) -> Tuple[Array, ...]:
-    r"""Prediction step for the value parent of a binary input node.
+    r"""Get the new expected mean and precision of a binary state node.
 
     Parameters
     ----------
@@ -39,33 +39,28 @@ def predict_input_value_parent(
         The mean (:math:`\\mu`) of the value parent.
     """
     # List the (unique) value parent of the value parent
-    value_parent_value_parent_idxs = edges[value_parent_idx].value_parents[0]
+    value_parent_idx = edges[node_idx].value_parents[0]
 
     # Get the drift rate from the value parent of the value parent
-    driftrate = attributes[value_parent_value_parent_idxs]["rho"]
+    driftrate = attributes[value_parent_idx]["rho"]
 
     # Look at the (optional) value parent's value parents
     # and update the drift rate accordingly
-    if edges[value_parent_value_parent_idxs].value_parents is not None:
+    if edges[value_parent_idx].value_parents is not None:
         for (
-            value_parent_value_parent_value_parent_idx,
-            psi_parent_parent,
+            value_parent_value_parent_idx,
+            psi_parent,
         ) in zip(
-            edges[value_parent_value_parent_idxs].value_parents,
-            attributes[value_parent_value_parent_idxs]["psis_parents"],
+            edges[value_parent_idx].value_parents,
+            attributes[value_parent_idx]["psis_parents"],
         ):
-            driftrate += (
-                psi_parent_parent
-                * attributes[value_parent_value_parent_value_parent_idx]["mu"]
-            )
+            driftrate += psi_parent * attributes[value_parent_value_parent_idx]["mu"]
 
     # Estimate the new expected mean of the value parent and apply the sigmoid transform
-    muhat_value_parent = (
-        attributes[value_parent_value_parent_idxs]["mu"] + time_step * driftrate
-    )
-    muhat_value_parent = sigmoid(muhat_value_parent)
+    muhat = attributes[value_parent_idx]["mu"] + time_step * driftrate
+    muhat = sigmoid(muhat)
 
     # Estimate the new expected precision of the value parent
-    pihat_value_parent = 1 / (muhat_value_parent * (1 - muhat_value_parent))
+    pihat = 1 / (muhat * (1 - muhat))
 
-    return pihat_value_parent, muhat_value_parent
+    return pihat, muhat

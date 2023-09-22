@@ -27,7 +27,6 @@ Core functionnalities to update *binary* nodes.
     binary_node_prediction_error
     binary_node_prediction
     binary_input_prediction_error
-    binary_input_prediction
 
 Updating continuous nodes
 =========================
@@ -42,7 +41,6 @@ Core functionnalities to update *continuous* nodes.
     continuous_node_prediction_error
     continuous_node_prediction
     continuous_input_prediction_error
-    continuous_input_prediction
 
 Updating categorical nodes
 ==========================

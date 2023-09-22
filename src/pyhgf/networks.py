@@ -12,14 +12,12 @@ from jax.typing import ArrayLike
 from pyhgf.math import gaussian_surprise
 from pyhgf.typing import Indexes, UpdateSequence
 from pyhgf.updates.binary import (
-    binary_input_prediction,
     binary_input_prediction_error,
     binary_node_prediction,
     binary_node_prediction_error,
 )
 from pyhgf.updates.categorical import categorical_input_update
 from pyhgf.updates.continuous import (
-    continuous_input_prediction,
     continuous_input_prediction_error,
     continuous_node_prediction,
     continuous_node_prediction_error,
@@ -314,15 +312,9 @@ def get_update_sequence(
         )
 
     for node_idx in node_idxs:
-        # if the node has no parent, exit here
-        if (hgf.edges[node_idx].value_parents is None) & (
-            hgf.edges[node_idx].volatility_parents is None
-        ):
-            continue
-
-        # if this node is part of a familly (the parent has multiple children)
+        # if this node is part of a family (the parent has multiple children)
         # and this is not the last of the children, exit here
-        # we apply this principle for every value / volatility parent
+        # we apply this principle for every value / volatility families
         is_youngest = False
         if node_idx in hgf.input_nodes_idx.idx:
             is_youngest = True  # always update input nodes
@@ -355,10 +347,8 @@ def get_update_sequence(
             ][0]
             if model_kind == "binary":
                 update_fn = binary_input_prediction_error
-                prediction_fn = binary_input_prediction
             elif model_kind == "continuous":
                 update_fn = continuous_input_prediction_error
-                prediction_fn = continuous_input_prediction
             elif model_kind == "categorical":
                 continue
 
@@ -380,12 +370,16 @@ def get_update_sequence(
 
         # create a new update and prediction sequence step and add it to the list
         # only the youngest of the family is updated, but all nodes get predictions
+        # ensure that the node is the youngest of the family (also implicitely ensure
+        # that it is not orphan, otherwise skip this the node will only have prediction)
         if is_youngest:
             new__update_sequence = node_idx, update_fn
             update_sequence.append(new__update_sequence)
 
-        new_prediction_sequence = node_idx, prediction_fn
-        prediction_sequence.append(new_prediction_sequence)
+        # no prediction step for an input node
+        if node_idx not in hgf.input_nodes_idx.idx:
+            new_prediction_sequence = node_idx, prediction_fn
+            prediction_sequence.append(new_prediction_sequence)
 
         # search recursively for the next update steps - make sure that all the
         # children have been updated before updating the parent(s)
