@@ -97,30 +97,12 @@ hgf_logp_op = HGFDistribution(
 with pm.Model() as model:
     
     # Priors
-    #-------
+    # ------
     omega_1 = pm.Normal("omega_1", mu=0.0, sigma=2.0, shape=n_data)
 
-    pm.Potential(
-        "hgf_loglike",
-        hgf_logp_op(
-            omega_1=omega_1,
-            omega_2=-10.0,
-            continuous_precision=1e4,
-            binary_precision=jnp.nan,
-            rho_1=0.0,
-            rho_2=0.0,
-            pi_1=1e4,
-            pi_2=1e1,
-            mu_1=0.0,
-            mu_2=0.0,
-            kappa_1=1.0,
-            omega_3=jnp.nan,
-            rho_3=jnp.nan,
-            pi_3=jnp.nan,
-            mu_3=jnp.nan,
-            kappa_2=jnp.nan
-        ),
-    )
+    # The multi-HGF distribution
+    # --------------------------
+    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=omega_1, omega_2=-10.0))
 ```
 
 ```{code-cell} ipython3
@@ -129,7 +111,7 @@ pm.model_to_graphviz(model)
 
 ```{code-cell} ipython3
 with model:
-    idata = pm.sample(chains=1)
+    idata = pm.sample(chains=2)
 ```
 
 ```{code-cell} ipython3

@@ -271,27 +271,7 @@ with pm.Model() as sigmoid_hgf:
     omega_2 = pm.Normal("omega_2", -2.0, 2.0)
 
     # the main HGF distribution
-    pm.Potential(
-        "hgf_loglike",
-        hgf_logp_op(
-            omega_1=jnp.inf,
-            omega_2=omega_2,
-            continuous_precision=jnp.nan,
-            binary_precision=jnp.inf,
-            rho_1=0.0,
-            rho_2=0.0,
-            pi_1=0.0,
-            pi_2=1e4,
-            mu_1=0.0,
-            mu_2=0.5,
-            kappa_1=1.0,
-            omega_3=jnp.nan,
-            rho_3=jnp.nan,
-            pi_3=jnp.nan,
-            mu_3=jnp.nan,
-            kappa_2=jnp.nan
-        ),
-    )
+    pm.Potential("hgf_loglike", hgf_logp_op(omega_2=omega_2))
 ```
 
 ```{code-cell} ipython3

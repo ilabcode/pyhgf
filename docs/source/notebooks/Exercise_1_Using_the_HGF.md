@@ -210,27 +210,8 @@ with pm.Model() as two_level_hgf:
     # omegas priors
     omega_1 = pm.Uniform("omega_1", -20, -2.0)
 
-    pm.Potential(
-        "hgf_loglike",
-        hgf_logp_op(
-            omega_1=omega_1,
-            omega_2=-2.0,
-            continuous_precision=1e4,
-            binary_precision=np.nan,
-            rho_1=0.0,
-            rho_2=0.0,
-            pi_1=1e4,
-            pi_2=1e1,
-            mu_1=timeseries[0],
-            mu_2=0.0,
-            kappa_1=1.0,
-            omega_3=np.nan,
-            rho_3=np.nan,
-            pi_3=np.nan,
-            mu_3=np.nan,
-            kappa_2=np.nan
-        ),
-    )
+    # HGF distribution
+    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=omega_1, omega_2=-2.0, mu_1=1.0))
 ```
 
 ```{code-cell} ipython3
@@ -599,24 +580,7 @@ slideshow:
   slide_type: ''
 ---
 def logp(value, omega_2):
-    return hgf_logp_op(
-            omega_1=jnp.inf,
-            omega_2=omega_2,
-            omega_3=jnp.nan,
-            continuous_precision=jnp.nan,
-            binary_precision=jnp.inf,
-            rho_1=0.0,
-            rho_2=0.0,
-            rho_3=jnp.nan,
-            pi_1=0.0,
-            pi_2=1.0,
-            pi_3=jnp.nan,
-            mu_1=jnp.inf,
-            mu_2=0.0,
-            mu_3=jnp.nan,
-            kappa_1=1.0,
-            kappa_2=jnp.nan,
-        )
+    return hgf_logp_op(omega_2=omega_2)
 ```
 
 ```{code-cell} ipython3
@@ -686,24 +650,7 @@ slideshow:
   slide_type: ''
 ---
 def logp(value, omega_2):
-    return hgf_logp_op(
-            omega_1=jnp.inf,
-            omega_2=omega_2,
-            omega_3=-6.0,
-            continuous_precision=jnp.nan,
-            binary_precision=jnp.inf,
-            rho_1=0.0,
-            rho_2=0.0,
-            rho_3=0.0,
-            pi_1=0.0,
-            pi_2=1.0,
-            pi_3=1.0,
-            mu_1=jnp.inf,
-            mu_2=0.0,
-            mu_3=1.0,
-            kappa_1=1.0,
-            kappa_2=1.0,
-        )
+    return hgf_logp_op(omega_2=omega_2, omega_3=-6.0, mu_3=1.0)
 ```
 
 ```{code-cell} ipython3

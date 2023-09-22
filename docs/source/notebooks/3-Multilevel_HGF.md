@@ -134,36 +134,18 @@ hgf_logp_op = HGFDistribution(
 with pm.Model() as model:
     
     # Hypterpriors
-    #-------------
+    # ------------
     mu_omega_1 = pm.Normal("mu_omega_1", mu=0, sigma=10.0)
     sigma_omega_1 = pm.HalfCauchy("sigma_omega_1", 2)
     
     # Priors
-    #-------
+    # ------
     offset = pm.Normal("offset", 0, 1, shape=n_data)
     omega_1 = pm.Deterministic("omega_1", mu_omega_1 + offset * sigma_omega_1)
 
-    pm.Potential(
-        "hgf_loglike",
-        hgf_logp_op(
-            omega_1=omega_1,
-            omega_2=-10.0,
-            continuous_precision=1e4,
-            binary_precision=np.nan,
-            rho_1=0.0,
-            rho_2=0.0,
-            pi_1=1e4,
-            pi_2=1e1,
-            mu_1=0.0,
-            mu_2=0.0,
-            kappa_1=1.0,
-            omega_3=jnp.nan,
-            rho_3=jnp.nan,
-            pi_3=jnp.nan,
-            mu_3=jnp.nan,
-            kappa_2=jnp.nan
-        ),
-    )
+    # The multi-HGF distribution
+    # --------------------------
+    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=omega_1, omega_2=-10.0))
 ```
 
 ```{code-cell} ipython3
@@ -228,36 +210,18 @@ hgf_logp_op = HGFDistribution(
 with pm.Model() as two_levels_binary_hgf:
     
     # Hypterpriors
-    #-------------
+    # ------------
     mu_omega_1 = pm.Uniform("mu_omega_1", -5, 2)
     sigma_omega_1 = pm.HalfCauchy("sigma_omega_1", 2)
     
     # Priors
-    #-------
+    # ------
     offset = pm.Normal("offset", 0, 1, shape=n_data)
     omega_2 = pm.Deterministic("omega_2", mu_omega_1 + offset * sigma_omega_1)
 
-    pm.Potential(
-        "hgf_loglike",
-        hgf_logp_op(
-            omega_1=jnp.nan,
-            omega_2=omega_2,
-            continuous_precision=jnp.nan,
-            binary_precision=jnp.inf,
-            rho_1=0.0,
-            rho_2=0.0,
-            pi_1=0.0,
-            pi_2=1e4,
-            mu_1=jnp.nan,
-            mu_2=0.0,
-            kappa_1=1.0,
-            omega_3=jnp.nan,
-            rho_3=jnp.nan,
-            pi_3=jnp.nan,
-            mu_3=jnp.nan,
-            kappa_2=jnp.nan
-        ),
-    )
+    # The multi-HGF distribution
+    # --------------------------
+    pm.Potential("hgf_loglike", hgf_logp_op(omega_2=omega_2))
 ```
 
 #### Visualizing the model
