@@ -100,27 +100,8 @@ with pm.Model() as three_level_hgf:
     # omegas priors
     omega_2 = pm.Normal("omega_2", -2.0, 2.0)
 
-    pm.Potential(
-        "hgf_loglike",
-        hgf_logp_op(
-            omega_1=-4.0,
-            omega_2=omega_2,
-            continuous_precision=1e4,
-            binary_precision=1e4,
-            rho_1=0.0,
-            rho_2=0.0,
-            pi_1=1e4,
-            pi_2=1e1,
-            mu_1=rr[0],
-            mu_2=-4.0,
-            kappa_1=1.0,
-            omega_3=np.nan,
-            rho_3=np.nan,
-            pi_3=np.nan,
-            mu_3=np.nan,
-            kappa_2=np.nan
-        ),
-    )
+    # HGF distribution
+    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=-4.0, omega_2=omega_2))
 ```
 
 ```{code-cell} ipython3
@@ -129,7 +110,7 @@ pm.model_to_graphviz(three_level_hgf)
 
 ```{code-cell} ipython3
 with three_level_hgf:
-    idata = pm.sample(chains=1)
+    idata = pm.sample(chains=2)
 ```
 
 ```{code-cell} ipython3
