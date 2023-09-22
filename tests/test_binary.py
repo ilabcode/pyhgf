@@ -12,7 +12,6 @@ from pyhgf.math import binary_surprise, gaussian_density, sigmoid
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.binary import (
-    binary_input_prediction,
     binary_input_prediction_error,
     binary_node_prediction,
     binary_node_prediction_error,
@@ -107,9 +106,9 @@ class Testbinary(TestCase):
         )
 
         # create update sequence
-        sequence1 = 0, binary_input_prediction
-        sequence2 = 1, binary_node_prediction
-        sequence3 = 2, continuous_node_prediction
+        sequence1 = 3, continuous_node_prediction
+        sequence2 = 2, continuous_node_prediction
+        sequence3 = 1, binary_node_prediction
         sequence4 = 0, binary_input_prediction_error
         sequence5 = 1, binary_node_prediction_error
         sequence6 = 2, continuous_node_prediction_error

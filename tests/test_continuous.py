@@ -12,7 +12,6 @@ from pyhgf.math import gaussian_surprise
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
 from pyhgf.updates.continuous import (
-    continuous_input_prediction,
     continuous_input_prediction_error,
     continuous_node_prediction,
     continuous_node_prediction_error,
@@ -69,9 +68,8 @@ class Testcontinuous(TestCase):
         ###########################################
         # No value parent - no volatility parents #
         ###########################################
-        sequence1 = 0, continuous_input_prediction
-        sequence2 = 0, continuous_input_prediction_error
-        update_sequence = (sequence1, sequence2)
+        sequence1 = 0, continuous_input_prediction_error
+        update_sequence = (sequence1,)
         new_attributes, _ = beliefs_propagation(
             attributes=attributes,
             edges=edges,
@@ -139,8 +137,8 @@ class Testcontinuous(TestCase):
         )
 
         # create update sequence
-        sequence1 = 0, continuous_input_prediction
-        sequence2 = 1, continuous_node_prediction
+        sequence1 = 1, continuous_node_prediction
+        sequence2 = 2, continuous_node_prediction
         sequence3 = 0, continuous_input_prediction_error
         sequence4 = 1, continuous_node_prediction_error
         update_sequence = (sequence1, sequence2, sequence3, sequence4)
@@ -221,8 +219,8 @@ class Testcontinuous(TestCase):
         )
 
         # create update sequence
-        sequence1 = 0, continuous_input_prediction
-        sequence2 = 1, continuous_node_prediction
+        sequence1 = 1, continuous_node_prediction
+        sequence2 = 2, continuous_node_prediction
         sequence3 = 0, continuous_input_prediction_error
         sequence4 = 1, continuous_node_prediction_error
         update_sequence = (sequence1, sequence2, sequence3, sequence4)
