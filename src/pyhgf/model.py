@@ -112,8 +112,8 @@ class HGF(object):
             The model type to use (can be `"continuous"` or `"binary"`).
         n_levels :
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
-            `None`, the nodes hierarchy is not created and might be provided afterward
-            using `add_nodes()`. Defaults to `2` for a 2-level HGF.
+            `None`, the nodes hierarchy is not created and might be provided afterward.
+            Defaults to `2` for a 2-level HGF.
         omega :
             A dictionary containing the initial values for the :math:`\\omega` parameter
             at different levels of the hierarchy. :math:`\\omega` represents the tonic
