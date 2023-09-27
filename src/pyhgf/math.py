@@ -73,7 +73,7 @@ def gaussian_surprise(
 
     .. math::
 
-       \frac{1}{2} \log(2 \pi) - \log(\hat{\pi}) + \hat{\pi}\sqrt{x - \hat{\mu}}
+       \frac{1}{2} (\log(2 \pi) - \log(\hat{\pi}) + \hat{\pi}(x - \hat{\mu})^2)
 
     where :math:`\pi` is the mathematical constant.
 
