@@ -129,7 +129,7 @@ hgf = HGF(
     model_type="continuous",
     initial_mean={"1": rr[0], "2": -4.0},
     initial_precision={"1": 1e4, "2": 1e1},
-    tonic_volatility={"1": -4.0, "2": omega_2},
+    tonic_volatility={"1": -4.0, "2": tonic_volatility_2},
     tonic_drift={"1": 0.0, "2": 0.0},
     volatility_coupling={"1": 1.0}).input_data(input_data=rr)
 ```
