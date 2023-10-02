@@ -81,17 +81,17 @@ def continuous_node_prediction_error(
             # children will update the parent at once, otherwise just pass and wait
             if edges[value_parent_idx].value_children[-1] == node_idx:
                 # Estimate the precision of the posterior distribution
-                pi_value_parent = prediction_error_precision_value_parent(
+                precision_value_parent = prediction_error_precision_value_parent(
                     attributes, edges, value_parent_idx
                 )
                 # Estimate the mean of the posterior distribution
-                mu_value_parent = prediction_error_mean_value_parent(
-                    attributes, edges, value_parent_idx, pi_value_parent
+                mean_value_parent = prediction_error_mean_value_parent(
+                    attributes, edges, value_parent_idx, precision_value_parent
                 )
 
                 # Update this parent's parameters
-                attributes[value_parent_idx]["precision"] = pi_value_parent
-                attributes[value_parent_idx]["mean"] = mu_value_parent
+                attributes[value_parent_idx]["precision"] = precision_value_parent
+                attributes[value_parent_idx]["mean"] = mean_value_parent
 
     #############################
     # Update volatility parents #
@@ -102,21 +102,25 @@ def continuous_node_prediction_error(
             # children will update the parent at once, otherwise just pass and wait
             if edges[volatility_parent_idx].volatility_children[-1] == node_idx:
                 # Estimate the new precision of the volatility parent
-                pi_volatility_parent = prediction_error_precision_volatility_parent(
-                    attributes, edges, time_step, volatility_parent_idx
+                precision_volatility_parent = (
+                    prediction_error_precision_volatility_parent(
+                        attributes, edges, time_step, volatility_parent_idx
+                    )
                 )
                 # Estimate the new mean of the volatility parent
-                mu_volatility_parent = prediction_error_mean_volatility_parent(
+                mean_volatility_parent = prediction_error_mean_volatility_parent(
                     attributes,
                     edges,
                     time_step,
                     volatility_parent_idx,
-                    pi_volatility_parent,
+                    precision_volatility_parent,
                 )
 
                 # Update this parent's parameters
-                attributes[volatility_parent_idx]["precision"] = pi_volatility_parent
-                attributes[volatility_parent_idx]["mean"] = mu_volatility_parent
+                attributes[volatility_parent_idx][
+                    "precision"
+                ] = precision_volatility_parent
+                attributes[volatility_parent_idx]["mean"] = mean_volatility_parent
 
     return attributes
 

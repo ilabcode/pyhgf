@@ -92,11 +92,11 @@ def predict_precision(
     # Look at the (optional) volatility parents
     # and update the log volatility accordingly
     if volatility_parents_idxs is not None:
-        for volatility_parents_idx, k in zip(
+        for volatility_parents_idx, volatility_coupling in zip(
             volatility_parents_idxs,
             attributes[node_idx]["volatility_coupling_parents"],
         ):
-            logvol += k * attributes[volatility_parents_idx]["mean"]
+            logvol += volatility_coupling * attributes[volatility_parents_idx]["mean"]
 
     # Estimate new nu
     nu = time_step * jnp.exp(logvol)

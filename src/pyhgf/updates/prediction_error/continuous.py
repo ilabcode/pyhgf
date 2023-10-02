@@ -46,7 +46,7 @@ def prediction_error_mean_value_parent(
     # Gather prediction errors from all child nodes if the parent has many children
     # This part corresponds to the sum of children for the multi-children situations
     pe_children = 0.0
-    for child_idx, psi_child in zip(
+    for child_idx, value_coupling in zip(
         edges[value_parent_idx].value_children,
         attributes[value_parent_idx]["value_coupling_children"],
     ):
@@ -55,7 +55,7 @@ def prediction_error_mean_value_parent(
         )
         expected_precision_child = attributes[child_idx]["expected_precision"]
         pe_children += (
-            psi_child * expected_precision_child * vape_child
+            value_coupling * expected_precision_child * vape_child
         ) / pi_value_parent
 
     # Estimate the new mean of the value parent
@@ -95,12 +95,12 @@ def prediction_error_precision_value_parent(
     # Gather precision updates from all child nodes if the parent has many children.
     # This part corresponds to the sum over children for the multi-children situations.
     pi_children = 0.0
-    for child_idx, psi_child in zip(
+    for child_idx, value_coupling in zip(
         edges[value_parent_idx].value_children,
         attributes[value_parent_idx]["value_coupling_children"],
     ):
         expected_precision_child = attributes[child_idx]["expected_precision"]
-        pi_children += psi_child**2 * expected_precision_child
+        pi_children += value_coupling**2 * expected_precision_child
 
     # Estimate new value for the precision of the value parent
     pi_value_parent = expected_precision_value_parent + pi_children
@@ -149,11 +149,11 @@ def prediction_error_precision_volatility_parent(
         # Look at the (optional) volatility parents and update logvol accordingly
         logvol = attributes[child_idx]["tonic_volatility"]
         if edges[child_idx].volatility_parents is not None:
-            for chld_vo_pa, k in zip(
+            for chld_vo_pa, volatility_coupling in zip(
                 edges[child_idx].volatility_parents,
                 attributes[child_idx]["volatility_coupling_parents"],
             ):
-                logvol += k * attributes[chld_vo_pa]["mean"]
+                logvol += volatility_coupling * attributes[chld_vo_pa]["mean"]
 
         # Compute new value for nu
         nu_children = time_step * jnp.exp(logvol)
@@ -223,11 +223,11 @@ def prediction_error_mean_volatility_parent(
         # Look at the (optional) volatility parents and update logvol accordingly
         logvol = attributes[child_idx]["tonic_volatility"]
         if edges[child_idx].volatility_parents is not None:
-            for chld_vo_pa, k in zip(
+            for chld_vo_pa, volatility_coupling in zip(
                 edges[child_idx].volatility_parents,
                 attributes[child_idx]["volatility_coupling_parents"],
             ):
-                logvol += k * attributes[chld_vo_pa]["mean"]
+                logvol += volatility_coupling * attributes[chld_vo_pa]["mean"]
 
         # Compute new value for nu
         nu_children = time_step * jnp.exp(logvol)
@@ -290,7 +290,7 @@ def prediction_error_input_mean_value_parent(
     # gather PE updates from other input nodes
     # in the case of a multivariate descendency
     pe_children = 0.0
-    for child_idx, psi_child in zip(
+    for child_idx, value_coupling in zip(
         edges[value_parent_idx].value_children,
         attributes[value_parent_idx]["value_coupling_children"],
     ):
@@ -299,7 +299,7 @@ def prediction_error_input_mean_value_parent(
         )
         expected_precision_child = attributes[child_idx]["expected_precision"]
         pe_children += (
-            psi_child * expected_precision_child * child_value_prediction_error
+            value_coupling * expected_precision_child * child_value_prediction_error
         ) / pi_value_parent
 
     # Compute the new mean of the value parent

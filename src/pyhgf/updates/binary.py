@@ -150,10 +150,6 @@ def binary_input_prediction_error(
         The interval between the previous time point and the current time point.
     attributes :
         The attributes of the probabilistic nodes.
-    .. note::
-        `"psis"` is the value coupling strength. It should have the same length as the
-        volatility parents' indexes. `"volatility_coupling"` is the volatility coupling
-        strength. It should have the same length as the volatility parents' indexes.
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
@@ -195,14 +191,14 @@ def binary_input_prediction_error(
     if value_parent_idxs is not None:
         for value_parent_idx in value_parent_idxs:
             (
-                pi_value_parent,
-                mu_value_parent,
+                precision_value_parent,
+                mean_value_parent,
                 surprise,
             ) = prediction_error_input_value_parent(attributes, edges, value_parent_idx)
 
             # Update value parent's parameters
-            attributes[value_parent_idx]["precision"] = pi_value_parent
-            attributes[value_parent_idx]["mean"] = mu_value_parent
+            attributes[value_parent_idx]["precision"] = precision_value_parent
+            attributes[value_parent_idx]["mean"] = mean_value_parent
 
     attributes[node_idx]["surprise"] = surprise
 
