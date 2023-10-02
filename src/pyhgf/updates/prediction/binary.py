@@ -41,23 +41,8 @@ def predict_binary_state_node(
     # List the (unique) value parent of the value parent
     value_parent_idx = edges[node_idx].value_parents[0]
 
-    # Get the drift rate from the value parent of the value parent
-    driftrate = attributes[value_parent_idx]["rho"]
-
-    # Look at the (optional) value parent's value parents
-    # and update the drift rate accordingly
-    if edges[value_parent_idx].value_parents is not None:
-        for (
-            value_parent_value_parent_idx,
-            psi_parent,
-        ) in zip(
-            edges[value_parent_idx].value_parents,
-            attributes[value_parent_idx]["psis_parents"],
-        ):
-            driftrate += psi_parent * attributes[value_parent_value_parent_idx]["mu"]
-
     # Estimate the new expected mean of the value parent and apply the sigmoid transform
-    muhat = attributes[value_parent_idx]["mu"] + time_step * driftrate
+    muhat = attributes[value_parent_idx]["muhat"]
     muhat = sigmoid(muhat)
 
     # Estimate the new expected precision of the value parent
