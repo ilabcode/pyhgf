@@ -143,9 +143,9 @@ This requires propagating updates on sufficient statistics and sending precision
 two_levels_continuous_hgf = HGF(
     n_levels=2,
     model_type="continuous",
-    initial_mu={"1": 1.04, "2": 0.0},
-    initial_pi={"1": 1e4, "2": 1e1},
-    omega={"1": -8.0, "2": -1.0},
+    initial_mean={"1": 1.04, "2": 0.0},
+    initial_precision={"1": 1e4, "2": 1e1},
+    tonic_volatility={"1": -8.0, "2": -1.0},
 )
 ```
 
@@ -280,9 +280,9 @@ timeserie = aarhus_weather_df["t2m"][:24*30].to_numpy()
 hgf = HGF(
     n_levels=2,
     model_type="continuous",
-    initial_mu={"1": timeserie[0], "2": .5},
-    initial_pi={"1": 1e4, "2": 1e1},
-    omega={"1":-6.0, "2": -3.0},
+    initial_mean={"1": timeserie[0], "2": .5},
+    initial_precision={"1": 1e4, "2": 1e1},
+    tonic_volatility={"1":-6.0, "2": -3.0},
 )
 
 # add new observations
@@ -325,9 +325,9 @@ Fitting data to a binary HGF is quite similar to the continuous one (note that `
 two_levels_hgf = HGF(
     n_levels=2,
     model_type="binary",
-    initial_mu={"1": .0, "2": 0.0},
-    initial_pi={"1": np.nan, "2": 1.0},
-    omega={"2": -5},
+    initial_mean={"1": .0, "2": 0.0},
+    initial_precision={"1": np.nan, "2": 1.0},
+    tonic_volatility={"2": -5},
 )
 ```
 
@@ -743,9 +743,9 @@ for _ in range(20):
     three_levels_df = HGF(
         n_levels=3,
         model_type="binary",
-        initial_mu={"1": .0, "2": 0.0, "3": 1.0},
-        initial_pi={"1": .0, "2": 1.0, "3": 1.0},
-        omega={"2": omega_2, "3": -6.0},
+        initial_mean={"1": .0, "2": 0.0, "3": 1.0},
+        initial_precision={"1": .0, "2": 1.0, "3": 1.0},
+        tonic_volatility={"2": omega_2, "3": -6.0},
         verbose=False
     ).input_data(input_data=u).to_pandas()
     

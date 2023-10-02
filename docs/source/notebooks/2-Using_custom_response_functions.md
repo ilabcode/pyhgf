@@ -86,9 +86,9 @@ slideshow:
 agent = HGF(
     n_levels=2,
     model_type="binary",
-    initial_mu={"1": .0, "2": .5},
-    initial_pi={"1": .0, "2": 1e4},
-    omega={"2": -4.0},
+    initial_mean={"1": .0, "2": .5},
+    initial_precision={"1": .0, "2": 1e4},
+    tonic_volatility={"2": -4.0},
 ).input_data(input_data=u)
 ```
 
@@ -121,7 +121,7 @@ slideshow:
 ---
 # a simple decision rule using the first level of the HGF
 np.random.seed(1)
-responses = np.random.binomial(p=agent.node_trajectories[1]["muhat"], n=1)
+responses = np.random.binomial(p=agent.node_trajectories[1]["expected_mean"], n=1)
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -139,7 +139,7 @@ plt.figure(figsize=(12, 3))
 jitter = responses * .1 + (1-responses) * -.1
 plt.scatter(np.arange(len(u)), u, label="Observations", color="#4c72b0", edgecolor="k", alpha=.2)
 plt.scatter(np.arange(len(responses)), responses + jitter, label="Responses", color="#c44e52", alpha=.2, edgecolor="k")
-plt.plot(agent.node_trajectories[1]["muhat"], label="Beliefs", linestyle="--")
+plt.plot(agent.node_trajectories[1]["expected_mean"], label="Beliefs", linestyle="--")
 plt.legend()
 plt.xlabel("Trials")
 ```
@@ -205,7 +205,7 @@ def response_function(hgf, response_function_parameters):
     responses = response_function_parameters[0]
 
     # the expected values at the first level of the HGF
-    beliefs = hgf.node_trajectories[1]["muhat"]
+    beliefs = hgf.node_trajectories[1]["expected_mean"]
 
     return jnp.sum(jnp.where(responses, -jnp.log(beliefs), -jnp.log(1.0 - beliefs)))
 ```

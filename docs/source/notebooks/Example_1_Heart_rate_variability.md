@@ -127,11 +127,11 @@ omega_2 = az.summary(idata)["mean"]["omega_2"]
 hgf = HGF(
     n_levels=2,
     model_type="continuous",
-    initial_mu={"1": rr[0], "2": -4.0},
-    initial_pi={"1": 1e4, "2": 1e1},
-    omega={"1": -4.0, "2": omega_2},
-    rho={"1": 0.0, "2": 0.0},
-    kappas={"1": 1.0}).input_data(input_data=rr)
+    initial_mean={"1": rr[0], "2": -4.0},
+    initial_precision={"1": 1e4, "2": 1e1},
+    tonic_volatility={"1": -4.0, "2": omega_2},
+    tonic_drift={"1": 0.0, "2": 0.0},
+    volatility_coupling={"1": 1.0}).input_data(input_data=rr)
 ```
 
 ```{code-cell} ipython3
