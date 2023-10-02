@@ -197,7 +197,7 @@ def prediction_error_mean_volatility_parent(
     Returns
     -------
     mu_volatility_parent :
-        The updated value for the mean of the value parent (:math:`\\pi`).
+        The updated value for the mean of the value parent (:math:`\\mu`).
 
     """
     # Get the current expected mean for the volatility parent

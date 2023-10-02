@@ -39,7 +39,7 @@ class Testcontinuous(TestCase):
             "kappas_children": None,
             "mu": 1.0,
             "omega": 1.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
         node_parameters_2 = {
             "pihat": 1.0,
@@ -51,7 +51,7 @@ class Testcontinuous(TestCase):
             "kappas_children": None,
             "mu": 1.0,
             "omega": 1.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
         attributes = (
             input_node_parameters,
@@ -110,7 +110,7 @@ class Testcontinuous(TestCase):
             "kappas_children": None,
             "mu": 1.0,
             "omega": 1.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
         node_parameters_2 = {
             "pihat": 1.0,
@@ -122,7 +122,7 @@ class Testcontinuous(TestCase):
             "kappas_children": (1.0,),
             "mu": 1.0,
             "omega": 1.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
         attributes = (
             input_node_parameters,
@@ -192,7 +192,7 @@ class Testcontinuous(TestCase):
             "kappas_children": None,
             "mu": 1.0,
             "omega": -3.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
         node_parameters_2 = {
             "pihat": 1.0,
@@ -204,7 +204,7 @@ class Testcontinuous(TestCase):
             "kappas_children": (1.0,),
             "mu": 1.0,
             "omega": -3.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
 
         attributes = (

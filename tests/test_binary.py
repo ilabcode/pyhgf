@@ -65,7 +65,7 @@ class Testbinary(TestCase):
             "kappas_children": None,
             "mu": 1.0,
             "omega": 1.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
         node_parameters_2 = {
             "pihat": 1.0,
@@ -77,7 +77,7 @@ class Testbinary(TestCase):
             "kappas_children": None,
             "mu": 1.0,
             "omega": 1.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
         node_parameters_3 = {
             "pihat": 1.0,
@@ -89,7 +89,7 @@ class Testbinary(TestCase):
             "kappas_children": (1.0,),
             "mu": 1.0,
             "omega": 1.0,
-            "rho": 0.0,
+            "drift": 0.0,
         }
 
         edges = (
