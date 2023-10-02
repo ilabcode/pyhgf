@@ -21,6 +21,7 @@ from pyhgf.updates.continuous import (
     continuous_input_prediction_error,
     continuous_node_prediction,
     continuous_node_prediction_error,
+    ehgf_continuous_node_prediction_error,
 )
 
 if TYPE_CHECKING:
@@ -333,7 +334,11 @@ def get_update_sequence(
         # --------------------------
 
         # case 1 - default to a continuous node
-        update_fn = continuous_node_prediction_error
+        # choose between the eHGF and standard update step
+        if hgf.update_type == "eHGF":
+            update_fn = ehgf_continuous_node_prediction_error
+        elif hgf.update_type == "standard":
+            update_fn = continuous_node_prediction_error
         prediction_fn = continuous_node_prediction
 
         # case 2 - this is an input node
