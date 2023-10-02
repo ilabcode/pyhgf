@@ -90,8 +90,8 @@ def continuous_node_prediction_error(
                 )
 
                 # Update this parent's parameters
-                attributes[value_parent_idx]["pi"] = pi_value_parent
-                attributes[value_parent_idx]["mu"] = mu_value_parent
+                attributes[value_parent_idx]["precision"] = pi_value_parent
+                attributes[value_parent_idx]["mean"] = mu_value_parent
 
     #############################
     # Update volatility parents #
@@ -115,8 +115,8 @@ def continuous_node_prediction_error(
                 )
 
                 # Update this parent's parameters
-                attributes[volatility_parent_idx]["pi"] = pi_volatility_parent
-                attributes[volatility_parent_idx]["mu"] = mu_volatility_parent
+                attributes[volatility_parent_idx]["precision"] = pi_volatility_parent
+                attributes[volatility_parent_idx]["mean"] = mu_volatility_parent
 
     return attributes
 
@@ -133,8 +133,9 @@ def continuous_node_prediction(
         The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
-        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
-        `"kappas_parents"`, `"kappas_children"`).
+        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        `"value_coupling_children"`, `"volatility_coupling_parents"`,
+        `"volatility_coupling_children"`).
     time_step :
         The interval between the previous time point and the current time point.
     node_idx :
@@ -161,13 +162,13 @@ def continuous_node_prediction(
 
     """
     # Get the new expected mean
-    muhat = predict_mean(attributes, edges, time_step, node_idx)
+    expected_mean = predict_mean(attributes, edges, time_step, node_idx)
     # Get the new expected precision
-    pihat = predict_precision(attributes, edges, time_step, node_idx)
+    expected_precision = predict_precision(attributes, edges, time_step, node_idx)
 
     # Update this node's parameters
-    attributes[node_idx]["pihat"] = pihat
-    attributes[node_idx]["muhat"] = muhat
+    attributes[node_idx]["expected_precision"] = expected_precision
+    attributes[node_idx]["expected_mean"] = expected_mean
 
     return attributes
 
@@ -195,8 +196,9 @@ def continuous_input_prediction_error(
         The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
-        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
-        `"kappas_parents"`, `"kappas_children"`).
+        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        `"value_coupling_children"`, `"volatility_coupling_parents"`,
+        `"volatility_coupling_children"`).
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
@@ -246,7 +248,7 @@ def continuous_input_prediction_error(
                 )
 
                 # update input node's parameters
-                attributes[value_parent_idx]["pi"] = pi_value_parent
-                attributes[value_parent_idx]["mu"] = mu_value_parent
+                attributes[value_parent_idx]["precision"] = pi_value_parent
+                attributes[value_parent_idx]["mean"] = mu_value_parent
 
     return attributes

@@ -29,8 +29,9 @@ def binary_node_prediction_error(
         The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
-        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
-        `"kappas_parents"`, `"kappas_children"`).
+        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        `"value_coupling_children"`, `"volatility_coupling_parents"`,
+        `"volatility_coupling_children"`).
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
@@ -73,8 +74,8 @@ def binary_node_prediction_error(
                     mu_value_parent,
                 ) = prediction_error_value_parent(attributes, edges, value_parent_idx)
                 # 5. Update node's parameters and node's parents recursively
-                attributes[value_parent_idx]["pi"] = pi_value_parent
-                attributes[value_parent_idx]["mu"] = mu_value_parent
+                attributes[value_parent_idx]["precision"] = pi_value_parent
+                attributes[value_parent_idx]["mean"] = mu_value_parent
 
     return attributes
 
@@ -91,8 +92,9 @@ def binary_node_prediction(
         The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
-        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
-        `"kappas_parents"`, `"kappas_children"`).
+        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        `"value_coupling_children"`, `"volatility_coupling_parents"`,
+        `"volatility_coupling_children"`).
     time_step :
         Interval between the previous time point and the current time point.
     node_idx :
@@ -116,11 +118,13 @@ def binary_node_prediction(
 
     """
     # Get the new expected value for the mean and precision
-    pihat, muhat = predict_binary_state_node(attributes, edges, time_step, node_idx)
+    expected_precision, expected_mean = predict_binary_state_node(
+        attributes, edges, time_step, node_idx
+    )
 
     # Update the node's attributes
-    attributes[node_idx]["pihat"] = pihat
-    attributes[node_idx]["muhat"] = muhat
+    attributes[node_idx]["expected_precision"] = expected_precision
+    attributes[node_idx]["expected_mean"] = expected_mean
 
     return attributes
 
@@ -148,8 +152,8 @@ def binary_input_prediction_error(
         The attributes of the probabilistic nodes.
     .. note::
         `"psis"` is the value coupling strength. It should have the same length as the
-        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-        It should have the same length as the volatility parents' indexes.
+        volatility parents' indexes. `"volatility_coupling"` is the volatility coupling
+        strength. It should have the same length as the volatility parents' indexes.
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
@@ -197,8 +201,8 @@ def binary_input_prediction_error(
             ) = prediction_error_input_value_parent(attributes, edges, value_parent_idx)
 
             # Update value parent's parameters
-            attributes[value_parent_idx]["pi"] = pi_value_parent
-            attributes[value_parent_idx]["mu"] = mu_value_parent
+            attributes[value_parent_idx]["precision"] = pi_value_parent
+            attributes[value_parent_idx]["mean"] = mu_value_parent
 
     attributes[node_idx]["surprise"] = surprise
 

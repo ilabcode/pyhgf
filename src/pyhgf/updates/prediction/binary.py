@@ -42,10 +42,10 @@ def predict_binary_state_node(
     value_parent_idx = edges[node_idx].value_parents[0]
 
     # Estimate the new expected mean of the value parent and apply the sigmoid transform
-    muhat = attributes[value_parent_idx]["muhat"]
-    muhat = sigmoid(muhat)
+    expected_mean = attributes[value_parent_idx]["expected_mean"]
+    expected_mean = sigmoid(expected_mean)
 
     # Estimate the new expected precision of the value parent
-    pihat = 1 / (muhat * (1 - muhat))
+    expected_precision = 1 / (expected_mean * (1 - expected_mean))
 
-    return pihat, muhat
+    return expected_precision, expected_mean

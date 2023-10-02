@@ -26,8 +26,8 @@ class Testbinary(TestCase):
     def test_gaussian_density(self):
         surprise = gaussian_density(
             x=jnp.array([1.0, 1.0]),
-            mu=jnp.array([0.0, 0.0]),
-            pi=jnp.array([1.0, 1.0]),
+            mean=jnp.array([0.0, 0.0]),
+            precision=jnp.array([1.0, 1.0]),
         )
         assert jnp.all(jnp.isclose(surprise, 0.24197073))
 
@@ -37,7 +37,7 @@ class Testbinary(TestCase):
     def test_binary_surprise(self):
         surprise = binary_surprise(
             x=jnp.array([1.0]),
-            muhat=jnp.array([0.2]),
+            expected_mean=jnp.array([0.2]),
         )
         assert jnp.all(jnp.isclose(surprise, 1.609438))
 
@@ -46,50 +46,50 @@ class Testbinary(TestCase):
         # three level binary HGF #
         ##########################
         input_node_parameters = {
-            "pihat": jnp.inf,
+            "expected_precision": jnp.inf,
             "eta0": 0.0,
             "eta1": 1.0,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
-            "kappas_parents": None,
-            "psis_parents": (1.0,),
+            "volatility_coupling_parents": None,
+            "value_coupling_parents": (1.0,),
         }
         node_parameters_1 = {
-            "pihat": 1.0,
-            "pi": 1.0,
-            "muhat": 1.0,
-            "psis_children": (1.0,),
-            "psis_parents": (1.0,),
-            "kappas_parents": None,
-            "kappas_children": None,
-            "mu": 1.0,
-            "omega": 1.0,
-            "drift": 0.0,
+            "expected_precision": 1.0,
+            "precision": 1.0,
+            "expected_mean": 1.0,
+            "value_coupling_children": (1.0,),
+            "value_coupling_parents": (1.0,),
+            "volatility_coupling_parents": None,
+            "volatility_coupling_children": None,
+            "mean": 1.0,
+            "tonic_volatility": 1.0,
+            "tonic_drift": 0.0,
         }
         node_parameters_2 = {
-            "pihat": 1.0,
-            "pi": 1.0,
-            "muhat": 1.0,
-            "psis_children": (1.0,),
-            "psis_parents": None,
-            "kappas_parents": (1.0,),
-            "kappas_children": None,
-            "mu": 1.0,
-            "omega": 1.0,
-            "drift": 0.0,
+            "expected_precision": 1.0,
+            "precision": 1.0,
+            "expected_mean": 1.0,
+            "value_coupling_children": (1.0,),
+            "value_coupling_parents": None,
+            "volatility_coupling_parents": (1.0,),
+            "volatility_coupling_children": None,
+            "mean": 1.0,
+            "tonic_volatility": 1.0,
+            "tonic_drift": 0.0,
         }
         node_parameters_3 = {
-            "pihat": 1.0,
-            "pi": 1.0,
-            "muhat": 1.0,
-            "psis_children": None,
-            "psis_parents": None,
-            "kappas_parents": None,
-            "kappas_children": (1.0,),
-            "mu": 1.0,
-            "omega": 1.0,
-            "drift": 0.0,
+            "expected_precision": 1.0,
+            "precision": 1.0,
+            "expected_mean": 1.0,
+            "value_coupling_children": None,
+            "value_coupling_parents": None,
+            "volatility_coupling_parents": None,
+            "volatility_coupling_children": (1.0,),
+            "mean": 1.0,
+            "tonic_volatility": 1.0,
+            "tonic_drift": 0.0,
         }
 
         edges = (
@@ -131,15 +131,17 @@ class Testbinary(TestCase):
         )
         for idx, val in zip(["surprise", "value"], [0.31326166, 1.0]):
             assert jnp.isclose(new_attributes[0][idx], val)
-        for idx, val in zip(["mu", "muhat", "pihat"], [1.0, 0.7310586, 5.0861616]):
+        for idx, val in zip(
+            ["mean", "expected_mean", "expected_precision"], [1.0, 0.7310586, 5.0861616]
+        ):
             assert jnp.isclose(new_attributes[1][idx], val)
         for idx, val in zip(
-            ["mu", "muhat", "pi", "pihat"],
+            ["mean", "expected_mean", "precision", "expected_precision"],
             [1.8515793, 1.0, 0.31581485, 0.11920292],
         ):
             assert jnp.isclose(new_attributes[2][idx], val)
         for idx, val in zip(
-            ["mu", "muhat", "pi", "pihat"],
+            ["mean", "expected_mean", "precision", "expected_precision"],
             [0.5611493, 1.0, 0.5380009, 0.26894143],
         ):
             assert jnp.isclose(new_attributes[3][idx], val)
@@ -162,14 +164,18 @@ class Testbinary(TestCase):
         last, _ = scan(scan_fn, attributes, data)
         for idx, val in zip(["surprise", "value"], [3.1497865, 0.0]):
             assert jnp.isclose(last[0][idx], val)
-        for idx, val in zip(["mu", "muhat", "pihat"], [0.0, 0.9571387, 24.37586]):
+        for idx, val in zip(
+            ["mean", "expected_mean", "expected_precision"], [0.0, 0.9571387, 24.37586]
+        ):
             assert jnp.isclose(last[1][idx], val)
         for idx, val in zip(
-            ["mu", "muhat", "pi", "pihat"],
+            ["mean", "expected_mean", "precision", "expected_precision"],
             [-2.358439, 3.1059794, 0.17515838, 0.13413419],
         ):
             assert jnp.isclose(last[2][idx], val)
-        for idx, val in zip(["muhat", "pihat"], [-0.22977911, 0.14781797]):
+        for idx, val in zip(
+            ["expected_mean", "expected_precision"], [-0.22977911, 0.14781797]
+        ):
             assert jnp.isclose(last[3][idx], val)
 
 

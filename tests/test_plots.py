@@ -23,11 +23,11 @@ class Testplots(TestCase):
         two_level_continuous = HGF(
             n_levels=2,
             model_type="continuous",
-            initial_mu={"1": 1.04, "2": 1.0},
-            initial_pi={"1": 1e4, "2": 1e1},
-            omega={"1": -13.0, "2": -2.0},
-            rho={"1": 0.0, "2": 0.0},
-            kappas={"1": 1.0},
+            initial_mean={"1": 1.04, "2": 1.0},
+            initial_precision={"1": 1e4, "2": 1e1},
+            tonic_volatility={"1": -13.0, "2": -2.0},
+            tonic_drift={"1": 0.0, "2": 0.0},
+            volatility_coupling={"1": 1.0},
         ).input_data(input_data=timeserie)
 
         # plot trajectories
@@ -48,11 +48,11 @@ class Testplots(TestCase):
         three_level_continuous = HGF(
             n_levels=3,
             model_type="continuous",
-            initial_mu={"1": 1.04, "2": 1.0, "3": 1.0},
-            initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
-            omega={"1": -13.0, "2": -2.0, "3": -2.0},
-            rho={"1": 0.0, "2": 0.0, "3": 0.0},
-            kappas={"1": 1.0, "2": 1.0},
+            initial_mean={"1": 1.04, "2": 1.0, "3": 1.0},
+            initial_precision={"1": 1e4, "2": 1e1, "3": 1e1},
+            tonic_volatility={"1": -13.0, "2": -2.0, "3": -2.0},
+            tonic_drift={"1": 0.0, "2": 0.0, "3": 0.0},
+            volatility_coupling={"1": 1.0, "2": 1.0},
         ).input_data(input_data=timeserie)
 
         # plot trajectories
@@ -79,11 +79,11 @@ class Testplots(TestCase):
         two_level_binary_hgf = HGF(
             n_levels=2,
             model_type="binary",
-            initial_mu={"1": 0.0, "2": 0.5},
-            initial_pi={"1": 0.0, "2": 1e4},
-            omega={"1": None, "2": -6.0},
-            rho={"1": None, "2": 0.0},
-            kappas={"1": None},
+            initial_mean={"1": 0.0, "2": 0.5},
+            initial_precision={"1": 0.0, "2": 1e4},
+            tonic_volatility={"1": None, "2": -6.0},
+            tonic_drift={"1": None, "2": 0.0},
+            volatility_coupling={"1": None},
             eta0=0.0,
             eta1=1.0,
             binary_precision=jnp.inf,
@@ -106,11 +106,11 @@ class Testplots(TestCase):
         three_level_binary_hgf = HGF(
             n_levels=3,
             model_type="binary",
-            initial_mu={"1": 0.0, "2": 0.5, "3": 0.0},
-            initial_pi={"1": 0.0, "2": 1e4, "3": 1e1},
-            omega={"1": None, "2": -6.0, "3": -2.0},
-            rho={"1": None, "2": 0.0, "3": 0.0},
-            kappas={"1": None, "2": 1.0},
+            initial_mean={"1": 0.0, "2": 0.5, "3": 0.0},
+            initial_precision={"1": 0.0, "2": 1e4, "3": 1e1},
+            tonic_volatility={"1": None, "2": -6.0, "3": -2.0},
+            tonic_drift={"1": None, "2": 0.0, "3": 0.0},
+            volatility_coupling={"1": None, "2": 1.0},
             eta0=0.0,
             eta1=1.0,
             binary_precision=jnp.inf,

@@ -49,20 +49,22 @@ def prediction_error_mean_value_parent(
     # Get the current expected precision for the volatility parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    muhat_value_parent = attributes[value_parent_idx]["muhat"]
+    expected_mean_value_parent = attributes[value_parent_idx]["expected_mean"]
 
     # Gather prediction errors from all child nodes if the parent has many children
     # This part corresponds to the sum of children for the multi-children situations
     pe_children = 0.0
     for child_idx, psi_child in zip(
         edges[value_parent_idx].value_children,
-        attributes[value_parent_idx]["psis_children"],
+        attributes[value_parent_idx]["value_coupling_children"],
     ):
-        vape_child = attributes[child_idx]["mu"] - attributes[child_idx]["muhat"]
+        vape_child = (
+            attributes[child_idx]["mean"] - attributes[child_idx]["expected_mean"]
+        )
         pe_children += (psi_child * vape_child) / pi_value_parent
 
     # Estimate the new mean of the value parent
-    mu_value_parent = muhat_value_parent + pe_children
+    mu_value_parent = expected_mean_value_parent + pe_children
 
     return mu_value_parent
 
@@ -99,20 +101,20 @@ def prediction_error_precision_value_parent(
     # Get the current expected precision for the volatility parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    pihat_value_parent = attributes[value_parent_idx]["pihat"]
+    expected_precision_value_parent = attributes[value_parent_idx]["expected_precision"]
 
     # Gather precision updates from all child nodes if the parent has many children.
     # This part corresponds to the sum over children for the multi-children situations.
     pi_children = 0.0
     for child_idx, psi_child in zip(
         edges[value_parent_idx].value_children,
-        attributes[value_parent_idx]["psis_children"],
+        attributes[value_parent_idx]["value_coupling_children"],
     ):
-        pihat_child = attributes[child_idx]["pihat"]
-        pi_children += psi_child * (1 / pihat_child)
+        expected_precision_child = attributes[child_idx]["expected_precision"]
+        pi_children += psi_child * (1 / expected_precision_child)
 
     # Estimate new value for the precision of the value parent
-    pi_value_parent = pihat_value_parent + pi_children
+    pi_value_parent = expected_precision_value_parent + pi_children
 
     return pi_value_parent
 
@@ -194,59 +196,60 @@ def prediction_error_input_value_parent(
     # Get the current expected mean for the value parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    muhat_value_parent = attributes[value_parent_idx]["muhat"]
+    expected_mean_value_parent = attributes[value_parent_idx]["expected_mean"]
 
     # Read parameters from the binary input
     # Currently, only one binary input can be child of the binary node
     child_node_idx = edges[value_parent_idx].value_children[0]
     eta0 = attributes[child_node_idx]["eta0"]
     eta1 = attributes[child_node_idx]["eta1"]
-    pihat = attributes[child_node_idx]["pihat"]
+    expected_precision = attributes[child_node_idx]["expected_precision"]
     value = attributes[child_node_idx]["value"]
 
     # Compute the surprise, new mean and precision
     mu_value_parent, pi_value_parent, surprise = cond(
-        pihat == jnp.inf,
+        expected_precision == jnp.inf,
         input_surprise_inf,
         input_surprise_reg,
-        (pihat, value, eta1, eta0, muhat_value_parent),
+        (expected_precision, value, eta1, eta0, expected_mean_value_parent),
     )
 
     return pi_value_parent, mu_value_parent, surprise
 
 
 def input_surprise_inf(op):
-    """Apply special case if pihat is `jnp.inf` (just pass the value through)."""
-    _, value, _, _, muhat_value_parent = op
+    """Apply special case if expected_precision is `jnp.inf`."""
+    _, value, _, _, expected_mean_value_parent = op
     mu_value_parent = value
     pi_value_parent = jnp.inf
-    surprise = binary_surprise(value, muhat_value_parent)
+    surprise = binary_surprise(value, expected_mean_value_parent)
 
     return mu_value_parent, pi_value_parent, surprise
 
 
 def input_surprise_reg(op):
     """Compute the surprise, mu_value_parent and pi_value_parent."""
-    pihat, value, eta1, eta0, muhat_value_parent = op
+    expected_precision, value, eta1, eta0, expected_mean_value_parent = op
 
     # Likelihood under eta1
-    und1 = jnp.exp(-pihat / 2 * (value - eta1) ** 2)
+    und1 = jnp.exp(-expected_precision / 2 * (value - eta1) ** 2)
 
     # Likelihood under eta0
-    und0 = jnp.exp(-pihat / 2 * (value - eta0) ** 2)
+    und0 = jnp.exp(-expected_precision / 2 * (value - eta0) ** 2)
 
     # Eq. 39 in Mathys et al. (2014) (i.e., Bayes)
     mu_value_parent = (
-        muhat_value_parent
+        expected_mean_value_parent
         * und1
-        / (muhat_value_parent * und1 + (1 - muhat_value_parent) * und0)
+        / (expected_mean_value_parent * und1 + (1 - expected_mean_value_parent) * und0)
     )
     pi_value_parent = 1 / (mu_value_parent * (1 - mu_value_parent))
 
     # Surprise
     surprise = -jnp.log(
-        muhat_value_parent * gaussian_density(value, eta1, pihat)
-        + (1 - muhat_value_parent) * gaussian_density(value, eta0, pihat)
+        expected_mean_value_parent * gaussian_density(value, eta1, expected_precision)
+        + (1 - expected_mean_value_parent)
+        * gaussian_density(value, eta0, expected_precision)
     )
 
     return mu_value_parent, pi_value_parent, surprise
