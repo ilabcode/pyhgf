@@ -268,10 +268,10 @@ The response function that we created above is passed as an argument directly to
 with pm.Model() as sigmoid_hgf:
 
     # prior over the evolution rate at the second level
-    omega_2 = pm.Normal("omega_2", -2.0, 2.0)
+    tonic_volatility_2 = pm.Normal("tonic_volatility_2", -2.0, 2.0)
 
     # the main HGF distribution
-    pm.Potential("hgf_loglike", hgf_logp_op(omega_2=omega_2))
+    pm.Potential("hgf_loglike", hgf_logp_op(tonic_volatility_2=tonic_volatility_2))
 ```
 
 ```{code-cell} ipython3
@@ -280,9 +280,9 @@ with sigmoid_hgf:
 ```
 
 ```{code-cell} ipython3
-az.plot_trace(sigmoid_hgf_idata, var_names=["omega_2"]);
+az.plot_trace(sigmoid_hgf_idata, var_names=["tonic_volatility_2"]);
 plt.tight_layout()
-az.summary(sigmoid_hgf_idata, var_names=["omega_2"])
+az.summary(sigmoid_hgf_idata, var_names=["tonic_volatility_2"])
 ```
 
 The results above indicate that given the responses provided by the participant, the most likely values for the parameter $\omega_2$ are between -4.9 and -3.1, with a mean at -3.9 (you can find slightly different values if you sample different actions from the decisions function). We can consider this as an excellent estimate given the sparsity of the data, and the complexity of the model.

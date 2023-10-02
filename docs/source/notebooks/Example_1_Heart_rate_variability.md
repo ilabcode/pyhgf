@@ -98,10 +98,10 @@ hgf_logp_op = HGFDistribution(
 with pm.Model() as three_level_hgf:
 
     # omegas priors
-    omega_2 = pm.Normal("omega_2", -2.0, 2.0)
+    tonic_volatility_2 = pm.Normal("tonic_volatility_2", -2.0, 2.0)
 
     # HGF distribution
-    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=-4.0, omega_2=omega_2))
+    pm.Potential("hgf_loglike", hgf_logp_op(tonic_volatility_1=-4.0, tonic_volatility_2=tonic_volatility_2))
 ```
 
 ```{code-cell} ipython3
@@ -120,7 +120,7 @@ plt.tight_layout()
 
 ```{code-cell} ipython3
 # retrieve the best fir for omega_2
-omega_2 = az.summary(idata)["mean"]["omega_2"]
+tonic_volatility_2 = az.summary(idata)["mean"]["tonic_volatility_2"]
 ```
 
 ```{code-cell} ipython3

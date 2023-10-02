@@ -205,20 +205,10 @@ def plot_correlations(hgf: "HGF") -> Axes:
     trajectories_df = pd.concat(
         [
             trajectories_df[["time", "observation_input_0", "surprise"]],
-            trajectories_df.filter(regex="hat"),
+            trajectories_df.filter(regex="expected"),
         ],
         axis=1,
     )
-
-    # rename columns with LateX expressions
-    trajectories_df.columns = [
-        r"$\hat{\mu}_" + f"{c[5]}$" if "expected_mean" in c else c
-        for c in trajectories_df.columns
-    ]
-    trajectories_df.columns = [
-        r"$\hat{\pi}_" + f"{c[5]}$" if "expected_precision" in c else c
-        for c in trajectories_df.columns
-    ]
 
     correlation_mat = trajectories_df.corr()
     ax = sns.heatmap(

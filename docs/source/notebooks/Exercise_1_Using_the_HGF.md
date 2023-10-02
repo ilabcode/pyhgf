@@ -207,11 +207,15 @@ hgf_logp_op = HGFDistribution(
 ```{code-cell} ipython3
 with pm.Model() as two_level_hgf:
 
-    # omegas priors
-    omega_1 = pm.Uniform("omega_1", -20, -2.0)
+    # tonic volatility priors
+    tonic_volatility_1 = pm.Uniform("tonic_volatility_1", -20, -2.0)
 
     # HGF distribution
-    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=omega_1, omega_2=-2.0, mu_1=1.0))
+    pm.Potential("hgf_loglike", hgf_logp_op(
+        tonic_volatility_1=tonic_volatility_1, 
+        tonic_volatility_2=-2.0, mean_1=1.0
+    )
+                )
 ```
 
 ```{code-cell} ipython3
@@ -579,8 +583,8 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-def logp(value, omega_2):
-    return hgf_logp_op(omega_2=omega_2)
+def logp(value, tonic_volatility_2):
+    return hgf_logp_op(tonic_volatility_2=tonic_volatility_2)
 ```
 
 ```{code-cell} ipython3
@@ -591,8 +595,8 @@ slideshow:
 ---
 with pm.Model() as two_levels_binary_hgf:
     y_data = pm.ConstantData("y_data", y)
-    omega_2 = pm.Normal("omega_2", -5.0, 2.0)
-    hgf = pm.DensityDist('hgf', omega_2, logp=logp, observed=y_data)
+    tonic_volatility_2 = pm.Normal("tonic_volatility_2", -5.0, 2.0)
+    hgf = pm.DensityDist('hgf', tonic_volatility_2, logp=logp, observed=y_data)
 ```
 
 ```{code-cell} ipython3
@@ -649,8 +653,12 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-def logp(value, omega_2):
-    return hgf_logp_op(omega_2=omega_2, omega_3=-6.0, mu_3=1.0)
+def logp(value, tonic_volatility_2):
+    return hgf_logp_op(
+        tonic_volatility_2=tonic_volatility_2, 
+        tonic_volatility_3=-6.0, 
+        mean_3=1.0
+    )
 ```
 
 ```{code-cell} ipython3
@@ -661,8 +669,8 @@ slideshow:
 ---
 with pm.Model() as three_levels_binary_hgf:
     y_data = pm.ConstantData("y_data", y)
-    omega_2 = pm.Normal("omega_2", -5.0, 2.0)
-    hgf = pm.DensityDist('hgf', omega_2, logp=logp, observed=y_data)
+    tonic_volatility_2 = pm.Normal("tonic_volatility_2", -5.0, 2.0)
+    hgf = pm.DensityDist('hgf', tonic_volatility_2, logp=logp, observed=y_data)
 ```
 
 ```{code-cell} ipython3
@@ -735,9 +743,9 @@ fig, axs = plt.subplots(nrows=4, figsize=(12, 7))
 
 for _ in range(20):
 
-    omega_2 = np.random.normal(
-        az.summary(three_levels_idata)["mean"].omega_2, 
-        az.summary(three_levels_idata)["sd"].omega_2
+    tonic_volatility_2 = np.random.normal(
+        az.summary(three_levels_idata)["mean"].tonic_volatility_2, 
+        az.summary(three_levels_idata)["sd"].tonic_volatility_2
     )
     
     three_levels_df = HGF(
@@ -745,13 +753,13 @@ for _ in range(20):
         model_type="binary",
         initial_mean={"1": .0, "2": 0.0, "3": 1.0},
         initial_precision={"1": .0, "2": 1.0, "3": 1.0},
-        tonic_volatility={"2": omega_2, "3": -6.0},
+        tonic_volatility={"2": tonic_volatility_2, "3": -6.0},
         verbose=False
     ).input_data(input_data=u).to_pandas()
     
     axs[0].plot(
         three_levels_df.time, 
-        three_levels_df.x_3_muhat,
+        three_levels_df.x_3_expected_mean,
         alpha=.4,
         linewidth=.5,
         color="#c44e52"
@@ -759,7 +767,7 @@ for _ in range(20):
     
     axs[1].plot(
         three_levels_df.time, 
-        three_levels_df.x_2_muhat,
+        three_levels_df.x_2_expected_mean,
         alpha=.4,
         linewidth=.5,
         color="#55a868"
@@ -767,7 +775,7 @@ for _ in range(20):
     
     axs[2].plot(
         three_levels_df.time, 
-        three_levels_df.x_1_muhat,
+        three_levels_df.x_1_expected_mean,
         alpha=.4,
         linewidth=.5,
         color="#4c72b0"
