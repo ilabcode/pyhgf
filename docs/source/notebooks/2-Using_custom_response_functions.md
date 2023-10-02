@@ -86,9 +86,9 @@ slideshow:
 agent = HGF(
     n_levels=2,
     model_type="binary",
-    initial_mu={"1": .0, "2": .5},
-    initial_pi={"1": .0, "2": 1e4},
-    omega={"2": -4.0},
+    initial_mean={"1": .0, "2": .5},
+    initial_precision={"1": .0, "2": 1e4},
+    tonic_volatility={"2": -4.0},
 ).input_data(input_data=u)
 ```
 
@@ -121,7 +121,7 @@ slideshow:
 ---
 # a simple decision rule using the first level of the HGF
 np.random.seed(1)
-responses = np.random.binomial(p=agent.node_trajectories[1]["muhat"], n=1)
+responses = np.random.binomial(p=agent.node_trajectories[1]["expected_mean"], n=1)
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -139,7 +139,7 @@ plt.figure(figsize=(12, 3))
 jitter = responses * .1 + (1-responses) * -.1
 plt.scatter(np.arange(len(u)), u, label="Observations", color="#4c72b0", edgecolor="k", alpha=.2)
 plt.scatter(np.arange(len(responses)), responses + jitter, label="Responses", color="#c44e52", alpha=.2, edgecolor="k")
-plt.plot(agent.node_trajectories[1]["muhat"], label="Beliefs", linestyle="--")
+plt.plot(agent.node_trajectories[1]["expected_mean"], label="Beliefs", linestyle="--")
 plt.legend()
 plt.xlabel("Trials")
 ```
@@ -205,7 +205,7 @@ def response_function(hgf, response_function_parameters):
     responses = response_function_parameters[0]
 
     # the expected values at the first level of the HGF
-    beliefs = hgf.node_trajectories[1]["muhat"]
+    beliefs = hgf.node_trajectories[1]["expected_mean"]
 
     return jnp.sum(jnp.where(responses, -jnp.log(beliefs), -jnp.log(1.0 - beliefs)))
 ```
@@ -268,10 +268,10 @@ The response function that we created above is passed as an argument directly to
 with pm.Model() as sigmoid_hgf:
 
     # prior over the evolution rate at the second level
-    omega_2 = pm.Normal("omega_2", -2.0, 2.0)
+    tonic_volatility_2 = pm.Normal("tonic_volatility_2", -2.0, 2.0)
 
     # the main HGF distribution
-    pm.Potential("hgf_loglike", hgf_logp_op(omega_2=omega_2))
+    pm.Potential("hgf_loglike", hgf_logp_op(tonic_volatility_2=tonic_volatility_2))
 ```
 
 ```{code-cell} ipython3
@@ -280,9 +280,9 @@ with sigmoid_hgf:
 ```
 
 ```{code-cell} ipython3
-az.plot_trace(sigmoid_hgf_idata, var_names=["omega_2"]);
+az.plot_trace(sigmoid_hgf_idata, var_names=["tonic_volatility_2"]);
 plt.tight_layout()
-az.summary(sigmoid_hgf_idata, var_names=["omega_2"])
+az.summary(sigmoid_hgf_idata, var_names=["tonic_volatility_2"])
 ```
 
 The results above indicate that given the responses provided by the participant, the most likely values for the parameter $\omega_2$ are between -4.9 and -3.1, with a mean at -3.9 (you can find slightly different values if you sample different actions from the decisions function). We can consider this as an excellent estimate given the sparsity of the data, and the complexity of the model.

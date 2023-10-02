@@ -8,9 +8,9 @@ from jax.scipy.special import digamma, gamma
 from jax.typing import ArrayLike
 
 
-def gaussian_density(x: ArrayLike, mu: ArrayLike, pi: ArrayLike) -> ArrayLike:
+def gaussian_density(x: ArrayLike, mean: ArrayLike, precision: ArrayLike) -> ArrayLike:
     """Gaussian density as defined by mean and precision."""
-    return pi / jnp.sqrt(2 * jnp.pi) * jnp.exp(-pi / 2 * (x - mu) ** 2)
+    return precision / jnp.sqrt(2 * jnp.pi) * jnp.exp(-precision / 2 * (x - mean) ** 2)
 
 
 def sigmoid(
@@ -23,7 +23,7 @@ def sigmoid(
 
 
 def binary_surprise(
-    x: Union[float, ArrayLike], muhat: Union[float, ArrayLike]
+    x: Union[float, ArrayLike], expected_mean: Union[float, ArrayLike]
 ) -> ArrayLike:
     r"""Surprise at a binary outcome.
 
@@ -41,7 +41,7 @@ def binary_surprise(
     ----------
     x :
         The outcome.
-    muhat :
+    expected_mean :
         The mean of the Bernoulli distribution.
 
     Returns
@@ -53,17 +53,19 @@ def binary_surprise(
     Examples
     --------
     >>> from pyhgf.binary import binary_surprise
-    >>> binary_surprise(x=1.0, muhat=0.7)
+    >>> binary_surprise(x=1.0, expected_mean=0.7)
     `Array(0.35667497, dtype=float32, weak_type=True)`
 
     """
-    return jnp.where(x, -jnp.log(muhat), -jnp.log(jnp.array(1.0) - muhat))
+    return jnp.where(
+        x, -jnp.log(expected_mean), -jnp.log(jnp.array(1.0) - expected_mean)
+    )
 
 
 def gaussian_surprise(
     x: Union[float, ArrayLike],
-    muhat: Union[float, ArrayLike],
-    pihat: Union[float, ArrayLike],
+    expected_mean: Union[float, ArrayLike],
+    expected_precision: Union[float, ArrayLike],
 ) -> Array:
     r"""Surprise at an outcome under a Gaussian prediction.
 
@@ -81,9 +83,9 @@ def gaussian_surprise(
     ----------
     x :
         The outcome.
-    muhat :
+    expected_mean :
         The expected mean of the Gaussian distribution.
-    pihat :
+    expected_precision :
         The expected precision of the Gaussian distribution.
 
     Returns
@@ -94,14 +96,14 @@ def gaussian_surprise(
     Examples
     --------
     >>> from pyhgf.continuous import gaussian_surprise
-    >>> gaussian_surprise(x=2.0, muhat=0.0, pihat=1.0)
+    >>> gaussian_surprise(x=2.0, expected_mean=0.0, expected_precision=1.0)
     `Array(2.9189386, dtype=float32, weak_type=True)`
 
     """
     return jnp.array(0.5) * (
         jnp.log(jnp.array(2.0) * jnp.pi)
-        - jnp.log(pihat)
-        + pihat * jnp.square(jnp.subtract(x, muhat))
+        - jnp.log(expected_precision)
+        + expected_precision * jnp.square(jnp.subtract(x, expected_mean))
     )
 
 

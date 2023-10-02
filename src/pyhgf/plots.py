@@ -26,7 +26,7 @@ def plot_trajectories(
 ) -> Axes:
     r"""Plot the trajectories of the nodes' sufficient statistics and surprise.
 
-    This function will plot :math:`\hat{mu}`, :math:`\¨hat{pi}` (converted into standard
+    This function will plot the expected mean and precision (converted into standard
     deviation) and the surprise at each level of the node structure.
 
     Parameters
@@ -39,13 +39,13 @@ def plot_trajectories(
         If `True` plot each node's surprise together with sufficient statistics.
         If `False`, only the input node's surprise is depicted.
     show_current_state :
-        If `True`, plot the current states (:math:`\mu` and :math:`\pi`) on the top of
-        expected states (:math:`\hat{\mu} and :math:`\hat{\pi}). Defaults to `False`.
+        If `True`, plot the current mean and precision on the top of expected mean and
+        precision. Defaults to `False`.
     show_observations :
         If `True`, show the observations received from the child node(s). In the
-        situation of value coupled nodes, plot the mean :math:`\hat{\mu}` of the child
-        node(s). This feature is not supported in the situation of volatility coupling.
-        Defaults to `False`.
+        situation of value coupled nodes, plot the mean of the child node(s). This
+        feature is not supported in the situation of volatility coupling. Defaults to
+        `False`.
     figsize :
         The width and height of the figure. Defaults to `(18, 9)` for a two-level model,
         or to `(18, 12)` for a three-level model.
@@ -72,11 +72,11 @@ def plot_trajectories(
         hgf = HGF(
             n_levels=3,
             model_type="continuous",
-            initial_mu={"1": 1.04, "2": 1.0, "3": 1.0},
-            initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
-            omega={"1": -13.0, "2": -2.0, "3": -2.0},
-            rho={"1": 0.0, "2": 0.0, "3": 0.0},
-            kappas={"1": 1.0, "2": 1.0},
+            initial_mean={"1": 1.04, "2": 1.0, "3": 1.0},
+            initial_precision={"1": 1e4, "2": 1e1, "3": 1e1},
+            tonic_volatility={"1": -13.0, "2": -2.0, "3": -2.0},
+            tonic_drift={"1": 0.0, "2": 0.0, "3": 0.0},
+            volatility_coupling={"1": 1.0, "2": 1.0},
         )
 
         # Read USD-CHF data
@@ -102,11 +102,11 @@ def plot_trajectories(
         three_levels_hgf = HGF(
             n_levels=3,
             model_type="binary",
-            initial_mu={"1": .0, "2": .5, "3": 0.},
-            initial_pi={"1": .0, "2": 1e4, "3": 1e1},
-            omega={"1": None, "2": -6.0, "3": -2.0},
-            rho={"1": None, "2": 0.0, "3": 0.0},
-            kappas={"1": None, "2": 1.0},
+            initial_mean={"1": .0, "2": .5, "3": 0.},
+            initial_precision={"1": .0, "2": 1e4, "3": 1e1},
+            tonic_volatility={"1": None, "2": -6.0, "3": -2.0},
+            tonic_drift={"1": None, "2": 0.0, "3": 0.0},
+            volatility_coupling={"1": None, "2": 1.0},
             eta0=0.0,
             eta1=1.0,
             binary_precision = jnp.inf,
@@ -205,20 +205,10 @@ def plot_correlations(hgf: "HGF") -> Axes:
     trajectories_df = pd.concat(
         [
             trajectories_df[["time", "observation_input_0", "surprise"]],
-            trajectories_df.filter(regex="hat"),
+            trajectories_df.filter(regex="expected"),
         ],
         axis=1,
     )
-
-    # rename columns with LateX expressions
-    trajectories_df.columns = [
-        r"$\hat{\mu}_" + f"{c[5]}$" if "muhat" in c else c
-        for c in trajectories_df.columns
-    ]
-    trajectories_df.columns = [
-        r"$\hat{\pi}_" + f"{c[5]}$" if "pihat" in c else c
-        for c in trajectories_df.columns
-    ]
 
     correlation_mat = trajectories_df.corr()
     ax = sns.heatmap(
@@ -328,10 +318,9 @@ def plot_nodes(
 ):
     r"""Plot the sufficient statistics trajectories of a set of nodes.
 
-    This function will plot :math:`\hat{\mu}`, :math:`\hat{\pi}` (converted into
-    standard deviation) and the Gaussian surprise :math:`\mu` given :math:`\hat{\pi}`
-    and :math:`\hat{\mu}` at the previous time point. If `children_inputs` is `True`,
-    will also plot the children input (:math:`\mu` for value coupling and :math:`\pi`
+    This function will plot the mean and precision (converted into standard deviation)
+    and the Gaussian surprise after observing the input value. If `children_inputs` is
+    `True`, will also plot the children input (mean for value coupling and precision
     for volatility coupling).
 
     Parameters
@@ -351,12 +340,12 @@ def plot_nodes(
         as grey shadded area.
     show_observations :
         If `True`, show the observations received from the child node(s). In the
-        situation of value coupled nodes, plot the mean :math:`\hat{\mu}` of the child
+        situation of value coupled nodes, plot the expected mean of the child
         node(s). This feature is not supported in the situation of volatility coupling.
         Defaults to `False`.
     show_current_state :
-        If `True`, plot the current states (:math:`\mu` and :math:`\pi`) on the top of
-        expected states (:math:`\hat{\mu} and :math:`\hat{\pi}). Defaults to `False`.
+        If `True`, plot the current states (mean and precision) on the top of
+        expected states (mean and precision). Defaults to `False`.
     figsize :
         The width and height of the figure. Defaults to `(18, 9)` for a two-level model,
         or to `(18, 12)` for a three-level model.
@@ -385,11 +374,11 @@ def plot_nodes(
         hgf = HGF(
             n_levels=3,
             model_type="continuous",
-            initial_mu={"1": 1.04, "2": 1.0, "3": 1.0},
-            initial_pi={"1": 1e4, "2": 1e1, "3": 1e1},
-            omega={"1": -13.0, "2": -2.0, "3": -2.0},
-            rho={"1": 0.0, "2": 0.0, "3": 0.0},
-            kappas={"1": 1.0, "2": 1.0},
+            initial_mean={"1": 1.04, "2": 1.0, "3": 1.0},
+            initial_precision={"1": 1e4, "2": 1e1, "3": 1e1},
+            tonic_volatility={"1": -13.0, "2": -2.0, "3": -2.0},
+            tonic_drift={"1": 0.0, "2": 0.0, "3": 0.0},
+            volatility_coupling={"1": 1.0, "2": 1.0},
         )
 
         # Read USD-CHF data
@@ -447,13 +436,13 @@ def plot_nodes(
             # ------------------------
 
             # extract sufficient statistics from the data frame
-            mu = trajectories_df[f"x_{node_idx}_muhat"]
-            pi = trajectories_df[f"x_{node_idx}_pihat"]
+            mean = trajectories_df[f"x_{node_idx}_expected_mean"]
+            precision = trajectories_df[f"x_{node_idx}_expected_precision"]
 
             # plotting mean
             axs[i].plot(
                 trajectories_df.time,
-                mu,
+                mean,
                 label=r"$\hat{\mu}$",
                 color=color,
                 linewidth=1,
@@ -463,9 +452,9 @@ def plot_nodes(
 
             # plotting standard deviation
             if ci is True:
-                sd = np.sqrt(1 / pi)
-                y1 = trajectories_df[f"x_{node_idx}_muhat"] - sd
-                y2 = trajectories_df[f"x_{node_idx}_muhat"] + sd
+                sd = np.sqrt(1 / precision)
+                y1 = trajectories_df[f"x_{node_idx}_expected_mean"] - sd
+                y2 = trajectories_df[f"x_{node_idx}_expected_mean"] + sd
 
                 # if this is the value parent of an input node
                 # the CI should be treated diffeently
@@ -491,11 +480,13 @@ def plot_nodes(
 
                         # compute  mu +/- sd at time t-1
                         # and use the sigmoid transform before plotting
-                        mu_parent = trajectories_df[f"x_{parent_idx}_muhat"]
-                        pi_parent = trajectories_df[f"x_{parent_idx}_pihat"]
-                        sd = np.sqrt(1 / pi_parent)
-                        y1 = 1 / (1 + np.exp(-mu_parent + sd))
-                        y2 = 1 / (1 + np.exp(-mu_parent - sd))
+                        mean_parent = trajectories_df[f"x_{parent_idx}_expected_mean"]
+                        precision_parent = trajectories_df[
+                            f"x_{parent_idx}_expected_precision"
+                        ]
+                        sd = np.sqrt(1 / precision_parent)
+                        y1 = 1 / (1 + np.exp(-mean_parent + sd))
+                        y2 = 1 / (1 + np.exp(-mean_parent - sd))
 
                 axs[i].fill_between(
                     x=trajectories_df.time,
@@ -512,13 +503,13 @@ def plot_nodes(
             # -----------------------
             if show_current_state:
                 # extract sufficient statistics from the data frame
-                mu = trajectories_df[f"x_{node_idx}_mu"]
-                pi = trajectories_df[f"x_{node_idx}_pi"]
+                mean = trajectories_df[f"x_{node_idx}_mean"]
+                precision = trajectories_df[f"x_{node_idx}_precision"]
 
                 # plotting mean
                 axs[i].plot(
                     trajectories_df.time,
-                    mu,
+                    mean,
                     label=r"$\mu$",
                     color="gray",
                     linewidth=0.5,
@@ -528,11 +519,11 @@ def plot_nodes(
 
                 # plotting standard deviation
                 if ci is True:
-                    sd = np.sqrt(1 / pi)
+                    sd = np.sqrt(1 / precision)
                     axs[i].fill_between(
                         x=trajectories_df.time,
-                        y1=trajectories_df[f"x_{node_idx}_mu"] - sd,
-                        y2=trajectories_df[f"x_{node_idx}_mu"] + sd,
+                        y1=trajectories_df[f"x_{node_idx}_mean"] - sd,
+                        y2=trajectories_df[f"x_{node_idx}_mean"] + sd,
                         alpha=0.1,
                         color=color,
                         zorder=2,
@@ -558,7 +549,7 @@ def plot_nodes(
                         if child_idx not in hgf.input_nodes_idx.idx:
                             axs[i].scatter(
                                 trajectories_df.time,
-                                trajectories_df[f"x_{child_idx}_mu"],
+                                trajectories_df[f"x_{child_idx}_mean"],
                                 s=3,
                                 label=f"Value child node - {ii}",
                                 alpha=0.5,
@@ -567,7 +558,7 @@ def plot_nodes(
                             )
                             axs[i].plot(
                                 trajectories_df.time,
-                                trajectories_df[f"x_{child_idx}_mu"],
+                                trajectories_df[f"x_{child_idx}_mean"],
                                 linewidth=0.5,
                                 linestyle="--",
                                 alpha=0.5,

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -66,7 +66,7 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 
 ```{code-cell} ipython3
 from pyhgf.typing import Indexes
-parameters = {"mu": 0.0, "pi": 1.0}
+parameters = {"mean": 0.0, "precision": 1.0}
 
 attributes = (parameters, parameters, parameters)
 edges = (
@@ -76,7 +76,7 @@ edges = (
 )
 ```
 
-The code above illustrate the creation of a probabilistic network of 3 nodes with simple parameters sets $(\mu=0.0, \pi=1.0)$. Node 2 is the value parent of node 1. Node 3 is the value parent of node 2 and has no parents.
+The code above illustrates creating a probabilistic network of 3 nodes with simple parameter sets $(mean = 0.0, precision = 1.0)$. Node 2 is the value parent of node 1. Node 3 is the value parent of node 2 and has no parents.
 
 +++
 
@@ -95,7 +95,7 @@ hgf.plot_network()
 The simpler change we can make on a network is to change the values of some of its parameters. The parameters are stored in the `attributes` variable as a dictionary where the key (integers) are node indexes. Therefore, modifying the expected precision of the third node in the previous example is as simple as:
 
 ```{code-cell} ipython3
-hgf.attributes[3]["pi"] = 5.0
+hgf.attributes[3]["precision"] = 5.0
 ```
 
 However, modifying parameters values *manually* should not be that common as this is something we want the model to perform dynamically as we present new observations, but this can be used for example to generate prior predictive by sampling some parameter values from a distribution. 

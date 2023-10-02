@@ -98,10 +98,10 @@ hgf_logp_op = HGFDistribution(
 with pm.Model() as three_level_hgf:
 
     # omegas priors
-    omega_2 = pm.Normal("omega_2", -2.0, 2.0)
+    tonic_volatility_2 = pm.Normal("tonic_volatility_2", -2.0, 2.0)
 
     # HGF distribution
-    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=-4.0, omega_2=omega_2))
+    pm.Potential("hgf_loglike", hgf_logp_op(tonic_volatility_1=-4.0, tonic_volatility_2=tonic_volatility_2))
 ```
 
 ```{code-cell} ipython3
@@ -120,18 +120,18 @@ plt.tight_layout()
 
 ```{code-cell} ipython3
 # retrieve the best fir for omega_2
-omega_2 = az.summary(idata)["mean"]["omega_2"]
+tonic_volatility_2 = az.summary(idata)["mean"]["tonic_volatility_2"]
 ```
 
 ```{code-cell} ipython3
 hgf = HGF(
     n_levels=2,
     model_type="continuous",
-    initial_mu={"1": rr[0], "2": -4.0},
-    initial_pi={"1": 1e4, "2": 1e1},
-    omega={"1": -4.0, "2": omega_2},
-    rho={"1": 0.0, "2": 0.0},
-    kappas={"1": 1.0}).input_data(input_data=rr)
+    initial_mean={"1": rr[0], "2": -4.0},
+    initial_precision={"1": 1e4, "2": 1e1},
+    tonic_volatility={"1": -4.0, "2": tonic_volatility_2},
+    tonic_drift={"1": 0.0, "2": 0.0},
+    volatility_coupling={"1": 1.0}).input_data(input_data=rr)
 ```
 
 ```{code-cell} ipython3

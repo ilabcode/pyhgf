@@ -22,7 +22,7 @@ class Testbinary(TestCase):
             .add_input_node(
                 kind="categorical",
                 categorical_parameters={"n_categories": 3},
-                binary_parameters={"omega_2": -2.0},
+                binary_parameters={"tonic_volatility_2": -2.0},
             )
             .init()
         )
