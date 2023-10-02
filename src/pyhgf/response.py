@@ -40,14 +40,14 @@ def first_level_gaussian_surprise(
     surprise = jnp.sum(
         gaussian_surprise(
             x=hgf.node_trajectories[0]["value"],
-            muhat=hgf.node_trajectories[1]["muhat"],
-            pihat=hgf.node_trajectories[1]["pihat"],
+            expected_mean=hgf.node_trajectories[1]["expected_mean"],
+            expected_precision=hgf.node_trajectories[1]["expected_precision"],
         )
     )
 
     # Return an infinite surprise if the model could not fit at any point
     return jnp.where(
-        jnp.any(jnp.isnan(hgf.node_trajectories[1]["mu"])), jnp.inf, surprise
+        jnp.any(jnp.isnan(hgf.node_trajectories[1]["mean"])), jnp.inf, surprise
     )
 
 
@@ -81,8 +81,8 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Ar
         surprise += jnp.sum(
             gaussian_surprise(
                 x=hgf.node_trajectories[idx]["value"],
-                muhat=hgf.node_trajectories[va_pa]["muhat"],
-                pihat=hgf.node_trajectories[va_pa]["pihat"],
+                expected_mean=hgf.node_trajectories[va_pa]["expected_mean"],
+                expected_precision=hgf.node_trajectories[va_pa]["expected_precision"],
             )
         )
 
@@ -92,15 +92,15 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Ar
         if (i not in hgf.input_nodes_idx.idx) and (i not in input_parents_list):
             surprise += jnp.sum(
                 gaussian_surprise(
-                    x=hgf.node_trajectories[i]["mu"],
-                    muhat=hgf.node_trajectories[i]["muhat"],
-                    pihat=hgf.node_trajectories[i]["pihat"],
+                    x=hgf.node_trajectories[i]["mean"],
+                    expected_mean=hgf.node_trajectories[i]["expected_mean"],
+                    expected_precision=hgf.node_trajectories[i]["expected_precision"],
                 )
             )
 
     # Return an infinite surprise if the model could not fit at any point
     return jnp.where(
-        jnp.any(jnp.isnan(hgf.node_trajectories[1]["mu"])), jnp.inf, surprise
+        jnp.any(jnp.isnan(hgf.node_trajectories[1]["mean"])), jnp.inf, surprise
     )
 
 
@@ -156,10 +156,12 @@ def binary_softmax(hgf: "HGF", response_function_parameters=ArrayLike) -> Array:
 
     """
     # the expected values at the first level of the HGF
-    beliefs = hgf.node_trajectories[1]["muhat"]
+    beliefs = hgf.node_trajectories[1]["expected_mean"]
 
     # the sum of the binary surprises
-    surprise = jnp.sum(binary_surprise(x=response_function_parameters, muhat=beliefs))
+    surprise = jnp.sum(
+        binary_surprise(x=response_function_parameters, expected_mean=beliefs)
+    )
 
     # ensure that inf is returned if the model cannot fit
     surprise = jnp.where(jnp.isnan(surprise), jnp.inf, surprise)

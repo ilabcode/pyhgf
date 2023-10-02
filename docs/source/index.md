@@ -66,9 +66,9 @@ u, _ = load_data("binary")
 hgf = HGF(
     n_levels=2,
     model_type="binary",
-    initial_mu={"1": .0, "2": .5},
-    initial_pi={"1": .0, "2": 1e4},
-    omega={"2": -3.0},
+    initial_mean={"1": .0, "2": .5},
+    initial_precision={"1": .0, "2": 1e4},
+    tonic_volatility={"2": -3.0},
 )
 
 # add new observations

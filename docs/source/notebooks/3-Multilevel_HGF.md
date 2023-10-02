@@ -141,11 +141,13 @@ with pm.Model() as model:
     # Priors
     # ------
     offset = pm.Normal("offset", 0, 1, shape=n_data)
-    omega_1 = pm.Deterministic("omega_1", mu_omega_1 + offset * sigma_omega_1)
+    tonic_volatility_1 = pm.Deterministic("tonic_volatility_1", mu_omega_1 + offset * sigma_omega_1)
 
     # The multi-HGF distribution
     # --------------------------
-    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=omega_1, omega_2=-10.0))
+    pm.Potential("hgf_loglike", hgf_logp_op(
+        tonic_volatility_1=tonic_volatility_1, tonic_volatility_2=-10.0)
+                )
 ```
 
 ```{code-cell} ipython3
@@ -217,11 +219,11 @@ with pm.Model() as two_levels_binary_hgf:
     # Priors
     # ------
     offset = pm.Normal("offset", 0, 1, shape=n_data)
-    omega_2 = pm.Deterministic("omega_2", mu_omega_1 + offset * sigma_omega_1)
+    tonic_volatility_2 = pm.Deterministic("tonic_volatility_2", mu_omega_1 + offset * sigma_omega_1)
 
     # The multi-HGF distribution
     # --------------------------
-    pm.Potential("hgf_loglike", hgf_logp_op(omega_2=omega_2))
+    pm.Potential("hgf_loglike", hgf_logp_op(tonic_volatility_2=tonic_volatility_2))
 ```
 
 #### Visualizing the model

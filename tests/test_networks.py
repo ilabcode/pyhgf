@@ -21,36 +21,36 @@ class TestStructure(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "pihat": 1e4,
+            "expected_precision": 1e4,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
-            "kappas_parents": None,
-            "psis_parents": (1.0,),
+            "volatility_coupling_parents": None,
+            "value_coupling_parents": (1.0,),
         }
         node_parameters_1 = {
-            "pihat": 1.0,
-            "pi": 1.0,
-            "muhat": 1.0,
-            "psis_children": (1.0,),
-            "psis_parents": None,
-            "kappas_parents": (1.0,),
-            "kappas_children": None,
-            "mu": 1.0,
-            "omega": -3.0,
-            "rho": 0.0,
+            "expected_precision": 1.0,
+            "precision": 1.0,
+            "expected_mean": 1.0,
+            "value_coupling_children": (1.0,),
+            "value_coupling_parents": None,
+            "volatility_coupling_parents": (1.0,),
+            "volatility_coupling_children": None,
+            "mean": 1.0,
+            "tonic_volatility": -3.0,
+            "tonic_drift": 0.0,
         }
         node_parameters_2 = {
-            "pihat": 1.0,
-            "pi": 1.0,
-            "muhat": 1.0,
-            "psis_children": None,
-            "psis_parents": None,
-            "kappas_parents": None,
-            "kappas_children": (1.0,),
-            "mu": 1.0,
-            "omega": -3.0,
-            "rho": 0.0,
+            "expected_precision": 1.0,
+            "precision": 1.0,
+            "expected_mean": 1.0,
+            "value_coupling_children": None,
+            "value_coupling_parents": None,
+            "volatility_coupling_parents": None,
+            "volatility_coupling_children": (1.0,),
+            "mean": 1.0,
+            "tonic_volatility": -3.0,
+            "tonic_drift": 0.0,
         }
         edges = (
             Indexes((1,), None, None, None),
@@ -79,8 +79,8 @@ class TestStructure(TestCase):
             edges=edges,
         )
 
-        assert new_attributes[1]["mu"] == 0.20007998
-        assert new_attributes[2]["pi"] == 1.0058632
+        assert new_attributes[1]["mean"] == 0.20007998
+        assert new_attributes[2]["precision"] == 1.0058632
 
     def test_find_branch(self):
         """Test the find_branch function"""

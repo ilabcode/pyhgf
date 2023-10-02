@@ -36,8 +36,8 @@ def categorical_input_update(
         The attributes of the probabilistic nodes.
     .. note::
         `"psis"` is the value coupling strength. It should have the same length as the
-        volatility parents' indexes. `"kappas"` is the volatility coupling strength.
-        It should have the same length as the volatility parents' indexes.
+        volatility parents' indexes. `"volatility_coupling"` is the volatility coupling
+        strength. It should have the same length as the volatility parents' indexes.
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
@@ -58,7 +58,7 @@ def categorical_input_update(
     # get the expected values at time k from the binary inputs (X_1)
     new_xi = jnp.array(
         [
-            attributes[edges[vapa].value_parents[0]]["muhat"]
+            attributes[edges[vapa].value_parents[0]]["expected_mean"]
             for vapa in edges[node_idx].value_parents  # type: ignore
         ]
     )
@@ -96,7 +96,7 @@ def categorical_input_update(
     )
     attributes[node_idx]["binary_surprise"] = jnp.sum(
         binary_surprise(
-            x=attributes[node_idx]["value"], muhat=attributes[node_idx]["xi"]
+            x=attributes[node_idx]["value"], expected_mean=attributes[node_idx]["xi"]
         )
     )
 
@@ -104,7 +104,7 @@ def categorical_input_update(
     attributes[node_idx]["alpha"] = alpha
 
     # prediction mean
-    attributes[node_idx]["mu"] = alpha / jnp.sum(alpha)
+    attributes[node_idx]["mean"] = alpha / jnp.sum(alpha)
     attributes[node_idx]["time_step"] = time_step
 
     return attributes

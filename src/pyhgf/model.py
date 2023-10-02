@@ -53,8 +53,9 @@ class HGF(object):
         The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
-        strenght with children and parents (i.e. `"psis_parents"`, `"psis_children"`,
-        `"kappas_parents"`, `"kappas_children"`).
+        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        `"value_coupling_children"`, `"volatility_coupling_parents"`,
+        `"volatility_coupling_children"`).
     verbose : bool
         Verbosity level.
 
@@ -65,27 +66,27 @@ class HGF(object):
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
         update_type: str = "eHGF",
-        initial_mu: Dict = {
+        initial_mean: Dict = {
             "1": 0.0,
             "2": 0.0,
             "3": 0.0,
         },
-        initial_pi: Dict = {
+        initial_precision: Dict = {
             "1": 1.0,
             "2": 1.0,
             "3": 1.0,
         },
         continuous_precision: Union[float, np.ndarray, ArrayLike] = 1e4,
-        omega: Dict = {
+        tonic_volatility: Dict = {
             "1": -3.0,
             "2": -3.0,
             "3": -3.0,
         },
-        kappas: Dict = {"1": 1.0, "2": 1.0},
+        volatility_coupling: Dict = {"1": 1.0, "2": 1.0},
         eta0: Union[float, np.ndarray, ArrayLike] = 0.0,
         eta1: Union[float, np.ndarray, ArrayLike] = 1.0,
         binary_precision: Union[float, np.ndarray, ArrayLike] = jnp.inf,
-        rho: Dict = {
+        tonic_drift: Dict = {
             "1": 0.0,
             "2": 0.0,
             "3": 0.0,
@@ -102,43 +103,39 @@ class HGF(object):
         eta1 :
             The second categorical value of the binary node. Defaults to `0.0`. Only
             relevant if `model_type="binary"`.
-        initial_mu :
-            A dictionary containing the initial values for the :math:`\\mu` parameter at
-            different levels of the hierarchy. Defaults set to `0.0` at all levels.
-        initial_pi :
-            A dictionary containing the initial values for the :math:`\\pi` parameter at
-            different levels of the hierarchy. Pis values encode the precision of the
-            values at each level (Var = 1/pi) Defaults are set to `1.0` at all levels.
-        kappas :
-            A dictionary containing the initial values for the :math:`\\kappa` parameter
-            at different levels of the hierarchy. Kappa represents the phasic part of
+        initial_mean :
+            A dictionary containing the initial values for the initial mean at
+            different levels of the hierarchy. Defaults set to `0.0`.
+        initial_precision :
+            A dictionary containing the initial values for the initial precision at
+            different levels of the hierarchy. Defaults set to `1.0`.
+        volatility_coupling :
+            A dictionary containing the initial values for the volatility coupling
+            at different levels of the hierarchy. This represents the phasic part of
             the variance (the part that is affected by the parent nodes) and will
             define the strength of the connection between the node and the parent
-            node. Often fixed to `1`. Defaults are set to `1` at all levels.
+            node. Defaults set to `1.0`.
         model_type : str
             The model type to use (can be `"continuous"` or `"binary"`).
         n_levels :
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
             `None`, the nodes hierarchy is not created and might be provided afterward.
             Defaults to `2` for a 2-level HGF.
-        omega :
-            A dictionary containing the initial values for the :math:`\\omega` parameter
-            at different levels of the hierarchy. :math:`\\omega` represents the tonic
+        tonic_volatility :
+            A dictionary containing the initial values for the tonic volatility
+            at different levels of the hierarchy. This represents the tonic
             part of the variance (the part that is not affected by the parent node).
-            Defaults are set to `-3.0` at all levels. This parameter is only required
-            for Gaussian Random Walk nodes.
+            Defaults are set to `-3.0`.
         continuous_precision :
             The expected precision of the continuous input node. Default to `1e4`. Only
             relevant if `model_type="continuous"`.
         binary_precision :
             The precision of the binary input node. Default to `jnp.inf`. Only relevant
             if `model_type="binary"`.
-        rho :
-            A dictionary containing the initial values for the :math:`\\rho` parameter
-            at different levels of the hierarchy. Rho represents the drift of the random
-            walk. This parameter is only required for Gaussian Random Walk nodes.
-            Defaults set all entries to `0.0` according to the number of required
-            levels.
+        tonic_drift :
+            A dictionary containing the initial values for the tonic drift
+            at different levels of the hierarchy. This represents the drift of the
+            random walk. Defaults set all entries to `0.0` (no drift).
         verbose :
             The verbosity of the methods for model creation and fitting. Defaults to
             `True`.
@@ -191,10 +188,14 @@ class HGF(object):
             self.add_value_parent(
                 children_idxs=[0],
                 value_coupling=1.0,
-                mu=initial_mu["1"],
-                pi=initial_pi["1"],
-                omega=omega["1"] if self.model_type != "binary" else jnp.nan,
-                rho=rho["1"] if self.model_type != "binary" else jnp.nan,
+                mean=initial_mean["1"],
+                precision=initial_precision["1"],
+                tonic_volatility=tonic_volatility["1"]
+                if self.model_type != "binary"
+                else jnp.nan,
+                tonic_drift=tonic_drift["1"]
+                if self.model_type != "binary"
+                else jnp.nan,
             )
 
             #########
@@ -203,20 +204,20 @@ class HGF(object):
             if model_type == "continuous":
                 self.add_volatility_parent(
                     children_idxs=[1],
-                    volatility_coupling=kappas["1"],
-                    mu=initial_mu["2"],
-                    pi=initial_pi["2"],
-                    omega=omega["2"],
-                    rho=rho["2"],
+                    volatility_coupling=volatility_coupling["1"],
+                    mean=initial_mean["2"],
+                    precision=initial_precision["2"],
+                    tonic_volatility=tonic_volatility["2"],
+                    tonic_drift=tonic_drift["2"],
                 )
             elif model_type == "binary":
                 self.add_value_parent(
                     children_idxs=[1],
                     value_coupling=1.0,
-                    mu=initial_mu["2"],
-                    pi=initial_pi["2"],
-                    omega=omega["2"],
-                    rho=rho["2"],
+                    mean=initial_mean["2"],
+                    precision=initial_precision["2"],
+                    tonic_volatility=tonic_volatility["2"],
+                    tonic_drift=tonic_drift["2"],
                 )
 
             #########
@@ -225,11 +226,11 @@ class HGF(object):
             if self.n_levels == 3:
                 self.add_volatility_parent(
                     children_idxs=[2],
-                    volatility_coupling=kappas["2"],
-                    mu=initial_mu["3"],
-                    pi=initial_pi["3"],
-                    omega=omega["3"],
-                    rho=rho["3"],
+                    volatility_coupling=volatility_coupling["2"],
+                    mean=initial_mean["3"],
+                    precision=initial_precision["3"],
+                    tonic_volatility=tonic_volatility["3"],
+                    tonic_drift=tonic_drift["3"],
                 )
 
             # initialize the model so it is ready to receive new observations
@@ -512,14 +513,14 @@ class HGF(object):
 
         if kind == "continuous":
             input_node_parameters = {
-                "kappas_parents": None,
-                "pihat": continuous_parameters["continuous_precision"],
+                "volatility_coupling_parents": None,
+                "expected_precision": continuous_parameters["continuous_precision"],
                 "time_step": jnp.nan,
                 "value": jnp.nan,
             }
         elif kind == "binary":
             input_node_parameters = {
-                "pihat": binary_parameters["binary_precision"],
+                "expected_precision": binary_parameters["binary_precision"],
                 "eta0": binary_parameters["eta0"],
                 "eta1": binary_parameters["eta1"],
                 "surprise": jnp.nan,
@@ -537,7 +538,7 @@ class HGF(object):
                     [1.0 / categorical_parameters["n_categories"]]
                     * categorical_parameters["n_categories"]
                 ),
-                "mu": jnp.array(
+                "mean": jnp.array(
                     [1.0 / categorical_parameters["n_categories"]]
                     * categorical_parameters["n_categories"]
                 ),
@@ -578,14 +579,14 @@ class HGF(object):
                         for i in range(categorical_parameters["n_categories"])
                     ],
                     "n_categories": categorical_parameters["n_categories"],
-                    "pi_1": 1.0,
-                    "pi_2": 1.0,
-                    "pi_3": 1.0,
-                    "mu_1": 0.0,
-                    "mu_2": -jnp.log(categorical_parameters["n_categories"] - 1),
-                    "mu_3": 0.0,
-                    "omega_2": -4.0,
-                    "omega_3": -4.0,
+                    "precision_1": 1.0,
+                    "precision_2": 1.0,
+                    "precision_3": 1.0,
+                    "mean_1": 0.0,
+                    "mean_2": -jnp.log(categorical_parameters["n_categories"] - 1),
+                    "mean_3": 0.0,
+                    "tonic_volatility_2": -4.0,
+                    "tonic_volatility_3": -4.0,
                 }
                 implied_binary_parameters.update(binary_parameters)
 
@@ -601,10 +602,10 @@ class HGF(object):
         self,
         children_idxs: Union[List, int],
         value_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
-        mu: Union[float, np.ndarray, ArrayLike] = 0.0,
-        pi: Union[float, np.ndarray, ArrayLike] = 1.0,
-        omega: Union[float, np.ndarray, ArrayLike] = -4.0,
-        rho: Union[float, np.ndarray, ArrayLike] = 0.0,
+        mean: Union[float, np.ndarray, ArrayLike] = 0.0,
+        precision: Union[float, np.ndarray, ArrayLike] = 1.0,
+        tonic_volatility: Union[float, np.ndarray, ArrayLike] = -4.0,
+        tonic_drift: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
     ):
         """Add a value parent to a given set of nodes.
@@ -616,16 +617,16 @@ class HGF(object):
         value_coupling :
             The value_coupling between the child and parent node. This is will be
             appended to the `psis` parameters in the parent and child node(s).
-        mu :
+        mean :
             The mean of the Gaussian distribution. This value is passed both to the
             current and expected states.
-        pi :
-            The precision of the Gaussian distribution (inverse variance). This
-            value is passed both to the current and expected states.
-        omega :
+        precision :
+            The precision of the Gaussian distribution (inverse variance). This value is
+            passed both to the current and expected states.
+        tonic_volatility :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
-        rho :
+        tonic_drift :
             The drift of the random walk. Defaults to `0.0` (no drift).
         additional_parameters :
             Add more custom parameters to the node.
@@ -640,16 +641,18 @@ class HGF(object):
 
         # parent's parameter
         node_parameters = {
-            "mu": mu,
-            "muhat": mu,
-            "pi": pi,
-            "pihat": pi,
-            "kappas_children": None,
-            "kappas_parents": None,
-            "psis_children": tuple(value_coupling for _ in range(len(children_idxs))),
-            "psis_parents": None,
-            "omega": omega,
-            "drift": rho,
+            "mean": mean,
+            "expected_mean": mean,
+            "precision": precision,
+            "expected_precision": precision,
+            "volatility_coupling_children": None,
+            "volatility_coupling_parents": None,
+            "value_coupling_children": tuple(
+                value_coupling for _ in range(len(children_idxs))
+            ),
+            "value_coupling_parents": None,
+            "tonic_volatility": tonic_volatility,
+            "tonic_drift": tonic_drift,
         }
 
         # add more parameters (optional)
@@ -677,7 +680,7 @@ class HGF(object):
                     edges_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.attributes[idx]["psis_parents"] += (value_coupling,)
+                self.attributes[idx]["value_coupling_parents"] += (value_coupling,)
             else:
                 # append new index
                 new_value_parents_idx = (parent_idx,)
@@ -688,7 +691,7 @@ class HGF(object):
                     edges_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.attributes[idx]["psis_parents"] = (value_coupling,)
+                self.attributes[idx]["value_coupling_parents"] = (value_coupling,)
 
         # convert the list back to a tuple
         self.edges = tuple(edges_as_list)
@@ -699,10 +702,10 @@ class HGF(object):
         self,
         children_idxs: Union[List, int],
         volatility_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
-        mu: Union[float, np.ndarray, ArrayLike] = 0.0,
-        pi: Union[float, np.ndarray, ArrayLike] = 1.0,
-        omega: Union[float, np.ndarray, ArrayLike] = -4.0,
-        rho: Union[float, np.ndarray, ArrayLike] = 0.0,
+        mean: Union[float, np.ndarray, ArrayLike] = 0.0,
+        precision: Union[float, np.ndarray, ArrayLike] = 1.0,
+        tonic_volatility: Union[float, np.ndarray, ArrayLike] = -4.0,
+        tonic_drift: Union[float, np.ndarray, ArrayLike] = 0.0,
         additional_parameters: Optional[Dict] = None,
     ):
         """Add a volatility parent to a given set of nodes.
@@ -714,16 +717,16 @@ class HGF(object):
         volatility_coupling :
             The volatility coupling between the child and parent node. This is will be
             appended to the `kappas` parameters in the parent and child node(s).
-        mu :
+        mean :
             The mean of the Gaussian distribution. This value is passed both to the
             current and expected states.
-        pi :
+        precision :
             The precision of the Gaussian distribution (inverse variance). This
             value is passed both to the current and expected states.
-        omega :
+        tonic_volatility :
             The tonic part of the variance (the variance that is not inherited from
             volatility parent(s)).
-        rho :
+        tonic_drift :
             The drift of the random walk. Defaults to `0.0` (no drift).
         additional_parameters :
             Add more custom parameters to the node.
@@ -738,18 +741,18 @@ class HGF(object):
 
         # parent's parameter
         node_parameters = {
-            "mu": mu,
-            "muhat": mu,
-            "pi": pi,
-            "pihat": pi,
-            "kappas_children": tuple(
+            "mean": mean,
+            "expected_mean": mean,
+            "precision": precision,
+            "expected_precision": precision,
+            "volatility_coupling_children": tuple(
                 volatility_coupling for _ in range(len(children_idxs))
             ),
-            "kappas_parents": None,
-            "psis_children": None,
-            "psis_parents": None,
-            "omega": omega,
-            "drift": rho,
+            "volatility_coupling_parents": None,
+            "value_coupling_children": None,
+            "value_coupling_parents": None,
+            "tonic_volatility": tonic_volatility,
+            "tonic_drift": tonic_drift,
         }
 
         # add more parameters (optional)
@@ -779,7 +782,9 @@ class HGF(object):
                     edges_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.attributes[idx]["kappas_parents"] += (volatility_coupling,)
+                self.attributes[idx]["volatility_coupling_parents"] += (
+                    volatility_coupling,
+                )
             else:
                 # append new index
                 new_volatility_parents_idx = (parent_idx,)
@@ -790,7 +795,9 @@ class HGF(object):
                     edges_as_list[idx].volatility_children,
                 )
                 # set the value coupling strength
-                self.attributes[idx]["kappas_parents"] = (volatility_coupling,)
+                self.attributes[idx]["volatility_coupling_parents"] = (
+                    volatility_coupling,
+                )
 
         # convert the list back to a tuple
         self.edges = tuple(edges_as_list)

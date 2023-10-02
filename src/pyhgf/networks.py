@@ -233,8 +233,8 @@ def fill_categorical_state_node(
         hgf.add_value_parent(
             children_idxs=implied_binary_parameters["binary_idxs"][i],
             value_coupling=1.0,
-            pi=implied_binary_parameters["pi_1"],
-            mu=implied_binary_parameters["mu_1"],
+            precision=implied_binary_parameters["precision_1"],
+            mean=implied_binary_parameters["mean_1"],
         )
 
     # add the continuous parent node
@@ -243,9 +243,9 @@ def fill_categorical_state_node(
             children_idxs=implied_binary_parameters["binary_idxs"][i]
             + implied_binary_parameters["n_categories"],
             value_coupling=1.0,
-            mu=implied_binary_parameters["mu_2"],
-            pi=implied_binary_parameters["pi_2"],
-            omega=implied_binary_parameters["omega_2"],
+            mean=implied_binary_parameters["mean_2"],
+            precision=implied_binary_parameters["precision_2"],
+            tonic_volatility=implied_binary_parameters["tonic_volatility_2"],
         )
 
     # add the higher level volatility parents
@@ -256,9 +256,9 @@ def fill_categorical_state_node(
             for idx in implied_binary_parameters["binary_idxs"]
         ],
         volatility_coupling=1.0,
-        mu=implied_binary_parameters["mu_3"],
-        pi=implied_binary_parameters["pi_3"],
-        omega=implied_binary_parameters["omega_3"],
+        mean=implied_binary_parameters["mean_3"],
+        precision=implied_binary_parameters["precision_3"],
+        tonic_volatility=implied_binary_parameters["tonic_volatility_3"],
     )
 
     return hgf
@@ -482,7 +482,7 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
             [
                 (f"x_{i}_{var}", hgf.node_trajectories[i][var])
                 for i in indexes
-                for var in ["mu", "pi", "muhat", "pihat"]
+                for var in ["mean", "precision", "expected_mean", "expected_precision"]
             ]
         )
     )
@@ -499,19 +499,19 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
         if i in continuous_parents_idxs:
             surprise = gaussian_surprise(
                 x=hgf.node_trajectories[0]["value"],
-                muhat=hgf.node_trajectories[i]["muhat"],
-                pihat=hgf.node_trajectories[i]["pihat"],
+                expected_mean=hgf.node_trajectories[i]["expected_mean"],
+                expected_precision=hgf.node_trajectories[i]["expected_precision"],
             )
         else:
             surprise = gaussian_surprise(
-                x=hgf.node_trajectories[i]["mu"],
-                muhat=hgf.node_trajectories[i]["muhat"],
-                pihat=hgf.node_trajectories[i]["pihat"],
+                x=hgf.node_trajectories[i]["mean"],
+                expected_mean=hgf.node_trajectories[i]["expected_mean"],
+                expected_precision=hgf.node_trajectories[i]["expected_precision"],
             )
 
         # fill with nans when the model cannot fit
         surprise = jnp.where(
-            jnp.isnan(hgf.node_trajectories[i]["mu"]), jnp.nan, surprise
+            jnp.isnan(hgf.node_trajectories[i]["mean"]), jnp.nan, surprise
         )
         structure_df[f"x_{i}_surprise"] = surprise
 

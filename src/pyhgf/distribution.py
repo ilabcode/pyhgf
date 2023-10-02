@@ -14,24 +14,24 @@ from pyhgf.model import HGF
 
 
 def hgf_logp(
-    omega_1: Union[np.ndarray, ArrayLike, float] = -3.0,
-    omega_2: Union[np.ndarray, ArrayLike, float] = -3.0,
-    omega_3: Union[np.ndarray, ArrayLike, float] = -3.0,
+    tonic_volatility_1: Union[np.ndarray, ArrayLike, float] = -3.0,
+    tonic_volatility_2: Union[np.ndarray, ArrayLike, float] = -3.0,
+    tonic_volatility_3: Union[np.ndarray, ArrayLike, float] = -3.0,
     continuous_precision: Union[np.ndarray, ArrayLike, float] = 1e4,
     binary_precision: Union[np.ndarray, ArrayLike, float] = np.inf,
-    rho_1: Union[np.ndarray, ArrayLike, float] = 0.0,
-    rho_2: Union[np.ndarray, ArrayLike, float] = 0.0,
-    rho_3: Union[np.ndarray, ArrayLike, float] = 0.0,
-    pi_1: Union[np.ndarray, ArrayLike, float] = 1.0,
-    pi_2: Union[np.ndarray, ArrayLike, float] = 1.0,
-    pi_3: Union[np.ndarray, ArrayLike, float] = 1.0,
-    mu_1: Union[np.ndarray, ArrayLike, float] = 0.0,
-    mu_2: Union[np.ndarray, ArrayLike, float] = 0.0,
-    mu_3: Union[np.ndarray, ArrayLike, float] = 0.0,
-    kappa_1: Union[np.ndarray, ArrayLike, float] = 1.0,
-    kappa_2: Union[np.ndarray, ArrayLike, float] = 1.0,
+    tonic_drift_1: Union[np.ndarray, ArrayLike, float] = 0.0,
+    tonic_drift_2: Union[np.ndarray, ArrayLike, float] = 0.0,
+    tonic_drift_3: Union[np.ndarray, ArrayLike, float] = 0.0,
+    precision_1: Union[np.ndarray, ArrayLike, float] = 1.0,
+    precision_2: Union[np.ndarray, ArrayLike, float] = 1.0,
+    precision_3: Union[np.ndarray, ArrayLike, float] = 1.0,
+    mean_1: Union[np.ndarray, ArrayLike, float] = 0.0,
+    mean_2: Union[np.ndarray, ArrayLike, float] = 0.0,
+    mean_3: Union[np.ndarray, ArrayLike, float] = 0.0,
+    volatility_coupling_1: Union[np.ndarray, ArrayLike, float] = 1.0,
+    volatility_coupling_2: Union[np.ndarray, ArrayLike, float] = 1.0,
     input_data: List[np.ndarray] = [np.nan],
-    response_function: Optional[Callable] = None,
+    response_function: Callable = None,
     model_type: str = "continuous",
     n_levels: int = 2,
     response_function_parameters: List[Tuple] = [()],
@@ -55,89 +55,81 @@ def hgf_logp(
 
     Parameters
     ----------
-    omega_1 :
-        The :math:`\omega_1` parameter, or *evolution rate*, at the first level of the
-        HGF. This parameter represents the tonic part of the variance (the part that is
-        not inherited from parents nodes). Defaults to `-3.0`.
-    omega_2 :
-        The :math:`\omega_1` parameter, or *evolution rate*, at the second level of the
-        HGF. This parameter represents the tonic part of the variance (the part that is
-        not inherited from parents nodes). Defaults to `-3.0`.
-    omega_3 :
-        The :math:`\omega_3` parameter, or *evolution rate*, at the third level of the
-        HGF. This parameter represents the tonic part of the variance (the part that is
-        not inherited from parents nodes). The value of this parameter will be ignored
-        when using a two-level HGF (`n_levels=2`). Defaults to `-3.0`.
+    tonic_volatility_1 :
+        The tonic volatility at the first level of the HGF. This parameter represents
+        the tonic part of the variance (the part that is not inherited from parents
+        nodes).
+    tonic_volatility_2 :
+        The tonic volatility at the second level of the HGF. This parameter represents
+        the tonic part of the variance (the part that is not inherited from parents
+        nodes).
+    tonic_volatility_3 :
+        The tonic volatility at the third level of the HGF. This parameter represents
+        the tonic part of the variance (the part that is not inherited from parents
+        nodes). The value of this parameter will be ignored when using a two-level HGF
+        (`n_levels=2`).
     continuous_precision :
-        The expected precision associated with the continuous input. Defaults to `1e4`.
+        The expected precision associated with the continuous input.
     binary_precision :
-        The expected precision associated with the binary input. Defaults to np.inf`.
-    rho_1 :
-        The :math:`\rho_1` parameter at the first level of the HGF. This parameter
-        represents the drift of the random walk. Defaults to `0.0`.
-    rho_2 :
-        The :math:`\rho_2` parameter at the second level of the HGF. This parameter
-        represents the drift of the random walk. Defaults to `0.0`.
-    rho_3 :
-        The :math:`\rho_3` parameter at the first level of the HGF. This parameter
-        represents the drift of the random walk. The value of this parameter will be
-        ignored when using a two-level HGF (`n_levels=2`). Defaults to `0.0`.
-    pi_1 :
-        The :math:`\pi_1` parameter, or *precision*, at the first level of the HGF.
-        Defaults to `1.0`.
-    pi_2 :
-        The :math:`\pi_2` parameter, or *precision*, at the second level of the HGF.
-        Defaults to `1.0`.
-    pi_3 :
-        The :math:`\pi_3` parameter, or *precision*, at the third level of the HGF. The
-        value of this parameter will be ignored when using a two-level HGF
-        (`n_levels=2`). Defaults to `1.0`.
-    mu_1 :
-        The :math:`\mu_1` parameter, or *mean*, at the first level of the HGF. Defaults
-        to `0.0`.
-    mu_2 :
-        The :math:`\mu_2` parameter, or *mean*, at the second level of the HGF. Defaults
-        to `0.0`.
-    mu_3 :
-        The :math:`\mu_3` parameter, or *mean*, at the third level of the HGF. The value
-        of this parameter will be ignored when using a two-level HGF (`n_levels=2`).
-        Defaults to `0.0`.
-    kappa_1 :
-        The value of the :math:`\kappa_1` parameter at the first level of the HGF. Kappa
+        The expected precision associated with the binary input.
+    tonic_drift_1 :
+        The tonic drift at the first level of the HGF. This parameter represents the
+        drift of the random walk.
+    tonic_drift_2 :
+        The tonic drift at the second level of the HGF. This parameter represents the
+        drift of the random walk.
+    tonic_drift_3 :
+        The tonic drift at the first level of the HGF. This parameter represents the
+        drift of the random walk. The value of this parameter will be ignored when
+        using a two-level HGF (`n_levels=2`).
+    precision_1 :
+        The precision at the first level of the HGF.
+    precision_2 :
+        The precision at the second level of the HGF.
+    precision_3 :
+        The precision at the third level of the HGF. The value of this parameter will
+        be ignored when using a two-level HGF (`n_levels=2`).
+    mean_1 :
+        The mean at the first level of the HGF.
+    mean_2 :
+        The mean at the second level of the HGF.
+    mean_3 :
+        The mean at the third level of the HGF. The value of this parameter will be
+        ignored when using a two-level HGF (`n_levels=2`).
+    volatility_coupling_1 :
+        The volatility coupling between the first and second level of the HGF. This
         represents the phasic part of the variance (the part that is affected by the
-        parent nodes) and will define the strength of the connection between the node
-        and the parent node. Defaults to `1.0`.
-    kappa_2 :
-        The value of the :math:`\kappa_2` parameter at the second level of the HGF.
-        Kappa represents the phasic part of the variance (the part that is affected by
-        the parent nodes) and will define the strength of the connection between the
-        node and the parent node. The value of this parameter will be ignored when
-        using a two-level HGF (`n_levels=2`). Defaults to `1.0`.
+        parent nodes). Defaults to `1.0`.
+    volatility_coupling_2 :
+        The volatility coupling between the second and third level of the HGF. This
+        represents the phasic part of the variance (the part that is affected by the
+        parent nodes). Defaults to `1.0`. The value of this parameter will be
+        ignored when using a two-level HGF (`n_levels=2`).
     input_data :
         List of input data. When `n` models should be fitted, the list contains `n` 1d
-        Numpy arrays.
+        Numpy arrays. By default, the associated time vector is the integers vector
+        starting at `0`. A different time vector can be passed to the `time` argument.
     response_function :
         The response function to use to compute the model surprise.
     model_type :
-        The model type to use (can be "continuous" or "binary"). Defaults to
-        `"continuous"`.
+        The model type to use (can be "continuous" or "binary").
     n_levels :
-        The number of hierarchies in the perceptual model (can be `2` or `3`). Defaults
-        to `2`.
+        The number of hierarchies in the perceptual model (can be `2` or `3`). If
+        `None`, the nodes hierarchy is not created and might be provided afterwards
+        using :py:meth:`pyhgf.model.HGF.add_nodes`.
     response_function_parameters :
         A list of tuples with the same length as the number of models. Each tuple
         contains additional data and parameters that can be accessible to the response
         functions.
     time_steps :
         List of 1d Numpy arrays containing the time vectors for each input time series.
-        If one of the list items is `None`, or if `None` is provided instead. By default
-        all time steps are set to `1.0`.
+        If one of the list items is `None`, or if `None` is provided instead, the time
+        vector will default to the unit vector.
 
     Returns
     -------
     log_prob :
-        The log probability of the HGF model (or negative surprise) given by the
-        response function.
+        The sum of the log probabilities (or negative surprise).
 
     """
     # number of models
@@ -145,40 +137,40 @@ def hgf_logp(
 
     # Broadcast inputs to an array with length n>=1
     (
-        _omega_1,
-        _omega_2,
-        _omega_3,
+        _tonic_volatility_1,
+        _tonic_volatility_2,
+        _tonic_volatility_3,
         _continuous_precision,
         _binary_precision,
-        _rho_1,
-        _rho_2,
-        _rho_3,
-        _pi_1,
-        _pi_2,
-        _pi_3,
-        _mu_1,
-        _mu_2,
-        _mu_3,
-        _kappa_1,
-        _kappa_2,
+        _tonic_drift_1,
+        _tonic_drift_2,
+        _tonic_drift_3,
+        _precision_1,
+        _precision_2,
+        _precision_3,
+        _mean_1,
+        _mean_2,
+        _mean_3,
+        _volatility_coupling_1,
+        _volatility_coupling_2,
         _,
     ) = jnp.broadcast_arrays(
-        omega_1,
-        omega_2,
-        omega_3,
+        tonic_volatility_1,
+        tonic_volatility_2,
+        tonic_volatility_3,
         continuous_precision,
         binary_precision,
-        rho_1,
-        rho_2,
-        rho_3,
-        pi_1,
-        pi_2,
-        pi_3,
-        mu_1,
-        mu_2,
-        mu_3,
-        kappa_1,
-        kappa_2,
+        tonic_drift_1,
+        tonic_drift_2,
+        tonic_drift_3,
+        precision_1,
+        precision_2,
+        precision_3,
+        mean_1,
+        mean_2,
+        mean_3,
+        volatility_coupling_1,
+        volatility_coupling_2,
         jnp.zeros(n),
     )
 
@@ -197,33 +189,40 @@ def hgf_logp(
     # Fitting n HGF models to the n datasets
     for i in range(n):
         # Format HGF parameters
-        initial_mu: Dict = {
-            "1": _mu_1[i],
-            "2": _mu_2[i],
-            "3": _mu_3[i],
+        initial_mean: Dict = {
+            "1": _mean_1[i],
+            "2": _mean_2[i],
+            "3": _mean_3[i],
         }
-        initial_pi: Dict = {
-            "1": _pi_1[i],
-            "2": _pi_2[i],
-            "3": _pi_3[i],
+        initial_precision: Dict = {
+            "1": _precision_1[i],
+            "2": _precision_2[i],
+            "3": _precision_3[i],
         }
-        omega: Dict = {
-            "1": _omega_1[i],
-            "2": _omega_2[i],
-            "3": _omega_3[i],
+        tonic_volatility: Dict = {
+            "1": _tonic_volatility_1[i],
+            "2": _tonic_volatility_2[i],
+            "3": _tonic_volatility_3[i],
         }
-        rho: Dict = {"1": _rho_1[i], "2": _rho_2[i], "3": _rho_3[i]}
-        kappas: Dict = {"1": _kappa_1[i], "2": _kappa_2[i]}
+        tonic_drift: Dict = {
+            "1": _tonic_drift_1[i],
+            "2": _tonic_drift_2[i],
+            "3": _tonic_drift_3[i],
+        }
+        volatility_coupling: Dict = {
+            "1": _volatility_coupling_1[i],
+            "2": _volatility_coupling_2[i],
+        }
 
         surprise = surprise + (
             HGF(
-                initial_mu=initial_mu,
-                initial_pi=initial_pi,
-                omega=omega,
+                initial_mean=initial_mean,
+                initial_precision=initial_precision,
+                tonic_volatility=tonic_volatility,
                 continuous_precision=_continuous_precision[i],
                 binary_precision=_binary_precision[i],
-                rho=rho,
-                kappas=kappas,
+                tonic_drift=tonic_drift,
+                volatility_coupling=volatility_coupling,
                 model_type=model_type,
                 n_levels=n_levels,
                 eta0=0.0,
@@ -263,15 +262,17 @@ class HGFLogpGradOp(Op):
             vector. A different time vector can be passed to the `time_steps` argument.
         time_steps :
             List of 1d Numpy arrays containing the time_steps vectors for each input
-            time series. By defaults, all time steps are set to `1.0`
+            time series. If one of the list items is `None`, or if `None` is provided
+            instead, the time_steps vector will default to an integers vector starting
+            at 0.
         model_type :
-            The model type to use (can be "continuous" or "binary"). Defaults to
-            `"continuous"`.
+            The model type to use (can be "continuous" or "binary").
         n_levels :
-            The number of hierarchies in the perceptual model (can be `2` or `3`).
-            Defaults to `2`.
+            The number of hierarchies in the perceptual model (can be `2` or `3`). If
+            `None`, the nodes hierarchy is not created and might be provided afterward
+            using `add_nodes()`.
         response_function :
-            The response function to use to compute the model's surprise.
+            The response function to use to compute the model surprise.
         response_function_parameters :
             A list of tuples with the same length as the number of models. Each tuple
             contains additional data and parameters that can be accessible to the
@@ -295,42 +296,42 @@ class HGFLogpGradOp(Op):
 
     def make_node(
         self,
-        omega_1=np.array(-3.0),
-        omega_2=np.array(-3.0),
-        omega_3=np.array(-0.0),
+        tonic_volatility_1=np.array(-3.0),
+        tonic_volatility_2=np.array(-3.0),
+        tonic_volatility_3=np.array(0.0),
         continuous_precision=np.array(1e4),
         binary_precision=np.inf,
-        rho_1=np.array(0.0),
-        rho_2=np.array(0.0),
-        rho_3=np.array(0.0),
-        pi_1=np.array(1.0),
-        pi_2=np.array(1.0),
-        pi_3=np.array(1.0),
-        mu_1=np.array(0.0),
-        mu_2=np.array(0.0),
-        mu_3=np.array(0.0),
-        kappa_1=np.array(1.0),
-        kappa_2=np.array(1.0),
+        tonic_drift_1=np.array(0.0),
+        tonic_drift_2=np.array(0.0),
+        tonic_drift_3=np.array(0.0),
+        precision_1=np.array(1e4),
+        precision_2=np.array(1e1),
+        precision_3=np.array(0.0),
+        mean_1=np.array(0.0),
+        mean_2=np.array(0.0),
+        mean_3=np.array(0.0),
+        volatility_coupling_1=np.array(1.0),
+        volatility_coupling_2=np.array(0.0),
     ):
         """Initialize node structure."""
         # Convert our inputs to symbolic variables
         inputs = [
-            pt.as_tensor_variable(omega_1),
-            pt.as_tensor_variable(omega_2),
-            pt.as_tensor_variable(omega_3),
+            pt.as_tensor_variable(tonic_volatility_1),
+            pt.as_tensor_variable(tonic_volatility_2),
+            pt.as_tensor_variable(tonic_volatility_3),
             pt.as_tensor_variable(continuous_precision),
             pt.as_tensor_variable(binary_precision),
-            pt.as_tensor_variable(rho_1),
-            pt.as_tensor_variable(rho_2),
-            pt.as_tensor_variable(rho_3),
-            pt.as_tensor_variable(pi_1),
-            pt.as_tensor_variable(pi_2),
-            pt.as_tensor_variable(pi_3),
-            pt.as_tensor_variable(mu_1),
-            pt.as_tensor_variable(mu_2),
-            pt.as_tensor_variable(mu_3),
-            pt.as_tensor_variable(kappa_1),
-            pt.as_tensor_variable(kappa_2),
+            pt.as_tensor_variable(tonic_drift_1),
+            pt.as_tensor_variable(tonic_drift_2),
+            pt.as_tensor_variable(tonic_drift_3),
+            pt.as_tensor_variable(precision_1),
+            pt.as_tensor_variable(precision_2),
+            pt.as_tensor_variable(precision_3),
+            pt.as_tensor_variable(mean_1),
+            pt.as_tensor_variable(mean_2),
+            pt.as_tensor_variable(mean_3),
+            pt.as_tensor_variable(volatility_coupling_1),
+            pt.as_tensor_variable(volatility_coupling_2),
         ]
         # This `Op` will return one gradient per input. For simplicity, we assume
         # each output is of the same type as the input. In practice, you should use
@@ -342,42 +343,46 @@ class HGFLogpGradOp(Op):
     def perform(self, node, inputs, outputs):
         """Perform node operations."""
         (
-            grad_omega_1,
-            grad_omega_2,
-            grad_omega_3,
+            grad_tonic_volatility_1,
+            grad_tonic_volatility_2,
+            grad_tonic_volatility_3,
             grad_continuous_precision,
             grad_binary_precision,
-            grad_rho_1,
-            grad_rho_2,
-            grad_rho_3,
-            grad_pi_1,
-            grad_pi_2,
-            grad_pi_3,
-            grad_mu_1,
-            grad_mu_2,
-            grad_mu_3,
-            grad_kappa_1,
-            grad_kappa_2,
+            grad_tonic_drift_1,
+            grad_tonic_drift_2,
+            grad_tonic_drift_3,
+            grad_precision_1,
+            grad_precision_2,
+            grad_precision_3,
+            grad_mean_1,
+            grad_mean_2,
+            grad_mean_3,
+            grad_volatility_coupling_1,
+            grad_volatility_coupling_2,
         ) = self.grad_logp(*inputs)
 
-        outputs[0][0] = np.asarray(grad_omega_1, dtype=node.outputs[0].dtype)
-        outputs[1][0] = np.asarray(grad_omega_2, dtype=node.outputs[1].dtype)
-        outputs[2][0] = np.asarray(grad_omega_3, dtype=node.outputs[2].dtype)
+        outputs[0][0] = np.asarray(grad_tonic_volatility_1, dtype=node.outputs[0].dtype)
+        outputs[1][0] = np.asarray(grad_tonic_volatility_2, dtype=node.outputs[1].dtype)
+        outputs[2][0] = np.asarray(grad_tonic_volatility_3, dtype=node.outputs[2].dtype)
         outputs[3][0] = np.asarray(
             grad_continuous_precision, dtype=node.outputs[3].dtype
         )
         outputs[4][0] = np.asarray(grad_binary_precision, dtype=node.outputs[4].dtype)
-        outputs[5][0] = np.asarray(grad_rho_1, dtype=node.outputs[5].dtype)
-        outputs[6][0] = np.asarray(grad_rho_2, dtype=node.outputs[6].dtype)
-        outputs[7][0] = np.asarray(grad_rho_3, dtype=node.outputs[7].dtype)
-        outputs[8][0] = np.asarray(grad_pi_1, dtype=node.outputs[8].dtype)
-        outputs[9][0] = np.asarray(grad_pi_2, dtype=node.outputs[9].dtype)
-        outputs[10][0] = np.asarray(grad_pi_3, dtype=node.outputs[10].dtype)
-        outputs[11][0] = np.asarray(grad_mu_1, dtype=node.outputs[11].dtype)
-        outputs[12][0] = np.asarray(grad_mu_2, dtype=node.outputs[12].dtype)
-        outputs[13][0] = np.asarray(grad_mu_3, dtype=node.outputs[13].dtype)
-        outputs[14][0] = np.asarray(grad_kappa_1, dtype=node.outputs[14].dtype)
-        outputs[15][0] = np.asarray(grad_kappa_2, dtype=node.outputs[15].dtype)
+        outputs[5][0] = np.asarray(grad_tonic_drift_1, dtype=node.outputs[5].dtype)
+        outputs[6][0] = np.asarray(grad_tonic_drift_2, dtype=node.outputs[6].dtype)
+        outputs[7][0] = np.asarray(grad_tonic_drift_3, dtype=node.outputs[7].dtype)
+        outputs[8][0] = np.asarray(grad_precision_1, dtype=node.outputs[8].dtype)
+        outputs[9][0] = np.asarray(grad_precision_2, dtype=node.outputs[9].dtype)
+        outputs[10][0] = np.asarray(grad_precision_3, dtype=node.outputs[10].dtype)
+        outputs[11][0] = np.asarray(grad_mean_1, dtype=node.outputs[11].dtype)
+        outputs[12][0] = np.asarray(grad_mean_2, dtype=node.outputs[12].dtype)
+        outputs[13][0] = np.asarray(grad_mean_3, dtype=node.outputs[13].dtype)
+        outputs[14][0] = np.asarray(
+            grad_volatility_coupling_1, dtype=node.outputs[14].dtype
+        )
+        outputs[15][0] = np.asarray(
+            grad_volatility_coupling_2, dtype=node.outputs[15].dtype
+        )
 
 
 class HGFDistribution(Op):
@@ -419,17 +424,10 @@ class HGFDistribution(Op):
     >>>     pm.Potential(
     >>>         "hhgf_loglike",
     >>>         hgf_logp_op(
-    >>>             omega_1=0.0,
-    >>>             omega_2=ω_2,
-    >>>             continuous_input=np.array(1e4),
-    >>>             binary_input=np.nan,
-    >>>             rho_1=0.0,
-    >>>             rho_2=0.0,
-    >>>             pi_1=1e4,
-    >>>             pi_2=1e1,
-    >>>             mu_1=timeserie[0],
-    >>>             mu_2=0.0,
-    >>>             kappa_1=1.0,
+    >>>             tonic_volatility_2=ω_2,
+    >>>             precision_1=1e4,
+    >>>             precision_2=1e1,
+    >>>             mean_1=timeserie[0],
     >>>         ),
     >>>     )
 
@@ -462,16 +460,19 @@ class HGFDistribution(Op):
         ----------
         input_data :
             List of input data. When `n` models should be fitted, the list contains `n`
-            1d Numpy arrays.
+            1d Numpy arrays. By default, the associated time vector is the unit
+            vector starting at `0`. A different time_steps vector can be passed to
+            the `time_steps` argument.
         time_steps :
             List of 1d Numpy arrays containing the time_steps vectors for each input
-            time series. By default, all time steps are set to `1.0`.
+            time series. If one of the list items is `None`, or if `None` is provided
+            instead, the time vector will default to an integers vector starting at 0.
         model_type :
-            The model type to use (can be "continuous" or "binary"). Defaults to
-            `"continuous"`.
+            The model type to use (can be "continuous" or "binary").
         n_levels :
-            The number of hierarchies in the perceptual model (can be `2` or `3`).
-            Defaults to `2`.
+            The number of hierarchies in the perceptual model (can be `2` or `3`). If
+            `None`, the nodes hierarchy is not created and might be provided afterwards
+            using `add_nodes()`.
         response_function :
             The response function to use to compute the model surprise.
         response_function_parameters :
@@ -505,41 +506,41 @@ class HGFDistribution(Op):
 
     def make_node(
         self,
-        omega_1=np.array(-3.0),
-        omega_2=np.array(-3.0),
-        omega_3=np.array(-0.0),
+        tonic_volatility_1=np.array(-3.0),
+        tonic_volatility_2=np.array(-3.0),
+        tonic_volatility_3=np.array(-3.0),
         continuous_precision=np.array(1e4),
         binary_precision=np.inf,
-        rho_1=np.array(0.0),
-        rho_2=np.array(0.0),
-        rho_3=np.array(0.0),
-        pi_1=np.array(1.0),
-        pi_2=np.array(1.0),
-        pi_3=np.array(1.0),
-        mu_1=np.array(0.0),
-        mu_2=np.array(0.0),
-        mu_3=np.array(0.0),
-        kappa_1=np.array(1.0),
-        kappa_2=np.array(1.0),
+        tonic_drift_1=np.array(0.0),
+        tonic_drift_2=np.array(0.0),
+        tonic_drift_3=np.array(0.0),
+        precision_1=np.array(1.0),
+        precision_2=np.array(1.0),
+        precision_3=np.array(1.0),
+        mean_1=np.array(0.0),
+        mean_2=np.array(0.0),
+        mean_3=np.array(0.0),
+        volatility_coupling_1=np.array(1.0),
+        volatility_coupling_2=np.array(1.0),
     ):
         """Convert inputs to symbolic variables."""
         inputs = [
-            pt.as_tensor_variable(omega_1),
-            pt.as_tensor_variable(omega_2),
-            pt.as_tensor_variable(omega_3),
+            pt.as_tensor_variable(tonic_volatility_1),
+            pt.as_tensor_variable(tonic_volatility_2),
+            pt.as_tensor_variable(tonic_volatility_3),
             pt.as_tensor_variable(continuous_precision),
             pt.as_tensor_variable(binary_precision),
-            pt.as_tensor_variable(rho_1),
-            pt.as_tensor_variable(rho_2),
-            pt.as_tensor_variable(rho_3),
-            pt.as_tensor_variable(pi_1),
-            pt.as_tensor_variable(pi_2),
-            pt.as_tensor_variable(pi_3),
-            pt.as_tensor_variable(mu_1),
-            pt.as_tensor_variable(mu_2),
-            pt.as_tensor_variable(mu_3),
-            pt.as_tensor_variable(kappa_1),
-            pt.as_tensor_variable(kappa_2),
+            pt.as_tensor_variable(tonic_drift_1),
+            pt.as_tensor_variable(tonic_drift_2),
+            pt.as_tensor_variable(tonic_drift_3),
+            pt.as_tensor_variable(precision_1),
+            pt.as_tensor_variable(precision_2),
+            pt.as_tensor_variable(precision_3),
+            pt.as_tensor_variable(mean_1),
+            pt.as_tensor_variable(mean_2),
+            pt.as_tensor_variable(mean_3),
+            pt.as_tensor_variable(volatility_coupling_1),
+            pt.as_tensor_variable(volatility_coupling_2),
         ]
         # Define the type of output returned by the wrapped JAX function
         outputs = [pt.dscalar()]
@@ -553,42 +554,42 @@ class HGFDistribution(Op):
     def grad(self, inputs, output_gradients):
         """Gradient of the function."""
         (
-            grad_omega_1,
-            grad_omega_2,
-            grad_omega_3,
+            grad_tonic_volatility_1,
+            grad_tonic_volatility_2,
+            grad_tonic_volatility_3,
             grad_continuous_precision,
             grad_binary_precision,
-            grad_rho_1,
-            grad_rho_2,
-            grad_rho_3,
-            grad_pi_1,
-            grad_pi_2,
-            grad_pi_3,
-            grad_mu_1,
-            grad_mu_2,
-            grad_mu_3,
-            grad_kappa_1,
-            grad_kappa_2,
+            grad_tonic_drift_1,
+            grad_tonic_drift_2,
+            grad_tonic_drift_3,
+            grad_precision_1,
+            grad_precision_2,
+            grad_precision_3,
+            grad_mean_1,
+            grad_mean_2,
+            grad_mean_3,
+            grad_volatility_coupling_1,
+            grad_volatility_coupling_2,
         ) = self.hgf_logp_grad_op(*inputs)
         # If there are inputs for which the gradients will never be needed or cannot
         # be computed, `pytensor.gradient.grad_not_implemented` should  be used as the
         # output gradient for that input.
         output_gradient = output_gradients[0]
         return [
-            output_gradient * grad_omega_1,
-            output_gradient * grad_omega_2,
-            output_gradient * grad_omega_3,
+            output_gradient * grad_tonic_volatility_1,
+            output_gradient * grad_tonic_volatility_2,
+            output_gradient * grad_tonic_volatility_3,
             output_gradient * grad_continuous_precision,
             output_gradient * grad_binary_precision,
-            output_gradient * grad_rho_1,
-            output_gradient * grad_rho_2,
-            output_gradient * grad_rho_3,
-            output_gradient * grad_pi_1,
-            output_gradient * grad_pi_2,
-            output_gradient * grad_pi_3,
-            output_gradient * grad_mu_1,
-            output_gradient * grad_mu_2,
-            output_gradient * grad_mu_3,
-            output_gradient * grad_kappa_1,
-            output_gradient * grad_kappa_2,
+            output_gradient * grad_tonic_drift_1,
+            output_gradient * grad_tonic_drift_2,
+            output_gradient * grad_tonic_drift_3,
+            output_gradient * grad_precision_1,
+            output_gradient * grad_precision_2,
+            output_gradient * grad_precision_3,
+            output_gradient * grad_mean_1,
+            output_gradient * grad_mean_2,
+            output_gradient * grad_mean_3,
+            output_gradient * grad_volatility_coupling_1,
+            output_gradient * grad_volatility_coupling_2,
         ]

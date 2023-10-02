@@ -98,11 +98,11 @@ with pm.Model() as model:
     
     # Priors
     # ------
-    omega_1 = pm.Normal("omega_1", mu=0.0, sigma=2.0, shape=n_data)
+    tonic_volatility_1 = pm.Normal("omega_1", mu=0.0, sigma=2.0, shape=n_data)
 
     # The multi-HGF distribution
     # --------------------------
-    pm.Potential("hgf_loglike", hgf_logp_op(omega_1=omega_1, omega_2=-10.0))
+    pm.Potential("hgf_loglike", hgf_logp_op(tonic_volatility_1=tonic_volatility_1, tonic_volatility_2=-10.0))
 ```
 
 ```{code-cell} ipython3
