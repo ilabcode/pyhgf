@@ -34,6 +34,12 @@ class HGF(object):
         network only has one input node.
     model_type :
         The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
+    update_type :
+        The type of update to perform for volatility coupling. Can be `"eHGF"`
+        (defaults) or `"standard"`. The eHGF update step was proposed as an alternative
+        to the original definition in that it starts by updating the mean and then the
+        precision of the parent node, which generally reduces the errors associated with
+        impossible parameter space and improves sampling.
     n_levels :
         The number of hierarchies in the model, including the input vector. Cannot be
         less than 2.
@@ -59,6 +65,7 @@ class HGF(object):
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
+        update_type: str = "eHGF",
         initial_mean: Dict = {
             "1": 0.0,
             "2": 0.0,
@@ -135,6 +142,7 @@ class HGF(object):
 
         """
         self.model_type = model_type
+        self.update_type = update_type
         self.verbose = verbose
         self.n_levels = n_levels
         self.edges: Edges

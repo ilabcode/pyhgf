@@ -53,7 +53,7 @@ class TestDistribution(TestCase):
             volatility_coupling_1=1.0,
             volatility_coupling_2=jnp.nan,
         )
-        assert jnp.isclose(logp, 1194.0072)
+        assert jnp.isclose(logp, 1130.5503)
 
         ##############
         # Binary HGF #
@@ -149,7 +149,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
         )
 
-        assert jnp.isclose(tonic_volatility_1, -7.9176354)
+        assert jnp.isclose(tonic_volatility_1, -8.440489)
 
         ##############
         # Binary HGF #
@@ -247,7 +247,7 @@ class TestDistribution(TestCase):
             volatility_coupling_2=np.array(0.0),
         ).eval()
 
-        assert jnp.isclose(logp, 1194.00720215)
+        assert jnp.isclose(logp, 1130.55029297)
 
         ##############
         # Binary HGF #
@@ -317,7 +317,7 @@ class TestDistribution(TestCase):
             volatility_coupling_1=1.0,
         )[0].eval()
 
-        assert jnp.isclose(tonic_volatility_1, -7.9176354)
+        assert jnp.isclose(tonic_volatility_1, -8.440489)
 
         ##############
         # Binary HGF #
@@ -382,7 +382,7 @@ class TestDistribution(TestCase):
 
         pointslogs = model.point_logps(initial_point)
         assert pointslogs["tonic_volatility_2"] == -1.39
-        assert pointslogs["hhgf_loglike"] == 1491.58
+        assert pointslogs["hhgf_loglike"] == 1442.85
 
         with model:
             idata = pm.sample(chains=2, cores=1, tune=1000)
