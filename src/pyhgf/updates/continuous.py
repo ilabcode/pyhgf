@@ -190,26 +190,18 @@ def ehgf_continuous_node_prediction_error(
             # if this child is the last one relative to this parent's family, all the
             # children will update the parent at once, otherwise just pass and wait
             if edges[value_parent_idx].value_children[-1] == node_idx:
-                # in the eHGF update step, we use the expected precision here
-                # as we haven't computed it yet due to the reverse update order
-                precision_value_parent = attributes[value_parent_idx][
-                    "expected_precision"
-                ]
-
-                # Estimate the mean of the posterior distribution
-                mean_value_parent = prediction_error_mean_value_parent(
-                    attributes, edges, value_parent_idx, precision_value_parent
-                )
-                # Update this parent's parameters
-                attributes[value_parent_idx]["mean"] = mean_value_parent
-
                 # Estimate the precision of the posterior distribution
                 precision_value_parent = prediction_error_precision_value_parent(
                     attributes, edges, value_parent_idx
                 )
+                # Estimate the mean of the posterior distribution
+                mean_value_parent = prediction_error_mean_value_parent(
+                    attributes, edges, value_parent_idx, precision_value_parent
+                )
 
                 # Update this parent's parameters
                 attributes[value_parent_idx]["precision"] = precision_value_parent
+                attributes[value_parent_idx]["mean"] = mean_value_parent
 
     #############################
     # Update volatility parents #
