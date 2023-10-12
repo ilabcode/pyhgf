@@ -553,7 +553,7 @@ class HGF(object):
 
             if input_idx in self.attributes.keys():
                 raise Exception(
-                    f'A node with index {input_idx} already exists in the HGF network.'
+                    f"A node with index {input_idx} already exists in the HGF network."
                 )
 
             if input_idx == 0:
@@ -648,7 +648,7 @@ class HGF(object):
 
         if parent_idx in self.attributes.keys():
             raise Exception(
-                f'A node with index {parent_idx} already exists in the HGF network.'
+                f"A node with index {parent_idx} already exists in the HGF network."
             )
 
         # parent's parameter
@@ -753,7 +753,7 @@ class HGF(object):
 
         if parent_idx in self.attributes.keys():
             raise Exception(
-                f'A node with index {parent_idx} already exists in the HGF network.'
+                f"A node with index {parent_idx} already exists in the HGF network."
             )
 
         # parent's parameter
