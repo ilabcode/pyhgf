@@ -145,9 +145,9 @@ class HGF(object):
         self.update_type = update_type
         self.verbose = verbose
         self.n_levels = n_levels
-        self.edges: Edges
+        self.edges: Edges = ()
         self.node_trajectories: Dict
-        self.attributes: Dict
+        self.attributes: Dict = {}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
 
