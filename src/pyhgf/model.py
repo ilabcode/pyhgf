@@ -550,7 +550,6 @@ class HGF(object):
             input_node_parameters = {**input_node_parameters, **additional_parameters}
 
         for input_idx in input_idxs:
-
             if input_idx in self.attributes.keys():
                 raise Exception(
                     f"A node with index {input_idx} already exists in the HGF network."
