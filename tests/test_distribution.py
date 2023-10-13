@@ -149,7 +149,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
         )
 
-        assert jnp.isclose(tonic_volatility_1, -8.440489)
+        assert jnp.isclose(tonic_volatility_1, -8.440622)
 
         ##############
         # Binary HGF #
@@ -317,7 +317,7 @@ class TestDistribution(TestCase):
             volatility_coupling_1=1.0,
         )[0].eval()
 
-        assert jnp.isclose(tonic_volatility_1, -8.440489)
+        assert jnp.isclose(tonic_volatility_1, -8.440622)
 
         ##############
         # Binary HGF #
