@@ -101,7 +101,7 @@ Binary nodes
 .. autosummary::
    :toctree: generated/pyhgf.updates.prediction.binary
 
-    predict_input_value_parent
+    predict_binary_state_node
 
 Continuous nodes
 ~~~~~~~~~~~~~~~~
