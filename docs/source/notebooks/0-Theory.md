@@ -53,7 +53,7 @@ This simple process will be our first building block. Importantly here, the vari
 
 +++
 
-### Adding a drift to the random walk
+#### Adding a drift to the random walk
 
 The Gaussian random walk can be further parametrized by adding a drift over time. This value, often noted $\rho$, will be added at each time step:
 
@@ -82,13 +82,13 @@ sns.despine()
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-### Autoregressive processes
+#### Autoregressive processes
 
 We can also assume that the generative process follows an [autoregressive model](https://en.wikipedia.org/wiki/Autoregressive_model), in which case the value of the next iteration is weighted by a coefficient and called by an intercept, often note $\phi$ and $m$ (respectively) in the Matlab toolbox.
 
 
 $$
-x_1^{(k)} \sim \mathcal{N}(m + \phi * x_1^{(k-1)}, \sigma^2)
+x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + \phi(m - x_1^{(k-1)}), \sigma^2)
 $$
 
 We repeat the same simulation below using $\phi = .4$ and $m = 12.0$.
@@ -108,7 +108,7 @@ phi, m = 0.4, 12.0
 x_1 = [0.0]
 for i in range(200):
     x_1.append(
-        np.random.normal(phi * (m - x_1[i-1]) + x_1[i-1], scale=1) 
+        np.random.normal(x_1[i-1] + phi * (m - x_1[i-1]) , scale=1) 
     )
 
 plt.figure(figsize=(12, 3))
@@ -284,69 +284,64 @@ axs[0].legend()
 sns.despine()
 ```
 
-Based on these principles, any given state in the world can be modelled as having a volatility parent state, a value parent state, both, or none. When the node is an orphan, it evolves as a Gaussian random walk around its previous value with a fixed step size. Consequently, when inferring on the evolution of these states, the exact belief update equations (which include the computation of new predictions, posterior values, and prediction errors, and represent an approximate inversion of this generative model, see {cite:p}`2011:mathys` depend on the nature of the coupling of a given state with its parent and children states. In particular, the nodes that implement the belief updates will communicate with their value parents via value prediction errors, or **VAPE**s, and via volatility prediction errors, or **VOPE**s, with their volatility parents.
+## Dynamic beliefs updating
+### The Hierarchical Gaussian Filter in a network of predictive nodes
+The coding examples introduced above illustrated generative models that can simulate data forward from a given volatility structure, with key parameters stochastically fluctuating. Based on these principles, any given latent state in the world can be modelled as having a volatility parent state, a value parent state, both, or none. When the node is an orphan, it evolves as a Gaussian random walk around its previous value with a fixed step size. Consequently, when inferring the evolution of these states, the exact belief update equations (which include the computation of new predictions, posterior values, and prediction errors, and represent an approximate inversion of this generative model, see {cite:p}`2011:mathys` depend on the nature of the coupling of a given state with its parent and children states. In particular, the nodes that implement the belief updates will communicate with their value parents via value prediction errors, or **VAPE**s, and volatility prediction errors, or **VOPE**s, with their volatility parents. Hierarchical Gaussian Filters use this as a model of the environment to make sense of new observations, also referred to as the sensory part of the HGF, or the filtering part. In this situation, new observations are coming in at the network's root and the model updates the belief structure accordingly (from bottom to top nodes). It is therefore straightforward to describe the standard two-level and three-level Hierarchical Gaussian Filters for continuous and binary inputs as the combination of value and volatility couplings (see {ref}`hgf-fig`)
+
++++
 
 ```{figure} ../images/hgf.png
 ---
 name: hgf-fig
 ---
-The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs, as described in {cite:p}`2014:mathys,2011:mathys`. The binary HGF has the particularity that it uses a sigmoid transform in the input node to convert continuous values into binary probabilities. For both models, volatility coupling is depicted with dashed lines, and value coupling with straight lines. The three-level HGF has one volatility layer more than the two-level HGF.
+The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs, as described in {cite:p}`2014:mathys,2011:mathys`. The binary HGF has the particularity that it uses a sigmoid transform in the input node to convert continuous values into binary probabilities. For both models, volatility coupling is depicted with dashed lines, and value coupling with straight lines. The three-level HGF has one volatility layer more than the two-level HGF, which is used to estimate higher-order uncertainty.
 ```
 
 +++
 
 ```{hint}
+Hierarchical Gaussian Filters are inspired by other simpler models for Bayesian filtering and reinforcement learning. These models can be seen for example as generalisation of the [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter) or the [Rescorla-Wagner model](https://en.wikipedia.org/wiki/Rescorla%E2%80%93Wagner_model). Specifically:
+
 * A one-level HGF for continuous input can be seen as a [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter). 
 * A two-level binary HGF can be seen as a [Rescorla-Wagner](https://en.wikipedia.org/wiki/Rescorla%E2%80%93Wagner_model) model with an adaptive learning rate that depends on the precision of the belief.
 ```
 
 +++
 
-## The propagation of prediction and prediction errors in a network of probabilistic nodes
+### The propagation of prediction and prediction errors
 
-The coding examples introduced above illustrated generative models that can simulate data forward from a given volatility structure, with key parameters stochastically fluctuating. Hierarchical Gaussian Filters use this as a model of the environment to make sense of new observations, also referred to as the sensory part of the HGF, or the filtering part. In this situation, new observations are coming in at the root of the network and the model updates the belief structure accordingly (from bottom to top nodes).
-
-+++
-
-In its first description, {cite:p}2011:mathys derived a set of simple, one-step update equations that represent changes in beliefs about the hidden states (i.e. the sufficient statistics of the nodes) specified in the generative model. The update equations for volatility and value coupling in the generalized hierarchical Gaussian filter have been described in {cite:p}`weber:2023`. For each state, a belief is held (and updated for every new input) by the agent and described as a Gaussian distribution, fully characterized by its mean and its inverse variance, or precision,
-on a given trial (this is the notation we have been using in the previous examples). We conceptualize each belief as a node in a network, where belief updates involve computations within nodes as well as message passing between nodes. 
-
-The computations triggered by any observation at each time point can be ordered in time as shown in the [belief update algorithm](#belief-update).
+Having described the model as a specific configuration of predictive nodes offer many advantages, especially in term of modularity for the user. However, the model itself is not limited to the description of the generative process that we covered in the previous examples. The most interesting, and also the more complex, part of the modelling consists of the capability for the network to update the hierarchical structure in a Bayesian optimal way as new observations are presented. These steps are defined by a set of simple, one-step update equations that represent changes in beliefs about the hidden states (i.e. the sufficient statistics of the nodes) specified in the generative model. These equations were first described in {cite:t}`2011:mathys`, and the update equations for volatility and value coupling in the generalized Hierarchical Gaussian filter (on which most of the update functions in [pyhgf](https://github.com/ilabcode/pyhgf) are based) have been described in {cite:p}`weber:2023`. The exact computations in each step especially depend on the nature of the coupling (via {term}`VAPE`s vs. {term}`VOPE`s) between the parent and children nodes. It is beyond the scope of this tutorial to dive into the derivation of these steps and we refer the interested reader to the mentioned papers. Here, we provide a general overview of the dynamic of the update sequence that supports belief updating. The computations triggered by any observation at each time point can be ordered in time as shown in the [belief update algorithm](#belief-update).
 
 +++
 
 ```{note} Belief update
 :name: belief-update
 
-For $i$ a {term}`node` in a probabilistic network at time $k$, with children at $i-1$ and parent at $i+1$
+Let's consider a simple network containing $x_{node}$ be a {term}`node`, defined at time $k$, with children nodes defined at $x_{children}$ and parent at $x_{parent}$. The standard approach to update this network upon the presentation of a new observation is:
 
-1. {term}`Prediction`
-    Compute $\mathrm{prediction}^{(k)}_i$ 
-    &larr; receive $\mathrm{PE}^{(k)}_{i-1}$ from $\mathrm{node}_{i-1}$
+1. {term}`Prediction` step
+    For $n$ in the network, starting from the leaves to the roots:  
+        Given the time elapsed since the last update 
+        Given the the posterior value of the node $n$   
+        Given the prediction from the parent nodes  
+        - Compute the *expected_mean* and *expected precision*
 
-2. Update  
-    compute $\mathrm{posterior}^{(k)}_i$  
-    **given** $\mathrm{PE}^{(k)}_{i-1}$ and $\mathrm{prediction}^{(k)}_i$  
-    &rarr; send $\mathrm{posterior}^{(k)}_i$ to $\mathrm{node}_{i-1}$
-
-3. {term}`prediction error` 
-    compute $\mathrm{PE}^{(k)}_i$  
-    **given** $\mathrm{prediction}^{(k)}_i$ and $\mathrm{posterior}^{(k)}_i$  
-    &rarr; send $\mathrm{PE}^{(k)}_i$ to $\mathrm{node}_{i+1}$  
-    &larr; receive $\mathrm{posterior}^{(k)}_{i+1}$ from $\mathrm{node}_{i+1}$  
-
-4. {term}`Prediction`  
-    compute $\mathrm{prediction}^{(k+1)}_i$  
-    **given** $\mathrm{posterior}^{(k)}_i$ and $\mathrm{posterior}^{(k)}_{i+1}$  
-
+2. Beliefs propagation step  
+For $n$ in the network, starting from the roots to the leaves:  
+    1. {term}`Update` step
+        Given the prediction errors received from the child nodes  
+        - Compute the new sufficient statistics for node $n$
+    2. {term}`prediction error`
+        Given the new posterior from the update step  
+        Given the expectation from the prediction step
+        - Compute a new prediction error ({term}`VAPE` or {term}`VOPE`
+        - Send it to the parent node
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-The exact computations in each step depend on the nature of the coupling (via {term}`VAPE`s vs. {term}`VOPE`s) between the parent and children nodes.
-
 ```{important}
-We have placed the {term}`Prediction` step at the end of the update loop. This is because usually, we think about the beginning of a timepoint trial as starting with receiving a new input, and of a prediction as being present before that input is received (this is especially relevant to model time points as a trial in an experiment). However, in some variants of the HGF the prediction also depends on the time that has passed in between trials, which is something that can only be evaluated once the new input arrives - hence the additional computation of the (current) prediction at the beginning of the trial. Conceptually, it makes most sense to think of the prediction as happening continuously between trials. For implementational purposes, it is however most convenient to only compute the prediction once the new input (and with it its arrival time) enters. This ensures both that the posterior means of parent nodes have had enough time to be sent back to their children for preparation for the new input, and that the arrival time of the new input can be taken into account appropriately.
+We have placed the {term}`Prediction` step at the beginning of the update loop to account that the prediction depends on the time that has passed in between trials, which is something that can only be evaluated once the new input arrives. This is because we usually think about the beginning of a trial/time point as starting with receiving a new input and of a prediction as being present before that input is received. For implementational purposes, it is most convenient to only compute the prediction once the new input (and with it its arrival time) enters. However, it makes most sense to think of the prediction as happening continuously between the time points, but this is not something that is tracked continuously by the model.
 ```
 
 +++
