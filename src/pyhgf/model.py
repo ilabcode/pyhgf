@@ -612,6 +612,8 @@ class HGF(object):
         precision: Union[float, np.ndarray, ArrayLike] = 1.0,
         tonic_volatility: Union[float, np.ndarray, ArrayLike] = -4.0,
         tonic_drift: Union[float, np.ndarray, ArrayLike] = 0.0,
+        autoregressive_coefficient: float = 0.0,
+        autoregressive_intercept: float = 0.0,
         additional_parameters: Optional[Dict] = None,
     ):
         """Add a value parent to a given set of nodes.
@@ -621,8 +623,9 @@ class HGF(object):
         children_idxs :
             The child(s) node index(es).
         value_coupling :
-            The value_coupling between the child and parent node. This is will be
-            appended to the `psis` parameters in the parent and child node(s).
+            The value coupling between the child and parent node. This is will be
+            appended to the `value_coupling_children` parameters in the parent node,
+            and to the `value_coupling_parents` in the child node(s).
         mean :
             The mean of the Gaussian distribution. This value is passed both to the
             current and expected states.
@@ -634,6 +637,15 @@ class HGF(object):
             volatility parent(s)).
         tonic_drift :
             The drift of the random walk. Defaults to `0.0` (no drift).
+        autoregressive_coefficient :
+            The autoregressive coefficient is only used to parametrize the AR1 process
+            and represents the autoregressive coefficient. If
+            :math:`-1 \\le \\phi \\le 1`, the process is stationary and will revert to
+            the autoregressive intercept.
+        autoregressive_intercept :
+            The parameter `m` is only used to parametrize the AR1 process and represents
+            the autoregressive intercept. If :math:`-1 \\le \\phi \\le 1`, this is the
+            value to which the process will revert to.
         additional_parameters :
             Add more custom parameters to the node.
 
@@ -664,6 +676,8 @@ class HGF(object):
             "value_coupling_parents": None,
             "tonic_volatility": tonic_volatility,
             "tonic_drift": tonic_drift,
+            "autoregressive_coefficient": autoregressive_coefficient,
+            "autoregressive_intercept": autoregressive_intercept,
         }
 
         # add more parameters (optional)
@@ -717,6 +731,8 @@ class HGF(object):
         precision: Union[float, np.ndarray, ArrayLike] = 1.0,
         tonic_volatility: Union[float, np.ndarray, ArrayLike] = -4.0,
         tonic_drift: Union[float, np.ndarray, ArrayLike] = 0.0,
+        autoregressive_coefficient: float = 0.0,
+        autoregressive_intercept: float = 0.0,
         additional_parameters: Optional[Dict] = None,
     ):
         """Add a volatility parent to a given set of nodes.
@@ -727,7 +743,8 @@ class HGF(object):
             The child(s) node index(es).
         volatility_coupling :
             The volatility coupling between the child and parent node. This is will be
-            appended to the `kappas` parameters in the parent and child node(s).
+            appended to the `volatility_coupling_children` parameters in the parent
+            node, and to the `volatility_coupling_parents` in the child node(s).
         mean :
             The mean of the Gaussian distribution. This value is passed both to the
             current and expected states.
@@ -739,6 +756,15 @@ class HGF(object):
             volatility parent(s)).
         tonic_drift :
             The drift of the random walk. Defaults to `0.0` (no drift).
+        autoregressive_coefficient :
+            The autoregressive coefficient is only used to parametrize the AR1 process
+            and represents the autoregressive coefficient. If
+            :math:`-1 \\le \\phi \\le 1`, the process is stationary and will revert to
+            the autoregressive intercept.
+        autoregressive_intercept :
+            The parameter `m` is only used to parametrize the AR1 process and represents
+            the autoregressive intercept. If :math:`-1 \\le \\phi \\le 1`, this is the
+            value to which the process will revert to.
         additional_parameters :
             Add more custom parameters to the node.
 
@@ -769,6 +795,8 @@ class HGF(object):
             "value_coupling_parents": None,
             "tonic_volatility": tonic_volatility,
             "tonic_drift": tonic_drift,
+            "autoregressive_coefficient": autoregressive_coefficient,
+            "autoregressive_intercept": autoregressive_intercept,
         }
 
         # add more parameters (optional)

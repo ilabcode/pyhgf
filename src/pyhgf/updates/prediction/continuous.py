@@ -52,8 +52,21 @@ def predict_mean(
         ):
             driftrate += psi * attributes[value_parent_idx]["mean"]
 
-    # Compute the new expected mean this node
-    expected_mean = attributes[node_idx]["mean"] + time_step * driftrate
+    # New expected mean from the previous value
+    expected_mean = attributes[node_idx]["mean"]
+
+    # Take the drift into account
+    expected_mean += time_step * driftrate
+
+    # Add quatities that come from the autoregressive process if not zero
+    expected_mean += (
+        time_step
+        * attributes[node_idx]["autoregressive_coefficient"]
+        * (
+            attributes[node_idx]["autoregressive_intercept"]
+            - attributes[node_idx]["mean"]
+        )
+    )
 
     return expected_mean
 

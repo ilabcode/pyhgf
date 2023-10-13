@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -13,13 +13,18 @@ kernelspec:
 ---
 
 (theory)=
-# An introduction to the Hierarchical Gaussian Filter
-In this notebook, we introduce the main concepts on which the Hierarchical Gaussian Filter (HGF) is based. We describe the main equations and illustrate the examples with Python code. We start with the generative model of the HGF, which describes how the model assumes that the data is being generated. This generative structure is then used to filter the observation (i.e. the sensory part of the model), which is then used by the agent to produce behaviours (i.e. the action part of the model). Next, we show how this model can be "inverted" and used by an agent to infer parameter values that generated the sensory inputs. From there, we discuss the notion of prediction error and how derivations of the model can be used to infer probability densities given observed behavioural outcomes.
+# Introduction to the Hierarchical Gaussian Filter
+In this notebook, we introduce the main concepts on which the Hierarchical Gaussian Filter (HGF) is based. We describe the main equations and illustrate the examples with Python code. We start with the generative model of the HGF, which describes how the model assumes that the data is being generated. This generative structure is then used to filter the observation (i.e. the sensory part of the model), which is then used by the agent to produce behaviours (i.e. the action part of the model). Next, we show how this model can be "inverted" and used by an agent to infer parameter values that generate the sensory inputs. From there, we discuss the notion of prediction error and how derivations of the model can be used to infer probability densities given observed behavioural outcomes.
 
-+++
+```{code-cell} ipython3
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+```
 
 ## The generative model
 
+### Gaussian Random Walks
 To illustrate the generative model on which the HGF is based, we will start with a simple  two-level continuous HGF (see also the tutorial {ref}`continuous_hgf`). The generative model that underpins the continuous HGF is a generalisation of the [Gaussian Random Walk](https://en.wikipedia.org/wiki/Random_walk#Gaussian_random_walk) (GRW). A GRW generate a new observation $x_1^{(k)}$ at each time step $k$ from a normal distribution and using the previous observation $x_1^{(k-1)}$ such as:
 
 $$
@@ -30,10 +35,6 @@ where $\sigma^2$ is the variance of the distribution. In the example below, we u
 
 ```{code-cell} ipython3
 :tags: [hide-input]
-
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
 
 np.random.seed(123)
 
@@ -48,10 +49,79 @@ plt.ylabel("$x_{1}$");
 sns.despine()
 ```
 
-This simple process will be our first building block. Importantly here, the variability of the sensory input is constant across time: even if we don't know exactly in which direction the time series is going to move in the future, we know that is is unlikely to make certain kind of big jumps, because it is controlled by a fixed parameter, the variance $\sigma^2$. 
+This simple process will be our first building block. Importantly here, the variability of the sensory input is constant across time: even if we don't know exactly in which direction the time series is going to move in the future, we know that it is unlikely to make certain kinds of big jumps because it is controlled by a fixed parameter, the variance $\sigma^2$.
+
++++
+
+#### Adding a drift to the random walk
+
+The Gaussian random walk can be further parametrized by adding a drift over time. This value, often noted $\rho$, will be added at each time step:
+
+$$
+x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + \rho, \sigma^2)
+$$
+
+We run the same simulation using $\rho = 0.1$ in the cell below:
+
+```{code-cell} ipython3
+np.random.seed(123)
+
+# add a drift at each time step
+rho = .1
+
+# random walk
+x_1 = np.cumsum(np.random.normal(loc=rho, scale=1, size=200))  # GRW
+x_1 = np.insert(x_1, 0, 0)  # starting at 0
+
+plt.figure(figsize=(12, 3))
+plt.plot(x_1, "o-", alpha=.4);
+plt.xlabel("Time step (k)");
+plt.ylabel("$x_{1}$");
+sns.despine()
+```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+#### Autoregressive processes
+
+We can also assume that the generative process follows an [autoregressive model](https://en.wikipedia.org/wiki/Autoregressive_model), in which case the value of the next iteration is weighted by a coefficient and called by an intercept, often note $\phi$ and $m$ (respectively) in the Matlab toolbox.
+
+
+$$
+x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + \phi(m - x_1^{(k-1)}), \sigma^2)
+$$
+
+We repeat the same simulation below using $\phi = .4$ and $m = 12.0$.
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input]
+---
+np.random.seed(123)
+
+phi, m = 0.4, 12.0
+
+# random walk with AR1 process
+x_1 = [0.0]
+for i in range(200):
+    x_1.append(
+        np.random.normal(x_1[i-1] + phi * (m - x_1[i-1]) , scale=1) 
+    )
+
+plt.figure(figsize=(12, 3))
+plt.plot(x_1, "o-", alpha=.4);
+plt.xlabel("Time step (k)");
+plt.ylabel("$x_{1}$");
+sns.despine()
+```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 ### Volatility coupling
-Now, we can also decide to change that and let the variance itself being a stochastic process generated by another randome walk. The HGF fundamentaly captitalize on this notion and generalize the standard GRW by letting the variance $\sigma^2$ being controlled by a higher level node.
+Now, we can also decide to change that and let the variance itself be a stochastic process generated by another random walk. The HGF fundamentally capitalise on this notion and generalizes the standard GRW by letting the variance $\sigma^2$ be controlled by a higher-level node.
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
@@ -214,351 +284,64 @@ axs[0].legend()
 sns.despine()
 ```
 
-Based on these principles, any given state in the world can be modelled as having a volatility parent state, a value parent state, both, or none. When the node is an orphan, it evolves as a Gaussian random walk around its previous value with a fixed step size. Consequently, when inferring on the evolution of these states, the exact belief update equations (which include the computation of new predictions, posterior values, and prediction errors, and represent an approximate inversion of this generative model, see {cite:p}`2011:mathys` depend on the nature of the coupling of a given state with its parent and children states. In particular, the nodes that implement the belief updates will communicate with their value parents via value prediction errors, or **VAPE**s, and via volatility prediction errors, or **VOPE**s, with their volatility parents.
+## Dynamic beliefs updating
+### The Hierarchical Gaussian Filter in a network of predictive nodes
+The coding examples introduced above illustrated generative models that can simulate data forward from a given volatility structure, with key parameters stochastically fluctuating. Based on these principles, any given latent state in the world can be modelled as having a volatility parent state, a value parent state, both, or none. When the node is an orphan, it evolves as a Gaussian random walk around its previous value with a fixed step size. Consequently, when inferring the evolution of these states, the exact belief update equations (which include the computation of new predictions, posterior values, and prediction errors, and represent an approximate inversion of this generative model, see {cite:p}`2011:mathys` depend on the nature of the coupling of a given state with its parent and children states. In particular, the nodes that implement the belief updates will communicate with their value parents via value prediction errors, or **VAPE**s, and volatility prediction errors, or **VOPE**s, with their volatility parents. Hierarchical Gaussian Filters use this as a model of the environment to make sense of new observations, also referred to as the sensory part of the HGF, or the filtering part. In this situation, new observations are coming in at the network's root and the model updates the belief structure accordingly (from bottom to top nodes). It is therefore straightforward to describe the standard two-level and three-level Hierarchical Gaussian Filters for continuous and binary inputs as the combination of value and volatility couplings (see {ref}`hgf-fig`)
+
++++
 
 ```{figure} ../images/hgf.png
 ---
 name: hgf-fig
 ---
-The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs, as described in {cite:p}`2014:mathys,2011:mathys`. The binary HGF has the particularity that it uses a sigmoid transform in the input node to convert continuous values into binary probabilities. For both models, volatility coupling is depicted with dashed lines, and value coupling with straight lines. The three-level HGF has one volatility layer more than the two-level HGF.
+The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs, as described in {cite:p}`2014:mathys,2011:mathys`. The binary HGF has the particularity that it uses a sigmoid transform in the input node to convert continuous values into binary probabilities. For both models, volatility coupling is depicted with dashed lines, and value coupling with straight lines. The three-level HGF has one volatility layer more than the two-level HGF, which is used to estimate higher-order uncertainty.
 ```
+
++++
 
 ```{hint}
-A one-level HGF for continuous input is a [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter).
+Hierarchical Gaussian Filters are inspired by other simpler models for Bayesian filtering and reinforcement learning. These models can be seen for example as generalisation of the [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter) or the [Rescorla-Wagner model](https://en.wikipedia.org/wiki/Rescorla%E2%80%93Wagner_model). Specifically:
+
+* A one-level HGF for continuous input can be seen as a [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter). 
+* A two-level binary HGF can be seen as a [Rescorla-Wagner](https://en.wikipedia.org/wiki/Rescorla%E2%80%93Wagner_model) model with an adaptive learning rate that depends on the precision of the belief.
 ```
 
 +++
 
-Still assuming that Node $i$ is the value child of Node $i+1$, the prediction step consists of the following computations:
+### The propagation of prediction and prediction errors
 
-:label: vape-prediction
-
-$$
-\begin{align}
-\hat{\mu}_i^{(k+1)} &= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}\\
-\hat{\pi}_i^{(k+1)} &= \frac{1}{\frac{1}{\pi_i^{(k)}} + \nu_i^{(k+1)} }
-\end{align}
-$$
-
-with
-
-$$
-\begin{equation}
-\nu_i^{(k+1)} = \exp(\omega_i).
-\end{equation}
-$$
-
-Note that if Node $i$ additionally has a {term}`VOPE` parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. {ref}`vope-prediction`).
-
-In general, the prediction of the mean will depend only on whether Node $i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node $i$ has a volatility parent or not.
-
-Thus, the {ref}`vape-prediction` only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
-
-For example, the three-level continuous HGF that is illustrated [above](hgf-fig) is built on top of the following generative model:
-
-$$
-\begin{align}
-u^{(k)}             &\sim \mathcal{N}(u^{(k)} | x_1^{(k)}, \, \sigma_u) \\
-x_1^{(k)}           &\sim \mathcal{N}(x_1^{(k)} | x_1^{(k-1)} + \alpha_{2,1} x_2^{(k)}, \, \exp(\kappa_1 \check{x}_1^{(k)} + \omega_1)) \\
-\check{x}_1^{(k)}   &\sim \mathcal{N}(\check{x}_1^{(k)} | \check{x}_1^{(k-1)} + \alpha_{3,\check{1}} x_3^{(k)}, \, \exp(\omega_{\check{1}})) \\
-x_2^{(k)}           &\sim \mathcal{N}(x_2^{(k)} | x_2^{(k-1)}, \, \exp(\kappa_2 \check{x}_2^{(k)} + \omega_2)) \\
-\check{x}_2^{(k)}   &\sim \mathcal{N}(\check{x}_2^{(k)} | \check{x}_2^{(k-1)}, \, \exp(\omega_{\check{2}})) \\
-x_3^{(k)}           &\sim \mathcal{N}(x_3^{(k)} | x_3^{(k-1)}, \, \exp(\kappa_3 \check{x}_3^{(k)} + \omega_3)) \\
-\check{x}_3^{(k)}   &\sim \mathcal{N}(\check{x}_3^{(k)} | \check{x}_3^{(k-1)}, \, \exp(\omega_{\check{3}})) \\
-\end{align}
-$$
-
-Note that in this example, all states that are value parents of other states (or outcomes) have their own volatility parent, while states that are volatility parents to other nodes either have a value parent (as state $\check{x}_1$), or no parents (as states $\check{x}_2$ and $\check{x}_3$). This is deliberately so, and we will see these two motifs - every state of a hierarchy has its own volatility estimation, and volatility states only have value parents - reappear in the following chapters.
-
-+++
-
-## Belief updates in the HGF: Computations of nodes
-
-+++
-
-```{note}
-The update equations for volatility and value coupling in the generalized hierarchical Gaussian filter have been described in {cite:p}`weber:2023`.
-```
-
-+++
-
-The coding examples introduced above illustrated generative models that can simulate data forward from a given volatility structure, with key parameters stochastically fluctuating. HGFs use this as a model of the environment to make sense of new observations, also referred to as the sensory part of the HGF, or the filtering part. In this situation, new observations are coming in and the model has to update the volatility structure accordingly (from bottom to top nodes).
-
-In its first description, {cite:p}2011:mathys derived a set of simple, one-step update equations that represent changes in beliefs about the hidden states (i.e. the sufficient statistics of the nodes) specified in the generative model. For each state, a belief is held (and updated for every new input) by the agent and described as a Gaussian distribution, fully characterized by its mean
-and its inverse variance, or precision,
-on a given trial (this is the notation we have been using in the previous examples). We conceptualize each belief as a node in a network, where belief updates involve computations within nodes as well as message passing between nodes. The computations of any observation at each time point can be ordered in time as shown in the [belief update algorithm](#belief-update):
+Having described the model as a specific configuration of predictive nodes offer many advantages, especially in term of modularity for the user. However, the model itself is not limited to the description of the generative process that we covered in the previous examples. The most interesting, and also the more complex, part of the modelling consists of the capability for the network to update the hierarchical structure in a Bayesian optimal way as new observations are presented. These steps are defined by a set of simple, one-step update equations that represent changes in beliefs about the hidden states (i.e. the sufficient statistics of the nodes) specified in the generative model. These equations were first described in {cite:t}`2011:mathys`, and the update equations for volatility and value coupling in the generalized Hierarchical Gaussian filter (on which most of the update functions in [pyhgf](https://github.com/ilabcode/pyhgf) are based) have been described in {cite:p}`weber:2023`. The exact computations in each step especially depend on the nature of the coupling (via {term}`VAPE`s vs. {term}`VOPE`s) between the parent and children nodes. It is beyond the scope of this tutorial to dive into the derivation of these steps and we refer the interested reader to the mentioned papers. Here, we provide a general overview of the dynamic of the update sequence that supports belief updating. The computations triggered by any observation at each time point can be ordered in time as shown in the [belief update algorithm](#belief-update).
 
 +++
 
 ```{note} Belief update
 :name: belief-update
 
-For $i$ a {term}`node` in a probabilistic network at time $k$, with children at $i-1$ and parent at $i+1$
+Let's consider a simple network containing $x_{node}$ be a {term}`node`, defined at time $k$, with children nodes defined at $x_{children}$ and parent at $x_{parent}$. The standard approach to update this network upon the presentation of a new observation is:
 
-1. {term}`Prediction`
-    Compute $\mathrm{prediction}^{(k)}_i$ 
-    &larr; receive $\mathrm{PE}^{(k)}_{i-1}$ from $\mathrm{node}_{i-1}$
+1. {term}`Prediction` step
+    For $n$ in the network, starting from the leaves to the roots:  
+        Given the time elapsed since the last update 
+        Given the the posterior value of the node $n$   
+        Given the prediction from the parent nodes  
+        - Compute the *expected_mean* and *expected precision*
 
-2. Update  
-    compute $\mathrm{posterior}^{(k)}_i$  
-    **given** $\mathrm{PE}^{(k)}_{i-1}$ and $\mathrm{prediction}^{(k)}_i$  
-    &rarr; send $\mathrm{posterior}^{(k)}_i$ to $\mathrm{node}_{i-1}$
-
-3. {term}`prediction error` 
-    compute $\mathrm{PE}^{(k)}_i$  
-    **given** $\mathrm{prediction}^{(k)}_i$ and $\mathrm{posterior}^{(k)}_i$  
-    &rarr; send $\mathrm{PE}^{(k)}_i$ to $\mathrm{node}_{i+1}$  
-    &larr; receive $\mathrm{posterior}^{(k)}_{i+1}$ from $\mathrm{node}_{i+1}$  
-
-4. {term}`Prediction`  
-    compute $\mathrm{prediction}^{(k+1)}_i$  
-    **given** $\mathrm{posterior}^{(k)}_i$ and $\mathrm{posterior}^{(k)}_{i+1}$  
-
+2. Beliefs propagation step  
+For $n$ in the network, starting from the roots to the leaves:  
+    1. {term}`Update` step
+        Given the prediction errors received from the child nodes  
+        - Compute the new sufficient statistics for node $n$
+    2. {term}`prediction error`
+        Given the new posterior from the update step  
+        Given the expectation from the prediction step
+        - Compute a new prediction error ({term}`VAPE` or {term}`VOPE`
+        - Send it to the parent node
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-The exact computations in each step depend on the nature of the coupling (via {term}`VAPE`s vs. {term}`VOPE`s) between the parent and children nodes.
-
 ```{important}
-We have placed the {term}`Prediction` step at the end of the update loop. This is because usually, we think about the beginning of a timepoint trial as starting with receiving a new input, and of a prediction as being present before that input is received (this is especially relevant to model time points as a trial in an experiment). However, in some variants of the HGF the prediction also depends on the time that has passed in between trials, which is something that can only be evaluated once the new input arrives - hence the additional computation of the (current) prediction at the beginning of the trial. Conceptually, it makes most sense to think of the prediction as happening continuously between trials. For implementational purposes, it is however most convenient to only compute the prediction once the new input (and with it its arrival time) enters. This ensures both that the posterior means of parent nodes have had enough time to be sent back to their children for preparation for the new input, and that the arrival time of the new input can be taken into account appropriately.
-```
-
-+++
-
-## Computations for VAPE coupling
-
-The exact computations of the {term}`Update` depend on the nature of the coupling with the child node(s), while both the {term}`Prediction error` and the {term}`Prediction` step depend on the coupling with the parent node(s).
-
-```{admonition} Update
-:class: dropdown
-
-If Node $i$ is the value parent of Node $i-1$, then the following update equations apply to Node $i$:
-
-$$
-\begin{align}
-\pi_i^{(k)} &= \hat{\pi}_i^{(k)} + \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}\\
-\mu_i^{(k)} &= \hat{\mu}_i^{(k)} + \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}} {\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)} + \hat{\pi}_{i}^{(k)}} \delta_{i-1}^{(k)}
-\end{align}
-$$
-
-We note here that we can let the update of the precision happen first, and therefore use it for the update of the mean:
-
-$$
-\begin{align}
-\pi_i^{(k)} &= \hat{\pi}_i^{(k)} + \alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}\\
-\mu_i^{(k)} &= \hat{\mu}_i^{(k)} + \frac{\alpha_{i-1,i}^2 \hat{\pi}_{i-1}^{(k)}} {\pi_i^{(k)}} \delta_{i-1}^{(k)}
-\end{align}
-$$
-
-In sum, at the time of the update, Node $i$ needs to have access to the following quantities:
-
-* Its own predictions: $\hat{\mu}_i^{(k)}$, $\hat{\pi}_i^{(k)}$  
-* Coupling strength: $\alpha_{i-1,i}$  
-* From level below: $\delta_{i-1}^{(k)}$, $\hat{\pi}_{i-1}^{(k)}$  
-
-All of these are available at the time of the update. Node $i$ therefore only needs to receive the PE and the predicted precision from the level below to perform its update.
-
-```
-
-+++
-
-```{admonition} Prediction error
-:class: dropdown
-
-We will assume in the following, that Node $i$ is the value child of Node $i+1$. Then the following quantities have to be sent up to Node $i+1$ (cf. necessary information from level below in a value parent):
-
-* Predicted precision: $\hat{\pi}_{i}^{(k)}$
-* Prediction error: $\delta_{i}^{(k)}$
-
-Node $i$ has already performed the **PREDICTION step** on the previous trial, so it has already computed the predicted precision of the current trial, $\hat{\pi}_{i}^{(k)}$. Hence, in the **PE step**, it needs to perform only the following calculation:
-
-$$
-\begin{equation}
-\delta_i^{(k)} = \mu_i^{(k)} - \hat{\mu}_i^{(k)}
-\end{equation}
-$$
-
-```
-
-+++
-
-```{admonition} Prediction
-:class: dropdown
-
-Still assuming that Node $i$ is the value child of Node $i+1$, the prediction step consists of the following computations:
-
-:label: vape-prediction
-
-$$
-\begin{align}
-\hat{\mu}_i^{(k+1)} &= \mu_i^{(k)} + \alpha_{i,i+1} \mu_{i+1}^{(k)}\\
-\hat{\pi}_i^{(k+1)} &= \frac{1}{\frac{1}{\pi_i^{(k)}} + \nu_i^{(k+1)} }
-\end{align}
-$$
-
-with
-
-$$
-\begin{equation}
-\nu_i^{(k+1)} = \exp(\omega_i).
-\end{equation}
-$$
-
-Note that if Node $i$ additionally has a {term}`VOPE` parent node, the estimated volatility $\nu_i^{(k+1)}$ that enters the precision update would also depend on the posterior mean of that volatility parent (cf. {ref}`vope-prediction`).
-
-In general, the prediction of the mean will depend only on whether Node $i$ has a value parent or not, whereas the prediction of the precision only depends on whether Node $i$ has a volatility parent or not.
-
-Thus, the {ref}`vape-prediction` only depends on knowing the node's own posteriors and receiving the value parent's posterior in time before the new input arrives.
-```
-
-+++
-
-## Computations for VOPE coupling
-
-As in the case of {term}`VAPE` coupling, the exact computations of the [vope update](#vope-update) depend on the nature of the coupling with the child node(s), while both the [vope pe](#vope-pe) and the [vope prediction](#vope-prediction) depend on the coupling with the parent node(s).
-
-To describe the computations entailed by {term}`VOPE` coupling, we will introduce two changes to the notation. First of all, we will express the volatility prediction error ({term}`VOPE`) as a function of the previously defined value prediction error ({term}`VAPE`). That means from now on, we will use the character $\delta_i$ only for {term}`VAPE`.
-
-$$
-\begin{equation}
-\delta_i^{(k)} \equiv \delta_i^{(k, VAPE)} = \mu_i^{(k)} - \hat{\mu}_i^{(k)},
-\end{equation}
-$$
-
-and introduce a new character $\Delta_i$ for {term}`VOPE`, which we define as
-
-$$
-\begin{equation}
-  \begin{split}
-    \Delta_i^{(k)} \equiv \delta_i^{(k, VOPE)} &= \frac{ \frac{1}{\pi_{i}^{(k)}} + (\mu_i^{(k)} - \hat{\mu}_i^{(k)})^2 }{ \frac{1}{\pi_{i}^{(k-1)}} + \nu_{i}^{(k)} } - 1 \\
-    &= \hat{\pi}_i^{(k)} \left( \frac{1}{\pi_{i}^{(k)}} + (\mu_i^{(k)} - \hat{\mu}_i^{(k)})^2 \right) - 1 \\
-    &= \hat{\pi}_i^{(k)} \left( \frac{1}{\pi_{i}^{(k)}} + (\delta_i^{(k)})^2 \right) - 1 \\
-    &=  \frac{\hat{\pi}_i^{(k)}}{\pi_{i}^{(k)}} + \hat{\pi}_i^{(k)} (\delta_i^{(k)})^2 - 1. \\
-  \end{split}
-\end{equation}
-$$
-
-Note that from the first to the second line, we have used the following definition:
-
-$$
-\begin{equation*}
-\hat{\pi}_{i-1}^{(k)} = \frac{1}{ \frac{1}{\pi_{i-1}^{(k-1)}} + \nu_{i-1}^{(k)} }.
-\end{equation*}
-$$
-
-This ensures that a given node does not need to have access to the posterior precision from the level below: $\pi_{i-1}^{(k-1)}$, which facilitates implementation.
-
-In sum, we are introducing a second prediction error unit $\Delta_i$ which is concerned with deviations from predicted uncertainty and is informed by value prediction errors and other estimates of uncertainty. It is this prediction error - a function of the unweighted (squared) value prediction error with a new precision weight - which communicates between a level's nodes and a level's volatility parent's nodes.
-
-Second, we will introduce another quantity, which we term the (auxiliary) expected precision
-
-$$
-\begin{equation}
-\gamma_i^{(k)} = \nu_i^{(k)} \hat{\pi}_i^{(k)},
-\end{equation}
-$$
-
-which will be computed as part of the [vope preditions](#vope-prediction) and only serves to simplify the equations and the corresponding message passing.
-
-+++
-
-```{admonition} Update
-:class: dropdown
-:name: vope-update
-
-If Node $i$ is the volatility parent of Node $i-1$, then the following update equations apply to Node $i$:
-
-$$
-\begin{align*}
-\pi_i^{(k)} &= \hat{\pi}_i^{(k)}
-+ \frac{1}{2}(\kappa_{i-1} \nu_{i-1}^{(k)} \hat{\pi}_{i-1}^{(k)})^2
-* (1 + (1 - \frac{1}{\pi_{i-1}^{(k-1)} \nu_{i-1}^{(k)}})
-\delta_{i-1}^{(k)})\\
-&= \hat{\pi}_i^{(k)}
-+ \frac{1}{2}(\kappa_{i-1} \nu_{i-1}^{(k)} \hat{\pi}_{i-1}^{(k)})^2
-* (1 + (2 - \frac{1}{\hat{\pi}_{i-1}^{(k)} \nu_{i-1}^{(k)}})
-\delta_{i-1}^{(k)})\\
-\mu_i^{(k)} &= \hat{\mu}_i^{(k)}
-+ \frac{1}{2}\kappa_{i-1} \nu_{i-1}^{(k)}
-\frac{\hat{\pi}_{i-1}^{(k)}}{\pi_{i}^{(k)}} \delta_{i-1}^{(k)},
-\end{align*}
-$$
-
-where we have again used the definition of the predicted precision $\hat{\pi}_{i-1}^{(k)}$ to derive an expression for the posterior precision from the previous trial $\pi_{i-1}^{(k-1)}$:
-
-$$
-\begin{align*}
-\hat{\pi}_{i-1}^{(k)} &= \frac{1}{ \frac{1}{\pi_{i-1}^{(k-1)}} + \nu_{i-1}^{(k)} }\\
-\Leftrightarrow \pi_{i-1}^{(k-1)} &= \frac{1}{ \frac{1}{\hat{\pi}_{i-1}^{(k)}} - \nu_{i-1}^{(k)} }.
-\end{align*}
-$$
-
-With the changes from above, namely the definitions of the \textsf{VOPE} $\Delta_i$ and the expected precision $\gamma_i^{(k)}$, the update equations for the precision and the mean in volatility coupling simplify to:
-\vspace{0.5cm}
-
-$$
-\begin{align}
-\pi_i^{(k)} &= \hat{\pi}_i^{(k)}
-+ \frac{1}{2} (\kappa_{i,i-1} \gamma_{i-1}^{(k)})^2
-+ (\kappa_{i,i-1} \gamma_{i-1}^{(k)})^2 \Delta_{i-1}^{(k)}
-- \frac{1}{2} \kappa_{i,i-1}^2 \gamma_{i-1}^{(k)} \Delta_{i-1}^{(k)}\\
-\mu_i^{(k)} &= \hat{\mu}_i^{(k)}
-+ \frac{1}{2} \frac{\kappa_{i,i-1} \gamma_{i-1}^{(k)}}{\pi_i^{(k)}} \Delta_{i-1}^{(k)}
-\end{align}
-$$
-
-
-Therefore, at the time of the update, Node $i$ needs to have access to the following quantities:
-
-* Its own predictions: $\hat{\mu}_i^{(k)}$, $\hat{\pi}_i^{(k)}$
-* Coupling strength: $\kappa_{i,i-1}$
-* From level below: $\Delta_{i-1}^{(k)}$, $\gamma_{i-1}^{(k)}$
-
-```
-
-+++
-
-```{admonition} Prediction-error
-:class: dropdown
-:name: vope-pe
-
-The exact computation of the prediction error depends, like the computation of the new prediction, on the nature of the coupling with the parent nodes. We will therefore assume in the following, that Node $i$ is the volatility child of Node $i+1$. Then the following quantities have to be sent up to Node $i+1$ (see also necessary information from level below in a volatility parent):
-
-* Expected precision: $\gamma_{i}^{(k)}$
-* Prediction error: $\Delta_{i}^{(k)}$
-
-Node $i$ has already performed the {ref}`vope-prediction` on the previous trial, so it has already computed the predicted precision, $\hat{\pi}_{i}^{(k)}$, and the volatiliy estimate, $\nu_i^{(k)}$, and out of these the expected precision, $\gamma_{i}^{(k)}$, for the current trial. Hence, in the **PE step**, it needs to perform only the following calculations:
-
-$$
-\begin{align}
-\delta_i^{(k)} &= \mu_i^{(k)} - \hat{\mu}_i^{(k)}\\
-\Delta_i^{(k)} &= \frac{\hat{\pi}_i^{(k)}}{\pi_{i}^{(k)}} + \hat{\pi}_i^{(k)} (\delta_i^{(k)})^2 - 1.
-\end{align}
-$$
-
-```
-
-+++
-
-```{admonition} Prediction
-:class: dropdown
-:name: vope-prediction
-
-Still assuming that Node $i$ is the volatility child of Node $i+1$, the prediction consists of the following simple computations:
-
-$$
-\begin{align}
-\hat{\mu}_i^{(k+1)} &= \mu_i^{(k)}\\
-\nu_i^{(k+1)} &= \exp(\kappa_i \mu_{i+1}^{(k)} + \omega_i)\\
-\hat{\pi}_i^{(k+1)} &= \frac{1}{\frac{1}{\pi_i^{(k)}} + \nu_i^{(k+1)} }\\
-\gamma_i^{(k+1)} &= \nu_i^{(k+1)} \hat{\pi}_i^{(k+1)}
-\end{align}
-$$
-
-Thus, the prediction for trial $k+1$ depends again only on receiving the posterior mean of Node $i+1$ on trial $k$, and knowing the Node's own posteriors.
-
-Note that if Node $i$ additionally has a {term}`VAPE` parent node, the prediction of the new mean, $\hat{\mu}_i^{k+1}$ would also depend on the posterior mean of that value parent (cf. {ref}`vape-prediction`).
+We have placed the {term}`Prediction` step at the beginning of the update loop to account that the prediction depends on the time that has passed in between trials, which is something that can only be evaluated once the new input arrives. This is because we usually think about the beginning of a trial/time point as starting with receiving a new input and of a prediction as being present before that input is received. For implementational purposes, it is most convenient to only compute the prediction once the new input (and with it its arrival time) enters. However, it makes most sense to think of the prediction as happening continuously between the time points, but this is not something that is tracked continuously by the model.
 ```
 
 +++
