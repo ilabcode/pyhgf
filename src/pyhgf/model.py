@@ -145,9 +145,9 @@ class HGF(object):
         self.update_type = update_type
         self.verbose = verbose
         self.n_levels = n_levels
-        self.edges: Edges
+        self.edges: Edges = ()
         self.node_trajectories: Dict
-        self.attributes: Dict
+        self.attributes: Dict = {}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
 
@@ -550,8 +550,14 @@ class HGF(object):
             input_node_parameters = {**input_node_parameters, **additional_parameters}
 
         for input_idx in input_idxs:
+            if input_idx in self.attributes.keys():
+                raise Exception(
+                    f"A node with index {input_idx} already exists in the HGF network."
+                )
+
             if input_idx == 0:
                 # this is the first node, create the node structure
+
                 self.attributes = {input_idx: input_node_parameters}
                 self.edges = (Indexes(None, None, None, None),)
                 self.input_nodes_idx = InputIndexes((input_idx,), (kind,))
@@ -638,6 +644,11 @@ class HGF(object):
         # how many nodes in structure
         n_nodes = len(self.edges)
         parent_idx = n_nodes  # append a new parent in the structure
+
+        if parent_idx in self.attributes.keys():
+            raise Exception(
+                f"A node with index {parent_idx} already exists in the HGF network."
+            )
 
         # parent's parameter
         node_parameters = {
@@ -738,6 +749,11 @@ class HGF(object):
         # how many nodes in structure
         n_nodes = len(self.edges)
         parent_idx = n_nodes  # append a new parent in the structure
+
+        if parent_idx in self.attributes.keys():
+            raise Exception(
+                f"A node with index {parent_idx} already exists in the HGF network."
+            )
 
         # parent's parameter
         node_parameters = {
