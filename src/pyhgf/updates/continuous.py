@@ -286,8 +286,12 @@ def continuous_node_prediction(
     expected_precision = predict_precision(attributes, edges, time_step, node_idx)
 
     # Update the node's attributes
-    attributes["expected_precision"].at[node_idx].set(expected_precision)
-    attributes["expected_mean"].at[node_idx].set(expected_mean)
+    attributes["expected_precision"] = (
+        attributes["expected_precision"].at[node_idx].set(expected_precision)
+    )
+    attributes["expected_mean"] = (
+        attributes["expected_mean"].at[node_idx].set(expected_mean)
+    )
 
     return attributes
 

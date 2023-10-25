@@ -2,7 +2,6 @@
 
 from typing import Dict
 
-import jax
 import jax.numpy as jnp
 from jax.lax import cond
 
@@ -195,8 +194,6 @@ def binary_input_prediction_error(
         mean_value_parent,
         surprise,
     ) = prediction_error_input_value_parent(attributes, edges, value_parent_idx)
-
-    jax.debug.print("precision_value_parent: {x} ", x=precision_value_parent)
 
     # Update value parent's parameters
     attributes["precision"] = (

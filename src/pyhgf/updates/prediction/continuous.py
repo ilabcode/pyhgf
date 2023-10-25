@@ -1,15 +1,13 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from functools import partial
 from typing import Dict
 
 import jax.numpy as jnp
-from jax import Array, jit
+from jax import Array
 
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("node_idx"))
 def predict_mean(
     attributes: Dict,
     edges: Edges,
@@ -68,7 +66,6 @@ def predict_mean(
     return expected_mean
 
 
-@partial(jit, static_argnames=("node_idx"))
 def predict_precision(
     attributes: Dict, edges: Edges, time_step: float, node_idx: int
 ) -> Array:

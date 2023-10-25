@@ -127,9 +127,9 @@ def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None) -
     """
     # Return an infinite surprise if the model cannot fit
     this_surprise = jnp.where(
-        jnp.isnan(hgf.node_trajectories[0]["surprise"]),
+        jnp.isnan(hgf.node_trajectories["surprise"][:, 0]),
         jnp.inf,
-        hgf.node_trajectories[0]["surprise"],
+        hgf.node_trajectories["surprise"][:, 0],
     )
 
     # Sum the surprise for this model

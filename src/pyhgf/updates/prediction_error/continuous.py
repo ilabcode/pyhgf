@@ -1,16 +1,14 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from functools import partial
 from typing import Dict
 
 import jax.numpy as jnp
-from jax import Array, jit
+from jax import Array
 from jax.typing import ArrayLike
 
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_mean_value_parent(
     attributes: Dict,
     edges: Edges,
@@ -64,7 +62,6 @@ def prediction_error_mean_value_parent(
     return mu_value_parent
 
 
-@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_precision_value_parent(
     attributes: Dict, edges: Edges, value_parent_idx: int
 ) -> Array:
@@ -108,7 +105,6 @@ def prediction_error_precision_value_parent(
     return pi_value_parent
 
 
-@partial(jit, static_argnames=("volatility_parent_idx"))
 def prediction_error_precision_volatility_parent(
     attributes: Dict, edges: Edges, time_step: float, volatility_parent_idx: int
 ) -> Array:
@@ -183,7 +179,6 @@ def prediction_error_precision_volatility_parent(
     return pi_volatility_parent
 
 
-@partial(jit, static_argnames=("volatility_parent_idx"))
 def prediction_error_mean_volatility_parent(
     attributes, edges, time_step, volatility_parent_idx, pi_volatility_parent: ArrayLike
 ) -> Array:
@@ -257,7 +252,6 @@ def prediction_error_mean_volatility_parent(
     return mu_volatility_parent
 
 
-@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_input_mean_value_parent(
     attributes: Dict,
     edges: Edges,

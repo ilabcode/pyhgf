@@ -1,16 +1,14 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from functools import partial
 from typing import Dict, Tuple
 
 import jax.numpy as jnp
-from jax import Array, jit
+from jax import Array
 
 from pyhgf.math import sigmoid
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("node_idx"))
 def predict_binary_state_node(
     attributes: Dict,
     edges: Edges,

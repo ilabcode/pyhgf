@@ -1,16 +1,13 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from functools import partial
 from typing import Dict
 
 import jax.numpy as jnp
-from jax import jit
 
 from pyhgf.math import binary_surprise, dirichlet_kullback_leibler
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("node_idx"))
 def categorical_input_update(
     attributes: Dict,
     time_step: float,
