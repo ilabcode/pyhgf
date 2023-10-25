@@ -3,13 +3,14 @@
 from functools import partial
 from typing import Dict, Tuple
 
+import jax.numpy as jnp
 from jax import Array, jit
 
 from pyhgf.math import sigmoid
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
+@partial(jit, static_argnames=("node_idx"))
 def predict_binary_state_node(
     attributes: Dict,
     edges: Edges,
@@ -38,11 +39,10 @@ def predict_binary_state_node(
     mu_value_parent :
         The mean (:math:`\\mu`) of the value parent.
     """
-    # List the (unique) value parent of the value parent
-    value_parent_idx = edges[node_idx].value_parents[0]
-
-    # Estimate the new expected mean of the value parent and apply the sigmoid transform
-    expected_mean = attributes[value_parent_idx]["expected_mean"]
+    # Get the expected mean from the value parent and apply the sigmoid transform
+    expected_mean = jnp.where(
+        edges["value_parents"][node_idx], attributes["expected_mean"], 0.0
+    ).sum()
     expected_mean = sigmoid(expected_mean)
 
     # Estimate the new expected precision of the value parent

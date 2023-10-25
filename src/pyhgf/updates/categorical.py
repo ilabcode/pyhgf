@@ -10,7 +10,7 @@ from pyhgf.math import binary_surprise, dirichlet_kullback_leibler
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
+@partial(jit, static_argnames=("node_idx"))
 def categorical_input_update(
     attributes: Dict,
     time_step: float,

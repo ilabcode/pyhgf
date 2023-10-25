@@ -10,7 +10,7 @@ from jax.typing import ArrayLike
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_mean_value_parent(
     attributes: Dict,
     edges: Edges,
@@ -41,19 +41,19 @@ def prediction_error_mean_value_parent(
     # Get the current expected precision for the volatility parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    expected_mean_value_parent = attributes[value_parent_idx]["expected_mean"]
+    expected_mean_value_parent = attributes["expected_mean"][value_parent_idx]
 
     # Gather prediction errors from all child nodes if the parent has many children
     # This part corresponds to the sum of children for the multi-children situations
     pe_children = 0.0
     for child_idx, value_coupling in zip(
-        edges[value_parent_idx].value_children,
-        attributes[value_parent_idx]["value_coupling_children"],
+        jnp.where(edges["value_children"][value_parent_idx])[0],
+        attributes["value_coupling_children"][value_parent_idx],
     ):
         vape_child = (
-            attributes[child_idx]["mean"] - attributes[child_idx]["expected_mean"]
+            attributes["mean"][child_idx] - attributes["expected_mean"][child_idx]
         )
-        expected_precision_child = attributes[child_idx]["expected_precision"]
+        expected_precision_child = attributes["expected_precision"][child_idx]
         pe_children += (
             value_coupling * expected_precision_child * vape_child
         ) / pi_value_parent
@@ -64,7 +64,7 @@ def prediction_error_mean_value_parent(
     return mu_value_parent
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_precision_value_parent(
     attributes: Dict, edges: Edges, value_parent_idx: int
 ) -> Array:
@@ -90,16 +90,16 @@ def prediction_error_precision_value_parent(
     # Get the current expected mean for the volatility parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    expected_precision_value_parent = attributes[value_parent_idx]["expected_precision"]
+    expected_precision_value_parent = attributes["expected_precision"][value_parent_idx]
 
     # Gather precision updates from all child nodes if the parent has many children.
     # This part corresponds to the sum over children for the multi-children situations.
     pi_children = 0.0
     for child_idx, value_coupling in zip(
-        edges[value_parent_idx].value_children,
-        attributes[value_parent_idx]["value_coupling_children"],
+        jnp.where(edges["value_children"][value_parent_idx])[0],
+        attributes["value_coupling_children"][value_parent_idx],
     ):
-        expected_precision_child = attributes[child_idx]["expected_precision"]
+        expected_precision_child = attributes["expected_precision"][child_idx]
         pi_children += value_coupling**2 * expected_precision_child
 
     # Estimate new value for the precision of the value parent
@@ -108,7 +108,7 @@ def prediction_error_precision_value_parent(
     return pi_value_parent
 
 
-@partial(jit, static_argnames=("edges", "volatility_parent_idx"))
+@partial(jit, static_argnames=("volatility_parent_idx"))
 def prediction_error_precision_volatility_parent(
     attributes: Dict, edges: Edges, time_step: float, volatility_parent_idx: int
 ) -> Array:
@@ -136,36 +136,35 @@ def prediction_error_precision_volatility_parent(
     # Get the current expected precision for the volatility parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    expected_precision_volatility_parent = attributes[volatility_parent_idx][
-        "expected_precision"
+    expected_precision_volatility_parent = attributes["expected_precision"][
+        volatility_parent_idx
     ]
 
     # gather volatility precisions from the child nodes
     children_volatility_precision = 0.0
     for child_idx, kappas_children in zip(
-        edges[volatility_parent_idx].volatility_children,
-        attributes[volatility_parent_idx]["volatility_coupling_children"],
+        jnp.where(edges["volatility_children"][volatility_parent_idx])[0],
+        attributes["volatility_coupling_children"][volatility_parent_idx],
     ):
         # Look at the (optional) volatility parents and update logvol accordingly
-        logvol = attributes[child_idx]["tonic_volatility"]
-        if edges[child_idx].volatility_parents is not None:
-            for chld_vo_pa, volatility_coupling in zip(
-                edges[child_idx].volatility_parents,
-                attributes[child_idx]["volatility_coupling_parents"],
-            ):
-                logvol += volatility_coupling * attributes[chld_vo_pa]["mean"]
+        logvol = attributes["tonic_volatility"][child_idx]
+        for child_vo_pa, volatility_coupling in zip(
+            jnp.where(edges["volatility_parents"][child_idx])[0],
+            attributes["volatility_coupling_parents"][child_idx],
+        ):
+            logvol += volatility_coupling * attributes["mean"][child_vo_pa]
 
         # Compute new value for nu
         nu_children = time_step * jnp.exp(logvol)
         nu_children = jnp.where(nu_children > 1e-128, nu_children, jnp.nan)
 
-        expected_precision_children = attributes[child_idx]["expected_precision"]
-        pi_children = attributes[child_idx]["precision"]
+        expected_precision_children = attributes["expected_precision"][child_idx]
+        pi_children = attributes["precision"][child_idx]
         vope_children = (
-            1 / attributes[child_idx]["precision"]
-            + (attributes[child_idx]["mean"] - attributes[child_idx]["expected_mean"])
+            1 / attributes["precision"][child_idx]
+            + (attributes["mean"][child_idx] - attributes["expected_mean"][child_idx])
             ** 2
-        ) * attributes[child_idx]["expected_precision"] - 1
+        ) * attributes["expected_precision"][child_idx] - 1
 
         children_volatility_precision += (
             0.5
@@ -184,7 +183,7 @@ def prediction_error_precision_volatility_parent(
     return pi_volatility_parent
 
 
-@partial(jit, static_argnames=("edges", "volatility_parent_idx"))
+@partial(jit, static_argnames=("volatility_parent_idx"))
 def prediction_error_mean_volatility_parent(
     attributes, edges, time_step, volatility_parent_idx, pi_volatility_parent: ArrayLike
 ) -> Array:
@@ -212,33 +211,35 @@ def prediction_error_mean_volatility_parent(
     # Get the current expected mean for the volatility parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    expected_mean_volatility_parent = attributes[volatility_parent_idx]["expected_mean"]
+    expected_mean_volatility_parent = attributes["expected_mean"][volatility_parent_idx]
 
     # Gather volatility prediction errors from the child nodes
     children_volatility_prediction_error = 0.0
     for child_idx, kappas_children in zip(
-        edges[volatility_parent_idx].volatility_children,
-        attributes[volatility_parent_idx]["volatility_coupling_children"],
+        jnp.where(edges["volatility_children"][volatility_parent_idx])[0],
+        attributes["volatility_coupling_children"][volatility_parent_idx],
     ):
-        # Look at the (optional) volatility parents and update logvol accordingly
-        logvol = attributes[child_idx]["tonic_volatility"]
-        if edges[child_idx].volatility_parents is not None:
-            for chld_vo_pa, volatility_coupling in zip(
-                edges[child_idx].volatility_parents,
-                attributes[child_idx]["volatility_coupling_parents"],
-            ):
-                logvol += volatility_coupling * attributes[chld_vo_pa]["mean"]
+        # Look at the (optional) volatility parents of the child
+        # and update logvol accordingly
+        logvol = attributes["tonic_volatility"][child_idx]
+        for child_volatility_paren_idx, volatility_coupling in zip(
+            jnp.where(edges["volatility_parents"][child_idx])[0],
+            attributes["volatility_coupling_parents"][child_idx],
+        ):
+            logvol += (
+                volatility_coupling * attributes["mean"][child_volatility_paren_idx]
+            )
 
         # Compute new value for nu
         nu_children = time_step * jnp.exp(logvol)
         nu_children = jnp.where(nu_children > 1e-128, nu_children, jnp.nan)
 
-        expected_precision_children = attributes[child_idx]["expected_precision"]
+        expected_precision_children = attributes["expected_precision"][child_idx]
         vope_children = (
-            1 / attributes[child_idx]["precision"]
-            + (attributes[child_idx]["mean"] - attributes[child_idx]["expected_mean"])
+            1 / attributes["precision"][child_idx]
+            + (attributes["mean"][child_idx] - attributes["expected_mean"][child_idx])
             ** 2
-        ) * attributes[child_idx]["expected_precision"] - 1
+        ) * attributes["expected_precision"][child_idx] - 1
         children_volatility_prediction_error += (
             0.5
             * kappas_children
@@ -256,7 +257,7 @@ def prediction_error_mean_volatility_parent(
     return mu_volatility_parent
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_input_mean_value_parent(
     attributes: Dict,
     edges: Edges,
@@ -285,19 +286,19 @@ def prediction_error_input_mean_value_parent(
     # Get the current expected mean for the volatility parent.
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes.
-    expected_mean_value_parent = attributes[value_parent_idx]["expected_mean"]
+    expected_mean_value_parent = attributes["expected_mean"][value_parent_idx]
 
     # gather PE updates from other input nodes
     # in the case of a multivariate descendency
     pe_children = 0.0
     for child_idx, value_coupling in zip(
-        edges[value_parent_idx].value_children,
-        attributes[value_parent_idx]["value_coupling_children"],
+        jnp.where(edges["value_children"][value_parent_idx])[0],
+        attributes["value_coupling_children"][value_parent_idx],
     ):
         child_value_prediction_error = (
-            attributes[child_idx]["value"] - expected_mean_value_parent
+            attributes["value"][child_idx] - expected_mean_value_parent
         )
-        expected_precision_child = attributes[child_idx]["expected_precision"]
+        expected_precision_child = attributes["expected_precision"][child_idx]
         pe_children += (
             value_coupling * expected_precision_child * child_value_prediction_error
         ) / pi_value_parent

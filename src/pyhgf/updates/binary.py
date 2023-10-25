@@ -1,11 +1,13 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from functools import partial
 from typing import Dict
 
-from jax import jit
+import jax
+import jax.numpy as jnp
+from jax.lax import cond
 
 from pyhgf.typing import Edges
+from pyhgf.updates.continuous import blank_update
 from pyhgf.updates.prediction.binary import predict_binary_state_node
 from pyhgf.updates.prediction_error.binary import (
     prediction_error_input_value_parent,
@@ -13,7 +15,6 @@ from pyhgf.updates.prediction_error.binary import (
 )
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
 def binary_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
@@ -54,33 +55,32 @@ def binary_node_prediction_error(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    # using the current node index, unwrap parameters and parents
-    value_parent_idxs = edges[node_idx].value_parents
+    # retrieve the parent node idx, assuming a unique value parent
+    value_parent_idx = jnp.where(
+        edges["value_parents"][node_idx], jnp.arange(edges["value_parents"].shape[1]), 0
+    ).sum()
 
-    # Return here if no parents node are found
-    if value_parent_idxs is None:
-        return attributes
+    # retrieve the last child index to check before updating
+    last_child_idx = jnp.where(
+        edges["value_children"][value_parent_idx],
+        jnp.arange(edges["value_children"].shape[1]),
+        0,
+    ).max()
 
-    #############################################
-    # Update the continuous value parents (x-2) #
-    #############################################
-    if value_parent_idxs is not None:
-        for value_parent_idx in value_parent_idxs:
-            # if this child is the last one relative to this parent's family, all the
-            # children will update the parent at once, otherwise just pass and wait
-            if edges[value_parent_idx].value_children[-1] == node_idx:
-                (
-                    pi_value_parent,
-                    mu_value_parent,
-                ) = prediction_error_value_parent(attributes, edges, value_parent_idx)
-                # 5. Update node's parameters and node's parents recursively
-                attributes[value_parent_idx]["precision"] = pi_value_parent
-                attributes[value_parent_idx]["mean"] = mu_value_parent
+    # if this child is the last one relative to this parent's family, all the
+    # children will update the parent at once, otherwise just pass and wait
+    attributes = cond(
+        node_idx == last_child_idx,
+        prediction_error_value_parent,
+        blank_update,
+        attributes,
+        edges,
+        value_parent_idx,
+    )
 
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
 def binary_node_prediction(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
@@ -123,13 +123,16 @@ def binary_node_prediction(
     )
 
     # Update the node's attributes
-    attributes[node_idx]["expected_precision"] = expected_precision
-    attributes[node_idx]["expected_mean"] = expected_mean
+    attributes["expected_precision"] = (
+        attributes["expected_precision"].at[node_idx].set(expected_precision)
+    )
+    attributes["expected_mean"] = (
+        attributes["expected_mean"].at[node_idx].set(expected_mean)
+    )
 
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
 def binary_input_prediction_error(
     attributes: Dict,
     time_step: float,
@@ -175,31 +178,33 @@ def binary_input_prediction_error(
 
     """
     # store value and time step in the node's parameters
-    attributes[node_idx]["value"] = value
-    attributes[node_idx]["time_step"] = time_step
-
-    # list value and volatility parents
-    value_parent_idxs = edges[node_idx].value_parents
-    volatility_parent_idxs = edges[node_idx].volatility_parents
-
-    if (value_parent_idxs is None) and (volatility_parent_idxs is None):
-        return attributes
+    attributes["value"] = attributes["value"].at[node_idx].set(value)
+    attributes["time_step"] = attributes["time_step"].at[node_idx].set(time_step)
 
     ####################################################
     # Update the value parent of the binary input node #
     ####################################################
-    if value_parent_idxs is not None:
-        for value_parent_idx in value_parent_idxs:
-            (
-                precision_value_parent,
-                mean_value_parent,
-                surprise,
-            ) = prediction_error_input_value_parent(attributes, edges, value_parent_idx)
 
-            # Update value parent's parameters
-            attributes[value_parent_idx]["precision"] = precision_value_parent
-            attributes[value_parent_idx]["mean"] = mean_value_parent
+    # retrieve the parent node idx, assuming a unique value parent
+    value_parent_idx = jnp.where(
+        edges["value_parents"][node_idx], jnp.arange(edges["value_parents"].shape[1]), 0
+    ).sum()
 
-    attributes[node_idx]["surprise"] = surprise
+    (
+        precision_value_parent,
+        mean_value_parent,
+        surprise,
+    ) = prediction_error_input_value_parent(attributes, edges, value_parent_idx)
+
+    jax.debug.print("precision_value_parent: {x} ", x=precision_value_parent)
+
+    # Update value parent's parameters
+    attributes["precision"] = (
+        attributes["precision"].at[value_parent_idx].set(precision_value_parent)
+    )
+    attributes["mean"] = attributes["mean"].at[value_parent_idx].set(mean_value_parent)
+
+    # Store surprise in this node
+    attributes["surprise"] = attributes["surprise"].at[node_idx].set(surprise)
 
     return attributes

@@ -120,11 +120,10 @@ def plot_trajectories(
 
     """
     trajectories_df = hgf.to_pandas()
-    n_nodes = len(hgf.edges)
     palette = itertools.cycle(sns.color_palette())
 
     if axs is None:
-        _, axs = plt.subplots(nrows=n_nodes + 1, figsize=figsize, sharex=True)
+        _, axs = plt.subplots(nrows=hgf.n_nodes + 1, figsize=figsize, sharex=True)
 
     # plot the input node(s)
     # ----------------------
@@ -141,8 +140,8 @@ def plot_trajectories(
 
     # plot continuous and binary nodes
     # --------------------------------
-    ax_i = n_nodes - len(hgf.input_nodes_idx.idx) - 1
-    for node_idx in range(0, n_nodes):
+    ax_i = hgf.n_nodes - len(hgf.input_nodes_idx.idx) - 1
+    for node_idx in range(hgf.n_nodes):
         if node_idx not in hgf.input_nodes_idx.idx:
             # use different colors for each node
             color = next(palette)
@@ -160,7 +159,7 @@ def plot_trajectories(
 
     # plot the global surprise of the model
     # -------------------------------------
-    surprise_ax = axs[n_nodes].twinx()
+    surprise_ax = axs[hgf.n_nodes].twinx()
     surprise_ax.fill_between(
         x=trajectories_df.time,
         y1=trajectories_df.surprise,
@@ -458,25 +457,21 @@ def plot_nodes(
 
                 # if this is the value parent of an input node
                 # the CI should be treated diffeently
-                if hgf.edges[node_idx].value_children is not None:
+                if np.any(hgf.edges["value_children"][node_idx]):
                     if np.any(
                         [
                             (
                                 i  # type : ignore
-                                in hgf.edges[  # type: ignore
-                                    node_idx  # type: ignore
-                                ].value_children  # type: ignore
+                                in np.where(hgf.edges["value_children"][node_idx])[0]
                             )
                             and kind == "binary"
                             for i, kind in enumerate(hgf.input_nodes_idx.kind)
                         ]
                     ):
                         # get parent node
-                        parent_idx = hgf.edges[  # type: ignore
-                            node_idx  # type: ignore
-                        ].value_parents[
+                        parent_idx = np.where(hgf.edges["value_parents"][node_idx])[0][
                             0
-                        ]  # type: ignore
+                        ]
 
                         # compute  mu +/- sd at time t-1
                         # and use the sigmoid transform before plotting

@@ -1,9 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from functools import partial
 from typing import Dict
-
-from jax import jit
 
 from pyhgf.typing import Edges
 from pyhgf.updates.prediction.continuous import predict_mean, predict_precision
@@ -16,7 +13,10 @@ from pyhgf.updates.prediction_error.continuous import (
 )
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
+def blank_update(attributes: Dict, edges: Edges, node_idx: int, **args) -> Dict:
+    return attributes
+
+
 def continuous_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
@@ -125,7 +125,6 @@ def continuous_node_prediction_error(
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
 def ehgf_continuous_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
@@ -242,7 +241,6 @@ def ehgf_continuous_node_prediction_error(
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_node_prediction(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
@@ -287,14 +285,13 @@ def continuous_node_prediction(
     # Get the new expected precision
     expected_precision = predict_precision(attributes, edges, time_step, node_idx)
 
-    # Update this node's parameters
-    attributes[node_idx]["expected_precision"] = expected_precision
-    attributes[node_idx]["expected_mean"] = expected_mean
+    # Update the node's attributes
+    attributes["expected_precision"].at[node_idx].set(expected_precision)
+    attributes["expected_mean"].at[node_idx].set(expected_mean)
 
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_input_prediction_error(
     attributes: Dict,
     time_step: float,
@@ -368,8 +365,8 @@ def continuous_input_prediction_error(
                     attributes, edges, value_parent_idx, pi_value_parent
                 )
 
-                # update input node's parameters
-                attributes[value_parent_idx]["precision"] = pi_value_parent
-                attributes[value_parent_idx]["mean"] = mu_value_parent
+                # Update the input node's attributes
+                attributes["precision"].at[node_idx].set(pi_value_parent)
+                attributes["mean"].at[node_idx].set(mu_value_parent)
 
     return attributes

@@ -12,7 +12,7 @@ from pyhgf.math import binary_surprise, gaussian_density
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_mean_value_parent(
     attributes: Dict,
     edges: Edges,
@@ -49,27 +49,27 @@ def prediction_error_mean_value_parent(
     # Get the current expected precision for the volatility parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    expected_mean_value_parent = attributes[value_parent_idx]["expected_mean"]
+    expected_mean_value_parent = attributes["expected_mean"][value_parent_idx]
 
     # Gather prediction errors from all child nodes if the parent has many children
     # This part corresponds to the sum of children for the multi-children situations
-    pe_children = 0.0
-    for child_idx, psi_child in zip(
-        edges[value_parent_idx].value_children,
-        attributes[value_parent_idx]["value_coupling_children"],
-    ):
-        vape_child = (
-            attributes[child_idx]["mean"] - attributes[child_idx]["expected_mean"]
-        )
-        pe_children += (psi_child * vape_child) / pi_value_parent
+    value_prediction_error_children = jnp.where(
+        edges["value_children"][value_parent_idx], attributes["mean"], 0.0
+    ) - jnp.where(
+        edges["value_children"][value_parent_idx], attributes["expected_mean"], 0.0
+    )
+    value_coupling_children = attributes["value_coupling_children"][value_parent_idx]
+    children_prediction_error = (
+        (value_coupling_children * value_prediction_error_children) / pi_value_parent
+    ).sum()
 
     # Estimate the new mean of the value parent
-    mu_value_parent = expected_mean_value_parent + pe_children
+    mu_value_parent = expected_mean_value_parent + children_prediction_error
 
     return mu_value_parent
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_precision_value_parent(
     attributes: Dict, edges: Edges, value_parent_idx: int
 ) -> Array:
@@ -101,25 +101,25 @@ def prediction_error_precision_value_parent(
     # Get the current expected precision for the volatility parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    expected_precision_value_parent = attributes[value_parent_idx]["expected_precision"]
+    expected_precision_value_parent = attributes["expected_precision"][value_parent_idx]
 
-    # Gather precision updates from all child nodes if the parent has many children.
+    # Gather precision updates from all children nodes if the parent has many children.
     # This part corresponds to the sum over children for the multi-children situations.
-    pi_children = 0.0
-    for child_idx, psi_child in zip(
-        edges[value_parent_idx].value_children,
-        attributes[value_parent_idx]["value_coupling_children"],
-    ):
-        expected_precision_child = attributes[child_idx]["expected_precision"]
-        pi_children += psi_child * (1 / expected_precision_child)
+    expected_precision_children = jnp.where(
+        edges["value_children"][value_parent_idx], attributes["expected_precision"], 0.0
+    )
+    value_coupling_children = attributes["value_coupling_children"][value_parent_idx]
+    children_precision = (
+        value_coupling_children * (1 / expected_precision_children)
+    ).sum()
 
     # Estimate new value for the precision of the value parent
-    pi_value_parent = expected_precision_value_parent + pi_children
+    pi_value_parent = expected_precision_value_parent + children_precision
 
     return pi_value_parent
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("value_parent_idx"))
 def prediction_error_value_parent(
     attributes: Dict,
     edges: Edges,
@@ -146,10 +146,8 @@ def prediction_error_value_parent(
 
     Returns
     -------
-    pi_value_parent :
-        The precision (:math:`\\pi`) of the value parent.
-    mu_value_parent :
-        The mean (:math:`\\mu`) of the value parent.
+    attributes :
+        The attributes of the probabilistic nodes.
 
     """
     # Estimate the new precision of the value parent
@@ -161,14 +159,19 @@ def prediction_error_value_parent(
         attributes, edges, value_parent_idx, pi_value_parent
     )
 
-    return pi_value_parent, mu_value_parent
+    # Update the node's attributes
+    attributes["precision"] = (
+        attributes["precision"].at[value_parent_idx].set(pi_value_parent)
+    )
+    attributes["mean"] = attributes["mean"].at[value_parent_idx].set(mu_value_parent)
+
+    return attributes
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
 def prediction_error_input_value_parent(
     attributes: Dict,
     edges: Edges,
-    value_parent_idx: int,
+    node_idx: int,
 ) -> Tuple[Array, ...]:
     r"""Update the mean and precision of the value parent of a binary input node.
 
@@ -180,8 +183,9 @@ def prediction_error_input_value_parent(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    value_parent_idx :
-        Pointer to the value parent node that will be updated.
+    node_idx :
+        Pointer to the node that needs to be updated. After continuous updates, the
+        parameters of value and volatility parents (if any) will be different.
 
     Returns
     -------
@@ -193,18 +197,26 @@ def prediction_error_input_value_parent(
         The binary surprise from observing the new state.
 
     """
-    # Get the current expected mean for the value parent
+    # list value and volatility parents
+    value_parent_mask = edges["value_parents"][node_idx].astype(bool)
+
+    # Get the current expected mean from the value parent
     # The prediction sequence was triggered by the new observation so this value is
     # already in the node attributes
-    expected_mean_value_parent = attributes[value_parent_idx]["expected_mean"]
+    expected_mean_value_parent = jnp.where(
+        value_parent_mask, attributes["expected_mean"], 0.0
+    ).sum()
 
-    # Read parameters from the binary input
+    # Read parameters from the binary input (the only value child of the value parent)
     # Currently, only one binary input can be child of the binary node
-    child_node_idx = edges[value_parent_idx].value_children[0]
-    eta0 = attributes[child_node_idx]["eta0"]
-    eta1 = attributes[child_node_idx]["eta1"]
-    expected_precision = attributes[child_node_idx]["expected_precision"]
-    value = attributes[child_node_idx]["value"]
+    child_node_mask = (edges["value_parents"] @ edges["value_children"])[node_idx]
+
+    eta0 = jnp.where(child_node_mask, attributes["eta0"], 0.0).sum()
+    eta1 = jnp.where(child_node_mask, attributes["eta1"], 0.0).sum()
+    expected_precision = jnp.where(
+        child_node_mask, attributes["expected_precision"], 0.0
+    ).sum()
+    value = jnp.where(child_node_mask, attributes["value"], 0.0).sum()
 
     # Compute the surprise, new mean and precision
     mu_value_parent, pi_value_parent, surprise = cond(

@@ -145,6 +145,7 @@ class HGF(object):
         self.update_type = update_type
         self.verbose = verbose
         self.n_levels = n_levels
+        self.n_nodes: int = 0
         self.edges: Edges = ()
         self.node_trajectories: Dict
         self.attributes: Dict = {}
@@ -243,11 +244,18 @@ class HGF(object):
         sequence and before providing any input data.
 
         """
+
         # create the update sequence automatically if not provided
         if self.update_sequence is None:
             self.set_update_sequence()
             if self.verbose:
                 print("... Create the update sequence from the network structure.")
+
+        # convert the adjacency lists to adjacency matrices
+        self = self.adjacency_list_to_matrix()
+
+        # vectorize the attributes
+        self = self.attributes_to_matrix()
 
         # create the belief propagation function that will be scaned
         if self.scan_fn is None:
@@ -554,7 +562,7 @@ class HGF(object):
                 raise Exception(
                     f"A node with index {input_idx} already exists in the HGF network."
                 )
-
+            self.n_nodes += 1
             if input_idx == 0:
                 # this is the first node, create the node structure
 
@@ -638,10 +646,9 @@ class HGF(object):
         tonic_drift :
             The drift of the random walk. Defaults to `0.0` (no drift).
         autoregressive_coefficient :
-            The autoregressive coefficient is only used to parametrize the AR1 process
-            and represents the autoregressive coefficient. If
-            :math:`-1 \\le \\phi \\le 1`, the process is stationary and will revert to
-            the autoregressive intercept.
+            The autoregressive coefficient is only used to parametrize the AR1 process.
+            If :math:`-1 \\le \\phi \\le 1`, the process is stationary and will revert
+            to the autoregressive intercept.
         autoregressive_intercept :
             The parameter `m` is only used to parametrize the AR1 process and represents
             the autoregressive intercept. If :math:`-1 \\le \\phi \\le 1`, this is the
@@ -654,8 +661,7 @@ class HGF(object):
             children_idxs = [children_idxs]
 
         # how many nodes in structure
-        n_nodes = len(self.edges)
-        parent_idx = n_nodes  # append a new parent in the structure
+        parent_idx = self.n_nodes  # append a new parent in the structure
 
         if parent_idx in self.attributes.keys():
             raise Exception(
@@ -720,6 +726,8 @@ class HGF(object):
 
         # convert the list back to a tuple
         self.edges = tuple(edges_as_list)
+
+        self.n_nodes += 1
 
         return self
 
@@ -846,6 +854,8 @@ class HGF(object):
         # convert the list back to a tuple
         self.edges = tuple(edges_as_list)
 
+        self.n_nodes += 1
+
         return self
 
     def set_update_sequence(self) -> "HGF":
@@ -861,5 +871,62 @@ class HGF(object):
         prediction_sequence.reverse()
         prediction_sequence.extend(update_sequence)
         self.update_sequence = tuple(prediction_sequence)
+
+        return self
+
+    def adjacency_list_to_matrix(self) -> "HGF":
+        """Convert the edges from list representation to matrix representation."""
+        n_nodes = len(self.edges)
+        matrix_edges = {
+            "value_parents": np.zeros((n_nodes, n_nodes)),
+            "value_children": np.zeros((n_nodes, n_nodes)),
+            "volatility_parents": np.zeros((n_nodes, n_nodes)),
+            "volatility_children": np.zeros((n_nodes, n_nodes)),
+        }
+
+        for i, idx in enumerate(self.edges):
+            for k in matrix_edges.keys():
+                if eval(f"idx.{k}") is not None:
+                    matrix_edges[k][i, eval(f"idx.{k}")] = 1
+
+        self.edges = matrix_edges
+
+        return self
+
+    def attributes_to_matrix(self) -> "HGF":
+        """Vectorize the attributes of a probabilistic network."""
+
+        n_nodes = len(self.attributes)
+
+        # list all the attributes present in the network
+        keys = []
+        for i in range(n_nodes):
+            for key in self.attributes[i].keys():
+                if key not in keys:
+                    keys.append(key)
+
+        # initialize to list of zeros
+        matrix_attributes = {key: [0] * n_nodes for key in keys}
+
+        # fill with the actual values
+        for i in range(n_nodes):
+            for key, value in self.attributes[i].items():
+                matrix_attributes[key][i] = value
+
+        # special cases for the coupling values
+        for key in [
+            "value_coupling_parents",
+            "volatility_coupling_children",
+            "volatility_coupling_parents",
+            "value_coupling_children",
+        ]:
+            matrix_attributes[key] = np.ones((n_nodes, n_nodes))
+
+        # convert to numpy arrays
+        matrix_attributes = {
+            key: np.asarray(value) for key, value in matrix_attributes.items()
+        }
+
+        self.attributes = matrix_attributes
 
         return self

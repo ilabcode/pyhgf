@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from pyhgf.model import HGF
 
 
-@partial(jit, static_argnames=("update_sequence", "edges", "input_nodes_idx"))
+@partial(jit, static_argnames=("update_sequence", "input_nodes_idx"))
 def beliefs_propagation(
     attributes: Dict,
     data: ArrayLike,
@@ -442,11 +442,11 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     # get time and time steps from the first input node
     structure_df = pd.DataFrame(
         {
-            "time_steps": hgf.node_trajectories[hgf.input_nodes_idx.idx[0]][
-                "time_step"
+            "time_steps": hgf.node_trajectories["time_step"][
+                :, hgf.input_nodes_idx.idx[0]
             ],
             "time": jnp.cumsum(
-                hgf.node_trajectories[hgf.input_nodes_idx.idx[0]]["time_step"]
+                hgf.node_trajectories["time_step"][:, hgf.input_nodes_idx.idx[0]]
             ),
         }
     )
@@ -467,20 +467,16 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
             )
             pd.concat([structure_df, df], axis=1)
         else:
-            structure_df[f"observation_input_{idx}"] = hgf.node_trajectories[idx][
-                "value"
+            structure_df[f"observation_input_{idx}"] = hgf.node_trajectories["value"][
+                :, idx
             ]
 
     # loop over non input nodes and store sufficient statistics with surprise
-    indexes = [
-        i
-        for i in range(1, len(hgf.node_trajectories))
-        if i not in hgf.input_nodes_idx.idx
-    ]
+    indexes = [i for i in range(1, hgf.n_nodes) if i not in hgf.input_nodes_idx.idx]
     df = pd.DataFrame(
         dict(
             [
-                (f"x_{i}_{var}", hgf.node_trajectories[i][var])
+                (f"x_{i}_{var}", hgf.node_trajectories[var][:, i])
                 for i in indexes
                 for var in ["mean", "precision", "expected_mean", "expected_precision"]
             ]
@@ -498,20 +494,20 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     for i in indexes:
         if i in continuous_parents_idxs:
             surprise = gaussian_surprise(
-                x=hgf.node_trajectories[0]["value"],
-                expected_mean=hgf.node_trajectories[i]["expected_mean"],
-                expected_precision=hgf.node_trajectories[i]["expected_precision"],
+                x=hgf.node_trajectories["value"][:, 0],
+                expected_mean=hgf.node_trajectories["expected_mean"][:, i],
+                expected_precision=hgf.node_trajectories["expected_precision"][:, i],
             )
         else:
             surprise = gaussian_surprise(
-                x=hgf.node_trajectories[i]["mean"],
-                expected_mean=hgf.node_trajectories[i]["expected_mean"],
-                expected_precision=hgf.node_trajectories[i]["expected_precision"],
+                x=hgf.node_trajectories["mean"][:, i],
+                expected_mean=hgf.node_trajectories["expected_mean"][:, i],
+                expected_precision=hgf.node_trajectories["expected_precision"][:, i],
             )
 
         # fill with nans when the model cannot fit
         surprise = jnp.where(
-            jnp.isnan(hgf.node_trajectories[i]["mean"]), jnp.nan, surprise
+            jnp.isnan(hgf.node_trajectories["mean"][:, i]), jnp.nan, surprise
         )
         structure_df[f"x_{i}_surprise"] = surprise
 
