@@ -7,6 +7,7 @@ import jax.numpy as jnp
 import numpy as np
 import pandas as pd
 from jax import jit
+from jax.lax import switch
 from jax.typing import ArrayLike
 
 from pyhgf.math import gaussian_surprise
@@ -71,25 +72,28 @@ def beliefs_propagation(
 
 
     """
+    branches_idxs, branches, nodes_idxs = update_sequence
+
     # extract value(s) and time steps from the data
     values = data[:-1]
     time_step = data[-1]
 
     input_nodes_idx = jnp.asarray(input_nodes_idx)
-    # Fit the model with the current time and value variables, given the model structure
-    for sequence in update_sequence:
-        node_idx, update_fn = sequence
 
+    # Fit the model with the current time and value variables, given the model structure
+    for node_idx, branch_idx in zip(nodes_idxs, branches_idxs):
         # if we are updating an input node, select the value that should be passed
         # otherwise, just pass 0.0 and the value will be ignored
         value = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * values)
 
-        attributes = update_fn(
-            attributes=attributes,
-            time_step=time_step,
-            node_idx=node_idx,
-            edges=edges,
-            value=value,
+        attributes = switch(
+            branch_idx,
+            branches,
+            attributes,
+            time_step,
+            node_idx,
+            edges,
+            value,
         )
 
     return (

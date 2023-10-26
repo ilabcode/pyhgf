@@ -242,7 +242,7 @@ def ehgf_continuous_node_prediction_error(
 
 
 def continuous_node_prediction(
-    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, value=None
 ) -> Dict:
     """Update the expected mean and precision of a continuous node.
 
@@ -280,10 +280,11 @@ def continuous_node_prediction(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
+
     # Get the new expected mean
-    expected_mean = predict_mean(attributes, edges, time_step, node_idx)
+    expected_mean = predict_mean(attributes, time_step, node_idx, edges)
     # Get the new expected precision
-    expected_precision = predict_precision(attributes, edges, time_step, node_idx)
+    expected_precision = predict_precision(attributes, time_step, node_idx, edges)
 
     # Update the node's attributes
     attributes["expected_precision"] = (

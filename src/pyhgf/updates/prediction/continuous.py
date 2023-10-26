@@ -10,9 +10,9 @@ from pyhgf.typing import Edges
 
 def predict_mean(
     attributes: Dict,
-    edges: Edges,
     time_step: float,
     node_idx: int,
+    edges: Edges,
 ) -> Array:
     r"""Expected value for the mean of a probabilistic node.
 
@@ -20,14 +20,14 @@ def predict_mean(
     ----------
     attributes :
         The attributes of the probabilistic nodes.
-    edges :
-        The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
     time_step :
         The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the node that will be updated.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
 
     Returns
     -------
@@ -67,7 +67,7 @@ def predict_mean(
 
 
 def predict_precision(
-    attributes: Dict, edges: Edges, time_step: float, node_idx: int
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges
 ) -> Array:
     r"""Expected value for the precision of the value parent.
 
@@ -75,14 +75,14 @@ def predict_precision(
     ----------
     attributes :
         The attributes of the probabilistic nodes.
-    edges :
-        The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
     time_step :
         The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the node that will be updated.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
 
     Returns
     -------

@@ -870,7 +870,18 @@ class HGF(object):
         # generate the prediction sequence here, in reverse order
         prediction_sequence.reverse()
         prediction_sequence.extend(update_sequence)
-        self.update_sequence = tuple(prediction_sequence)
+        update_sequence = tuple(prediction_sequence)
+
+        # store node_idxs, branch_idxs and branches for later use in switch statement
+        self.update_sequence = (
+            tuple(pd.Categorical([step[1] for step in update_sequence]).codes.tolist()),
+            tuple(
+                pd.Categorical(
+                    [step[1] for step in update_sequence]
+                ).categories.tolist()
+            ),
+            tuple([step[0] for step in update_sequence]),
+        )
 
         return self
 
