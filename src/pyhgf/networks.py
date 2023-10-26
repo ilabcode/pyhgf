@@ -68,8 +68,7 @@ def beliefs_propagation(
     Returns
     -------
     attributes, attributes :
-        A tuple of parameters structure (carryover and accumulated).
-
+        A tuple of attributes structure (carryover and accumulated).
 
     """
     branches_idxs, branches, nodes_idxs = update_sequence

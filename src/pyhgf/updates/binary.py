@@ -15,7 +15,7 @@ from pyhgf.updates.prediction_error.binary import (
 
 
 def binary_node_prediction_error(
-    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, value=None
 ) -> Dict:
     """Update the value parent(s) of a binary node.
 
@@ -81,7 +81,7 @@ def binary_node_prediction_error(
 
 
 def binary_node_prediction(
-    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, value=None
 ) -> Dict:
     """Update the expected mean and precision of a binary state node.
 
