@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, NamedTuple, Optional, Tuple
+from typing import NamedTuple, Optional, Tuple
 
 
 class Indexes(NamedTuple):
@@ -19,6 +19,6 @@ class InputIndexes(NamedTuple):
     kind: Tuple[str, ...]
 
 
-Edges = Tuple[Indexes, ...]
+UpdateSequence = Tuple
 
-UpdateSequence = Tuple[Tuple[int, Callable], ...]
+Edges = Tuple[Indexes, ...]

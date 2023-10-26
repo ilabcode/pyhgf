@@ -16,7 +16,7 @@ from pyhgf.updates.prediction_error.continuous import (
 )
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"), static_argnums=(2, 3))
 def continuous_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
@@ -125,7 +125,7 @@ def continuous_node_prediction_error(
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"), static_argnums=(2, 3))
 def ehgf_continuous_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
@@ -242,9 +242,9 @@ def ehgf_continuous_node_prediction_error(
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"), static_argnums=(2, 3))
 def continuous_node_prediction(
-    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, value=None
 ) -> Dict:
     """Update the expected mean and precision of a continuous node.
 
@@ -282,10 +282,11 @@ def continuous_node_prediction(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
+
     # Get the new expected mean
-    expected_mean = predict_mean(attributes, edges, time_step, node_idx)
+    expected_mean = predict_mean(attributes, time_step, node_idx, edges)
     # Get the new expected precision
-    expected_precision = predict_precision(attributes, edges, time_step, node_idx)
+    expected_precision = predict_precision(attributes, time_step, node_idx, edges)
 
     # Update this node's parameters
     attributes[node_idx]["expected_precision"] = expected_precision
@@ -294,7 +295,7 @@ def continuous_node_prediction(
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"), static_argnums=(2, 3))
 def continuous_input_prediction_error(
     attributes: Dict,
     time_step: float,
