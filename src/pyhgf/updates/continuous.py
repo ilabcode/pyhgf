@@ -129,7 +129,7 @@ def continuous_node_prediction_error(
 def ehgf_continuous_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
-    """eHGF prediction-error step for value and volatility parents of a continuous node.
+    """Perform the eHGF PE step for value and volatility parents of a continuous node.
 
     This update step uses a different order for the mean and precision as compared to
     the standard HGF, respectively:

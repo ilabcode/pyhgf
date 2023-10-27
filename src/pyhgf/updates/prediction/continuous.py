@@ -16,7 +16,7 @@ def predict_mean(
     time_step: float,
     node_idx: int,
 ) -> Array:
-    r"""Expected value for the mean of a probabilistic node.
+    r"""Compute the expected mean of a probabilistic node.
 
     Parameters
     ----------
@@ -75,7 +75,7 @@ def predict_mean(
 def predict_precision(
     attributes: Dict, edges: Edges, time_step: float, node_idx: int
 ) -> Array:
-    r"""Expected value for the precision of the value parent.
+    r"""Compute the expected precision of a probabilistic node.
 
     Parameters
     ----------

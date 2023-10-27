@@ -34,6 +34,10 @@ class HGF(object):
         network only has one input node.
     model_type :
         The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
+    update_type:
+        The type of volatility update to perform. Can be `"eHGF"` (default) or
+        `"standard"`. The eHGF update step tends to be more robust and produce fewer
+        invalid space errors and is therefore recommended by default.
     update_type :
         The type of update to perform for volatility coupling. Can be `"eHGF"`
         (defaults) or `"standard"`. The eHGF update step was proposed as an alternative
@@ -97,38 +101,42 @@ class HGF(object):
 
         Parameters
         ----------
-        eta0 :
-            The first categorical value of the binary node. Defaults to `0.0`. Only
-            relevant if `model_type="binary"`.
-        eta1 :
-            The second categorical value of the binary node. Defaults to `0.0`. Only
-            relevant if `model_type="binary"`.
+        n_levels :
+            The number of hierarchies in the perceptual model (can be `2` or `3`). If
+            `None`, the nodes hierarchy is not created and might be provided afterward.
+            Defaults to `2` for a 2-level HGF.
+        model_type : str
+            The model type to use (can be `"continuous"` or `"binary"`).
+        update_type:
+            The type of volatility update to perform. Can be `"eHGF"` (default) or
+            `"standard"`. The eHGF update step tends to be more robust and produce fewer
+            invalid space errors and is therefore recommended by default.
         initial_mean :
             A dictionary containing the initial values for the initial mean at
             different levels of the hierarchy. Defaults set to `0.0`.
         initial_precision :
             A dictionary containing the initial values for the initial precision at
             different levels of the hierarchy. Defaults set to `1.0`.
+        continuous_precision :
+            The expected precision of the continuous input node. Default to `1e4`. Only
+            relevant if `model_type="continuous"`.
+        tonic_volatility :
+            A dictionary containing the initial values for the tonic volatility
+            at different levels of the hierarchy. This represents the tonic
+            part of the variance (the part that is not affected by the parent node).
+            Defaults are set to `-3.0`.
         volatility_coupling :
             A dictionary containing the initial values for the volatility coupling
             at different levels of the hierarchy. This represents the phasic part of
             the variance (the part that is affected by the parent nodes) and will
             define the strength of the connection between the node and the parent
             node. Defaults set to `1.0`.
-        model_type : str
-            The model type to use (can be `"continuous"` or `"binary"`).
-        n_levels :
-            The number of hierarchies in the perceptual model (can be `2` or `3`). If
-            `None`, the nodes hierarchy is not created and might be provided afterward.
-            Defaults to `2` for a 2-level HGF.
-        tonic_volatility :
-            A dictionary containing the initial values for the tonic volatility
-            at different levels of the hierarchy. This represents the tonic
-            part of the variance (the part that is not affected by the parent node).
-            Defaults are set to `-3.0`.
-        continuous_precision :
-            The expected precision of the continuous input node. Default to `1e4`. Only
-            relevant if `model_type="continuous"`.
+        eta0 :
+            The first categorical value of the binary node. Defaults to `0.0`. Only
+            relevant if `model_type="binary"`.
+        eta1 :
+            The second categorical value of the binary node. Defaults to `0.0`. Only
+            relevant if `model_type="binary"`.
         binary_precision :
             The precision of the binary input node. Default to `jnp.inf`. Only relevant
             if `model_type="binary"`.
@@ -616,7 +624,7 @@ class HGF(object):
         autoregressive_intercept: float = 0.0,
         additional_parameters: Optional[Dict] = None,
     ):
-        """Add a value parent to a given set of nodes.
+        r"""Add a value parent to a given set of nodes.
 
         Parameters
         ----------
@@ -735,7 +743,7 @@ class HGF(object):
         autoregressive_intercept: float = 0.0,
         additional_parameters: Optional[Dict] = None,
     ):
-        """Add a volatility parent to a given set of nodes.
+        r"""Add a volatility parent to a given set of nodes.
 
         Parameters
         ----------

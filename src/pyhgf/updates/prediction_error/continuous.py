@@ -57,7 +57,7 @@ def prediction_error_mean_value_parent(
     # This part corresponds to the sum of children for the multi-children situations
     children_prediction_errors = 0.0
     for child_idx, value_coupling in zip(
-        edges[value_parent_idx].value_children,
+        edges[value_parent_idx].value_children,  # type: ignore
         attributes[value_parent_idx]["value_coupling_children"],
     ):
         child_value_prediction_error = (
@@ -116,7 +116,7 @@ def prediction_error_precision_value_parent(
     # This part corresponds to the sum over children for the multi-children situations.
     children_precisions = 0.0
     for child_idx, value_coupling in zip(
-        edges[value_parent_idx].value_children,
+        edges[value_parent_idx].value_children,  # type: ignore
         attributes[value_parent_idx]["value_coupling_children"],
     ):
         expected_precision_child = attributes[child_idx]["expected_precision"]
@@ -132,7 +132,7 @@ def prediction_error_precision_value_parent(
 def prediction_error_precision_volatility_parent(
     attributes: Dict, edges: Edges, time_step: float, volatility_parent_idx: int
 ) -> Array:
-    r"""Send prediction-error and update the precision of the volatility parent.
+    """Send prediction-error and update the precision of the volatility parent.
 
     Parameters
     ----------
@@ -144,13 +144,13 @@ def prediction_error_precision_volatility_parent(
         For each node, the index list value and volatility parents and children.
     time_step :
         The interval between the previous time point and the current time point.
-    value_parent_idx :
+    volatility_parent_idx :
         Pointer to the node that will be updated.
 
     Returns
     -------
     precision_volatility_parent :
-        The updated value for the mean of the value parent (:math:`\\pi`).
+        The new precision of the value parent.
 
     See Also
     --------
@@ -173,7 +173,7 @@ def prediction_error_precision_volatility_parent(
     # gather volatility precisions from the child nodes
     children_volatility_precision = 0.0
     for child_idx, kappas_children in zip(
-        edges[volatility_parent_idx].volatility_children,
+        edges[volatility_parent_idx].volatility_children,  # type: ignore
         attributes[volatility_parent_idx]["volatility_coupling_children"],
     ):
         # Look at the (optional) volatility parents and update logvol accordingly
@@ -266,7 +266,7 @@ def prediction_error_mean_volatility_parent(
     # Gather volatility prediction errors from the child nodes
     children_volatility_prediction_error = 0.0
     for child_idx, kappas_children in zip(
-        edges[volatility_parent_idx].volatility_children,
+        edges[volatility_parent_idx].volatility_children,  # type: ignore
         attributes[volatility_parent_idx]["volatility_coupling_children"],
     ):
         # Look at the (optional) volatility parents and update logvol accordingly
@@ -315,7 +315,7 @@ def prediction_error_input_mean_value_parent(
     value_parent_idx: int,
     precision_value_parent: ArrayLike,
 ) -> Array:
-    r"""Send value prediction-error to the mean of a continuous input's value parent.
+    """Send value prediction-error to the mean of a continuous input's value parent.
 
     Parameters
     ----------
@@ -327,11 +327,13 @@ def prediction_error_input_mean_value_parent(
         For each node, the index list value and volatility parents and children.
     value_parent_idx :
         Pointer to the value parent node that will be updated.
+    precision_value_parent :
+        The precision of the value parent.
 
     Returns
     -------
     mean_value_parent :
-        The updated value for the mean of the value parent (:math:`\\mu`).
+        The new mean of the value parent.
 
     Notes
     -----
@@ -359,7 +361,7 @@ def prediction_error_input_mean_value_parent(
     # in the case of a multivariate descendency
     children_prediction_errors = 0.0
     for child_idx, value_coupling in zip(
-        edges[value_parent_idx].value_children,
+        edges[value_parent_idx].value_children,  # type: ignore
         attributes[value_parent_idx]["value_coupling_children"],
     ):
         child_value_prediction_error = (
