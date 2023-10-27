@@ -350,6 +350,7 @@ def continuous_input_prediction_error(
 
     # list value and volatility parents
     value_parents_idxs = edges[node_idx].value_parents
+    volatility_parents_idxs = edges[node_idx].volatility_parents
 
     ########################
     # Update value parents #
@@ -371,5 +372,41 @@ def continuous_input_prediction_error(
                 # update input node's parameters
                 attributes[value_parent_idx]["precision"] = pi_value_parent
                 attributes[value_parent_idx]["mean"] = mu_value_parent
+
+    #############################
+    # Update volatility parents #
+    #############################
+    if volatility_parents_idxs is not None:
+        for volatility_parent_idx in volatility_parents_idxs:
+            # if this child is the last one relative to this parent's family, all the
+            # children will update the parent at once, otherwise just pass and wait
+            if edges[volatility_parent_idx].volatility_children[-1] == node_idx:
+                # in the eHGF update step, we use the expected precision here
+                # as we haven't computed it yet due to the reverse update order
+                precision_volatility_parent = attributes[volatility_parent_idx][
+                    "expected_precision"
+                ]
+
+                # Estimate the new mean of the volatility parent
+                mean_volatility_parent = prediction_error_mean_volatility_parent(
+                    attributes,
+                    edges,
+                    time_step,
+                    volatility_parent_idx,
+                    precision_volatility_parent,
+                )
+                attributes[volatility_parent_idx]["mean"] = mean_volatility_parent
+
+                # Estimate the new precision of the volatility parent
+                precision_volatility_parent = (
+                    prediction_error_precision_volatility_parent(
+                        attributes, edges, time_step, volatility_parent_idx
+                    )
+                )
+
+                # Update this parent's parameters
+                attributes[volatility_parent_idx][
+                    "precision"
+                ] = precision_volatility_parent
 
     return attributes
