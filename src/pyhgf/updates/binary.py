@@ -7,7 +7,7 @@ from jax import jit
 
 from pyhgf.typing import Edges
 from pyhgf.updates.prediction.binary import predict_binary_state_node
-from pyhgf.updates.prediction_error.binary import (
+from pyhgf.updates.prediction_error.nodes.binary import (
     prediction_error_input_value_parent,
     prediction_error_value_parent,
 )

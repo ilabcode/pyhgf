@@ -7,8 +7,13 @@ from jax import jit
 
 from pyhgf.typing import Edges
 from pyhgf.updates.prediction.continuous import predict_mean, predict_precision
-from pyhgf.updates.prediction_error.continuous import (
+from pyhgf.updates.prediction_error.inputs.continuous import (
     prediction_error_input_mean_value_parent,
+    prediction_error_input_mean_volatility_parent,
+    prediction_error_input_precision_value_parent,
+    prediction_error_input_precision_volatility_parent,
+)
+from pyhgf.updates.prediction_error.nodes.continuous import (
     prediction_error_mean_value_parent,
     prediction_error_mean_volatility_parent,
     prediction_error_precision_value_parent,
@@ -361,17 +366,17 @@ def continuous_input_prediction_error(
             # children will update the parent at once, otherwise just pass and wait
             if edges[value_parent_idx].value_children[-1] == node_idx:
                 # Estimate the new precision of the value parent
-                pi_value_parent = prediction_error_precision_value_parent(
+                precision_value_parent = prediction_error_input_precision_value_parent(
                     attributes, edges, value_parent_idx
                 )
                 # Estimate the new mean of the value parent
-                mu_value_parent = prediction_error_input_mean_value_parent(
-                    attributes, edges, value_parent_idx, pi_value_parent
+                mean_value_parent = prediction_error_input_mean_value_parent(
+                    attributes, edges, value_parent_idx, precision_value_parent
                 )
 
                 # update input node's parameters
-                attributes[value_parent_idx]["precision"] = pi_value_parent
-                attributes[value_parent_idx]["mean"] = mu_value_parent
+                attributes[value_parent_idx]["precision"] = precision_value_parent
+                attributes[value_parent_idx]["mean"] = mean_value_parent
 
     #############################
     # Update volatility parents #
@@ -388,7 +393,7 @@ def continuous_input_prediction_error(
                 ]
 
                 # Estimate the new mean of the volatility parent
-                mean_volatility_parent = prediction_error_mean_volatility_parent(
+                mean_volatility_parent = prediction_error_input_mean_volatility_parent(
                     attributes,
                     edges,
                     time_step,
@@ -399,7 +404,7 @@ def continuous_input_prediction_error(
 
                 # Estimate the new precision of the volatility parent
                 precision_volatility_parent = (
-                    prediction_error_precision_volatility_parent(
+                    prediction_error_input_precision_volatility_parent(
                         attributes, edges, time_step, volatility_parent_idx
                     )
                 )
