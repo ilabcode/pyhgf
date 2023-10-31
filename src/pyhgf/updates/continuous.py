@@ -369,6 +369,7 @@ def continuous_input_prediction_error(
                 precision_value_parent = prediction_error_input_precision_value_parent(
                     attributes, edges, value_parent_idx
                 )
+
                 # Estimate the new mean of the value parent
                 mean_value_parent = prediction_error_input_mean_value_parent(
                     attributes, edges, value_parent_idx, precision_value_parent
