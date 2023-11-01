@@ -7,17 +7,17 @@ from jax import jit
 
 from pyhgf.typing import Edges
 from pyhgf.updates.prediction.binary import predict_binary_state_node
-from pyhgf.updates.prediction_error.nodes.binary import (
+from pyhgf.updates.prediction_error.inputs.binary import (
     prediction_error_input_value_parent,
-    prediction_error_value_parent,
 )
+from pyhgf.updates.prediction_error.nodes.binary import prediction_error_value_parent
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def binary_node_prediction_error(
     attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
-    """Update the value parent(s) of a binary node.
+    """Update the value parent(s) of a binary state node.
 
     In a three-level HGF, this step will update the node :math:`x_2`.
 

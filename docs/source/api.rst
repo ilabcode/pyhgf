@@ -62,14 +62,20 @@ Propagate prediction errors to the value and volatility parents of a given node.
 Binary nodes
 ~~~~~~~~~~~~
 
-.. currentmodule:: pyhgf.updates.prediction_error.binary
+.. currentmodule:: pyhgf.updates.prediction_error.inputs.binary
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.binary
+   :toctree: generated/pyhgf.updates.prediction_error.inputs.binary
 
     prediction_error_mean_value_parent
     prediction_error_precision_value_parent
     prediction_error_value_parent
+
+.. currentmodule:: pyhgf.updates.prediction_error.nodes.binary
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.nodes.binary
+
     prediction_error_input_value_parent
     input_surprise_inf
     input_surprise_reg
@@ -77,16 +83,30 @@ Binary nodes
 Continuous nodes
 ~~~~~~~~~~~~~~~~
 
-.. currentmodule:: pyhgf.updates.prediction_error.continuous
+Updating continuous input nodes.
+
+.. currentmodule:: pyhgf.updates.prediction_error.inputs.continuous
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.continuous
+   :toctree: generated/pyhgf.updates.prediction_error.inputs.continuous
+
+    prediction_error_input_precision_value_parent
+    prediction_error_input_precision_volatility_parent
+    prediction_error_input_mean_volatility_parent
+    prediction_error_input_mean_value_parent
+
+
+Updating continuous state nodes.
+
+.. currentmodule:: pyhgf.updates.prediction_error.nodes.continuous
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.nodes.continuous
 
     prediction_error_mean_value_parent
     prediction_error_precision_value_parent
     prediction_error_precision_volatility_parent
     prediction_error_mean_volatility_parent
-    prediction_error_input_mean_value_parent
 
 Prediction steps
 ================
