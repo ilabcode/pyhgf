@@ -13,7 +13,7 @@ kernelspec:
 ---
 
 (example_1)=
-# Example 2: Volatility coupling with an input node
+# Example 2: Estimating the mean and precision of an input node
 
 ```{code-cell} ipython3
 %%capture
@@ -23,6 +23,11 @@ if 'google.colab' in sys.modules:
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
 import numpy as np
@@ -30,42 +35,156 @@ import pymc as pm
 import arviz as az
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.stats import norm
 ```
 
-Where the standard continuous HGF assumes a known precision in the input node (usually set to something high), this assumption can be relaxed and the filter can also try to estimate this quantity from the data.
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-```{code-cell} ipython3
-input_data = np.random.normal(size=1000)
+Where the standard continuous HGF assumes a known precision in the input node (usually set to something high), this assumption can be relaxed and the filter can also try to estimate this quantity from the data. In this notebook, we demonstrate how we can infer the value of the mean, of the precision, or both value at the same time, using the appropriate value and volatility coupling parents.
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+## Unkown mean, known precision
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+```{hint}
+The {ref}`continuous_hgf` is an example of a model assuming a continuous input with known precision and unknown mean. It is further assumed that the mean is changing overtime, and we want the model to track this rate of change by adding a volatility node on the top of the value parent (two-level continuous HGF), and event track the rate of change of this rate of change by adding another volatility parent (three-level continuous HGF).
 ```
 
 ```{code-cell} ipython3
-jget_hgf = (
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+dist_mean, dist_std = 5, 1
+input_data = np.random.normal(loc=dist_mean, scale=dist_std, size=1000)
+```
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+mean_hgf = (
     HGF(model_type=None)
-    .add_input_node(kind="continuous")
-    .add_value_parent(children_idxs=[0])
-    .add_volatility_parent(children_idxs=[0])
-    .add_volatility_parent(children_idxs=[1])
+    .add_input_node(kind="continuous", continuous_parameters={'continuous_precision': 1})
+    .add_value_parent(children_idxs=[0], tonic_volatility=-8.0)
     .init()
+).input_data(input_data)
+mean_precision_hgf.plot_network()
+```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+```{note}
+We are setting the tonic volatility to something low for visualization purposes, but changing this value can make the model learn in fewer iterations.
+```
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input]
+---
+# get the nodes trajectories
+df = mean_hgf.to_pandas()
+
+fig, ax = plt.subplots(figsize=(12, 5))
+
+x = np.linspace(-10, 10, 1000)
+for i, color in zip([0, 2, 5, 10, 50, 500], plt.cm.Greys(np.linspace(.2, 1, 6))):
+
+    # extract the sufficient statistics from the input node (and parents)
+    mean = df.x_1_expected_mean.iloc[i]
+    std = np.sqrt(
+        1/(mean_hgf.attributes[0]["expected_precision"])
+    )
+
+    # the model expectations
+    ax.plot(x, norm(mean, std).pdf(x), color=color, label=i)
+
+
+# the sampling distribution
+ax.fill_between(x, norm(dist_mean, dist_std).pdf(x), color="#582766", alpha=.2)
+
+ax.legend(title="Iterations")
+ax.set_xlabel("Input (u)")
+ax.set_ylabel("Density")
+plt.grid(linestyle=":")
+sns.despine()
+```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+## Kown mean, unknown precision
+
++++
+
+## Unkown mean, unknown precision
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+dist_mean, dist_std = 5, 1
+input_data = np.random.normal(loc=dist_mean, scale=dist_std, size=1000)
+```
+
+```{code-cell} ipython3
+mean_precision_hgf = (
+    HGF(model_type=None)
+    .add_input_node(kind="continuous", continuous_parameters={'continuous_precision': 0.01})
+    .add_value_parent(children_idxs=[0], tonic_volatility=-6.0)
+    .add_volatility_parent(children_idxs=[0], tonic_volatility=-6.0)
+    .init()
+).input_data(input_data)
+mean_precision_hgf.plot_network()
+```
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input]
+---
+# get the nodes trajectories
+df = mean_precision_hgf.to_pandas()
+
+fig, ax = plt.subplots(figsize=(12, 5))
+
+x = np.linspace(-10, 10, 1000)
+for i, color in zip(range(0, 150, 15), plt.cm.Greys(np.linspace(.2, 1, 10))):
+
+    # extract the sufficient statistics from the input node (and parents)
+    mean = df.x_1_expected_mean.iloc[i]
+    std = np.sqrt(
+        1/(mean_precision_hgf.attributes[0]["expected_precision"] * (1/np.exp(df.x_2_expected_mean.iloc[i])))
 )
-jget_hgf.plot_network()
+
+    # the model expectations
+    ax.plot(x, norm(mean, std).pdf(x), color=color, label=i)
+
+
+# the sampling distribution
+ax.fill_between(x, norm(dist_mean, dist_std).pdf(x), color="#582766", alpha=.2)
+
+ax.legend(title="Iterations")
+ax.set_xlabel("Input (u)")
+ax.set_ylabel("Density")
+plt.grid(linestyle=":")
+sns.despine()
 ```
 
-```{code-cell} ipython3
-jget_hgf.attributes
-```
+## System configuration
 
 ```{code-cell} ipython3
-jget_hgf.input_data(input_data[:30])
-```
-
-```{code-cell} ipython3
-jget_hgf.plot_trajectories()
-```
-
-```{code-cell} ipython3
-jget_hgf.to_pandas()
-```
-
-```{code-cell} ipython3
-
+%load_ext watermark
+%watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```
