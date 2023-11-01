@@ -67,18 +67,18 @@ Binary nodes
 .. autosummary::
    :toctree: generated/pyhgf.updates.prediction_error.inputs.binary
 
-    prediction_error_mean_value_parent
-    prediction_error_precision_value_parent
-    prediction_error_value_parent
+    prediction_error_input_value_parent
+    input_surprise_inf
+    input_surprise_reg
 
 .. currentmodule:: pyhgf.updates.prediction_error.nodes.binary
 
 .. autosummary::
    :toctree: generated/pyhgf.updates.prediction_error.nodes.binary
 
-    prediction_error_input_value_parent
-    input_surprise_inf
-    input_surprise_reg
+    prediction_error_mean_value_parent
+    prediction_error_precision_value_parent
+    prediction_error_value_parent
 
 Continuous nodes
 ~~~~~~~~~~~~~~~~
