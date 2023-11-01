@@ -131,9 +131,9 @@ def prediction_error_value_parent(
 
     Updating the posterior distribution of the value parent is a two-step process:
     #. Update the posterior precision using
-    :py:func:`pyhgf.updates.prediction_error.binary.prediction_error_precision_value_parent`.
+    :py:func:`pyhgf.updates.prediction_error.nodes.binary.prediction_error_precision_value_parent`.
     #. Update the posterior mean value using
-    :py:func:`pyhgf.updates.prediction_error.binary.prediction_error_mean_value_parent`.
+    :py:func:`pyhgf.updates.prediction_error.nodes.binary.prediction_error_mean_value_parent`.
 
     Parameters
     ----------
