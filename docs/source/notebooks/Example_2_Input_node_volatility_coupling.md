@@ -74,7 +74,7 @@ mean_hgf = (
     .add_value_parent(children_idxs=[0], tonic_volatility=-8.0)
     .init()
 ).input_data(input_data)
-mean_precision_hgf.plot_network()
+mean_hgf.plot_network()
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -122,7 +122,7 @@ sns.despine()
 
 ## Kown mean, unknown precision
 
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 ## Unkown mean, unknown precision
 
@@ -137,6 +137,11 @@ input_data = np.random.normal(loc=dist_mean, scale=dist_std, size=1000)
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 mean_precision_hgf = (
     HGF(model_type=None)
     .add_input_node(kind="continuous", continuous_parameters={'continuous_precision': 0.01})
@@ -182,9 +187,16 @@ plt.grid(linestyle=":")
 sns.despine()
 ```
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 ## System configuration
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %load_ext watermark
 %watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```
