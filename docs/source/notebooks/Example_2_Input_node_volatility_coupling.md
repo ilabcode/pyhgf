@@ -12,7 +12,9 @@ kernelspec:
   name: python3
 ---
 
-(example_1)=
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+(example_2)=
 # Example 2: Estimating the mean and precision of an input node
 
 ```{code-cell} ipython3
