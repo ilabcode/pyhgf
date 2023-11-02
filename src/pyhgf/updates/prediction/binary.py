@@ -28,18 +28,19 @@ def predict_binary_state_node(
         For each node, the index list value and volatility parents and children.
     time_step :
         The interval between the previous time point and the current time point.
-    value_parent_idx :
-        Pointer to the value parent node.
+    node_idx :
+        Pointer to the binary state node.
 
     Returns
     -------
-    pi_value_parent :
-        The precision (:math:`\\pi`) of the value parent.
-    mu_value_parent :
-        The mean (:math:`\\mu`) of the value parent.
+    expected_precision :
+        The precision of the value parent.
+    expected_mean :
+        The mean of the value parent.
+
     """
     # List the (unique) value parent of the value parent
-    value_parent_idx = edges[node_idx].value_parents[0]
+    value_parent_idx = edges[node_idx].value_parents[0]  # type: ignore
 
     # Estimate the new expected mean of the value parent and apply the sigmoid transform
     expected_mean = attributes[value_parent_idx]["expected_mean"]

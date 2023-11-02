@@ -31,7 +31,7 @@ def hgf_logp(
     volatility_coupling_1: Union[np.ndarray, ArrayLike, float] = 1.0,
     volatility_coupling_2: Union[np.ndarray, ArrayLike, float] = 1.0,
     input_data: List[np.ndarray] = [np.nan],
-    response_function: Callable = None,
+    response_function: Optional[Callable] = None,
     model_type: str = "continuous",
     n_levels: int = 2,
     response_function_parameters: List[Tuple] = [()],
