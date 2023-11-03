@@ -43,9 +43,9 @@ x_1 = np.cumsum(np.random.normal(loc=0, scale=1, size=200))  # GRW
 x_1 = np.insert(x_1, 0, 0)  # starting at 0
 
 plt.figure(figsize=(12, 3))
-plt.plot(x_1, "o-", alpha=.4);
-plt.xlabel("Time step (k)");
-plt.ylabel("$x_{1}$");
+plt.plot(x_1, "o-", alpha=0.4)
+plt.xlabel("Time step (k)")
+plt.ylabel("$x_{1}$")
 sns.despine()
 ```
 
@@ -67,16 +67,16 @@ We run the same simulation using $\rho = 0.1$ in the cell below:
 np.random.seed(123)
 
 # add a drift at each time step
-rho = .1
+rho = 0.1
 
 # random walk
 x_1 = np.cumsum(np.random.normal(loc=rho, scale=1, size=200))  # GRW
 x_1 = np.insert(x_1, 0, 0)  # starting at 0
 
 plt.figure(figsize=(12, 3))
-plt.plot(x_1, "o-", alpha=.4);
-plt.xlabel("Time step (k)");
-plt.ylabel("$x_{1}$");
+plt.plot(x_1, "o-", alpha=0.4)
+plt.xlabel("Time step (k)")
+plt.ylabel("$x_{1}$")
 sns.despine()
 ```
 
@@ -107,14 +107,12 @@ phi, m = 0.4, 12.0
 # random walk with AR1 process
 x_1 = [0.0]
 for i in range(200):
-    x_1.append(
-        np.random.normal(x_1[i-1] + phi * (m - x_1[i-1]) , scale=1) 
-    )
+    x_1.append(np.random.normal(x_1[i - 1] + phi * (m - x_1[i - 1]), scale=1))
 
 plt.figure(figsize=(12, 3))
-plt.plot(x_1, "o-", alpha=.4);
-plt.xlabel("Time step (k)");
-plt.ylabel("$x_{1}$");
+plt.plot(x_1, "o-", alpha=0.4)
+plt.xlabel("Time step (k)")
+plt.ylabel("$x_{1}$")
 sns.despine()
 ```
 
@@ -163,28 +161,27 @@ x_2 = [-2]
 
 # two-level hierarchical gaussian random walk
 for i in range(10000):
-
     # x2
     pi_2 = np.exp(omega_2)
-    mu_2 = np.random.normal(mu_2, pi_2**.5)
+    mu_2 = np.random.normal(mu_2, pi_2**0.5)
     x_2.append(mu_2)
 
     # x1
     pi_1 = np.exp(kappa_1 * mu_2 + omega_1)
-    mu_1 = np.random.normal(mu_1, pi_1**.5)
+    mu_1 = np.random.normal(mu_1, pi_1**0.5)
 
     x_1.append(mu_1)
 
 _, axs = plt.subplots(figsize=(12, 3), nrows=2, sharex=True)
-axs[0].plot(x_2, "-", color="indianred", alpha=.6);
+axs[0].plot(x_2, "-", color="indianred", alpha=0.6)
 
-axs[1].plot(x_1, "-", alpha=.6);
-axs[1].set_xlabel("Time step (k)");
-axs[1].set_ylabel("$x_{1}$");
+axs[1].plot(x_1, "-", alpha=0.6)
+axs[1].set_xlabel("Time step (k)")
+axs[1].set_ylabel("$x_{1}$")
 sns.despine()
 ```
 
-In this example, it becomes apparent that the volatility of the observation is not constant in time anymore, but depends on the values observed at the level above. 
+In this example, it becomes apparent that the volatility of the observation is not constant in time anymore, but depends on the values observed at the level above.
 
 ### Value coupling
 
@@ -209,23 +206,22 @@ x_2 = [0]
 
 # two-level hierarchical gaussian random walk
 for i in range(1000):
-
     # x2
     pi_2 = np.exp(omega_2)
-    mu_2 = np.random.normal(mu_2, pi_2**.5)
+    mu_2 = np.random.normal(mu_2, pi_2**0.5)
     x_2.append(mu_2)
 
     # x1
     pi_1 = np.exp(omega_1)
-    mu_1 = np.random.normal(mu_1 + (alpha_1 * mu_2), pi_1**.5)
+    mu_1 = np.random.normal(mu_1 + (alpha_1 * mu_2), pi_1**0.5)
     x_1.append(mu_1)
 
 _, axs = plt.subplots(figsize=(12, 3), nrows=2, sharex=True)
-axs[0].plot(x_2, "-", color="indianred", alpha=.6);
-axs[1].plot(x_1, "-", alpha=.6);
-axs[1].set_xlabel("Time step (k)");
-axs[1].set_ylabel("$x_{1}$");
-axs[0].set_ylabel("$x_{2}$");
+axs[0].plot(x_2, "-", color="indianred", alpha=0.6)
+axs[1].plot(x_1, "-", alpha=0.6)
+axs[1].set_xlabel("Time step (k)")
+axs[1].set_ylabel("$x_{1}$")
+axs[0].set_ylabel("$x_{2}$")
 sns.despine()
 ```
 
@@ -255,30 +251,29 @@ x_3 = [0]
 
 # two-level hierarchical gaussian random walk
 for i in range(1000):
-    
     # x3
     pi_3 = np.exp(omega_3)
-    mu_3 = np.random.normal(mu_3, pi_3**.5)
+    mu_3 = np.random.normal(mu_3, pi_3**0.5)
     x_3.append(mu_3)
 
     # x2
     pi_2 = np.exp(omega_2)
-    mu_2 = np.random.normal(mu_2, pi_2**.5)
+    mu_2 = np.random.normal(mu_2, pi_2**0.5)
     x_2.append(mu_2)
 
     # x1
     pi_1 = np.exp(kappa_1 * mu_3 + omega_1)
-    mu_1 = np.random.normal(mu_1 + (alpha_1 * mu_2), pi_1**.5)
+    mu_1 = np.random.normal(mu_1 + (alpha_1 * mu_2), pi_1**0.5)
     x_1.append(mu_1)
 
 _, axs = plt.subplots(figsize=(12, 4), nrows=3, sharex=True)
-axs[0].plot(x_3, "-", color="darkgreen", alpha=.6, label="volatility coupling");
-axs[1].plot(x_2, "-", color="indianred", alpha=.6, label="value coupling");
-axs[2].plot(x_1, "-", alpha=.6);
-axs[2].set_xlabel("Time step (k)");
-axs[2].set_ylabel("$x_{1}$");
-axs[1].set_ylabel("$x_{2}$");
-axs[0].set_ylabel("$x_{3}$");
+axs[0].plot(x_3, "-", color="darkgreen", alpha=0.6, label="volatility coupling")
+axs[1].plot(x_2, "-", color="indianred", alpha=0.6, label="value coupling")
+axs[2].plot(x_1, "-", alpha=0.6)
+axs[2].set_xlabel("Time step (k)")
+axs[2].set_ylabel("$x_{1}$")
+axs[1].set_ylabel("$x_{2}$")
+axs[0].set_ylabel("$x_{3}$")
 axs[1].legend()
 axs[0].legend()
 sns.despine()
@@ -302,7 +297,7 @@ The two-level and three-level Hierarchical Gaussian Filters for binary or contin
 ```{hint}
 Hierarchical Gaussian Filters are inspired by other simpler models for Bayesian filtering and reinforcement learning. These models can be seen for example as generalisation of the [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter) or the [Rescorla-Wagner model](https://en.wikipedia.org/wiki/Rescorla%E2%80%93Wagner_model). Specifically:
 
-* A one-level HGF for continuous input can be seen as a [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter). 
+* A one-level HGF for continuous input can be seen as a [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter).
 * A two-level binary HGF can be seen as a [Rescorla-Wagner](https://en.wikipedia.org/wiki/Rescorla%E2%80%93Wagner_model) model with an adaptive learning rate that depends on the precision of the belief.
 ```
 
@@ -320,19 +315,19 @@ Having described the model as a specific configuration of predictive nodes offer
 Let's consider a simple network containing $x_{node}$ be a {term}`node`, defined at time $k$, with children nodes defined at $x_{children}$ and parent at $x_{parent}$. The standard approach to update this network upon the presentation of a new observation is:
 
 1. {term}`Prediction` step
-    For $n$ in the network, starting from the leaves to the roots:  
-        Given the time elapsed since the last update 
-        Given the the posterior value of the node $n$   
-        Given the prediction from the parent nodes  
+    For $n$ in the network, starting from the leaves to the roots:
+        Given the time elapsed since the last update
+        Given the the posterior value of the node $n$
+        Given the prediction from the parent nodes
         - Compute the *expected_mean* and *expected precision*
 
-2. Beliefs propagation step  
-For $n$ in the network, starting from the roots to the leaves:  
+2. Beliefs propagation step
+For $n$ in the network, starting from the roots to the leaves:
     1. {term}`Update` step
-        Given the prediction errors received from the child nodes  
+        Given the prediction errors received from the child nodes
         - Compute the new sufficient statistics for node $n$
     2. {term}`prediction error`
-        Given the new posterior from the update step  
+        Given the new posterior from the update step
         Given the expectation from the prediction step
         - Compute a new prediction error ({term}`VAPE` or {term}`VOPE`
         - Send it to the parent node

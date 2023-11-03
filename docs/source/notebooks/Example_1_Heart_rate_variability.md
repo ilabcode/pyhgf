@@ -18,25 +18,28 @@ kernelspec:
 ```{code-cell} ipython3
 %%capture
 import sys
+
+import arviz as az
+import matplotlib.pyplot as plt
+import numpy as np
+import pymc as pm
+import seaborn as sns
+from bokeh.io import output_notebook
+from bokeh.plotting import show
+from systole import import_dataset1
+from systole.detection import ecg_peaks
+from systole.plots import plot_raw
+from systole.utils import input_conversion
+
+from pyhgf.distribution import HGFDistribution
+from pyhgf.model import HGF
+from pyhgf.response import total_gaussian_surprise
+
 if 'google.colab' in sys.modules:
     ! pip install pyhgf systole
 ```
 
 ```{code-cell} ipython3
-from pyhgf.distribution import HGFDistribution
-from pyhgf.model import HGF
-import numpy as np
-import pymc as pm
-import arviz as az
-import matplotlib.pyplot as plt
-import seaborn as sns
-from systole.detection import ecg_peaks
-from systole.utils import input_conversion
-from systole import import_dataset1
-from systole.plots import plot_raw
-from bokeh.io import output_notebook
-from bokeh.plotting import show
-
 output_notebook()
 ```
 
@@ -82,7 +85,7 @@ Here we use the total Gaussian surprise ({ref}`pyhgf.response.total_gaussian_sur
 ```
 
 ```{code-cell} ipython3
-from pyhgf.response import total_gaussian_surprise
+
 ```
 
 ```{code-cell} ipython3

@@ -24,8 +24,10 @@ tags: [hice-cell]
 ---
 %%capture
 import sys
-if 'google.colab' in sys.modules:
-    ! pip install pyhgf
+
+import arviz as az
+import jax.numpy as jnp
+import matplotlib.pyplot as plt
 ```
 
 ```{code-cell} ipython3
@@ -35,10 +37,14 @@ slideshow:
   slide_type: ''
 ---
 import numpy as np
-import jax.numpy as jnp
-from pyhgf.model import HGF
+import pymc as pm
+
 from pyhgf import load_data
-import matplotlib.pyplot as plt
+from pyhgf.distribution import HGFDistribution
+from pyhgf.model import HGF
+
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -245,9 +251,7 @@ We now have a response function that returns the surprise associated with the ob
 Now that we have created our {term}`Response function`, and that we made sure it complies with the standard ways of writing responses functions (see above), we can use it to perform inference over the most likely values of some parameters. We know that the agent used to simulate behaviour had an *evolution rate* set at `-4.0`. In the code below, we create a new HGF distribution using the same values, but setting the $\omega_2$ parameter free so we can estimate the most likely value, given the observed behaviours.
 
 ```{code-cell} ipython3
-from pyhgf.distribution import HGFDistribution
-import pymc as pm
-import arviz as az
+
 ```
 
 ```{code-cell} ipython3

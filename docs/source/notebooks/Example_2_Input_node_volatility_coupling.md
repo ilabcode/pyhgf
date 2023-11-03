@@ -20,8 +20,13 @@ kernelspec:
 ```{code-cell} ipython3
 %%capture
 import sys
-if 'google.colab' in sys.modules:
-    ! pip install pyhgf
+
+import arviz as az
+import matplotlib.pyplot as plt
+import numpy as np
+import pymc as pm
+import seaborn as sns
+from scipy.stats import norm
 ```
 
 ```{code-cell} ipython3
@@ -32,12 +37,9 @@ slideshow:
 ---
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
-import numpy as np
-import pymc as pm
-import arviz as az
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy.stats import norm
+
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
