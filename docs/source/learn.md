@@ -10,6 +10,8 @@ glob:
 
 ```
 
+In this section, you can find tutorial notebooks that describe the internals of pyhgf, the theory behind the Hierarchical Gaussian filter, and step-by-step application and use cases of the model. At the beginning of every tutorial, you will find a badge [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0-Creating_networks.ipynb) to run the notebook interactively in a Google Colab session.
+
 ## Theory
 
 ::::{grid} 2
@@ -86,21 +88,18 @@ How to adapt any model to specific behaviours and experimental design by using c
 :::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
 :link: multilevel_hgf
 :link-type: ref
-:img-top: ./images/response_models.png
 
 
 How to use any model as a distribution to perform hierarchical inference at the group level.
 
 :::
 
-:::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
+:::{grid-item-card}  Parameter recovery, prior and posterior predictive sampling
 :link: parameters_recovery
 :link-type: ref
-:img-top: ./images/binary.png
 
 
-How to use any model as a distribution to perform hierarchical inference at the group level.
-
+Recovering parameters from the generative model and using the sampling functionalities to estimate prior and posterior uncertainties.
 :::
 ::::
 
@@ -127,7 +126,7 @@ How to use any model as a distribution to perform hierarchical inference at the 
 Hand-on exercises to build intuition around the main components of the HGF and use an agent that optimizes its action under noisy observations.
 
 
-::::{grid} 3
+::::{grid} 2
 
 :::{grid-item-card}  Applying the Hierarchical Gaussian Filter through practical exercises
 :link: hgf_exercises
