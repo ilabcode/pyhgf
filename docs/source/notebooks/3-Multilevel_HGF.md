@@ -15,14 +15,15 @@ kernelspec:
 (multilevel_hgf)=
 # Multilevel embeding of Hierarchical Gaussian Filters
 
-```{code-cell} ipython3
-%%capture
-import sys
-```
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/3-Multilevel_HGF.ipynb)
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
 
+%%capture
+import sys
 import arviz as az
 import jax.numpy as jnp
 import matplotlib.pyplot as plt

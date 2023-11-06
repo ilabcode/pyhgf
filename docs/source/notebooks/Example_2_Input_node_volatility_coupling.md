@@ -17,6 +17,10 @@ kernelspec:
 (example_2)=
 # Example 2: Estimating the mean and precision of an input node
 
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_2_Input_node_volatility_coupling.ipynb)
+
 ```{code-cell} ipython3
 ---
 editable: true

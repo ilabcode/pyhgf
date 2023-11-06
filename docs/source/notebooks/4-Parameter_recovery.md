@@ -15,6 +15,10 @@ kernelspec:
 (parameters_recovery)=
 # Parameters recovery, prior predictive and posterior predictive sampling
 
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/4-Parameter_recovery.ipynb)
+
 ```{code-cell} ipython3
 %%capture
 import sys

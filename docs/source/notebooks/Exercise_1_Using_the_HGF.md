@@ -17,6 +17,10 @@ kernelspec:
 (hgf_exercises)=
 # An introduction to Hierarchical Gaussian Filters through practical exercises
 
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Using_the_HGF.ipynb)
+
 ```{code-cell} ipython3
 :tags: [hide-cell]
 

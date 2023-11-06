@@ -15,6 +15,10 @@ kernelspec:
 (example_1)=
 # Example 1: Bayesian filtering of cardiac volatility
 
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)
+
 ```{code-cell} ipython3
 %%capture
 import sys
