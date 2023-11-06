@@ -17,7 +17,7 @@ glob:
 :::{grid-item-card}  Creating and manipulating networks of probabilistic nodes
 :link: probabilistic_networks
 :link-type: ref
-:img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/networks.png
+:img-top: ./images/networks.png
 
 How to create and manipulate a network of probabilistic nodes for reinforcement learning? Working at the intersection of graphs, neural networks and probabilistic frameworks.
 
@@ -29,7 +29,7 @@ How to create and manipulate a network of probabilistic nodes for reinforcement 
 :::{grid-item-card}  An introduction to the Hierarchical Gaussian Filter
 :link: theory
 :link-type: ref
-:img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/hgf.png
+:img-top: ./images/hgf.png
 
 
 How the generative model of the Hierarchical Gaussian filter can be turned into update functions that update nodes through value and volatility coupling?
@@ -47,7 +47,7 @@ How the generative model of the Hierarchical Gaussian filter can be turned into 
 :::{grid-item-card}  The binary Hierarchical Gaussian Filter
 :link: binary_hgf
 :link-type: ref
-:img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
+:img-top: ./images/binary.png
 
 Introducing with example the binary Hierarchical Gaussian filter and its applications to reinforcement learning.
 
@@ -58,7 +58,7 @@ Introducing with example the binary Hierarchical Gaussian filter and its applica
 :::{grid-item-card}  The continuous Hierarchical Gaussian Filter
 :link: continuous_hgf
 :link-type: ref
-:img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/hgf.png
+:img-top: ./images/hgf.png
 
 
 Introducing with example the continuous Hierarchical Gaussian filter and its applications to signal processing.
@@ -70,7 +70,7 @@ Introducing with example the continuous Hierarchical Gaussian filter and its app
 :::{grid-item-card}  The categorical Hierarchical Gaussian Filter
 :link: categorical_hgf
 :link-type: ref
-:img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
+:img-top: ./images/binary.png
 
 
 Introducing the categorical Hierarchical Gaussian Filter as a generalisation of the binary version.
@@ -78,13 +78,15 @@ Introducing the categorical Hierarchical Gaussian Filter as a generalisation of 
 +++
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/1.´3-CAtegorical_HGF.ipynb)
 :::
+::::
 
-:::
+
+::::{grid} 3
 
 :::{grid-item-card}  Using custom response functions
 :link: custom_response_functions
 :link-type: ref
-:img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
+:img-top: ./images/binary.png
 
 
 How to adapt any model to specific behaviours and experimental design by using custom response functions.
@@ -93,12 +95,10 @@ How to adapt any model to specific behaviours and experimental design by using c
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/2-Using_custom_response_functions.ipynb)
 :::
 
-:::
-
 :::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
 :link: multilevel_hgf
 :link-type: ref
-:img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
+:img-top: ./images/binary.png
 
 
 How to use any model as a distribution to perform hierarchical inference at the group level.
@@ -110,7 +110,7 @@ How to use any model as a distribution to perform hierarchical inference at the 
 :::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
 :link: parameters_recovery
 :link-type: ref
-:img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
+:img-top: ./images/binary.png
 
 
 How to use any model as a distribution to perform hierarchical inference at the group level.
@@ -149,7 +149,7 @@ Hand-on exercises to build intuition around the main components of the HGF and u
 
 ::::{grid} 3
 
-:::{grid-item-card}  Bayesian filtering of cardiac dynamics
+:::{grid-item-card}  Applying the Hierarchical Gaussian Filter through practical exercises
 :link: hgf_exercises
 :link-type: ref
 
