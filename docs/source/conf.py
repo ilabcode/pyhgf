@@ -49,6 +49,7 @@ extensions = [
     "myst_nb",
     "sphinxcontrib.bibtex",
     "sphinx_togglebutton",
+    "sphinx_design"
 ]
 
 panels_add_bootstrap_css = False
@@ -110,7 +111,7 @@ html_theme_options = {
     },
 }
 
-myst_enable_extensions = ["dollarmath"]
+myst_enable_extensions = ["dollarmath", "colon_fence"]
 
 html_sidebars = {
   "api": [],
@@ -130,3 +131,5 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "jax": ("https://jax.readthedocs.io/en/latest", None),
 }
+
+

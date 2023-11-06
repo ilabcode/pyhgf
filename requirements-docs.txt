@@ -13,3 +13,4 @@ watermark
 systole
 bokeh==2.3.2
 sphinx-togglebutton
+sphinx-design
