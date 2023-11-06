@@ -17,10 +17,25 @@ kernelspec:
 (probabilistic_networks)=
 # Creating and manipulating networks of probabilistic nodes
 
+```{code-cell} ipython3
 ---
-Open an interactive version of this notebook here: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0-Creating_networks.ipynb).
+editable: true
+slideshow:
+  slide_type: ''
+---
+%%capture
+import sys
 
----
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
+from pyhgf.model import HGF
+from pyhgf.typing import Indexes
+
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
+```
 
 [pyhgf](https://ilabcode.github.io/pyhgf/index.html#) is designed with inspiration from graph neural network libraries that can support message-passing schemes and perform belief propagation through networks of probabilistic nodes. Here, this principle is applied to predictive processing and focuses on networks that are structured as **rooted trees** and perform variational message passing to update beliefs about the state of the environment, inferred from the observations at the root of the tree. While this library is optimized to implement the standard two-level and three-level HGF {cite:p}`2011:mathys,2014:mathys`, as well as the generalized HGF {cite:p}`weber:2023`, it can also be applied to much larger use cases, with the idea is to generalize belief propagation as it has been described so far to larger and more complex networks that will capture a greater variety of environmental structure. Therefore, the library is also designed to facilitate the creation and manipulation of such probabilistic networks. Importantly, here we consider that a probabilistic network should be defined by the following four variables:
 1. the network parameters
@@ -69,18 +84,7 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 
 ### Creating probabilistic nodes
 
-```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
----
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
 
-from pyhgf.model import HGF
-from pyhgf.typing import Indexes
 
 parameters = {"mean": 0.0, "precision": 1.0}
 
@@ -90,7 +94,8 @@ edges = (
     Indexes(None, (2,), (0,), None),
     Indexes(None, None, None, (1,)),
 )
-```
+
++++
 
 The code above illustrates creating a probabilistic network of 3 nodes with simple parameter sets $(mean = 0.0, precision = 1.0)$. Node 2 is the value parent of node 1. Node 3 is the value parent of node 2 and has no parents.
 

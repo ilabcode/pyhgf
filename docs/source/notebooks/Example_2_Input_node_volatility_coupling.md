@@ -18,6 +18,11 @@ kernelspec:
 # Example 2: Estimating the mean and precision of an input node
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture
 import sys
 
@@ -27,14 +32,7 @@ import numpy as np
 import pymc as pm
 import seaborn as sns
 from scipy.stats import norm
-```
 
-```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
----
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
 

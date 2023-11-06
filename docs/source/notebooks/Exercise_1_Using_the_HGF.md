@@ -32,14 +32,7 @@ import pymc as pm
 import pytensor.tensor as pt
 import seaborn as sns
 from pytensor import function, scan
-```
 
-```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
----
 from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
@@ -47,13 +40,12 @@ from pyhgf.response import binary_softmax, first_level_gaussian_surprise
 
 if 'google.colab' in sys.modules:
     ! pip install pyhgf
+```
 
-
+```{code-cell} ipython3
 # load an example time series for continuous inputs
 timeseries = load_data("continuous")
 ```
-
-+++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 In this tutorial, we introduce the continuous and binary Hierarchical Gaussian Filters and describe their application in computational psychiatry research.
 

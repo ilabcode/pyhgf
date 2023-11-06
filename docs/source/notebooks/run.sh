@@ -2,7 +2,7 @@
 jupyter nbconvert *.ipynb --to notebook --execute --inplace
 
 # format notebook using isort
-jupytext --pipe 'isort - --treat-comment-as-code "# %%" --float-to-top' notebook.ipynb
+jupytext --pipe 'isort - --treat-comment-as-code "# %%" --float-to-top' *.ipynb
 
 # format notebook using black
 # jupytext --sync --pipe black *.ipynb

@@ -16,18 +16,8 @@ kernelspec:
 # Using custom response models
 
 ```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
-tags: [hice-cell]
----
 %%capture
 import sys
-
-import arviz as az
-import jax.numpy as jnp
-import matplotlib.pyplot as plt
 ```
 
 ```{code-cell} ipython3
@@ -36,6 +26,9 @@ editable: true
 slideshow:
   slide_type: ''
 ---
+import arviz as az
+import jax.numpy as jnp
+import matplotlib.pyplot as plt
 import numpy as np
 import pymc as pm
 
@@ -45,6 +38,8 @@ from pyhgf.model import HGF
 
 if 'google.colab' in sys.modules:
     ! pip install pyhgf
+
+
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}

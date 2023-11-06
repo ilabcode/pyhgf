@@ -16,10 +16,12 @@ kernelspec:
 # Multilevel embeding of Hierarchical Gaussian Filters
 
 ```{code-cell} ipython3
-:tags: [hide-cell]
-
 %%capture
 import sys
+```
+
+```{code-cell} ipython3
+:tags: [hide-cell]
 
 import arviz as az
 import jax.numpy as jnp
@@ -34,6 +36,7 @@ from pyhgf.response import first_level_binary_surprise
 
 if 'google.colab' in sys.modules:
     ! pip install pyhgf
+
 ```
 
 ```{code-cell} ipython3
