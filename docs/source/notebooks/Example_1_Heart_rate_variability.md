@@ -15,28 +15,35 @@ kernelspec:
 (example_1)=
 # Example 1: Bayesian filtering of cardiac volatility
 
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)
+
 ```{code-cell} ipython3
 %%capture
 import sys
+
+import arviz as az
+import matplotlib.pyplot as plt
+import numpy as np
+import pymc as pm
+import seaborn as sns
+from bokeh.io import output_notebook
+from bokeh.plotting import show
+from systole import import_dataset1
+from systole.detection import ecg_peaks
+from systole.plots import plot_raw
+from systole.utils import input_conversion
+
+from pyhgf.distribution import HGFDistribution
+from pyhgf.model import HGF
+from pyhgf.response import total_gaussian_surprise
+
 if 'google.colab' in sys.modules:
     ! pip install pyhgf systole
 ```
 
 ```{code-cell} ipython3
-from pyhgf.distribution import HGFDistribution
-from pyhgf.model import HGF
-import numpy as np
-import pymc as pm
-import arviz as az
-import matplotlib.pyplot as plt
-import seaborn as sns
-from systole.detection import ecg_peaks
-from systole.utils import input_conversion
-from systole import import_dataset1
-from systole.plots import plot_raw
-from bokeh.io import output_notebook
-from bokeh.plotting import show
-
 output_notebook()
 ```
 
@@ -78,11 +85,11 @@ rr = input_conversion(x=peaks, input_type="peaks", output_type="rr_s")
 +++
 
 ```{note}
-Here we use the total Gaussian surprise ({ref}`pyhgf.response.total_gaussian_surprise`) as a response function. This response function deviates from the default behaviour for the continuous HGF in that it returns the sum of the surprise for all the probabilistic nodes in the network, whereas the default ({ref}`pyhgf.response.first_level_gaussian_surprise`) only computes the surprise at the first level (i.e. the value parent of the continuous input node). We explicitly specify this parameter here to indicate that we want our model to minimise its prediction errors over all variables, and not only at the observation level. In this case, however, the results are expected to be very similar between the two methods.
+Here we use the total Gaussian surprise ({py:func}`pyhgf.response.total_gaussian_surprise`) as a response function. This response function deviates from the default behaviour for the continuous HGF in that it returns the sum of the surprise for all the probabilistic nodes in the network, whereas the default ({py:func}`pyhgf.response.first_level_gaussian_surprise`) only computes the surprise at the first level (i.e. the value parent of the continuous input node). We explicitly specify this parameter here to indicate that we want our model to minimise its prediction errors over all variables, and not only at the observation level. In this case, however, the results are expected to be very similar between the two methods.
 ```
 
 ```{code-cell} ipython3
-from pyhgf.response import total_gaussian_surprise
+
 ```
 
 ```{code-cell} ipython3

@@ -17,40 +17,39 @@ kernelspec:
 (hgf_exercises)=
 # An introduction to Hierarchical Gaussian Filters through practical exercises
 
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Using_the_HGF.ipynb)
+
 ```{code-cell} ipython3
 :tags: [hide-cell]
 
 %%capture
 import sys
+
+import arviz as az
+import jax.numpy as jnp
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pymc as pm
+import pytensor.tensor as pt
+import seaborn as sns
+from pytensor import function, scan
+
+from pyhgf import load_data
+from pyhgf.distribution import HGFDistribution
+from pyhgf.model import HGF
+from pyhgf.response import binary_softmax, first_level_gaussian_surprise
+
 if 'google.colab' in sys.modules:
     ! pip install pyhgf
 ```
 
 ```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
----
-from pyhgf import load_data
-from pyhgf.model import HGF
-from pyhgf.distribution import HGFDistribution
-import pandas as pd
-import jax.numpy as jnp
-import arviz as az
-import matplotlib.pyplot as plt
-import seaborn as sns
-from pyhgf.response import binary_softmax
-import pymc as pm
-import arviz as az
-import pytensor.tensor as pt
-from pytensor import scan, function
-
 # load an example time series for continuous inputs
 timeseries = load_data("continuous")
 ```
-
-+++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 In this tutorial, we introduce the continuous and binary Hierarchical Gaussian Filters and describe their application in computational psychiatry research.
 
@@ -192,11 +191,6 @@ So far we have been running the HGF forward by fixing the values of the paramete
 In the context of analysing data from a task, we do not want to fit the data manually and retrieve the trajectories from every possible set of parameters. Instead, we want to perform Bayesian inference over these parameters and estimate the posterior of the probability distribution. Here we are going to perform this step using Hamiltonian Monte Carlo sampling as implemented in PyMC.
 
 ```{code-cell} ipython3
-import pymc as pm
-import numpy as np
-from pyhgf.distribution import HGFDistribution
-from pyhgf.response import first_level_gaussian_surprise
-
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     input_data=[timeseries],

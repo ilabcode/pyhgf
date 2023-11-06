@@ -13,7 +13,6 @@
 import time
 
 import pyhgf
-import sphinx_bootstrap_theme
 
 # -- Project information -----------------------------------------------------
 
@@ -45,10 +44,10 @@ extensions = [
     "sphinx.ext.intersphinx",
     "matplotlib.sphinxext.plot_directive",
     "numpydoc",
-    "jupyter_sphinx",
     "myst_nb",
     "sphinxcontrib.bibtex",
     "sphinx_togglebutton",
+    "sphinx_design"
 ]
 
 panels_add_bootstrap_css = False
@@ -86,7 +85,6 @@ html_favicon = "images/logo_small.svg"
 # a list of builtin themes.
 
 html_theme = "pydata_sphinx_theme"
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "icon_links": [
         dict(
@@ -110,7 +108,7 @@ html_theme_options = {
     },
 }
 
-myst_enable_extensions = ["dollarmath"]
+myst_enable_extensions = ["dollarmath", "colon_fence"]
 
 html_sidebars = {
   "api": [],
@@ -130,3 +128,5 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "jax": ("https://jax.readthedocs.io/en/latest", None),
 }
+
+

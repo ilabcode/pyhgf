@@ -17,12 +17,9 @@ kernelspec:
 (example_2)=
 # Example 2: Estimating the mean and precision of an input node
 
-```{code-cell} ipython3
-%%capture
-import sys
-if 'google.colab' in sys.modules:
-    ! pip install pyhgf
-```
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_2_Input_node_volatility_coupling.ipynb)
 
 ```{code-cell} ipython3
 ---
@@ -30,14 +27,21 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-from pyhgf.distribution import HGFDistribution
-from pyhgf.model import HGF
-import numpy as np
-import pymc as pm
+%%capture
+import sys
+
 import arviz as az
 import matplotlib.pyplot as plt
+import numpy as np
+import pymc as pm
 import seaborn as sns
 from scipy.stats import norm
+
+from pyhgf.distribution import HGFDistribution
+from pyhgf.model import HGF
+
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}

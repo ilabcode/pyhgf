@@ -17,12 +17,36 @@ kernelspec:
 (probabilistic_networks)=
 # Creating and manipulating networks of probabilistic nodes
 
-[pyhgf](https://ilabcode.github.io/pyhgf/index.html#) is designed with inspiration from graph neural network libraries that can support message-passing schemes and performs beliefs propagation through networks of probabilistic nodes. Here, this principle is applied to predictive processing and focuses on networks that are structured as **rooted trees** and perform variational message passing to update beliefs about the state of the environment, inferred from the observations at the root of the tree. While this library is optimized to implement the standard two-level and three-level HGF {cite:p}`2011:mathys,2014:mathys`, as well as the generalized HGF {cite:p}`weber:2023`, it can also be applied to much larger use cases, with the idea is to generalize belief propagation as it has been described so far to larger and more complex networks that will capture a greater variety of environmental structure. Therefore, the library is also designed to facilitate the creation and manipulation of such probabilistic networks. Importantly, here we consider that a probabilistic network should be defined by the following four variables:
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0-Creating_networks.ipynb) 
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+%%capture
+import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
+from pyhgf.model import HGF
+from pyhgf.typing import Indexes
+
+if 'google.colab' in sys.modules:
+    ! pip install pyhgf
+```
+
+[pyhgf](https://ilabcode.github.io/pyhgf/index.html#) is designed with inspiration from graph neural network libraries that can support message-passing schemes and perform belief propagation through networks of probabilistic nodes. Here, this principle is applied to predictive processing and focuses on networks that are structured as **rooted trees** and perform variational message passing to update beliefs about the state of the environment, inferred from the observations at the root of the tree. While this library is optimized to implement the standard two-level and three-level HGF {cite:p}`2011:mathys,2014:mathys`, as well as the generalized HGF {cite:p}`weber:2023`, it can also be applied to much larger use cases, with the idea is to generalize belief propagation as it has been described so far to larger and more complex networks that will capture a greater variety of environmental structure. Therefore, the library is also designed to facilitate the creation and manipulation of such probabilistic networks. Importantly, here we consider that a probabilistic network should be defined by the following four variables:
 1. the network parameters
 2. the network structure
 3. the update function(s)
 4. the update sequence(s)
-Splitting the networks this way makes the components easily compatible with JAX main transformations, and dynamically accessible during the inference processes, which allows the creation of agents that can manipulate these components to minimize surprise. 
+Splitting the networks this way makes the components easily compatible with JAX main transformations, and dynamically accessible during the inference processes, which allows the creation of agents that can manipulate these components to minimize surprise.
 
 In this notebook, we dive into the details of creating such networks and illustrate their modularity by the manipulation of the four main variables.
 
@@ -30,9 +54,9 @@ In this notebook, we dive into the details of creating such networks and illustr
 
 ## Theory and implementation details
 
-A let $\mathcal{N}_{k} = \{\theta, \xi, \mathcal{F}, \Sigma \}$ be a probabilistic network with $k$ probabilistic nodes. The variable 
+A let $\mathcal{N}_{k} = \{\theta, \xi, \mathcal{F}, \Sigma \}$ be a probabilistic network with $k$ probabilistic nodes. The variable
 
-$$\theta = \{\theta_1, ..., \theta_{k}\}$$ 
+$$\theta = \{\theta_1, ..., \theta_{k}\}$$
 
 is the parameter set, and each parameter is a set of real values. Nodes' parameters can be used to register sufficient statistics of the distributions as well as various coupling weights. This component is registered as the `attributes` dictionary.
 
@@ -46,7 +70,7 @@ The way beliefs are being updated, or the type of generic computation that is pe
 
 $$\mathcal{F} = \{f_1, ..., f_n\}$$
 
-In this set, each update function is linked to a node from the node indexes $n \in 1, ..., k$ to which the function should apply. The most standard uses of the HGF only require continuous and/or binary update functions for input and states node that can be found in the {ref}`pyhgf.continuous` and {ref}`pyhgf.binary` sub-modules.
+In this set, each update function is linked to a node from the node indexes $n \in 1, ..., k$ to which the function should apply. The most standard uses of the HGF only require continuous and/or binary update functions for input and states node that can be found in the {py:func}`pyhgf.updates` sub-module.
 
 The dynamic of belief propagation dynamics (which part of the network should be updated and in which order) are controlled by the ordered update sequence
 
@@ -64,8 +88,8 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 
 ### Creating probabilistic nodes
 
-```{code-cell} ipython3
-from pyhgf.typing import Indexes
+
+
 parameters = {"mean": 0.0, "precision": 1.0}
 
 attributes = (parameters, parameters, parameters)
@@ -74,7 +98,8 @@ edges = (
     Indexes(None, (2,), (0,), None),
     Indexes(None, None, None, (1,)),
 )
-```
+
++++
 
 The code above illustrates creating a probabilistic network of 3 nodes with simple parameter sets $(mean = 0.0, precision = 1.0)$. Node 2 is the value parent of node 1. Node 3 is the value parent of node 2 and has no parents.
 
@@ -83,8 +108,6 @@ The code above illustrates creating a probabilistic network of 3 nodes with simp
 ### Visualizing probabilistic networks
 
 ```{code-cell} ipython3
-from pyhgf.model import HGF
-
 # create a three-level HGF using default parameters
 hgf = HGF(n_levels=3, model_type="continuous")
 hgf.plot_network()
@@ -98,7 +121,7 @@ The simpler change we can make on a network is to change the values of some of i
 hgf.attributes[3]["precision"] = 5.0
 ```
 
-However, modifying parameters values *manually* should not be that common as this is something we want the model to perform dynamically as we present new observations, but this can be used for example to generate prior predictive by sampling some parameter values from a distribution. 
+However, modifying parameters values *manually* should not be that common as this is something we want the model to perform dynamically as we present new observations, but this can be used for example to generate prior predictive by sampling some parameter values from a distribution.
 
 ```{note} What is a valid parameter/value?
 A probabilistic node can store an arbitrary number of parameters. Parameter values should be valid JAX types, therefore a node cannot contain strings. You can provide additional parameters by using the `additional_parameters` arguments in {py:meth}`pyhgf.model.add_input_node`, {py:meth}`pyhgf.model.add_value_parent` and {py:meth}`pyhgf.model.add_volatility_parent`. Most of the nodes that are being used in the HGF use Gaussian distribution, therefore they contain the current mean and precision (`mu` and `pi`) as well as the expected mean and precision (`muhat` and `pihat`).
@@ -171,7 +194,7 @@ Hierarchical Gaussian Filters have often been described in terms of levels. For 
 ##### Continuous value coupling
 
 ```{code-cell} ipython3
-import numpy as np
+
 ```
 
 ```{code-cell} ipython3
@@ -182,8 +205,8 @@ slideshow:
 tags: [hide-input]
 ---
 # simulate some time series - one Gaussian noise and one noisy in wave
-u_0 = np.random.normal(0, .5, size=1000)
-u_1 = np.sin(np.arange(0, 1000)/30) * 8 + np.random.normal(0, .5, size=1000)
+u_0 = np.random.normal(0, 0.5, size=1000)
+u_1 = np.sin(np.arange(0, 1000) / 30) * 8 + np.random.normal(0, 0.5, size=1000)
 
 input_data = np.array([u_0, u_1]).T
 ```
@@ -209,21 +232,12 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-many_value_children_hgf.input_data(input_data=input_data);
-```
+many_value_children_hgf.input_data(input_data=input_data)
 
-```{code-cell} ipython3
----
-editable: true
-slideshow:
-  slide_type: ''
----
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 many_value_children_hgf.plot_nodes([3, 2], figsize=(12, 5), show_observations=True)
 plt.tight_layout()
-sns.despine();
+sns.despine()
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -273,7 +287,7 @@ many_volatility_children_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
-many_volatility_children_hgf.input_data(input_data=input_data);
+many_volatility_children_hgf.input_data(input_data=input_data)
 ```
 
 ```{code-cell} ipython3
@@ -282,9 +296,11 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-many_volatility_children_hgf.plot_nodes([4, 3, 2], figsize=(12, 8), show_observations=False)
+many_volatility_children_hgf.plot_nodes(
+    [4, 3, 2], figsize=(12, 8), show_observations=False
+)
 plt.tight_layout()
-sns.despine();
+sns.despine()
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -305,10 +321,10 @@ slideshow:
 tags: [hide-input]
 ---
 # simulate two binary outcomes from sinuosidal contingencies
-u_0_prob = (np.sin(np.arange(0, 1000)/45) + 1) / 2
+u_0_prob = (np.sin(np.arange(0, 1000) / 45) + 1) / 2
 u_0 = np.random.binomial(p=u_0_prob, n=1)
 
-u_1_prob = (np.sin(np.arange(0, 1000)/90) + 1) / 2
+u_1_prob = (np.sin(np.arange(0, 1000) / 90) + 1) / 2
 u_1 = np.random.binomial(p=u_1_prob, n=1)
 
 input_data = np.array([u_0, u_1]).T
@@ -343,7 +359,7 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-many_binary_children_hgf.input_data(input_data=input_data);
+many_binary_children_hgf.input_data(input_data=input_data)
 ```
 
 ```{code-cell} ipython3
@@ -356,11 +372,11 @@ tags: [hide-input]
 axs = many_binary_children_hgf.plot_trajectories(figsize=(12, 12))
 
 # plot the real contingencies
-axs[-2].plot(u_0_prob, label= "Contingencies - Input Node 0", linestyle=":")
-axs[-3].plot(u_1_prob, label= "Contingencies - Input Node 1", linestyle=":")
+axs[-2].plot(u_0_prob, label="Contingencies - Input Node 0", linestyle=":")
+axs[-3].plot(u_1_prob, label="Contingencies - Input Node 1", linestyle=":")
 axs[-2].legend()
 plt.tight_layout()
-sns.despine();
+sns.despine()
 ```
 
 ```{note}
@@ -421,7 +437,7 @@ update_sequence = (
 )
 ```
 
-The HGF class include a built-in {ref}`pyhgf.modeal.HGF.get_update_sequence` method to automatically generate the update sequence from the network structure, assuming that we want to propagate the beliefs from the lower part of the tree (the input nodes) to its upper part (nodes that do not have parents).
+The HGF class include a built-in {py:func}`pyhgf.model.HGF.get_update_sequence` method to automatically generate the update sequence from the network structure, assuming that we want to propagate the beliefs from the lower part of the tree (the input nodes) to its upper part (nodes that do not have parents).
 
 +++
 

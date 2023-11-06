@@ -15,27 +15,31 @@ kernelspec:
 (multilevel_hgf)=
 # Multilevel embeding of Hierarchical Gaussian Filters
 
++++
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/3-Multilevel_HGF.ipynb)
+
 ```{code-cell} ipython3
 :tags: [hide-cell]
 
 %%capture
 import sys
+import arviz as az
+import jax.numpy as jnp
+import matplotlib.pyplot as plt
+import numpy as np
+import pymc as pm
+from numpy import loadtxt
+
+from pyhgf import load_data
+from pyhgf.distribution import HGFDistribution, hgf_logp
+from pyhgf.response import first_level_binary_surprise
+
 if 'google.colab' in sys.modules:
     ! pip install pyhgf
 ```
 
 ```{code-cell} ipython3
-from numpy import loadtxt
-import numpy as np
-from pyhgf.distribution import hgf_logp, HGFDistribution
-from pyhgf import load_data
-from pyhgf.response import first_level_binary_surprise
-import jax.numpy as jnp
-import numpy as np
-import pymc as pm
-import arviz as az
-import matplotlib.pyplot as plt
-
 np.random.seed(123)
 ```
 
