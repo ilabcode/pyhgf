@@ -13,7 +13,6 @@
 import time
 
 import pyhgf
-import sphinx_bootstrap_theme
 
 # -- Project information -----------------------------------------------------
 
@@ -87,7 +86,6 @@ html_favicon = "images/logo_small.svg"
 # a list of builtin themes.
 
 html_theme = "pydata_sphinx_theme"
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "icon_links": [
         dict(
