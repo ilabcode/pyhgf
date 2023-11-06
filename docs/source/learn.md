@@ -17,7 +17,7 @@ glob:
 :::{grid-item-card}  Creating and manipulating networks of probabilistic nodes
 :link: probabilistic_networks
 :link-type: ref
-:img-top: ./images/networks.png
+:img-top: ./images/graph_networks.png
 
 How to create and manipulate a network of probabilistic nodes for reinforcement learning? Working at the intersection of graphs, neural networks and probabilistic frameworks.
 

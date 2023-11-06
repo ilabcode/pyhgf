@@ -38,8 +38,6 @@ from pyhgf.model import HGF
 
 if 'google.colab' in sys.modules:
     ! pip install pyhgf
-
-
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -60,7 +58,7 @@ name: response-models-fig
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 ## Creating a new response function: the binary surprise
-To illustrate the creation of new response functions, we are going to use the same binary input vector from the decision task described in {cite:p}`2013:iglesias`.
+To illustrate the creation of new response functions, we are going to use the same binary input vector from the decision task described in {cite:p}`Iglesias2021`.
 
 ```{code-cell} ipython3
 ---

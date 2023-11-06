@@ -36,7 +36,6 @@ from pyhgf.response import first_level_binary_surprise
 
 if 'google.colab' in sys.modules:
     ! pip install pyhgf
-
 ```
 
 ```{code-cell} ipython3

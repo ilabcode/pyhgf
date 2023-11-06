@@ -44,7 +44,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     "matplotlib.sphinxext.plot_directive",
     "numpydoc",
-    "jupyter_sphinx",
     "myst_nb",
     "sphinxcontrib.bibtex",
     "sphinx_togglebutton",
