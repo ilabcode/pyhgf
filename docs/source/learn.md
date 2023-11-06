@@ -15,7 +15,7 @@ glob:
 ::::{grid} 2
 
 :::{grid-item-card}  Creating and manipulating networks of probabilistic nodes
-:link: {ref}`probabilistic_networks`
+:link: probabilistic_networks
 :link-type: ref
 :img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/networks.png
 
@@ -27,7 +27,7 @@ How to create and manipulate a network of probabilistic nodes for reinforcement 
 :::
 
 :::{grid-item-card}  An introduction to the Hierarchical Gaussian Filter
-:link: {ref}`theory`
+:link: theory
 :link-type: ref
 :img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/hgf.png
 
@@ -45,7 +45,7 @@ How the generative model of the Hierarchical Gaussian filter can be turned into 
 ::::{grid} 3
 
 :::{grid-item-card}  The binary Hierarchical Gaussian Filter
-:link: {ref}`binary_hgf`
+:link: binary_hgf
 :link-type: ref
 :img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
 
@@ -56,7 +56,7 @@ Introducing with example the binary Hierarchical Gaussian filter and its applica
 :::
 
 :::{grid-item-card}  The continuous Hierarchical Gaussian Filter
-:link: {ref}`continuous_hgf`
+:link: continuous_hgf
 :link-type: ref
 :img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/hgf.png
 
@@ -68,7 +68,7 @@ Introducing with example the continuous Hierarchical Gaussian filter and its app
 :::
 
 :::{grid-item-card}  The categorical Hierarchical Gaussian Filter
-:link: {ref}`categorical_hgf`
+:link: categorical_hgf
 :link-type: ref
 :img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
 
@@ -82,7 +82,7 @@ Introducing the categorical Hierarchical Gaussian Filter as a generalisation of 
 :::
 
 :::{grid-item-card}  Using custom response functions
-:link: {ref}`custom_response_functions`
+:link: custom_response_functions
 :link-type: ref
 :img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
 
@@ -96,7 +96,7 @@ How to adapt any model to specific behaviours and experimental design by using c
 :::
 
 :::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
-:link: {ref}`multilevel_hgf`
+:link: multilevel_hgf
 :link-type: ref
 :img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
 
@@ -108,7 +108,7 @@ How to use any model as a distribution to perform hierarchical inference at the 
 :::
 
 :::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
-:link: {ref}`parameters_recovery`
+:link: parameters_recovery
 :link-type: ref
 :img-top: https://github.com/ilabcode/pyhgf/blob/master/docs/source/images/binary.png
 
@@ -122,15 +122,39 @@ How to use any model as a distribution to perform hierarchical inference at the 
 
 ## Use cases
 
-| Notebook | Colab |
-| --- | ---|
-| {ref}`example_1` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)
-| {ref}`example_2` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_2_Input_node_volatility_coupling.ipynb)
+::::{grid} 3
+
+:::{grid-item-card}  Bayesian filtering of cardiac dynamics
+:link: example_1
+:link-type: ref
+
++++
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)
+
+:::
+
+:::{grid-item-card}  Value and volatility coupling with an input node
+:link: example_2
+:link-type: ref
+
++++
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_2_Input_node_volatility_coupling.ipynb)
+:::
+::::
 
 ## Exercises
 
 Hand-on exercises to build intuition around the main components of the HGF and use an agent that optimizes its action under noisy observations.
 
-| Notebook | Colab |
-| --- | ---|
-| {ref}`hgf_exercises` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Using_the_HGF.ipynb)
+
+::::{grid} 3
+
+:::{grid-item-card}  Bayesian filtering of cardiac dynamics
+:link: hgf_exercises
+:link-type: ref
+
++++
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Using_the_HGF.ipynb)
+
+:::
+::::
