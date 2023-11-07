@@ -289,7 +289,8 @@ def continuous_node_prediction(
     """
     # Get the new expected mean
     expected_mean = predict_mean(attributes, edges, time_step, node_idx)
-    # Get the new expected precision
+
+    # Get the new expected precision and predicted volatility (Ω)
     expected_precision, predicted_volatility = predict_precision(
         attributes, edges, time_step, node_idx
     )
