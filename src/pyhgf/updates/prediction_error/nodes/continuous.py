@@ -172,45 +172,37 @@ def prediction_error_precision_volatility_parent(
 
     # gather volatility precisions from the child nodes
     children_volatility_precision = 0.0
-    for child_idx, kappas_children in zip(
+    for child_idx, volatility_coupling in zip(
         edges[volatility_parent_idx].volatility_children,  # type: ignore
         attributes[volatility_parent_idx]["volatility_coupling_children"],
     ):
-        # Look at the (optional) volatility parents and update logvol accordingly
-        logvol = attributes[child_idx]["tonic_volatility"]
-        if edges[child_idx].volatility_parents is not None:
-            for children_volatility_parents, volatility_coupling in zip(
-                edges[child_idx].volatility_parents,
-                attributes[child_idx]["volatility_coupling_parents"],
-            ):
-                logvol += (
-                    volatility_coupling
-                    * attributes[children_volatility_parents]["mean"]
-                )
+        # retrieve the predicted volatility that was computed in the prediction step
+        predicted_volatility = attributes[child_idx]["temp"]["predicted_volatility"]
 
-        # Compute new value for nu
-        nu_children = time_step * jnp.exp(logvol)
-        nu_children = jnp.where(nu_children > 1e-128, nu_children, jnp.nan)
+        # compute the volatility weigthed precision
+        volatility_weigthed_precision = (
+            predicted_volatility * attributes[child_idx]["expected_precision"]
+        )
 
+        # compute the volatility prediction error (VOPE)
         vope_children = (
-            1 / attributes[child_idx]["precision"]
-            + (attributes[child_idx]["mean"] - attributes[child_idx]["expected_mean"])
+            (
+                attributes[child_idx]["expected_precision"]
+                / attributes[child_idx]["precision"]
+            )
+            + attributes[child_idx]["expected_precision"]
+            * (attributes[child_idx]["mean"] - attributes[child_idx]["expected_mean"])
             ** 2
-        ) * attributes[child_idx]["expected_precision"] - 1
+            - 1
+        )
 
         children_volatility_precision += (
-            0.5
-            * (
-                kappas_children
-                * nu_children
-                * attributes[child_idx]["expected_precision"]
-            )
-            ** 2
-            * (
-                1
-                + (1 - 1 / (nu_children * attributes[child_idx]["precision"]))
-                * vope_children
-            )
+            0.5 * (volatility_coupling * volatility_weigthed_precision) ** 2
+            + (volatility_coupling * volatility_weigthed_precision) ** 2 * vope_children
+            - 0.5
+            * volatility_coupling**2
+            * volatility_weigthed_precision
+            * vope_children
         )
 
     # Estimate the new precision of the volatility parent
@@ -272,7 +264,7 @@ def prediction_error_mean_volatility_parent(
 
     # Gather volatility prediction errors from the child nodes
     children_volatility_prediction_error = 0.0
-    for child_idx, kappas_children in zip(
+    for child_idx, volatility_coupling in zip(
         edges[volatility_parent_idx].volatility_children,  # type: ignore
         attributes[volatility_parent_idx]["volatility_coupling_children"],
     ):
@@ -299,7 +291,7 @@ def prediction_error_mean_volatility_parent(
         ) * attributes[child_idx]["expected_precision"] - 1
         children_volatility_prediction_error += (
             0.5
-            * kappas_children
+            * volatility_coupling
             * nu_children
             * attributes[child_idx]["expected_precision"]
             / precision_volatility_parent

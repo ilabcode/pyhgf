@@ -686,6 +686,7 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
+            "temp": {"predicted_volatility": 0.0},
         }
 
         # add more parameters (optional)
@@ -735,7 +736,7 @@ class HGF(object):
         self,
         children_idxs: Union[List, int],
         volatility_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
-        mean: Union[float, np.ndarray, ArrayLike] = 1.0,
+        mean: Union[float, np.ndarray, ArrayLike] = 0.0,
         precision: Union[float, np.ndarray, ArrayLike] = 1.0,
         tonic_volatility: Union[float, np.ndarray, ArrayLike] = -4.0,
         tonic_drift: Union[float, np.ndarray, ArrayLike] = 0.0,
@@ -805,6 +806,7 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
+            "temp": {"predicted_volatility": 0.0},
         }
 
         # add more parameters (optional)

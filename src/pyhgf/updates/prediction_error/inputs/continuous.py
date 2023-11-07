@@ -14,7 +14,7 @@ from pyhgf.typing import Edges
 def prediction_error_input_precision_value_parent(
     attributes: Dict, edges: Edges, value_parent_idx: int
 ) -> Array:
-    r"""Send prediction-error and update the precision of a value parent (continuous).
+    r"""Send prediction-error and update the precision of a continuous value parent.
 
     Parameters
     ----------

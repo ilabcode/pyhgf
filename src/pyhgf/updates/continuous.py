@@ -290,10 +290,13 @@ def continuous_node_prediction(
     # Get the new expected mean
     expected_mean = predict_mean(attributes, edges, time_step, node_idx)
     # Get the new expected precision
-    expected_precision = predict_precision(attributes, edges, time_step, node_idx)
+    expected_precision, predicted_volatility = predict_precision(
+        attributes, edges, time_step, node_idx
+    )
 
     # Update this node's parameters
     attributes[node_idx]["expected_precision"] = expected_precision
+    attributes[node_idx]["temp"]["predicted_volatility"] = predicted_volatility
     attributes[node_idx]["expected_mean"] = expected_mean
 
     return attributes
