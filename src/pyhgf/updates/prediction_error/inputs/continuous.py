@@ -14,7 +14,7 @@ from pyhgf.typing import Edges
 def prediction_error_input_precision_value_parent(
     attributes: Dict, edges: Edges, value_parent_idx: int
 ) -> Array:
-    r"""Send prediction-error and update the precision of a continuous value parent.
+    r"""Update the precision of the value parent of a continuous input node.
 
     Parameters
     ----------
@@ -81,7 +81,37 @@ def prediction_error_input_precision_value_parent(
 def prediction_error_input_precision_volatility_parent(
     attributes: Dict, edges: Edges, time_step: float, volatility_parent_idx: int
 ) -> Array:
-    """Send prediction-error and update the precision of the volatility parent.
+    r"""Update the precision of the volatility parent.
+
+    The new mean of the volatility parent :math:`a` of an input node at time :math:`k`
+    is given by:
+
+    .. math::
+
+        \pi_a^{(k)} = \hat{\pi}_a^{(k)} + \sum_{j=1}^{N_{children}} \frac{1}{2} \\
+         \kappa_j^2 \left( 1 + \epsilon_j^{(k)} \right)
+
+    where :math:`\kappa_j` is the volatility coupling strength between the volatility
+    parent and the volatility children :math:`j` and :math:`\epsilon_j^{(k)}` is the
+    noise prediction error given by:
+
+    .. math::
+
+        \epsilon_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_{vapa}^{(k)}} + \\
+        \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
+
+    Note that, because we are working with continuous input nodes,
+    :math:`\epsilon_j^{(k)}` is not a function of the value prediction error but uses
+    the posterior of the value parent(s).
+
+    The expected precision of the input is the sum of the tonic and phasic volatility,
+    given by:
+
+    .. math::
+
+        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
+
+    where :math:`\zeta` is the continuous input precision (in real space).
 
     Parameters
     ----------
@@ -99,7 +129,7 @@ def prediction_error_input_precision_volatility_parent(
     Returns
     -------
     precision_volatility_parent :
-        The new precision of the value parent.
+        The new precision of the volatility parent.
 
     See Also
     --------
@@ -125,22 +155,21 @@ def prediction_error_input_precision_volatility_parent(
         edges[volatility_parent_idx].volatility_children,  # type: ignore
         attributes[volatility_parent_idx]["volatility_coupling_children"],
     ):
-        # retireve the index of the value parent (assuming a unique value parent)
-        # we need this to compute the value PE, required for the volatility PE
-        this_value_parent_idx = edges[child_idx].value_parents[0]
-
         # compute the expected precision from the input node
         expected_precision_child = attributes[child_idx]["expected_precision"]
 
         # add the precision from the volatility parent if any
         expected_precision_child *= 1 / jnp.exp(
-            attributes[edges[child_idx].volatility_parents[0]]["expected_mean"]
-            * volatility_coupling
+            attributes[volatility_parent_idx]["expected_mean"] * volatility_coupling
         )
+
+        # retireve the index of the value parent (assuming a unique value parent)
+        # we need this to compute the value PE, required for the volatility PE
+        this_value_parent_idx = edges[child_idx].value_parents[0]
 
         # compute the volatility prediction error for this input node
         child_volatility_prediction_error = (
-            expected_precision_child / attributes[this_value_parent_idx]["precision"]
+            (expected_precision_child / attributes[this_value_parent_idx]["precision"])
             + expected_precision_child
             * (
                 attributes[child_idx]["value"]
@@ -173,7 +202,37 @@ def prediction_error_input_mean_volatility_parent(
     volatility_parent_idx: int,
     precision_volatility_parent: ArrayLike,
 ) -> Array:
-    r"""Send prediction-error and update the mean of the volatility parent.
+    r"""Update the mean of the volatility parent of a continuous input node.
+
+    The new mean of the volatility parent :math:`a` of an input node at time :math:`k`
+    is given by:
+
+    .. math::
+
+        \mu_a^{(k)} = \hat{\mu}_a^{(k)} + \frac{1}{2\pi_a} \\
+        \sum_{j=1}^{N_{children}} \kappa_j\epsilon_j^{(k)}
+
+    where :math:`\kappa_j` is the volatility coupling strength between the volatility
+    parent and the volatility children :math:`j` and :math:`\epsilon_j^{(k)}` is the
+    noise prediction error given by:
+
+    .. math::
+
+        \epsilon_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_{vapa}^{(k)}} + \\
+        \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
+
+    Note that, because we are working with continuous input nodes,
+    :math:`\epsilon_j^{(k)}` is not a function of the value prediction error but uses
+    the posterior of the value parent(s).
+
+    The expected precision of the input is the sum of the tonic and phasic volatility,
+    given by:
+
+    .. math::
+
+        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
+
+    where :math:`\zeta` is the continuous input precision (in real space).
 
     Parameters
     ----------
@@ -193,11 +252,11 @@ def prediction_error_input_mean_volatility_parent(
     Returns
     -------
     mean_volatility_parent :
-        The updated value for the mean of the value parent (:math:`\\mu`).
+        The new mean of the volatility parent.
 
     See Also
     --------
-    prediction_error_volatility_volatility_parent
+    prediction_error_input_precision_volatility_parent
 
     References
     ----------
@@ -206,31 +265,29 @@ def prediction_error_input_mean_volatility_parent(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    # Get the current expected mean for the volatility parent
-    # The prediction sequence was triggered by the new observation so this value is
-    # already in the node attributes
+    # Get the current expected mean for the volatility parent - this assumes that the
+    # value was computed in the prediction step before
     expected_mean_volatility_parent = attributes[volatility_parent_idx]["expected_mean"]
 
     # Gather volatility prediction errors from the child nodes
-    children_volatility_prediction_error = 0.0
+    children_noise_prediction_error = 0.0
     for child_idx, volatility_coupling in zip(
         edges[volatility_parent_idx].volatility_children,  # type: ignore
         attributes[volatility_parent_idx]["volatility_coupling_children"],
     ):
+        # compute the total volatility at the level of the child node
+        expected_precision_child = attributes[child_idx]["expected_precision"]
+
+        # add the precision from the volatility parent if any
+        expected_precision_child *= 1 / jnp.exp(
+            attributes[volatility_parent_idx]["expected_mean"] * volatility_coupling
+        )
+
         # retireve the index of the value parent (assuming a unique value parent)
         # we need this to compute the value PE, required for the volatility PE
         this_value_parent_idx = edges[child_idx].value_parents[0]
 
-        # compute the expected precision from the input node
-        expected_precision_child = attributes[child_idx]["expected_precision"]
-
-        # add the precision from the volatility parent if anyu
-        expected_precision_child *= 1 / jnp.exp(
-            attributes[edges[child_idx].volatility_parents[0]]["expected_mean"]
-            * volatility_coupling
-        )
-
-        # compute the volatility prediction error for this input node
+        # compute the noise prediction error for this input node (ε)
         child_volatility_prediction_error = (
             expected_precision_child / attributes[this_value_parent_idx]["precision"]
             + expected_precision_child
@@ -243,15 +300,16 @@ def prediction_error_input_mean_volatility_parent(
         )
 
         # sum over all input nodes
-        children_volatility_prediction_error += (
-            0.5
-            * child_volatility_prediction_error
-            * (volatility_coupling / attributes[volatility_parent_idx]["precision"])
+        children_noise_prediction_error += (
+            child_volatility_prediction_error * volatility_coupling
         )
+
+    # scale using the expected precision of the volatility parent
+    children_noise_prediction_error *= 1 / (2 * precision_volatility_parent)
 
     # Estimate the new mean of the volatility parent
     mean_volatility_parent = (
-        expected_mean_volatility_parent + children_volatility_prediction_error
+        expected_mean_volatility_parent + children_noise_prediction_error
     )
 
     return mean_volatility_parent

@@ -206,3 +206,7 @@ slideshow:
 %load_ext watermark
 %watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
 ```
+
+```{code-cell} ipython3
+
+```

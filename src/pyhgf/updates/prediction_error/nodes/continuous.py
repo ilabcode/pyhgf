@@ -265,7 +265,7 @@ def prediction_error_mean_volatility_parent(
 
     .. math::
         \mu_a^{(k)} = \hat{\mu}_a^{(k)} + \frac{1}{2\pi_a} \\
-          \sum_{j=1}^{N_{children}} \kappa_j^2 \gamma_j^{(k)} \Delta_j^{(k)}
+          \sum_{j=1}^{N_{children}} \kappa_j \gamma_j^{(k)} \Delta_j^{(k)}
 
     where :math:`\kappa_j` is the volatility coupling strength between the volatility
     parent and the volatility children :math:`j` and :math:`\Delta_j^{(k)}` is the
