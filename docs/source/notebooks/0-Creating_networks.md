@@ -19,7 +19,7 @@ kernelspec:
 
 +++
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0-Creating_networks.ipynb) 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0-Creating_networks.ipynb)
 
 ```{code-cell} ipython3
 ---
@@ -194,10 +194,6 @@ Hierarchical Gaussian Filters have often been described in terms of levels. For 
 ##### Continuous value coupling
 
 ```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
 ---
 editable: true
 slideshow:
@@ -233,7 +229,6 @@ slideshow:
   slide_type: ''
 ---
 many_value_children_hgf.input_data(input_data=input_data)
-
 
 many_value_children_hgf.plot_nodes([3, 2], figsize=(12, 5), show_observations=True)
 plt.tight_layout()
@@ -287,7 +282,7 @@ many_volatility_children_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
-many_volatility_children_hgf.input_data(input_data=input_data)
+many_volatility_children_hgf.input_data(input_data=input_data[:10]);
 ```
 
 ```{code-cell} ipython3
@@ -301,6 +296,14 @@ many_volatility_children_hgf.plot_nodes(
 )
 plt.tight_layout()
 sns.despine()
+```
+
+```{code-cell} ipython3
+many_volatility_children_hgf.update_sequence
+```
+
+```{code-cell} ipython3
+many_volatility_children_hgf.to_pandas()
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}

@@ -42,6 +42,7 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -56,6 +57,7 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         attributes = (
             input_node_parameters,
@@ -117,6 +119,7 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -131,6 +134,7 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         attributes = (
             input_node_parameters,
@@ -169,7 +173,7 @@ class Testcontinuous(TestCase):
             assert jnp.isclose(new_attributes[1][idx], val)
         for idx, val in zip(
             ["precision", "expected_precision", "mean", "expected_mean"],
-            [0.29854316, 0.26894143, -0.36260414, 1.0],
+            [0.34702963, 0.26894143, -0.17222318, 1.0],
         ):
             assert jnp.isclose(new_attributes[2][idx], val)
 
@@ -203,6 +207,7 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -217,6 +222,7 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
 
         attributes = (
@@ -250,12 +256,12 @@ class Testcontinuous(TestCase):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(
             ["precision", "expected_precision", "mean", "expected_mean"],
-            [22792.508, 12792.507, 0.80494785, 0.7899765],
+            [23656.918, 13656.917, 0.8045524, 0.79023904],
         ):
             assert jnp.isclose(last[1][idx], val)
         for idx, val in zip(
             ["precision", "expected_precision", "mean", "expected_mean"],
-            [1.4523009, 1.4297459, -6.9464974, -7.3045917],
+            [1.3903726, 1.3907512, -7.0544224, -7.406961],
         ):
             assert jnp.isclose(last[2][idx], val)
 

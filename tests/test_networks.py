@@ -39,6 +39,7 @@ class TestStructure(TestCase):
             "mean": 1.0,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -51,6 +52,7 @@ class TestStructure(TestCase):
             "mean": 1.0,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         edges = (
             Indexes((1,), None, None, None),
@@ -80,7 +82,7 @@ class TestStructure(TestCase):
         )
 
         assert new_attributes[1]["mean"] == 0.20007998
-        assert new_attributes[2]["precision"] == 1.0058632
+        assert new_attributes[2]["precision"] == 1.0
 
     def test_find_branch(self):
         """Test the find_branch function"""

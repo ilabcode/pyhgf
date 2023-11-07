@@ -245,10 +245,6 @@ We now have a response function that returns the surprise associated with the ob
 Now that we have created our {term}`Response function`, and that we made sure it complies with the standard ways of writing responses functions (see above), we can use it to perform inference over the most likely values of some parameters. We know that the agent used to simulate behaviour had an *evolution rate* set at `-4.0`. In the code below, we create a new HGF distribution using the same values, but setting the $\omega_2$ parameter free so we can estimate the most likely value, given the observed behaviours.
 
 ```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",

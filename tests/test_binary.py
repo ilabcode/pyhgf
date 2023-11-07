@@ -68,6 +68,7 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -82,6 +83,7 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
         node_parameters_3 = {
             "expected_precision": 1.0,
@@ -96,6 +98,7 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
+            "temp": {"predicted_volatility": 0.0},
         }
 
         edges = (
@@ -148,7 +151,7 @@ class Testbinary(TestCase):
             assert jnp.isclose(new_attributes[2][idx], val)
         for idx, val in zip(
             ["mean", "expected_mean", "precision", "expected_precision"],
-            [0.5611493, 1.0, 0.5380009, 0.26894143],
+            [0.5050575, 1.0, 0.47702926, 0.26894143],
         ):
             assert jnp.isclose(new_attributes[3][idx], val)
 
@@ -168,19 +171,20 @@ class Testbinary(TestCase):
 
         # Run the entire for loop
         last, _ = scan(scan_fn, attributes, data)
-        for idx, val in zip(["surprise", "value"], [3.1497865, 0.0]):
+        for idx, val in zip(["surprise", "value"], [3.1274157, 0.0]):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(
-            ["mean", "expected_mean", "expected_precision"], [0.0, 0.9571387, 24.37586]
+            ["mean", "expected_mean", "expected_precision"],
+            [0.0, 0.95616907, 23.860779],
         ):
             assert jnp.isclose(last[1][idx], val)
         for idx, val in zip(
             ["mean", "expected_mean", "precision", "expected_precision"],
-            [-2.358439, 3.1059794, 0.17515838, 0.13413419],
+            [-2.1582031, 3.0825963, 0.18244718, 0.1405374],
         ):
             assert jnp.isclose(last[2][idx], val)
         for idx, val in zip(
-            ["expected_mean", "expected_precision"], [-0.22977911, 0.14781797]
+            ["expected_mean", "expected_precision"], [-0.30260748, 0.14332297]
         ):
             assert jnp.isclose(last[3][idx], val)
 
