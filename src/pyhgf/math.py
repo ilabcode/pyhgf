@@ -111,16 +111,15 @@ def dirichlet_kullback_leibler(alpha_1: ArrayLike, alpha_2: ArrayLike) -> Array:
     r"""Compute the Kullback-Leibler divergence between two Dirichlet distributions.
 
     The Kullback-Leibler divergence from the distribution :math:`Q` to the distribution
-    :math:`P`, two Dirichlet distributions parametrized by :math:`\\alpha_2` and
-    :math:`\\alpha_1` (respectively) is given by the following equation:
+    :math:`P`, two Dirichlet distributions parametrized by :math:`\alpha_2` and
+    :math:`\alpha_1` (respectively) is given by the following equation:
 
     .. math::
-       KL[P||Q] = \\
-       \\ln{\\frac{\\Gamma(\\sum_{i=1}^k\\alpha_{1i})} \\
-       {\\Gamma(\\sum_{i=1}^k\\alpha_{2i})}} + \\
-       \\sum_{i=1}^k \\ln{\\frac{\\Gamma(\\alpha_{2i})}{\\Gamma(\\alpha_{1i})}} + \\
-       \\sum_{i=1}^k(\\alpha_{1i} -\\
-       \\alpha_{2i})\\left[\\psi(\alpha_{1i})-\\psi(\\sum_{i=1}^k\alpha_{1i})\\right]
+       KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}
+         {\Gamma(\sum_{i=1}^k\alpha_{2i})}} +
+         \sum_{i=1}^k \ln{\frac{\Gamma(\alpha_{2i})}{\Gamma(\alpha_{1i})}} +
+         \sum_{i=1}^k(\alpha_{1i} -
+         \alpha_{2i})\left[\psi(\alpha_{1i})-\psi(\sum_{i=1}^k\alpha_{1i})\right]
 
     Parameters
     ----------

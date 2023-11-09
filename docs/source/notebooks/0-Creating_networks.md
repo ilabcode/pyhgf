@@ -214,7 +214,7 @@ many_value_children_hgf = (
     .add_input_node(kind="continuous")
     .add_input_node(kind="continuous", input_idxs=1)
     .add_value_parent(children_idxs=[0, 1])
-    .add_volatility_parent(children_idxs=[2])
+    .add_volatility_parent(children_idxs=[2], mean=4.0)
     .init()
 )
 
@@ -252,15 +252,17 @@ slideshow:
   slide_type: ''
 tags: [hide-input]
 ---
+np.random.seed(123)
+
 # simulate some time series - sampling from N(0, 1) sometime multiplied by 5
 u_0 = np.random.normal(0, 1, size=1000)
 u_1 = np.random.normal(0, 1, size=1000)
 
-u_0[200:400] *= 5
-u_1[600:800] *= 5
+u_0[200:400] *= 3
+u_1[600:800] *= 3
 
-u_0[900:] *= 5
-u_1[900:] *= 5
+u_0[900:] *= 3
+u_1[900:] *= 3
 
 input_data = np.array([u_0, u_1]).T
 ```
@@ -273,7 +275,7 @@ many_volatility_children_hgf = (
     .add_input_node(kind="continuous", input_idxs=1)
     .add_value_parent(children_idxs=[0])
     .add_value_parent(children_idxs=[1])
-    .add_volatility_parent(children_idxs=[2, 3])
+    .add_volatility_parent(children_idxs=[2, 3], mean=5.0)
     .init()
 )
 
@@ -282,7 +284,7 @@ many_volatility_children_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
-many_volatility_children_hgf.input_data(input_data=input_data[:10]);
+many_volatility_children_hgf.input_data(input_data=input_data);
 ```
 
 ```{code-cell} ipython3
@@ -292,18 +294,10 @@ slideshow:
   slide_type: ''
 ---
 many_volatility_children_hgf.plot_nodes(
-    [4, 3, 2], figsize=(12, 8), show_observations=False
+    [4, 3, 2], figsize=(12, 8), show_observations=False,
 )
 plt.tight_layout()
 sns.despine()
-```
-
-```{code-cell} ipython3
-many_volatility_children_hgf.update_sequence
-```
-
-```{code-cell} ipython3
-many_volatility_children_hgf.to_pandas()
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -323,6 +317,8 @@ slideshow:
   slide_type: ''
 tags: [hide-input]
 ---
+np.random.seed(123)
+
 # simulate two binary outcomes from sinuosidal contingencies
 u_0_prob = (np.sin(np.arange(0, 1000) / 45) + 1) / 2
 u_0 = np.random.binomial(p=u_0_prob, n=1)
@@ -465,4 +461,8 @@ Work in progress
 ```{code-cell} ipython3
 %load_ext watermark
 %watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
+```
+
+```{code-cell} ipython3
+
 ```

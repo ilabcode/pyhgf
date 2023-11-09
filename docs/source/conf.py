@@ -41,7 +41,6 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.autosummary",
     "sphinx.ext.autodoc",
-    "sphinx.ext.intersphinx",
     "matplotlib.sphinxext.plot_directive",
     "numpydoc",
     "myst_nb",
@@ -94,8 +93,8 @@ html_theme_options = {
         ),
         dict(
             name="Twitter",
-            url="https://twitter.com/legrandni",
-            icon="fa-brands fa-square-twitter",
+            url="https://mastodon.social/@nicolegrand",
+            icon="fa-brands fa-mastodon",
         ),
         dict(
             name="Pypi",
@@ -112,21 +111,4 @@ myst_enable_extensions = ["dollarmath", "colon_fence"]
 
 html_sidebars = {
   "api": [],
-  "changelog": [],
 }
-
-# -- Intersphinx ------------------------------------------------
-
-intersphinx_mapping = {
-    "numpy": ("https://numpy.org/doc/stable", None),
-    "scipy": ("http://docs.scipy.org/doc/scipy/reference/", None),
-    "matplotlib": ("http://matplotlib.org/", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
-    "seaborn": ("https://seaborn.pydata.org/", None),
-    "sklearn": ("http://scikit-learn.org/stable", None),
-    "bokeh": ("http://docs.bokeh.org/en/latest/", None),
-    "python": ("https://docs.python.org/3", None),
-    "jax": ("https://jax.readthedocs.io/en/latest", None),
-}
-
-
