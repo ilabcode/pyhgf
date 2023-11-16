@@ -83,12 +83,15 @@ surprise = hgf.surprise()
 print(f"Model's surprise = {surprise}")
 
 # visualization of the belief trajectories
-hgf.plot_trajectories()
+hgf.plot_trajectories();
 ```
 
-`Creating a binary Hierarchical Gaussian Filter with 2 levels.`  
-`Add 320 new binary observations.`  
-`Model's surprise = 203.29249572753906`
+`Creating a binary Hierarchical Gaussian Filter with 2 levels.`
+`... Create the update sequence from the network structure.`
+`... Create the belief propagation function.`
+`... Cache the belief propagation function.`
+`Adding 320 new observations.`
+`Model's surprise = 203.6395263671875`
 
 ![png](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/trajectories.png)
 
