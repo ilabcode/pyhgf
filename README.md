@@ -95,7 +95,7 @@ hgf.plot_trajectories();
 
 ![png](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/trajectories.png)
 
-# Acknoledgements
+## Acknoledgements
 
 This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab version](https://translationalneuromodeling.github.io/tapas). A Julia implementation of the generalized, nodalised and multilevel HGF is also available [here](https://github.com/ilabcode/HGF.jl).
 

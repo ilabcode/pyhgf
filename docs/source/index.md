@@ -4,7 +4,7 @@
 
 # The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
 
-pyhgf is a Python library that implements the generalized, nodalized and multilevel Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library can create and manipulate graph neural networks that perform beliefs update throught the diffusion of precision-weighted prediction errors under new observations. The core functions are derivable, JIT-able, and are designed to interface smoothly with other libraries in the JAX ecosystem for Bayesian inference.
+PyHGF is a Python library that implements the generalized, nodalized and multilevel Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library can create and manipulate graph neural networks that perform belief update through the diffusion of precision-weighted prediction errors under new observations. The core functions are derivable, JIT-able, and are designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement leanring, Bayesian inference or optimization.
 
 * 📖 [API Documentation](https://ilabcode.github.io/pyhgf/)  
 * ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/tutorials.html)  
@@ -79,18 +79,28 @@ surprise = hgf.surprise()
 print(f"Model's surprise = {surprise}")
 
 # visualization of the belief trajectories
-hgf.plot_trajectories()
+hgf.plot_trajectories();
 ```
 
-`Creating a binary Hierarchical Gaussian Filter with 2 levels.`  
-`Add 320 new binary observations.`  
-`Model's surprise = 203.29249572753906`
+`Creating a binary Hierarchical Gaussian Filter with 2 levels.`
+`... Create the update sequence from the network structure.`
+`... Create the belief propagation function.`
+`... Cache the belief propagation function.`
+`Adding 320 new observations.`
+`Model's surprise = 203.6395263671875`
 
 ![png](./images/trajectories.png)
 
-# Acknowledgements
+## Acknoledgements
 
-This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab version](https://translationalneuromodeling.github.io/tapas). A Julia equivalent of the generalised, nodalised and multilevel HGF is also available [here](https://github.com/ilabcode/HGF.jl).
+This implementation of the Hierarchical Gaussian Filter was largely inspired by the original [Matlab version](https://translationalneuromodeling.github.io/tapas). A Julia implementation of the generalized, nodalised and multilevel HGF is also available [here](https://github.com/ilabcode/HGF.jl).
+
+## References
+
+1. Mathys, C. (2011). A Bayesian foundation for individual learning under uncertainty. In Frontiers in Human Neuroscience (Vol. 5). Frontiers Media SA. https://doi.org/10.3389/fnhum.2011.00039  
+2. Mathys, C. D., Lomakina, E. I., Daunizeau, J., Iglesias, S., Brodersen, K. H., Friston, K. J., & Stephan, K. E. (2014). Uncertainty in perception and the hierarchical Gaussian filter. Frontiers in Human Neuroscience, 8. https://doi.org/10.3389/fnhum.2014.00825  
+3. Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., & Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1). arXiv. https://doi.org/10.48550/ARXIV.2305.10937  
+4. Frässle, S., Aponte, E. A., Bollmann, S., Brodersen, K. H., Do, C. T., Harrison, O. K., Harrison, S. J., Heinzle, J., Iglesias, S., Kasper, L., Lomakina, E. I., Mathys, C., Müller-Schrader, M., Pereira, I., Petzschner, F. H., Raman, S., Schöbi, D., Toussaint, B., Weber, L. A., … Stephan, K. E. (2021). TAPAS: An Open-Source Software Package for Translational Neuromodeling and Computational Psychiatry. In Frontiers in Psychiatry (Vol. 12). Frontiers Media SA. https://doi.org/10.3389/fpsyt.2021.680811  
 
 ```{toctree}
 ---
