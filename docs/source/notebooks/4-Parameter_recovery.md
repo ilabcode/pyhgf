@@ -34,7 +34,7 @@ from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution, hgf_logp
 
 if 'google.colab' in sys.modules:
-    ! pip install pyhgf
+    !pip install pyhgf
 ```
 
 ```{code-cell} ipython3

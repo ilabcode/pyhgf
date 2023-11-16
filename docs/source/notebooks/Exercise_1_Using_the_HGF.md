@@ -43,7 +43,7 @@ from pyhgf.model import HGF
 from pyhgf.response import binary_softmax, first_level_gaussian_surprise
 
 if 'google.colab' in sys.modules:
-    ! pip install pyhgf
+    !pip install pyhgf
 ```
 
 ```{code-cell} ipython3

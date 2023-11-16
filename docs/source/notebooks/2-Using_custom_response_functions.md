@@ -38,7 +38,7 @@ from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
 
 if 'google.colab' in sys.modules:
-    ! pip install pyhgf
+    !pip install pyhgf
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}

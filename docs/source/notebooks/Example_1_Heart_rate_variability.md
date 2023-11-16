@@ -40,7 +40,7 @@ from pyhgf.model import HGF
 from pyhgf.response import total_gaussian_surprise
 
 if 'google.colab' in sys.modules:
-    ! pip install pyhgf systole
+    !pip install pyhgf systole
 ```
 
 ```{code-cell} ipython3
