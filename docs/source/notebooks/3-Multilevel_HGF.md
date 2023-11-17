@@ -24,6 +24,10 @@ kernelspec:
 
 %%capture
 import sys
+
+if 'google.colab' in sys.modules:
+    !pip install pyhgf
+
 import arviz as az
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -34,9 +38,6 @@ from numpy import loadtxt
 from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution, hgf_logp
 from pyhgf.response import first_level_binary_surprise
-
-if 'google.colab' in sys.modules:
-    !pip install pyhgf
 ```
 
 ```{code-cell} ipython3

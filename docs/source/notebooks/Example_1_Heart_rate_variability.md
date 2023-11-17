@@ -23,6 +23,9 @@ kernelspec:
 %%capture
 import sys
 
+if 'google.colab' in sys.modules:
+    !pip install pyhgf systole
+
 import arviz as az
 import matplotlib.pyplot as plt
 import numpy as np
@@ -38,9 +41,6 @@ from systole.utils import input_conversion
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
 from pyhgf.response import total_gaussian_surprise
-
-if 'google.colab' in sys.modules:
-    !pip install pyhgf systole
 ```
 
 ```{code-cell} ipython3

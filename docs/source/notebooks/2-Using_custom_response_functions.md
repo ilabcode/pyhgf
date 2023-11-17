@@ -27,6 +27,10 @@ slideshow:
 ---
 %%capture
 import sys
+
+if 'google.colab' in sys.modules:
+    !pip install pyhgf
+
 import arviz as az
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -36,9 +40,6 @@ import pymc as pm
 from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
-
-if 'google.colab' in sys.modules:
-    !pip install pyhgf
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}

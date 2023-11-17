@@ -30,15 +30,15 @@ slideshow:
 %%capture
 import sys
 
+if 'google.colab' in sys.modules:
+    !pip install pyhgf
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
 from pyhgf.model import HGF
 from pyhgf.typing import Indexes
-
-if 'google.colab' in sys.modules:
-    !pip install pyhgf
 ```
 
 [pyhgf](https://ilabcode.github.io/pyhgf/index.html#) is designed with inspiration from graph neural network libraries that can support message-passing schemes and perform belief propagation through networks of probabilistic nodes. Here, this principle is applied to predictive processing and focuses on networks that are structured as **rooted trees** and perform variational message passing to update beliefs about the state of the environment, inferred from the observations at the root of the tree. While this library is optimized to implement the standard two-level and three-level HGF {cite:p}`2011:mathys,2014:mathys`, as well as the generalized HGF {cite:p}`weber:2023`, it can also be applied to much larger use cases, with the idea is to generalize belief propagation as it has been described so far to larger and more complex networks that will capture a greater variety of environmental structure. Therefore, the library is also designed to facilitate the creation and manipulation of such probabilistic networks. Importantly, here we consider that a probabilistic network should be defined by the following four variables:
