@@ -12,6 +12,8 @@ kernelspec:
   name: python3
 ---
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 (theory)=
 # Introduction to the Hierarchical Gaussian Filter
 
@@ -292,7 +294,9 @@ The coding examples introduced above illustrated generative models that can simu
 ---
 name: hgf-fig
 ---
-The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs, as described in {cite:p}`2014:mathys,2011:mathys`. The binary HGF has the particularity that it uses a sigmoid transform in the input node to convert continuous values into binary probabilities. For both models, volatility coupling is depicted with dashed lines, and value coupling with straight lines. The three-level HGF has one volatility layer more than the two-level HGF, which is used to estimate higher-order uncertainty.
+The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs.
+
+These models were described in {cite:p}`2014:mathys,2011:mathys`. The binary HGF has the particularity that it uses a sigmoid transform in the input node to convert continuous values into binary probabilities. For both models, volatility coupling is depicted with dashed lines, and value coupling with straight lines. The three-level HGF has one volatility layer more than the two-level HGF, which is used to estimate higher-order uncertainty.
 ```
 
 +++

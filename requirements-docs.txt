@@ -1,11 +1,11 @@
 -e .
 pydata-sphinx-theme>=0.14.3
 sphinxcontrib-bibtex>=2.6.1
-docutils>=0.17.0
-myst-nb>=0.17.2
+docutils>=0.20.1
+myst-nb>=1.0.0
 sphinx>=5.0.0
-numpydoc>=1.4.0
-myst-parser>=0.18.0
+numpydoc>=1.6.0
+myst-parser>=2.0.0
 graphviz
 watermark
 systole

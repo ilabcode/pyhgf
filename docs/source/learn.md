@@ -6,7 +6,7 @@ hidden:
 glob:
 ---
 
-.notebooks/*.md
+notebooks/*.md
 
 ```
 
