@@ -119,6 +119,12 @@ Recovering parameters from the generative model and using the sampling functiona
 :img-top: ./images/input_mean_precision.png
 
 :::
+
+:::{grid-item-card}  Multi-armed bandit task with independent reward and punishments
+:link: example_3
+:link-type: ref
+
+:::
 ::::
 
 ## Exercises
