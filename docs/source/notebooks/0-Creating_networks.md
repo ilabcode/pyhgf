@@ -17,7 +17,7 @@ kernelspec:
 (probabilistic_networks)=
 # Creating and manipulating networks of probabilistic nodes
 
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0-Creating_networks.ipynb)
 
@@ -29,10 +29,16 @@ slideshow:
 ---
 %%capture
 import sys
-
 if 'google.colab' in sys.modules:
     !pip install pyhgf
+```
 
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns

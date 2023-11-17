@@ -12,6 +12,8 @@ kernelspec:
   name: python3
 ---
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 (theory)=
 # Introduction to the Hierarchical Gaussian Filter
 

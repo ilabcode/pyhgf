@@ -12,22 +12,34 @@ kernelspec:
   name: python3
 ---
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 (multilevel_hgf)=
 # Multilevel embeding of Hierarchical Gaussian Filters
 
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/3-Multilevel_HGF.ipynb)
 
 ```{code-cell} ipython3
-:tags: [hide-cell]
-
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture
 import sys
-
 if 'google.colab' in sys.modules:
     !pip install pyhgf
+```
 
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-cell]
+---
 import arviz as az
 import jax.numpy as jnp
 import matplotlib.pyplot as plt

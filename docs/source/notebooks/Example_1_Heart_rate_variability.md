@@ -12,20 +12,33 @@ kernelspec:
   name: python3
 ---
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 (example_1)=
 # Example 1: Bayesian filtering of cardiac volatility
 
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture
 import sys
-
 if 'google.colab' in sys.modules:
     !pip install pyhgf systole
+```
 
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 import arviz as az
 import matplotlib.pyplot as plt
 import numpy as np

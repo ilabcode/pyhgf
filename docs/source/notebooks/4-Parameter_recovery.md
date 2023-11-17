@@ -12,20 +12,33 @@ kernelspec:
   name: python3
 ---
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 (parameters_recovery)=
 # Parameters recovery, prior predictive and posterior predictive sampling
 
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/4-Parameter_recovery.ipynb)
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture
 import sys
-
 if 'google.colab' in sys.modules:
     !pip install pyhgf
+```
 
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 import arviz as az
 import jax.numpy as jnp
 import matplotlib.pyplot as plt

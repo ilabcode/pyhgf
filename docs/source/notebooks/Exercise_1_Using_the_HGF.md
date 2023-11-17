@@ -17,19 +17,29 @@ kernelspec:
 (hgf_exercises)=
 # An introduction to Hierarchical Gaussian Filters through practical exercises
 
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Using_the_HGF.ipynb)
 
 ```{code-cell} ipython3
-:tags: [hide-cell]
-
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 %%capture
 import sys
-
 if 'google.colab' in sys.modules:
     !pip install pyhgf
+```
 
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-cell]
+---
 import arviz as az
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
