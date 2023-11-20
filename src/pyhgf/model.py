@@ -28,38 +28,51 @@ class HGF(object):
 
     Attributes
     ----------
+    attributes :
+        The attributes of the probabilistic nodes.
+    allow_missing_inputs :
+        If `False` (default), all the observation provided to the input nodes should be
+        real or integer. If `True`, missing inputs are allowed as `jnp.nan`. In case of
+        missing inputs, the continuous parents are updated by decreasing the precision
+        as a function of time. Allowing for missing inputs add a conditional check for
+        `jnp.nan` at every time step and should therefore be avoided if the input time
+        series is certified without missing inputs.
+        .. warning::
+            Missing inputs are missing observation from the agent perspective and should
+            not be used to handle missing data point that are only missing in the event
+            log, or rejected trials.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     input_nodes_idx :
         Indexes of the input nodes with input types
         :py:class:`pyhgf.typing.InputIndexes`. The default input node is `0` if the
         network only has one input node.
     model_type :
         The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
-    update_type:
-        The type of volatility update to perform. Can be `"eHGF"` (default) or
-        `"standard"`. The eHGF update step tends to be more robust and produce fewer
-        invalid space errors and is therefore recommended by default.
+    n_levels :
+        The number of hierarchies in the model, including the input vector. Cannot be
+        less than 2.
+    node_trajectories :
+        The dynamic of the node's beliefs after updating.
+    update_sequence :
+        The sequence of update functions that are applied during the beliefs propagation
+        step.
     update_type :
         The type of update to perform for volatility coupling. Can be `"eHGF"`
         (defaults) or `"standard"`. The eHGF update step was proposed as an alternative
         to the original definition in that it starts by updating the mean and then the
         precision of the parent node, which generally reduces the errors associated with
         impossible parameter space and improves sampling.
-    n_levels :
-        The number of hierarchies in the model, including the input vector. Cannot be
-        less than 2.
-    edges :
-        The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
-    node_trajectories :
-        The dynamic of the node's beliefs after updating.
-    attributes :
-        The attributes of the probabilistic nodes.
     .. note::
         The parameter structure also incorporate the value and volatility coupling
         strenght with children and parents (i.e. `"value_coupling_parents"`,
         `"value_coupling_children"`, `"volatility_coupling_parents"`,
         `"volatility_coupling_children"`).
+    scan_fn :
+        The function that is passed to :py:func:`jax.lax.scan`. This is a pre-
+        parametrized version of :py:func:`pyhgf.networks.beliefs_propagation`.
     verbose : bool
         Verbosity level.
 
@@ -96,6 +109,7 @@ class HGF(object):
             "3": 0.0,
         },
         verbose: bool = True,
+        allow_missing_inputs: bool = False,
     ):
         r"""Parameterization of the HGF model.
 
@@ -147,6 +161,8 @@ class HGF(object):
         verbose :
             The verbosity of the methods for model creation and fitting. Defaults to
             `True`.
+        allow_missing_inputs :
+            Whether the network should handle missing inputs. Defaults to `False`.
 
         """
         self.model_type = model_type
@@ -158,6 +174,7 @@ class HGF(object):
         self.attributes: Dict = {}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
+        self.allow_missing_inputs = allow_missing_inputs
 
         if model_type not in ["continuous", "binary"]:
             if self.verbose:

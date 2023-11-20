@@ -365,3 +365,58 @@ def prediction_error_mean_volatility_parent(
     )
 
     return mean_volatility_parent
+
+
+@partial(jit, static_argnames=("edges", "node_idx"))
+def continuous_blank_update(
+    attributes: Dict, edges: Edges, time_step: float, node_idx: int
+) -> Array:
+    r"""Compute the new precision of a continuous state node node when input is missing.
+
+    Parameters
+    ----------
+    attributes :
+        The attributes of the probabilistic network that contains the continuous state
+        node.
+    edges :
+        The edges of the probabilistic network as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the number of
+        nodes. For each node, the index list value/volatility - parents/children.
+    time_step :
+        The time interval between the previous time point and the current time point.
+    node_idx :
+        Index of the node that should be updated.
+
+    Returns
+    -------
+    precision :
+        The new expected precision of the value parent.
+
+    """
+    # List the node's volatility parents
+    volatility_parents_idxs = edges[node_idx].volatility_parents
+
+    # Get the tonic volatility from the node
+    total_volatility = attributes[node_idx]["tonic_volatility"]
+
+    # Look at the (optional) volatility parents and add their value to the tonic
+    # volatility to get the total volatility
+    if volatility_parents_idxs is not None:
+        for volatility_parents_idx, volatility_coupling in zip(
+            volatility_parents_idxs,
+            attributes[node_idx]["volatility_coupling_parents"],
+        ):
+            total_volatility += (
+                volatility_coupling * attributes[volatility_parents_idx]["mean"]
+            )
+
+    # compute the predicted_volatility from the total volatility
+    predicted_volatility = time_step * jnp.exp(total_volatility)
+    predicted_volatility = jnp.where(
+        predicted_volatility > 1e-128, predicted_volatility, jnp.nan
+    )
+
+    # Estimate the new precision for the continuous state node
+    precision = 1 / ((1 / attributes[node_idx]["precision"]) + predicted_volatility)
+
+    return precision
