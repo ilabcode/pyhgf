@@ -19,11 +19,7 @@ from pyhgf.updates.prediction_error.nodes.continuous import continuous_blank_upd
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def binary_node_blank_update(
-    attributes: Dict,
-    time_step: float,
-    value: float,
-    node_idx: int,
-    edges: Edges,
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update of a binary state node in the case of missing observation."""
     # using the current node index, unwrap parameters and parents
