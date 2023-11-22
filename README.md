@@ -4,10 +4,10 @@
 
 # PyHGF: A Graph Neural Network Library for Predictive Coding
 
-PyHGF is a Python library that implements the generalized, nodalized and multilevel Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library can create and manipulate graph neural networks that perform belief update through the diffusion of precision-weighted prediction errors under new observations. The core functions are derivable, JIT-able, and are designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement leanring, Bayesian inference or optimization.
+PyHGF is a Python library written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html) to create and manipulate graph neural networks that can perform belief updates through the diffusion of predictions and precision-weighted prediction errors. These networks can serve as biologically plausible computational models of cognitive functions for computational psychiatry and reinforcement learning or as a generalisation of Bayesian filtering to arbitrarily sized graphical structures for signal processing. In their most standard form, these models are a generalisation and nodalisation of the Hierarchical Gaussian Filters (HGF) for predictive coding. The library is made modular and designed to facilitate the manipulation of probabilistic networks, so the user can focus on model design. The core functions are derivable, JIT-able, and designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement learning, Bayesian inference or optimization. 
 
-* 📖 [API Documentation](https://ilabcode.github.io/pyhgf/api.html)  
-* ✏️ [Tutorials, examples and exercises](https://ilabcode.github.io/pyhgf/tutorials.html)  
+* 📖 [API Documentation](https://ilabcode.github.io/pyhgf/)  
+* ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/learn.html)  
 
 ## Getting started
 
@@ -21,24 +21,24 @@ The current version under development can be installed from the master branch of
 
 `pip install “git+https://github.com/ilabcode/pyhgf.git”`
 
-### How does it works?
+### How does it work?
 
-The nodalized Hierarchical Gaussian Filter consists of a network of probabilistic nodes hierarchically structured where each node can inherit its value and volatility sufficient statistics from other parents node. The presentation of a new observation at the lower level of the hierarchy (i.e. the input node) triggers a recursive update of the nodes' belief through the bottom-up propagation of precision-weighted prediction error.
+The nodalized Hierarchical Gaussian Filter consists of a network of probabilistic nodes hierarchically structured where each node can inherit its value and volatility sufficient statistics from other parent nodes. The presentation of a new observation at the lower level of the hierarchy (i.e. the input node) triggers a recursive update of the nodes' belief through the bottom-up propagation of precision-weighted prediction error.
 
 More generally, pyhgf operates on graph neural networks that can be defined and updated through the following variables:
 
-* The nodes attributes (dictionary) that store each node's parameters (value, precision, learning rates, volatility coupling, ...).
+* The nodes' attributes (dictionary) that store each node's parameters (value, precision, learning rates, volatility coupling, ...).
 * The edges (tuple) that lists, for each node, the indexes of the value and volatility parents.
 * A set of update functions that operate on any of the 3 other variables, starting from a target node.
-* An update sequence (tuple) that define the order in which the update functions are called, and the target node.
+* An update sequence (tuple) that defines the order in which the update functions are called, and the target node.
 
 ![png](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_networks.svg)
 
 Value parent and volatility parent are nodes themself. Any node can be a value and/or volatility parent for other nodes and have multiple value and/or volatility parents. A filtering structure consists of nodes embedding other nodes hierarchically. Nodes are parametrized by their sufficient statistic and parents. The transformations between nodes can be linear, non-linear, or any function (thus a *generalization* of the HGF).
 
-The resulting probabilistic network operates as a filter toward new observation. If a decision function (taking the whole model as a parameter) is also defined, behaviors can be triggered accordingly. By comparing those behaviors with actual outcomes, a surprise function can be optimized over the range of parameters of interest.
+The resulting probabilistic network operates as a filter toward new observation. If a decision function (taking the whole model as a parameter) is also defined, behaviours can be triggered accordingly. By comparing those behaviours with actual outcomes, a surprise function can be optimized over the range of parameters of interest.
 
-You can find a deeper introduction on how to create and manipulate networks under the following link:
+You can find a deeper introduction to how to create and manipulate networks under the following link:
 
 * 🎓 [How to create and manipulate networks of probabilistic nodes](https://ilabcode.github.io/pyhgf/notebooks/0-Creating_networks.html#creating-and-manipulating-networks-of-probabilistic-nodes)  
 
