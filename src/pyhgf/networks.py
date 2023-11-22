@@ -13,8 +13,10 @@ from pyhgf.math import gaussian_surprise
 from pyhgf.typing import Indexes, UpdateSequence
 from pyhgf.updates.binary import (
     binary_input_prediction_error,
+    binary_input_prediction_error_missing_input,
     binary_node_prediction,
     binary_node_prediction_error,
+    binary_node_prediction_error_missing_input,
 )
 from pyhgf.updates.categorical import categorical_input_update
 from pyhgf.updates.continuous import (
@@ -82,7 +84,7 @@ def beliefs_propagation(
 
         # if we are updating an input node, select the value that should be passed
         # otherwise, just pass 0.0 and the value will be ignored
-        value = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * values)
+        value = jnp.sum(jnp.where(jnp.equal(input_nodes_idx, node_idx), values, 0.0))
 
         attributes = update_fn(
             attributes=attributes,
@@ -351,7 +353,10 @@ def get_update_sequence(
                 if idx_ == node_idx
             ][0]
             if model_kind == "binary":
-                update_fn = binary_input_prediction_error
+                if hgf.allow_missing_inputs:
+                    update_fn = binary_input_prediction_error_missing_input
+                else:
+                    update_fn = binary_input_prediction_error
             elif model_kind == "continuous":
                 update_fn = continuous_input_prediction_error
             elif model_kind == "categorical":
@@ -370,7 +375,10 @@ def get_update_sequence(
                         if idx_ == child_idx
                     ][0]
                     if model_kind == "binary":
-                        update_fn = binary_node_prediction_error
+                        if hgf.allow_missing_inputs:
+                            update_fn = binary_node_prediction_error_missing_input
+                        else:
+                            update_fn = binary_node_prediction_error
                         prediction_fn = binary_node_prediction
 
         # create a new update and prediction sequence step and add it to the list

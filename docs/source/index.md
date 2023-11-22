@@ -2,12 +2,12 @@
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit) [![license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/ilabcode/pyhgf/blob/master/LICENSE) [![codecov](https://codecov.io/gh/ilabcode/pyhgf/branch/master/graph/badge.svg)](https://codecov.io/gh/ilabcode/pyhgf) [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/) [![pip](https://badge.fury.io/py/pyhgf.svg)](https://badge.fury.io/py/pyhgf)
 
-# The multilevel, generalized and nodalized Hierarchical Gaussian Filter for predictive coding
+# PyHGF: A Graph Neural Network Library for Predictive Coding
 
-PyHGF is a Python library that implements the generalized, nodalized and multilevel Hierarchical Gaussian Filters for predictive coding written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html). The library can create and manipulate graph neural networks that perform belief update through the diffusion of precision-weighted prediction errors under new observations. The core functions are derivable, JIT-able, and are designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement leanring, Bayesian inference or optimization.
+PyHGF is a Python library written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html) to create and manipulate graph neural networks that can perform belief updates through the diffusion of predictions and precision-weighted prediction errors. These networks can serve as biologically plausible computational models of cognitive functions for computational psychiatry and reinforcement learning or as a generalisation of Bayesian filtering to arbitrarily sized graphical structures for signal processing. In their most standard form, these models are a generalisation and nodalisation of the Hierarchical Gaussian Filters (HGF) for predictive coding. The library is made modular and designed to facilitate the manipulation of probabilistic networks, so the user can focus on model design. The core functions are derivable, JIT-able, and designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement learning, Bayesian inference or optimization. 
 
 * 📖 [API Documentation](https://ilabcode.github.io/pyhgf/)  
-* ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/tutorials.html)  
+* ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/learn.html)  
 
 ## Getting started
 
@@ -25,16 +25,16 @@ The current version under development can be installed from the master branch of
 pip install “git+https://github.com/ilabcode/pyhgf.git”
 ```
 
-### How does it works?
+### How does it work?
 
-The nodalized Hierarchical Gaussian Filter consists of a network of probabilistic nodes hierarchically structured where each node can inherit its value and volatility sufficient statistics from other parents node. The presentation of a new observation at the lower level of the hierarchy (i.e. the input node) triggers a recursive update of the nodes' belief through the bottom-up propagation of precision-weighted prediction error.
+The nodalized Hierarchical Gaussian Filter consists of a network of probabilistic nodes hierarchically structured where each node can inherit its value and volatility sufficient statistics from other parent nodes. The presentation of a new observation at the lower level of the hierarchy (i.e. the input node) triggers a recursive update of the nodes' belief through the bottom-up propagation of precision-weighted prediction error.
 
 More generally, pyhgf operates on graph neural networks that can be defined and updated through the following variables:
 
 * The node parameters (dictionary) that store each node's parameters (value, precision, learning rates, volatility coupling, ...).
-* The node structure (tuple) that list, for each node, the indexes of the value and volatility parents.
+* The node structure (tuple) that lists, for each node, the indexes of the value and volatility parents.
 * A set of update functions that operate on any of the 3 other variables, starting from a target node.
-* An update sequence (tuple) that define the order in which the update functions are called, and the target node.
+* An update sequence (tuple) that defines the order in which the update functions are called, and the target node.
 
 ![png](./images/graph_networks.svg)
 
@@ -52,7 +52,7 @@ The pyhgf package includes pre-implemented standard HGF models that can be used 
 
 ### Model fitting
 
-Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcome from {cite:p}`Iglesias2021`.
+Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcomes from {cite:p}`Iglesias2021`.
 
 ```python
 from pyhgf.model import HGF

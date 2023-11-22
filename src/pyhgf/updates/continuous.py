@@ -311,10 +311,11 @@ def continuous_input_prediction_error(
     edges: Edges,
     value: float,
 ) -> Dict:
-    """Update the input node structure.
+    """Send prediction errors to the parents of an input node.
 
-    This function is the entry-level of the structure updates. It updates the parent
-    of the input node.
+    This function is the entry-level of the structure updates. It updates the parents
+    of the input node. When no observations are provided, the precision of the value
+    and volatility are reduced accordingly as a function of time elapsed.
 
     Parameters
     ----------
