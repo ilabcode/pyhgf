@@ -11,19 +11,17 @@ from jax.typing import ArrayLike
 
 from pyhgf.math import gaussian_surprise
 from pyhgf.typing import Indexes, UpdateSequence
-from pyhgf.updates.binary import (
-    binary_input_prediction_error,
-    binary_input_prediction_error_missing_input,
-    binary_node_prediction,
-    binary_node_prediction_error,
-    binary_node_prediction_error_missing_input,
-)
 from pyhgf.updates.categorical import categorical_input_update
-from pyhgf.updates.continuous import (
+from pyhgf.updates.posterior.continuous import (
+    ehgf_update_continuous_node,
+    update_continuous_node,
+)
+from pyhgf.updates.prediction.continuous import continuous_node_prediction
+from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
-    continuous_node_prediction,
+)
+from pyhgf.updates.prediction_error.nodes.continuous import (
     continuous_node_prediction_error,
-    ehgf_continuous_node_prediction_error,
 )
 
 if TYPE_CHECKING:
@@ -266,36 +264,22 @@ def fill_categorical_state_node(
     return hgf
 
 
-def get_update_sequence(
-    hgf: "HGF",
-    node_idxs: Tuple[int, ...] = (0,),
-    update_sequence: List = [],
-    prediction_sequence: List = [],
-    init: bool = True,
-) -> Tuple[List, ...]:
+def get_update_sequence(hgf: "HGF") -> List:
     """Generate an update sequence from the network's structure.
 
-    THis function return an optimized update sequence considering the edges of the
+    This function return an optimized update sequence considering the edges of the
     network. The function ensures that the following principles apply:
-    1. all children have been updated before propagating to the parent(s) node.
-    2. the update function of an input node is chosen based on the node's type
+    1. all children have computed prediction errors before the parent is updated.
+    2. all children have been updated before the parent compute the prediction errors.
+    3. the update function of an input node is chosen based on the node's type
     (`"continuous"`, `"binary"` or `"categorical"`).
-    3. the update function of the parent of an input node is chosen based on the
+    4. the update function of the parent of an input node is chosen based on the
     node's type (`"continuous"`, `"binary"` or `"categorical"`).
 
     Parameters
     ----------
     hgf :
         An instance of the HGF model.
-    node_idxs :
-        The indexes of the current node(s) that should be evaluated. By default
-        (`None`), the function will start with the list of input nodes.
-    update_sequence :
-        The current state of the update sequence (for recursive evaluation).
-    prediction_sequence :
-        The current state of the prediction sequence (for recursive evaluation).
-    init :
-        Use `init=False` for recursion.
 
     Returns
     -------
@@ -303,138 +287,98 @@ def get_update_sequence(
         The update sequence generated from the node structure.
 
     """
-    if len(update_sequence) == 0:
-        # list all input nodes except categoricals
-        # that will be handled at the end of the recursion
-        node_idxs = tuple(
-            [
-                idx
-                for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx)
-                if kind != "categorical"
+    # initialize sequences
+    update_sequence: List = []
+    prediction_sequence: List = []
+
+    n_nodes = len(hgf.edges)
+
+    # list all nodes that should compute PE and update
+    node_without_pe = [i for i in range(n_nodes)]
+    node_without_update = [i for i in range(n_nodes)]
+
+    # start with the update of all input nodes
+    for input_idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
+        if kind == "continuous":
+            update_fn = continuous_input_prediction_error
+        elif kind == "binary":
+            pass
+
+        # add the PE step to the sequence
+        update_sequence.append((input_idx, update_fn))
+        node_without_pe.remove(input_idx)
+
+        # input node does not need to update the posterior
+        node_without_update.remove(input_idx)
+
+    # will fail if the structure of the network does not allow a consistent update order
+    while True:
+        no_update = True
+
+        # for all nodes that should be updated
+        #  verify that all children have been computed the PE
+        for idx in node_without_update:
+            all_children = [
+                i
+                for idx in [
+                    hgf.edges[idx].value_children,
+                    hgf.edges[idx].volatility_children,
+                ]
+                if idx is not None
+                for i in idx
             ]
-        )
 
-    for node_idx in node_idxs:
-        # if this node is part of a family (the parent has multiple children)
-        # and this is not the last of the children, exit here
-        # we apply this principle for every value / volatility families
-        is_youngest = False
-        if node_idx in hgf.input_nodes_idx.idx:
-            is_youngest = True  # always update input nodes
-        if hgf.edges[node_idx].value_parents is not None:
-            for value_parents in hgf.edges[node_idx].value_parents:  # type: ignore
-                if hgf.edges[value_parents].value_children[-1] == node_idx:
-                    is_youngest = True
-        if hgf.edges[node_idx].volatility_parents is not None:
-            for volatility_parents in hgf.edges[
-                node_idx
-            ].volatility_parents:  # type: ignore
-                if hgf.edges[volatility_parents].volatility_children[-1] == node_idx:
-                    is_youngest = True
+            # all the children have been updated
+            if all([i not in node_without_update for i in all_children]):
+                no_update = False
+                if hgf.update_type == "eHGF":
+                    update_fn = ehgf_update_continuous_node
+                elif hgf.update_type == "standard":
+                    update_fn = update_continuous_node
 
-        # select the update function
-        # --------------------------
+                update_sequence.append((idx, update_fn))
+                node_without_update.remove(idx)
 
-        # case 1 - default to a continuous node
-        # choose between the eHGF and standard update step
-        if hgf.update_type == "eHGF":
-            update_fn = ehgf_continuous_node_prediction_error
-        elif hgf.update_type == "standard":
-            update_fn = continuous_node_prediction_error
-        prediction_fn = continuous_node_prediction
+                # the prediction sequence is the update sequence in reverse order
+                prediction_sequence.insert(0, (idx, continuous_node_prediction))
 
-        # case 2 - this is an input node
-        if node_idx in hgf.input_nodes_idx.idx:
-            model_kind = [
-                kind_
-                for kind_, idx_ in zip(
-                    hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx
-                )
-                if idx_ == node_idx
-            ][0]
-            if model_kind == "binary":
-                if hgf.allow_missing_inputs:
-                    update_fn = binary_input_prediction_error_missing_input
-                else:
-                    update_fn = binary_input_prediction_error
-            elif model_kind == "continuous":
-                update_fn = continuous_input_prediction_error
-            elif model_kind == "categorical":
-                continue
+        # for all nodes that should compute a PE,
+        # verify that all children have been updated and compute the PE
+        for idx in node_without_pe:
+            all_children = [
+                i
+                for idx in [
+                    hgf.edges[idx].value_children,
+                    hgf.edges[idx].volatility_children,
+                ]
+                if idx is not None
+                for i in idx
+            ]
+            # all the children have computed the prediction errors
+            if all([i not in node_without_pe for i in all_children]):
+                no_update = False
+                update_sequence.append((idx, continuous_node_prediction_error))
+                node_without_pe.remove(idx)
 
-        # case 3 - this is the value parent of at least one binary input node
-        if hgf.edges[node_idx].value_children is not None:
-            value_children_idx = hgf.edges[node_idx].value_children
-            for child_idx in value_children_idx:  # type: ignore
-                if child_idx in hgf.input_nodes_idx.idx:
-                    model_kind = [
-                        kind_
-                        for kind_, idx_ in zip(
-                            hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx
-                        )
-                        if idx_ == child_idx
-                    ][0]
-                    if model_kind == "binary":
-                        if hgf.allow_missing_inputs:
-                            update_fn = binary_node_prediction_error_missing_input
-                        else:
-                            update_fn = binary_node_prediction_error
-                        prediction_fn = binary_node_prediction
+        if (not node_without_pe) and (node_without_update):
+            break
 
-        # create a new update and prediction sequence step and add it to the list
-        # only the youngest of the family is updated, but all nodes get predictions
-        # ensure that the node is the youngest of the family (also implicitely ensure
-        # that it is not orphan, otherwise skip this the node will only have prediction)
-        if is_youngest:
-            new__update_sequence = node_idx, update_fn
-            update_sequence.append(new__update_sequence)
+        if no_update:
+            break
+            raise Warning(
+                "The structure of the network cannot be updated consistently."
+            )
 
-        # no prediction step for an input node
-        if node_idx not in hgf.input_nodes_idx.idx:
-            new_prediction_sequence = node_idx, prediction_fn
-            prediction_sequence.append(new_prediction_sequence)
+    # append the prediction sequence at the beginning
+    prediction_sequence.extend(update_sequence)
 
-        # search recursively for the next update steps - make sure that all the
-        # children have been updated before updating the parent(s)
-        # ---------------------------------------------------------------------
+    # add the categorical update here, if any
+    for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx):
+        if kind == "categorical":
+            # create a new sequence step and add it to the list
+            prediction_sequence.append((idx, categorical_input_update))
 
-        # loop over all possible dependencies (e.g. value, volatility coupling)
-        parents = hgf.edges[node_idx][:2]
-        for parent_types in parents:
-            if parent_types is not None:
-                for idx in parent_types:
-                    # get the list of all the children in the parent's family
-                    children_idxs = []
-                    if hgf.edges[idx].value_children is not None:
-                        children_idxs.extend(
-                            [*hgf.edges[idx].value_children]  # type: ignore
-                        )
-                    if hgf.edges[idx].volatility_children is not None:
-                        children_idxs.extend(
-                            [*hgf.edges[idx].volatility_children]  # type: ignore
-                        )
-
-                    if len(children_idxs) > 0:
-                        # only call the update on the parent(s) if the current node
-                        # is the last on the children's list (meaning that all the
-                        # other nodes have been updated)
-                        if children_idxs[-1] == node_idx:
-                            update_sequence, prediction_sequence = get_update_sequence(
-                                hgf=hgf,
-                                node_idxs=(idx,),
-                                update_sequence=update_sequence,
-                                prediction_sequence=prediction_sequence,
-                                init=False,
-                            )
-    # final iteration
-    if init is True:
-        # add the categorical update here, if any
-        for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx):
-            if kind == "categorical":
-                # create a new sequence step and add it to the list
-                update_sequence.append((idx, categorical_input_update))
-
-    return update_sequence, prediction_sequence
+    return prediction_sequence
 
 
 def to_pandas(hgf: "HGF") -> pd.DataFrame:

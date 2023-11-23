@@ -9,9 +9,9 @@ from jax import jit
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("edges", "volatility_parent_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_input_volatility_prediction_error(
-    attributes: Dict, edges: Edges, time_step: float, input_idx: int
+    attributes: Dict, edges: Edges, node_idx: int
 ) -> Dict:
     r"""Store volatility prediction error from an input node.
 
@@ -23,9 +23,7 @@ def continuous_input_volatility_prediction_error(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    time_step :
-        The interval between the previous time point and the current time point.
-    input_idx :
+    node_idx :
         Pointer to the input node.
 
     Returns
@@ -44,30 +42,28 @@ def continuous_input_volatility_prediction_error(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    expected_precision_input = attributes[input_idx]["expected_precision"]
-    value_parent_idx = edges[input_idx].value_parents[0]  # type: ignore
+    expected_precision_input = attributes[node_idx]["expected_precision"]
+    value_parent_idx = edges[node_idx].value_parents[0]  # type: ignore
 
     # compute the noise prediction error for this input node
     noise_prediction_error = (
         (expected_precision_input / attributes[value_parent_idx]["precision"])
         + expected_precision_input
-        * attributes[input_idx]["value_prediction_error"] ** 2
+        * attributes[node_idx]["temp"]["value_prediction_error"] ** 2
         - 1
     )
 
     # use the noise prediction error (NOPE) as VOPE
-    attributes[input_idx]["temp"][
-        "volatility_prediction_error"
-    ] = noise_prediction_error
+    attributes[node_idx]["temp"]["volatility_prediction_error"] = noise_prediction_error
 
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_input_value_prediction_error(
     attributes: Dict,
     edges: Edges,
-    input_idx: int,
+    node_idx: int,
 ) -> Dict:
     r"""Store value prediction error and expected precision from an input node.
 
@@ -79,7 +75,7 @@ def continuous_input_value_prediction_error(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    input_idx :
+    node_idx :
         Pointer to the input node.
 
     Returns
@@ -105,19 +101,19 @@ def continuous_input_value_prediction_error(
 
     """
     # retireve the index of the value parent (assuming a unique value parent)
-    value_parent_idx = edges[input_idx].value_parents[0]  # type: ignore
+    value_parent_idx = edges[node_idx].value_parents[0]  # type: ignore
 
     # the prediction error is computed using the expected mean from the value parent
     value_prediction_error = (
-        attributes[input_idx]["value"] - attributes[value_parent_idx]["expected_mean"]
+        attributes[node_idx]["value"] - attributes[value_parent_idx]["expected_mean"]
     )
 
     # expected precision from the input node
-    expected_precision_child = attributes[input_idx]["expected_precision"]
+    expected_precision_child = attributes[node_idx]["expected_precision"]
 
     # influence of a volatility parent on the input node
-    if edges[input_idx].volatility_parents is not None:
-        volatility_parent = edges[input_idx].volatility_parents[0]  # type:ignore
+    if edges[node_idx].volatility_parents is not None:
+        volatility_parent = edges[node_idx].volatility_parents[0]  # type:ignore
         volatility_coupling = attributes[volatility_parent][
             "volatility_coupling_children"
         ][0]
@@ -126,8 +122,8 @@ def continuous_input_value_prediction_error(
         )
 
     # store in the current node for later use in the update step
-    attributes[input_idx]["temp"]["value_prediction_error"] = value_prediction_error
-    attributes[input_idx]["temp"][
+    attributes[node_idx]["temp"]["value_prediction_error"] = value_prediction_error
+    attributes[node_idx]["temp"][
         "expected_precision_children"
     ] = expected_precision_child
 
@@ -138,7 +134,7 @@ def continuous_input_value_prediction_error(
 def continuous_input_prediction_error(
     attributes: Dict,
     time_step: float,
-    input_idx: int,
+    node_idx: int,
     edges: Edges,
     value: float,
 ) -> Dict:
@@ -155,7 +151,7 @@ def continuous_input_prediction_error(
         `"volatility_coupling_children"`).
     time_step :
         The interval between the previous time point and the current time point.
-    input_idx :
+    node_idx :
         Pointer to the input node.
     edges :
         The edges of the probabilistic nodes as a tuple of
@@ -181,21 +177,22 @@ def continuous_input_prediction_error(
 
     """
     # store value and time step in the node's parameters
-    attributes[input_idx]["value"] = value
-    attributes[input_idx]["time_step"] = time_step
+    attributes[node_idx]["value"] = value
+    attributes[node_idx]["time_step"] = time_step
 
-    # Store value prediction errors
-    # -----------------------------
-    if edges[input_idx].value_parents is not None:
+    if (edges[node_idx].value_parents is not None) or (
+        edges[node_idx].volatility_parents is not None
+    ):
+        # Store value prediction errors
+        # -----------------------------
         attributes = continuous_input_value_prediction_error(
-            attributes=attributes, edges=edges, input_idx=input_idx
+            attributes=attributes, edges=edges, node_idx=node_idx
         )
 
-    # Store volatility prediction errors
-    # ----------------------------------
-    if edges[input_idx].volatility_parents is not None:
+        # Store volatility prediction errors
+        # ----------------------------------
         attributes = continuous_input_volatility_prediction_error(
-            attributes=attributes, edges=edges, input_idx=input_idx
+            attributes=attributes, edges=edges, node_idx=node_idx
         )
 
     return attributes

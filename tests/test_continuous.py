@@ -11,10 +11,10 @@ from pyhgf import load_data
 from pyhgf.math import gaussian_surprise
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
-from pyhgf.updates.continuous import (
+from pyhgf.updates.posterior.continuous import update_continuous_node
+from pyhgf.updates.prediction.continuous import continuous_node_prediction
+from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
-    continuous_node_prediction,
-    continuous_node_prediction_error,
 )
 
 
@@ -28,6 +28,12 @@ class Testcontinuous(TestCase):
             "value": 0.0,
             "volatility_coupling_parents": None,
             "value_coupling_parents": None,
+            "temp": {
+                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
         node_parameters_1 = {
             "expected_precision": 1.0,
@@ -42,7 +48,12 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "predicted_volatility": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -57,7 +68,12 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "predicted_volatility": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
         attributes = (
             input_node_parameters,
@@ -105,6 +121,12 @@ class Testcontinuous(TestCase):
             "value": 0.0,
             "volatility_coupling_parents": (1.0,),
             "value_coupling_parents": (1.0,),
+            "temp": {
+                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
         node_parameters_1 = {
             "expected_precision": 1.0,
@@ -119,7 +141,12 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "predicted_volatility": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -134,7 +161,12 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "predicted_volatility": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
         attributes = (
             input_node_parameters,
@@ -152,8 +184,9 @@ class Testcontinuous(TestCase):
         sequence1 = 1, continuous_node_prediction
         sequence2 = 2, continuous_node_prediction
         sequence3 = 0, continuous_input_prediction_error
-        sequence4 = 1, continuous_node_prediction_error
-        update_sequence = (sequence1, sequence2, sequence3, sequence4)
+        sequence4 = 1, update_continuous_node
+        sequence5 = 2, update_continuous_node
+        update_sequence = (sequence1, sequence2, sequence3, sequence4, sequence5)
         data = jnp.array([0.2, 1.0])
 
         # apply beliefs propagation updates
@@ -193,6 +226,12 @@ class Testcontinuous(TestCase):
             "value": 0.0,
             "volatility_coupling_parents": None,
             "value_coupling_parents": (1.0,),
+            "temp": {
+                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
         node_parameters_1 = {
             "expected_precision": 1.0,
@@ -207,7 +246,12 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "predicted_volatility": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -222,7 +266,12 @@ class Testcontinuous(TestCase):
             "mean": 1.0,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "predicted_volatility": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
 
         attributes = (
@@ -240,8 +289,9 @@ class Testcontinuous(TestCase):
         sequence1 = 1, continuous_node_prediction
         sequence2 = 2, continuous_node_prediction
         sequence3 = 0, continuous_input_prediction_error
-        sequence4 = 1, continuous_node_prediction_error
-        update_sequence = (sequence1, sequence2, sequence3, sequence4)
+        sequence4 = 1, update_continuous_node
+        sequence5 = 2, update_continuous_node
+        update_sequence = (sequence1, sequence2, sequence3, sequence4, sequence5)
 
         # create the function that will be scaned
         scan_fn = Partial(

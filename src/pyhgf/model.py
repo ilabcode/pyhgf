@@ -713,7 +713,7 @@ class HGF(object):
                 "predicted_volatility": 0.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision": 0.0,
+                "expected_precision_children": 0.0,
             },
         }
 
@@ -897,12 +897,10 @@ class HGF(object):
         See :py:func:`pyhgf.networks.get_update_sequence` for more details.
 
         """
-        update_sequence, prediction_sequence = get_update_sequence(
-            hgf=self, update_sequence=[], prediction_sequence=[]
+        self.update_sequence = tuple(
+            get_update_sequence(
+                hgf=self,
+            )
         )
-        # generate the prediction sequence here, in reverse order
-        prediction_sequence.reverse()
-        prediction_sequence.extend(update_sequence)
-        self.update_sequence = tuple(prediction_sequence)
 
         return self

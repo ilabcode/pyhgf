@@ -9,7 +9,7 @@ from jax import jit
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def posterior_update_mean_continuous_node(
     attributes: Dict, edges: Edges, node_idx: int, node_precision: float
 ) -> float:
@@ -183,7 +183,7 @@ def posterior_update_mean_continuous_node(
     return posterior_mean
 
 
-@partial(jit, static_argnames=("edges", "value_parent_idx"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def posterior_update_precision_continuous_node(
     attributes: Dict,
     edges: Edges,
@@ -296,7 +296,7 @@ def posterior_update_precision_continuous_node(
             edges[node_idx].value_children,  # type: ignore
             attributes[node_idx]["value_coupling_children"],
         ):
-            expected_precision_children = attributes[value_child_idx][
+            expected_precision_children = attributes[value_child_idx]["temp"][
                 "expected_precision_children"
             ]
             precision_weigthed_prediction_error += (
@@ -355,7 +355,7 @@ def posterior_update_precision_continuous_node(
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def update_continuous_node(
-    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+    attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Prediction-error step for the value and volatility parents of a continuous node.
 
@@ -375,8 +375,6 @@ def update_continuous_node(
     ----------
     attributes :
         The attributes of the probabilistic nodes.
-    time_step :
-        The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
@@ -417,7 +415,7 @@ def update_continuous_node(
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def ehgf_update_continuous_node(
-    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+    attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Perform the eHGF PE step for value and volatility parents of a continuous node.
 
@@ -438,8 +436,6 @@ def ehgf_update_continuous_node(
     ----------
     attributes :
         The attributes of the probabilistic nodes.
-    time_step :
-        The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the node that needs to be updated. After continuous updates, the
         parameters of value and volatility parents (if any) will be different.
