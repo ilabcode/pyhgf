@@ -542,6 +542,12 @@ class HGF(object):
                 "expected_precision": continuous_parameters["continuous_precision"],
                 "time_step": jnp.nan,
                 "value": jnp.nan,
+                "temp": {
+                    "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                    "value_prediction_error": 0.0,
+                    "volatility_prediction_error": 0.0,
+                    "expected_precision_children": 0.0,
+                },
             }
         elif kind == "binary":
             input_node_parameters = {
@@ -703,7 +709,12 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "predicted_volatility": 0.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision": 0.0,
+            },
         }
 
         # add more parameters (optional)
@@ -823,7 +834,12 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "predicted_volatility": 0.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
 
         # add more parameters (optional)

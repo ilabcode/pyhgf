@@ -89,7 +89,7 @@ def predict_precision(
 
     .. math::
 
-        \Omega_a^{(k)} = t^{(k)} \\
+        \Omega_a^{(k)} = t^{(k)}
         \exp{ \left( \omega_a + \sum_{j=1}^{N_{vopa}} \kappa_j \mu_a^{(k-1)} \right) }
 
 
@@ -148,3 +148,59 @@ def predict_precision(
     )
 
     return expected_precision, predicted_volatility
+
+
+@partial(jit, static_argnames=("edges", "node_idx"))
+def continuous_node_prediction(
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+) -> Dict:
+    """Update the expected mean and expected precision of a continuous node.
+
+    Parameters
+    ----------
+    attributes :
+        The attributes of the probabilistic nodes.
+    .. note::
+        The parameter structure also incorporate the value and volatility coupling
+        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        `"value_coupling_children"`, `"volatility_coupling_parents"`,
+        `"volatility_coupling_children"`).
+    time_step :
+        The interval between the previous time point and the current time point.
+    node_idx :
+        Pointer to the node that will be updated.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
+
+    Returns
+    -------
+    attributes :
+        The updated attributes of the probabilistic nodes.
+
+    See Also
+    --------
+    update_continuous_input_parents, update_binary_input_parents
+
+    References
+    ----------
+    .. [1] Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., &
+       Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1).
+       arXiv. https://doi.org/10.48550/ARXIV.2305.10937
+
+    """
+    # Get the new expected mean
+    expected_mean = predict_mean(attributes, edges, time_step, node_idx)
+
+    # Get the new expected precision and predicted volatility (Ω)
+    expected_precision, predicted_volatility = predict_precision(
+        attributes, edges, time_step, node_idx
+    )
+
+    # Update this node's parameters
+    attributes[node_idx]["expected_precision"] = expected_precision
+    attributes[node_idx]["temp"]["predicted_volatility"] = predicted_volatility
+    attributes[node_idx]["expected_mean"] = expected_mean
+
+    return attributes
