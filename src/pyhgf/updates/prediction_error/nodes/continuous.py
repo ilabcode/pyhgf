@@ -14,7 +14,14 @@ def continuous_node_value_prediction_error(
     attributes: Dict,
     node_idx: int,
 ) -> Array:
-    r"""Compute the value prediction error and expected precision of a state node.
+    r"""Compute the value prediction error of a state node.
+
+    The value prediction error :math:`\delta_j^{(k)}` of a continuous state node is
+    given by:
+
+    .. math::
+
+        :math:`\delta_j^{(k)} = \mu_j^{k} - \hat{\mu}_j^{k}`.
 
     Parameters
     ----------
@@ -55,6 +62,14 @@ def continuous_node_volatility_prediction_error(
     attributes: Dict, node_idx: int
 ) -> Dict:
     r"""Compute the volatility prediction error of a state node.
+
+    The volatility prediction error :math:`\Delta_j^{(k)}` of a state node
+    :math:`j` is given by:
+
+    .. math::
+
+        \Delta_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_j^{(k)}} +
+        \hat{\pi}_j^{(k)} \left( \delta_j^{(k)} \right)^2 - 1
 
     Parameters
     ----------

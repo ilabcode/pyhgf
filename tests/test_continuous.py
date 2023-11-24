@@ -22,17 +22,17 @@ class Testcontinuous(TestCase):
     def test_continuous_node_update(self):
         # create a node structure with no value parent and no volatility parent
         input_node_parameters = {
-            "expected_precision": 1e4,
+            "input_noise": 1e4,
+            "expected_precision": jnp.nan,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
             "volatility_coupling_parents": None,
             "value_coupling_parents": None,
             "temp": {
-                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         node_parameters_1 = {
@@ -49,10 +49,9 @@ class Testcontinuous(TestCase):
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
-                "predicted_volatility": 1.0,
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         node_parameters_2 = {
@@ -69,10 +68,9 @@ class Testcontinuous(TestCase):
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
-                "predicted_volatility": 1.0,
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         attributes = (
@@ -115,17 +113,17 @@ class Testcontinuous(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "expected_precision": 1e4,
+            "input_noise": 1e4,
+            "expected_precision": jnp.nan,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
             "volatility_coupling_parents": (1.0,),
             "value_coupling_parents": (1.0,),
             "temp": {
-                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "effective precision": 1.0,  # should be fixed to 1 for input nodes
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         node_parameters_1 = {
@@ -142,10 +140,9 @@ class Testcontinuous(TestCase):
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
-                "predicted_volatility": 1.0,
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         node_parameters_2 = {
@@ -162,10 +159,9 @@ class Testcontinuous(TestCase):
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
-                "predicted_volatility": 1.0,
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         attributes = (
@@ -220,17 +216,17 @@ class Testcontinuous(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "expected_precision": 1e4,
+            "input_noise": 1e4,
+            "expected_precision": jnp.nan,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
             "volatility_coupling_parents": None,
             "value_coupling_parents": (1.0,),
             "temp": {
-                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         node_parameters_1 = {
@@ -247,10 +243,9 @@ class Testcontinuous(TestCase):
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
             "temp": {
-                "predicted_volatility": 1.0,
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         node_parameters_2 = {
@@ -267,10 +262,9 @@ class Testcontinuous(TestCase):
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
             "temp": {
-                "predicted_volatility": 1.0,
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
 

@@ -13,68 +13,25 @@ from pyhgf.typing import Edges
 def continuous_input_volatility_prediction_error(
     attributes: Dict, edges: Edges, node_idx: int
 ) -> Dict:
-    r"""Store volatility prediction error from an input node.
+    r"""Store noise prediction error from an input node.
 
-    The new precision of the volatility parent :math:`a` of an input node at time
-    :math:`k` is given by:
+    Input nodes can have noise parents, and therefore should compute the equivalent
+    of a volatility prediction error (VOPE), a noise prediction error (NOPE). The
+    volatility parent will use the NOPE value the same way than it uses VOPE values.
+    Note that the effective precision :math:`\gamma_j^{(k)}` if fixed to `1` so this
+    equivalence applies.
 
-    .. math::
-
-        \pi_a^{(k)} = \hat{\pi}_a^{(k)} + \sum_{j=1}^{N_{children}} \frac{1}{2}
-         \kappa_j^2 \left( 1 + \epsilon_j^{(k)} \right)
-
-    where :math:`\kappa_j` is the volatility coupling strength between the volatility
-    parent and the volatility children :math:`j` and :math:`\epsilon_j^{(k)}` is the
-    noise prediction error given by:
-
-    .. math::
-
-        \epsilon_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_{vapa}^{(k)}} +
-        \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
-
-    Note that, because we are working with continuous input nodes,
-    :math:`\epsilon_j^{(k)}` is not a function of the value prediction error but uses
-    the posterior of the value parent(s).
-
-    The expected precision of the input is the sum of the tonic and phasic volatility,
+    The noise prediction error :math:`\epsilon_j^{(k)}` of an input node :math:`j` is
     given by:
 
     .. math::
 
-        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
-
-    where :math:`\zeta` is the continuous input precision (in real space).
-
-
-    The new mean of the volatility parent :math:`a` of an input node at time :math:`k`
-    is given by:
-
-    .. math::
-
-        \mu_a^{(k)} = \hat{\mu}_a^{(k)} + \frac{1}{2\pi_a}
-        \sum_{j=1}^{N_{children}} \kappa_j\epsilon_j^{(k)}
-
-    where :math:`\kappa_j` is the volatility coupling strength between the volatility
-    parent and the volatility children :math:`j` and :math:`\epsilon_j^{(k)}` is the
-    noise prediction error given by:
-
-    .. math::
-
         \epsilon_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_{vapa}^{(k)}} +
-        \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
+            \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
 
     Note that, because we are working with continuous input nodes,
     :math:`\epsilon_j^{(k)}` is not a function of the value prediction error but uses
     the posterior of the value parent(s).
-
-    The expected precision of the input is the sum of the tonic and phasic volatility,
-    given by:
-
-    .. math::
-
-        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
-
-    where :math:`\zeta` is the continuous input precision (in real space).
 
     Parameters
     ----------
@@ -128,6 +85,22 @@ def continuous_input_value_prediction_error(
 ) -> Dict:
     r"""Store value prediction error and expected precision from an input node.
 
+    The value prediction error :math:`\delta_j^{(k)}` of an input node :math:`j` at time
+    :math:`k` is given by:
+
+    .. math::
+
+        \delta_j^{(k)} = u^{(k)} - \hat{\mu_j}^{(k)}
+
+    The expected precision :math:`\hat{\pi}_j^{(k)}` of an input node is the sum of the
+    tonic and phasic volatility, which is given by:
+
+    .. math::
+
+        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
+
+    where :math:`\zeta` is the input noise (in real space).
+
     Parameters
     ----------
     attributes :
@@ -170,7 +143,7 @@ def continuous_input_value_prediction_error(
     )
 
     # expected precision from the input node
-    expected_precision = attributes[node_idx]["expected_precision"]
+    expected_precision = attributes[node_idx]["input_noise"]
 
     # influence of a volatility parent on the input node
     volatility_parent = edges[node_idx].volatility_parents  # type:ignore

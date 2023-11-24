@@ -328,8 +328,8 @@ def get_update_sequence(hgf: "HGF") -> List:
                 for i in idx
             ]
 
-            # all the children have been updated
-            if all([i not in node_without_update for i in all_children]):
+            # all the children have computed prediction errors
+            if all([i not in node_without_pe for i in all_children]):
                 no_update = False
                 if hgf.update_type == "eHGF":
                     update_fn = ehgf_update_continuous_node
@@ -345,22 +345,26 @@ def get_update_sequence(hgf: "HGF") -> List:
         # for all nodes that should compute a PE,
         # verify that all children have been updated and compute the PE
         for idx in node_without_pe:
-            all_children = [
+            # if this node has no parent, no need to compute prediction errors
+            all_parents = [
                 i
                 for idx in [
-                    hgf.edges[idx].value_children,
-                    hgf.edges[idx].volatility_children,
+                    hgf.edges[idx].value_parents,
+                    hgf.edges[idx].volatility_parents,
                 ]
                 if idx is not None
                 for i in idx
             ]
-            # all the children have computed the prediction errors
-            if all([i not in node_without_pe for i in all_children]):
-                no_update = False
-                update_sequence.append((idx, continuous_node_prediction_error))
+            if len(all_parents) == 0:
                 node_without_pe.remove(idx)
+            else:
+                # if this node has been updated
+                if idx not in node_without_update:
+                    no_update = False
+                    update_sequence.append((idx, continuous_node_prediction_error))
+                    node_without_pe.remove(idx)
 
-        if (not node_without_pe) and (node_without_update):
+        if (not node_without_pe) and (not node_without_update):
             break
 
         if no_update:
