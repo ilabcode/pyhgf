@@ -11,13 +11,17 @@ from pyhgf import load_data
 from pyhgf.math import binary_surprise, gaussian_density, sigmoid
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
-from pyhgf.updates.binary import (
-    binary_input_prediction_error,
-    binary_node_prediction,
-    binary_node_prediction_error,
+from pyhgf.updates.posterior.binary import binary_node_update_infinite
+from pyhgf.updates.posterior.continuous import continuous_node_update
+from pyhgf.updates.prediction.binary import binary_state_node_prediction
+from pyhgf.updates.prediction.continuous import continuous_node_prediction
+from pyhgf.updates.prediction_error.input.binary import (
+    binary_input_prediction_error_infinite_precision,
 )
-from pyhgf.updates.continuous import (
-    continuous_node_prediction,
+from pyhgf.updates.prediction_error.nodes.binary import (
+    binary_state_node_prediction_error,
+)
+from pyhgf.updates.prediction_error.nodes.continuous import (
     continuous_node_prediction_error,
 )
 
@@ -117,10 +121,13 @@ class Testbinary(TestCase):
         # create update sequence
         sequence1 = 3, continuous_node_prediction
         sequence2 = 2, continuous_node_prediction
-        sequence3 = 1, binary_node_prediction
-        sequence4 = 0, binary_input_prediction_error
-        sequence5 = 1, binary_node_prediction_error
-        sequence6 = 2, continuous_node_prediction_error
+        sequence3 = 1, binary_state_node_prediction
+        sequence4 = 0, binary_input_prediction_error_infinite_precision
+        sequence5 = 1, binary_node_update_infinite
+        sequence6 = 1, binary_state_node_prediction_error
+        sequence7 = 2, continuous_node_update
+        sequence8 = 2, continuous_node_prediction_error
+        sequence9 = 3, continuous_node_update
         update_sequence = (
             sequence1,
             sequence2,
@@ -128,6 +135,9 @@ class Testbinary(TestCase):
             sequence4,
             sequence5,
             sequence6,
+            sequence7,
+            sequence8,
+            sequence9,
         )
         data = jnp.array([1.0, 1.0])
 

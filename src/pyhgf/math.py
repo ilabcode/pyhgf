@@ -147,3 +147,37 @@ def dirichlet_kullback_leibler(alpha_1: ArrayLike, alpha_2: ArrayLike) -> Array:
         + jnp.sum(jnp.log(gamma(alpha_2) / gamma(alpha_1)))
         + jnp.sum((alpha_1 - alpha_2) * (digamma(alpha_1) - digamma(alpha_1.sum())))
     )
+
+
+def binary_surprise_finite_precision(
+    value: float,
+    expected_mean: float,
+    expected_precision: float,
+    eta0: float = 0.0,
+    eta1: float = 0.0,
+) -> float:
+    r"""Compute the binary surprise with finite precision.
+
+    Parameters
+    ----------
+    value :
+        The observed value.
+    expected_mean :
+        The expected probability of observing category 1.
+    expected_precision :
+        The precision of the underlying normal distributions.
+    eta0 :
+        The first possible value.
+    eta1 :
+        The second possible value.
+
+    Returns
+    -------
+    surprise :
+        The binary surprise under finite precision.
+
+    """
+    return -jnp.log(
+        expected_mean * gaussian_density(value, eta1, expected_precision)
+        + (1 - expected_mean) * gaussian_density(value, eta0, expected_precision)
+    )

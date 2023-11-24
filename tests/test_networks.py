@@ -7,7 +7,7 @@ import jax.numpy as jnp
 
 from pyhgf.networks import beliefs_propagation, list_branches
 from pyhgf.typing import Indexes
-from pyhgf.updates.posterior.continuous import update_continuous_node
+from pyhgf.updates.posterior.continuous import continuous_node_update
 from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
 )
@@ -83,8 +83,8 @@ class TestStructure(TestCase):
 
         # create update sequence
         sequence1 = 0, continuous_input_prediction_error
-        sequence2 = 1, update_continuous_node
-        sequence3 = 2, update_continuous_node
+        sequence2 = 1, continuous_node_update
+        sequence3 = 2, continuous_node_update
         update_sequence = (sequence1, sequence2, sequence3)
 
         # one batch of new observations with time step

@@ -121,7 +121,7 @@ Binary nodes
 .. autosummary::
    :toctree: generated/pyhgf.updates.prediction.binary
 
-    predict_binary_state_node
+    binary_state_node_prediction
 
 Continuous nodes
 ~~~~~~~~~~~~~~~~
@@ -225,3 +225,4 @@ Math functions and probability densities.
     binary_surprise
     gaussian_surprise
     dirichlet_kullback_leibler
+    binary_surprise_finite_precision

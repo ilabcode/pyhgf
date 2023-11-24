@@ -547,7 +547,6 @@ class HGF(object):
                     "effective_precision": 1.0,  # should be fixed to 1 for input nodes
                     "value_prediction_error": 0.0,
                     "volatility_prediction_error": 0.0,
-                    "expected_precision_children": 0.0,
                 },
             }
         elif kind == "binary":
@@ -555,7 +554,6 @@ class HGF(object):
                 "expected_precision": binary_parameters["binary_precision"],
                 "eta0": binary_parameters["eta0"],
                 "eta1": binary_parameters["eta1"],
-                "surprise": jnp.nan,
                 "time_step": jnp.nan,
                 "value": jnp.nan,
             }

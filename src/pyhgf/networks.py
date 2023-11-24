@@ -13,8 +13,8 @@ from pyhgf.math import gaussian_surprise
 from pyhgf.typing import Indexes, UpdateSequence
 from pyhgf.updates.categorical import categorical_input_update
 from pyhgf.updates.posterior.continuous import (
-    ehgf_update_continuous_node,
-    update_continuous_node,
+    continuous_node_update,
+    continuous_node_update_ehgf,
 )
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
 from pyhgf.updates.prediction_error.inputs.continuous import (
@@ -332,9 +332,9 @@ def get_update_sequence(hgf: "HGF") -> List:
             if all([i not in node_without_pe for i in all_children]):
                 no_update = False
                 if hgf.update_type == "eHGF":
-                    update_fn = ehgf_update_continuous_node
+                    update_fn = continuous_node_update_ehgf
                 elif hgf.update_type == "standard":
-                    update_fn = update_continuous_node
+                    update_fn = continuous_node_update
 
                 update_sequence.append((idx, update_fn))
                 node_without_update.remove(idx)

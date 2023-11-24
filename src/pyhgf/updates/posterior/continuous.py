@@ -120,8 +120,7 @@ def posterior_update_mean_continuous_node(
             # expected precisions from the value children
             # sum the precision weigthed prediction errors over all children
             precision_weigthed_prediction_error += (
-                value_coupling
-                * attributes[value_child_idx]["expected_precision"]
+                (value_coupling * attributes[value_child_idx]["expected_precision"])
                 / attributes[node_idx]["precision"]
             ) * attributes[value_child_idx]["temp"]["value_prediction_error"]
 
@@ -175,7 +174,7 @@ def posterior_update_precision_continuous_node(
     .. math::
 
             \pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
-            \kappa_j^2 \hat{\pi}_b^{(k)} \delta_j^{(k)}
+            \kappa_j^2 \hat{\pi}_j^{(k)}
 
     Where :math:`\kappa_j` is the volatility coupling strength between the child node
     and the state node and :math:`\delta_j^{(k)}` is the value prediction error that
@@ -309,7 +308,7 @@ def posterior_update_precision_continuous_node(
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def update_continuous_node(
+def continuous_node_update(
     attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the posterior of a continuous node using the standard HGF update.
@@ -362,7 +361,7 @@ def update_continuous_node(
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def ehgf_update_continuous_node(
+def continuous_node_update_ehgf(
     attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the posterior of a continuous node using the eHGF update.

@@ -11,7 +11,7 @@ from pyhgf import load_data
 from pyhgf.math import gaussian_surprise
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
-from pyhgf.updates.posterior.continuous import update_continuous_node
+from pyhgf.updates.posterior.continuous import continuous_node_update
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
 from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
@@ -180,8 +180,8 @@ class Testcontinuous(TestCase):
         sequence1 = 1, continuous_node_prediction
         sequence2 = 2, continuous_node_prediction
         sequence3 = 0, continuous_input_prediction_error
-        sequence4 = 1, update_continuous_node
-        sequence5 = 2, update_continuous_node
+        sequence4 = 1, continuous_node_update
+        sequence5 = 2, continuous_node_update
         update_sequence = (sequence1, sequence2, sequence3, sequence4, sequence5)
         data = jnp.array([0.2, 1.0])
 
@@ -283,8 +283,8 @@ class Testcontinuous(TestCase):
         sequence1 = 1, continuous_node_prediction
         sequence2 = 2, continuous_node_prediction
         sequence3 = 0, continuous_input_prediction_error
-        sequence4 = 1, update_continuous_node
-        sequence5 = 2, update_continuous_node
+        sequence4 = 1, continuous_node_update
+        sequence5 = 2, continuous_node_update
         update_sequence = (sequence1, sequence2, sequence3, sequence4, sequence5)
 
         # create the function that will be scaned
