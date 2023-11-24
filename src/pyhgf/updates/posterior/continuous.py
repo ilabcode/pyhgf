@@ -13,15 +13,34 @@ from pyhgf.typing import Edges
 def posterior_update_mean_continuous_node(
     attributes: Dict, edges: Edges, node_idx: int, node_precision: float
 ) -> float:
-    r"""Update the mean of a continuous node.
+    r"""Update the mean of a state node using the value prediction errors.
 
-    Update the mean of the volatility parent.
+    1. Mean update from value coupling
+    ----------------------------------
 
-    The new mean of the volatility parent :math:`a` of a state node at time :math:`k`
-    is given by:
+    The new mean of a state node :math:`b` value coupled with other input and/or state
+    nodes :math:`j` at time :math:`k` is given by:
 
     .. math::
-        \mu_a^{(k)} = \hat{\mu}_a^{(k)} + \frac{1}{2\pi_a}
+        \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
+            \frac{\kappa_j \hat{\pi}_j^{(k)}}{\pi_b} \delta_j^{(k)}
+
+    Where :math:`\kappa_j` is the volatility coupling strength between the child node
+    and the state node and :math:`\delta_j^{(k)}` is the value prediction error that
+    was computed before hand. If the child node is an input node, this value was
+    computed by
+    :py:function:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
+    If the child node is a state node, this value was computed by
+    :py:function:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
+
+    2. Mean update from volatility coupling
+    ---------------------------------------
+
+    The new mean of a state node :math:`b` volatility coupled with other input and/or
+    state nodes :math:`j` at time :math:`k` is given by:
+
+    .. math::
+        \mu_b^{(k)} = \hat{\mu}_b^{(k)} + \frac{1}{2\pi_b}
           \sum_{j=1}^{N_{children}} \kappa_j \gamma_j^{(k)} \Delta_j^{(k)}
 
     where :math:`\kappa_j` is the volatility coupling strength between the volatility
@@ -36,48 +55,20 @@ def posterior_update_mean_continuous_node(
     with :math:`\delta_j^{(k)}` the value prediction error
     :math:`\delta_j^{(k)} = \mu_j^{k} - \hat{\mu}_j^{k}`.
 
-    :math:`\gamma_j^{(k)}` is the volatility-weighted precision of the prediction,
-    given by:
+    :math:`\gamma_j^{(k)}` is the effective precision of the prediction, given by:
 
     .. math::
 
         \gamma_j^{(k)} = \Omega_j^{(k)} \hat{\pi}_j^{(k)}
 
     with :math:`\Omega_j^{(k)}` the predicted volatility computed in the prediction
-    step (:func:`pyhgf.updates.prediction.predict_precision`).
+    step py:func:`pyhgf.updates.prediction.predict_precision`.
 
-
-
-    The new mean of the volatility parent :math:`a` of an input node at time :math:`k`
-    is given by:
-
-    .. math::
-
-        \mu_a^{(k)} = \hat{\mu}_a^{(k)} + \frac{1}{2\pi_a}
-        \sum_{j=1}^{N_{children}} \kappa_j\epsilon_j^{(k)}
-
-    where :math:`\kappa_j` is the volatility coupling strength between the volatility
-    parent and the volatility children :math:`j` and :math:`\epsilon_j^{(k)}` is the
-    noise prediction error given by:
-
-    .. math::
-
-        \epsilon_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_{vapa}^{(k)}} +
-        \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
-
-    Note that, because we are working with continuous input nodes,
-    :math:`\epsilon_j^{(k)}` is not a function of the value prediction error but uses
-    the posterior of the value parent(s).
-
-    The expected precision of the input is the sum of the tonic and phasic volatility,
-    given by:
-
-    .. math::
-
-        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
-
-    where :math:`\zeta` is the continuous input precision (in real space).
-
+    If the child node is an input ndoe, the volatility prediction error
+    :math:`\Delta_j^{(k)}` was computed by
+    :py:function:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_volatility_prediction_error`.
+    If the child node is a state node, this value was computed by
+    :py:function:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_volatility_prediction_error`.
 
     Parameters
     ----------
@@ -116,69 +107,58 @@ def posterior_update_mean_continuous_node(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    # Value coupling updates
-    # ----------------------
+    # sum the prediction errors from both value and volatility coupling
+    precision_weigthed_prediction_error = 0.0
+
+    # Value coupling updates - update the mean of a value parent
+    # ----------------------------------------------------------
     if edges[node_idx].value_children is not None:
-        precision_weigthed_prediction_error = 0.0
         for value_child_idx, value_coupling in zip(
             edges[node_idx].value_children,  # type: ignore
             attributes[node_idx]["value_coupling_children"],
         ):
-            # prediction errors from the value children
-            prediction_errors = (
-                attributes[value_child_idx]["temp"]["value_prediction_error"]
-                * value_coupling
-            )
-
             # expected precisions from the value children
             precisions = (
-                attributes[value_child_idx]["temp"]["expected_precision_children"]
-                / attributes[node_idx]["expected_precision"]
+                value_coupling
+                * attributes[value_child_idx]["expected_precision"]
+                / attributes[node_idx]["precision"]
             )
 
             # sum the precision weigthed over all children
-            precision_weigthed_prediction_error += precisions * prediction_errors
+            precision_weigthed_prediction_error += (
+                precisions
+                * attributes[value_child_idx]["temp"]["value_prediction_error"]
+            )
 
-        # Compute the new posterior mean
-        posterior_mean = (
-            attributes[node_idx]["expected_mean"] + precision_weigthed_prediction_error
-        )
-
-    # Volatility coupling updates
-    # ---------------------------
+    # Volatility coupling updates - update the mean of a volatility parent
+    # --------------------------------------------------------------------
     if edges[node_idx].volatility_children is not None:
-        precision_weigthed_prediction_error = 0.0
         for volatility_child_idx, volatility_coupling in zip(
             edges[node_idx].volatility_children,  # type: ignore
             attributes[node_idx]["volatility_coupling_children"],
         ):
-            # retrieve the predicted volatility (Ω) computed in the prediction step
-            predicted_volatility = attributes[volatility_child_idx]["temp"][
-                "predicted_volatility"
+            # retrieve the effective precision (γ) computed during the prediction step
+            effective_precision = attributes[volatility_child_idx]["temp"][
+                "effective_precision"
             ]
-
-            # volatility weigthed precision for the volatility child (γ)
-            volatility_weigthed_precision = (
-                attributes[volatility_child_idx]["expected_precision"]
-                * predicted_volatility
-            )
 
             # the precision weigthed prediction error
             precision_weigthed_prediction_error += (
                 volatility_coupling
-                * volatility_weigthed_precision
+                * effective_precision
                 * attributes[volatility_child_idx]["temp"][
                     "volatility_prediction_error"
                 ]
             )
 
-        # weight using the node's precision
-        precision_weigthed_prediction_error *= 1 / (2 * node_precision)
+            # weight using the node's precision
+            precision_weigthed_prediction_error *= 1 / (2 * node_precision)
 
-        # Compute the new posterior mean
-        posterior_mean = (
-            attributes[node_idx]["expected_mean"] + precision_weigthed_prediction_error
-        )
+    # Compute the new posterior mean
+    # using value prediction errors from both value and volatility coupling
+    posterior_mean = (
+        attributes[node_idx]["expected_mean"] + precision_weigthed_prediction_error
+    )
 
     return posterior_mean
 
@@ -189,14 +169,37 @@ def posterior_update_precision_continuous_node(
     edges: Edges,
     node_idx: int,
 ) -> float:
-    r"""Update the precision of a continuous node.
+    r"""Update the precision of a state node using the volatility prediction errors.
 
-    The new precision of the volatility parent :math:`a` of a state node at time
-    :math:`k` is given by:
+    1. Precision update from value coupling
+    ---------------------------------------
+
+    The new precision of a state node :math:`b` value coupled with other input and/or
+    state nodes :math:`j` at time :math:`k` is given by:
 
     .. math::
 
-        \pi_a^{(k)} = \hat{\pi}_a^{(k)} + \sum_{j=1}^{N_{children}}
+            \pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
+            \kappa_j^2 \hat{\pi}_b^{(k)} \delta_j^{(k)}
+
+    Where :math:`\kappa_j` is the volatility coupling strength between the child node
+    and the state node and :math:`\delta_j^{(k)}` is the value prediction error that
+    was computed before hand. If the child node is an input node, this value was
+    computed by
+    :py:function:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
+    If the child node is a state node, this value was computed by
+    :py:function:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
+
+
+    2. Precision update from volatility coupling
+    --------------------------------------------
+
+    The new precision of a state node :math:`b` volatility coupled with other input
+    and/or state nodes :math:`j` at time :math:`k` is given by:
+
+    .. math::
+
+        \pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
         \frac{1}{2} \left( \kappa_j \gamma_j^{(k)} \right) ^2 +
         \left( \kappa_j \gamma_j^{(k)} \right) ^2 \Delta_j^{(k)} -
         \frac{1}{2} \kappa_j^2 \gamma_j^{(k)} \Delta_j^{(k)}
@@ -213,47 +216,13 @@ def posterior_update_precision_continuous_node(
     with :math:`\delta_j^{(k)}` the value prediction error
     :math:`\delta_j^{(k)} = \mu_j^{k} - \hat{\mu}_j^{k}`.
 
-    :math:`\gamma_j^{(k)}` is the volatility-weighted precision of the prediction,
-    given by:
+    :math:`\gamma_j^{(k)}` is the effective precision of the prediction, given by:
 
     .. math::
 
         \gamma_j^{(k)} = \Omega_j^{(k)} \hat{\pi}_j^{(k)}
 
-    with :math:`\Omega_j^{(k)}` the predicted volatility computed in the prediction
-    step (:func:`pyhgf.updates.prediction.predict_precision`).
-
-
-    The new mean of the volatility parent :math:`a` of an input node at time :math:`k`
-    is given by:
-
-    .. math::
-
-        \pi_a^{(k)} = \hat{\pi}_a^{(k)} + \sum_{j=1}^{N_{children}} \frac{1}{2}
-         \kappa_j^2 \left( 1 + \epsilon_j^{(k)} \right)
-
-    where :math:`\kappa_j` is the volatility coupling strength between the volatility
-    parent and the volatility children :math:`j` and :math:`\epsilon_j^{(k)}` is the
-    noise prediction error given by:
-
-    .. math::
-
-        \epsilon_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_{vapa}^{(k)}} +
-        \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
-
-    Note that, because we are working with continuous input nodes,
-    :math:`\epsilon_j^{(k)}` is not a function of the value prediction error but uses
-    the posterior of the value parent(s).
-
-    The expected precision of the input is the sum of the tonic and phasic volatility,
-    given by:
-
-    .. math::
-
-        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
-
-    where :math:`\zeta` is the continuous input precision (in real space).
-
+    that was computed in the prediction step.
 
     Parameters
     ----------
@@ -288,40 +257,33 @@ def posterior_update_precision_continuous_node(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    # Value coupling updates
-    # ----------------------
+    # sum the prediction errors from both value and volatility coupling
+    precision_weigthed_prediction_error = 0.0
+
+    # Value coupling updates - update the precision of a value parent
+    # ---------------------------------------------------------------
     if edges[node_idx].value_children is not None:
-        precision_weigthed_prediction_error = 0.0
         for value_child_idx, value_coupling in zip(
             edges[node_idx].value_children,  # type: ignore
             attributes[node_idx]["value_coupling_children"],
         ):
-            expected_precision_children = attributes[value_child_idx]["temp"][
-                "expected_precision_children"
-            ]
             precision_weigthed_prediction_error += (
-                expected_precision_children * value_coupling
+                attributes[value_child_idx]["expected_precision"]
+                * value_coupling**2
+                * attributes[value_child_idx]["temp"]["value_prediction_error"]
             )
 
-        # Compute the new posterior precision
-        posterior_precision = (
-            attributes[node_idx]["expected_precision"]
-            + precision_weigthed_prediction_error
-        )
-
-    # Volatility coupling updates
-    # ---------------------------
+    # Volatility coupling updates - update the precision of a volatility parent
+    # -------------------------------------------------------------------------
     if edges[node_idx].volatility_children is not None:
-        precision_weigthed_prediction_error = 0.0
         for volatility_child_idx, volatility_coupling in zip(
             edges[node_idx].volatility_children,  # type: ignore
             attributes[node_idx]["volatility_coupling_children"],
         ):
             # volatility weigthed precision for the volatility child (γ)
-            volatility_weigthed_precision = (
-                attributes[volatility_child_idx]["expected_precision"]
-                * attributes[volatility_child_idx]["temp"]["predicted_volatility"]
-            )
+            effective_precision = attributes[volatility_child_idx]["temp"][
+                "effective_precision"
+            ]
 
             # retrieve the volatility prediction error
             volatility_prediction_error = attributes[volatility_child_idx]["temp"][
@@ -330,20 +292,20 @@ def posterior_update_precision_continuous_node(
 
             # sum over all volatility children
             precision_weigthed_prediction_error += (
-                0.5 * (volatility_coupling * volatility_weigthed_precision) ** 2
-                + (volatility_coupling * volatility_weigthed_precision) ** 2
+                0.5 * (volatility_coupling * effective_precision) ** 2
+                + (volatility_coupling * effective_precision) ** 2
                 * volatility_prediction_error
                 - 0.5
                 * volatility_coupling**2
-                * volatility_weigthed_precision
+                * effective_precision
                 * volatility_prediction_error
             )
 
-        # Compute the new posterior precision
-        posterior_precision = (
-            attributes[node_idx]["expected_precision"]
-            + precision_weigthed_prediction_error
-        )
+    # Compute the new posterior precision
+    # using value prediction errors from both value and volatility coupling
+    posterior_precision = (
+        attributes[node_idx]["expected_precision"] + precision_weigthed_prediction_error
+    )
 
     # ensure the new precision is greater than 0
     posterior_precision = jnp.where(
@@ -357,19 +319,12 @@ def posterior_update_precision_continuous_node(
 def update_continuous_node(
     attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
-    """Prediction-error step for the value and volatility parents of a continuous node.
+    """Update the posterior of a continuous node using the standard HGF update.
 
-    Updating the node's parents is a two-step process:
-    1. Update value parent(s).
-    2. Update volatility parent(s).
-
-    If a value/volatility parent has multiple children, all the children will update
-    the parent together, therefor this function should only be called once per group
-    of child nodes. The method :py:meth:`pyhgf.model.HGF.get_update_sequence`
-    ensures that this function is only called once all the children have been
-    updated.
-
-    Then returns the structure of the new parameters.
+    The standard HGF posterior update is a two-step process:
+    1. Update the posterior precision.
+    2. Update the posterior mean and assume that the posterior precision is the value
+    updated in the first step.
 
     Parameters
     ----------
@@ -390,7 +345,7 @@ def update_continuous_node(
 
     See Also
     --------
-    update_continuous_input_parents, update_binary_input_parents
+    posterior_update_precision_continuous_node, posterior_update_mean_continuous_node
 
     References
     ----------
@@ -417,20 +372,18 @@ def update_continuous_node(
 def ehgf_update_continuous_node(
     attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
-    """Perform the eHGF PE step for value and volatility parents of a continuous node.
+    """Update the posterior of a continuous node using the eHGF update.
 
-    This update step uses a different order for the mean and precision as compared to
-    the standard HGF, respectively:
-    1. Update volatility parent(s).
-    2. Update value parent(s).
+    The eHGF posterior update is a two-step process:
+    1. Update the posterior mean and assume that the posterior precision is equal to
+    the expected precision.
+    2. Update the posterior precision.
 
-    If a value/volatility parent has multiple children, all the children will update
-    the parent together, therefor this function should only be called once per group
-    of child nodes. The method :py:meth:`pyhgf.model.HGF.get_update_sequence`
-    ensures that this function is only called once all the children have been
-    updated.
-
-    Then returns the structure of the new parameters.
+    .. note::
+        By updating the mean first, and approximating the precision using the expected,
+        precision, this update step often perform better than the regular update and
+        limit the occurence of negative precision that cause the model to fail under
+        some circumstances
 
     Parameters
     ----------
@@ -451,7 +404,7 @@ def ehgf_update_continuous_node(
 
     See Also
     --------
-    update_continuous_input_parents, update_binary_input_parents
+    posterior_update_precision_continuous_node, posterior_update_mean_continuous_node
 
     References
     ----------

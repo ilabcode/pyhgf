@@ -539,11 +539,12 @@ class HGF(object):
         if kind == "continuous":
             input_node_parameters = {
                 "volatility_coupling_parents": None,
+                "input_noise": continuous_parameters["continuous_precision"],
                 "expected_precision": continuous_parameters["continuous_precision"],
                 "time_step": jnp.nan,
                 "value": jnp.nan,
                 "temp": {
-                    "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                    "effective_precision": 1.0,  # should be fixed to 1 for input nodes
                     "value_prediction_error": 0.0,
                     "volatility_prediction_error": 0.0,
                     "expected_precision_children": 0.0,
@@ -710,7 +711,7 @@ class HGF(object):
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
             "temp": {
-                "predicted_volatility": 0.0,
+                "effective_precision": 0.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
                 "expected_precision_children": 0.0,
@@ -835,7 +836,7 @@ class HGF(object):
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
             "temp": {
-                "predicted_volatility": 0.0,
+                "effective_precision": 0.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
                 "expected_precision_children": 0.0,

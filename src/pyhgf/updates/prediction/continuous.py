@@ -96,6 +96,15 @@ def predict_precision(
     with :math:`\kappa_j` the volatility coupling strength with the volatility parent
     :math:`j`.
 
+    The *effective precision* :math:`\gamma_a^{(k)}` is given by:
+
+    .. math::
+
+        \gamma_a^{(k) = \Omega_a^{(k)}} \hat{\pi}_a^{(k)}
+
+    This value is also saved in the node for later use during the update steps.
+
+
     Parameters
     ----------
     attributes :
@@ -114,9 +123,9 @@ def predict_precision(
     -------
     expected_precision :
         The new expected precision of the value parent.
-    predicted volatility :
-        The predicted volatility :math:`\Omega_a^{(k)}`. This value is stored in the
-        node for latter use in the prediction-error steps.
+    effective_precision :
+        The effective_precision :math:`\gamma_a^{(k)}`. This value is stored in the
+        node for latter use in the update steps.
 
     """
     # List the node's volatility parents
@@ -147,7 +156,10 @@ def predict_precision(
         (1 / attributes[node_idx]["precision"]) + predicted_volatility
     )
 
-    return expected_precision, predicted_volatility
+    # compute the effective precision (γ)
+    effective_precision = predicted_volatility * expected_precision
+
+    return expected_precision, effective_precision
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
@@ -194,13 +206,13 @@ def continuous_node_prediction(
     expected_mean = predict_mean(attributes, edges, time_step, node_idx)
 
     # Get the new expected precision and predicted volatility (Ω)
-    expected_precision, predicted_volatility = predict_precision(
+    expected_precision, effective_precision = predict_precision(
         attributes, edges, time_step, node_idx
     )
 
     # Update this node's parameters
     attributes[node_idx]["expected_precision"] = expected_precision
-    attributes[node_idx]["temp"]["predicted_volatility"] = predicted_volatility
+    attributes[node_idx]["temp"]["effective_precision"] = effective_precision
     attributes[node_idx]["expected_mean"] = expected_mean
 
     return attributes

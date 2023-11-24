@@ -44,12 +44,8 @@ def continuous_node_value_prediction_error(
         attributes[node_idx]["mean"] - attributes[node_idx]["expected_mean"]
     )
 
-    # expected precision
-    expected_precision = attributes[node_idx]["expected_precision"]
-
     # send to the value parent node for later use in the update step
     attributes[node_idx]["temp"]["value_prediction_error"] = value_prediction_error
-    attributes[node_idx]["temp"]["expected_precision_children"] = expected_precision
 
     return attributes
 

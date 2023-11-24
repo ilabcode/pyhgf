@@ -15,6 +15,67 @@ def continuous_input_volatility_prediction_error(
 ) -> Dict:
     r"""Store volatility prediction error from an input node.
 
+    The new precision of the volatility parent :math:`a` of an input node at time
+    :math:`k` is given by:
+
+    .. math::
+
+        \pi_a^{(k)} = \hat{\pi}_a^{(k)} + \sum_{j=1}^{N_{children}} \frac{1}{2}
+         \kappa_j^2 \left( 1 + \epsilon_j^{(k)} \right)
+
+    where :math:`\kappa_j` is the volatility coupling strength between the volatility
+    parent and the volatility children :math:`j` and :math:`\epsilon_j^{(k)}` is the
+    noise prediction error given by:
+
+    .. math::
+
+        \epsilon_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_{vapa}^{(k)}} +
+        \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
+
+    Note that, because we are working with continuous input nodes,
+    :math:`\epsilon_j^{(k)}` is not a function of the value prediction error but uses
+    the posterior of the value parent(s).
+
+    The expected precision of the input is the sum of the tonic and phasic volatility,
+    given by:
+
+    .. math::
+
+        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
+
+    where :math:`\zeta` is the continuous input precision (in real space).
+
+
+    The new mean of the volatility parent :math:`a` of an input node at time :math:`k`
+    is given by:
+
+    .. math::
+
+        \mu_a^{(k)} = \hat{\mu}_a^{(k)} + \frac{1}{2\pi_a}
+        \sum_{j=1}^{N_{children}} \kappa_j\epsilon_j^{(k)}
+
+    where :math:`\kappa_j` is the volatility coupling strength between the volatility
+    parent and the volatility children :math:`j` and :math:`\epsilon_j^{(k)}` is the
+    noise prediction error given by:
+
+    .. math::
+
+        \epsilon_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_{vapa}^{(k)}} +
+        \hat{\pi}_j^{(k)} \left( u^{(k)} - \mu_{vapa}^{(k)} \right)^2 - 1
+
+    Note that, because we are working with continuous input nodes,
+    :math:`\epsilon_j^{(k)}` is not a function of the value prediction error but uses
+    the posterior of the value parent(s).
+
+    The expected precision of the input is the sum of the tonic and phasic volatility,
+    given by:
+
+    .. math::
+
+        \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
+
+    where :math:`\zeta` is the continuous input precision (in real space).
+
     Parameters
     ----------
     attributes :
@@ -109,23 +170,21 @@ def continuous_input_value_prediction_error(
     )
 
     # expected precision from the input node
-    expected_precision_child = attributes[node_idx]["expected_precision"]
+    expected_precision = attributes[node_idx]["expected_precision"]
 
     # influence of a volatility parent on the input node
-    if edges[node_idx].volatility_parents is not None:
-        volatility_parent = edges[node_idx].volatility_parents[0]  # type:ignore
-        volatility_coupling = attributes[volatility_parent][
+    volatility_parent = edges[node_idx].volatility_parents  # type:ignore
+    if volatility_parent is not None:
+        volatility_coupling = attributes[volatility_parent[0]][
             "volatility_coupling_children"
         ][0]
-        expected_precision_child *= 1 / jnp.exp(
-            attributes[volatility_parent]["expected_mean"] * volatility_coupling
+        expected_precision *= 1 / jnp.exp(
+            attributes[volatility_parent[0]]["expected_mean"] * volatility_coupling
         )
 
     # store in the current node for later use in the update step
     attributes[node_idx]["temp"]["value_prediction_error"] = value_prediction_error
-    attributes[node_idx]["temp"][
-        "expected_precision_children"
-    ] = expected_precision_child
+    attributes[node_idx]["expected_precision"] = expected_precision
 
     return attributes
 
