@@ -15,7 +15,7 @@ from pyhgf.updates.posterior.binary import binary_node_update_infinite
 from pyhgf.updates.posterior.continuous import continuous_node_update
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
-from pyhgf.updates.prediction_error.input.binary import (
+from pyhgf.updates.prediction_error.inputs.binary import (
     binary_input_prediction_error_infinite_precision,
 )
 from pyhgf.updates.prediction_error.nodes.binary import (
@@ -111,12 +111,12 @@ class Testbinary(TestCase):
             Indexes(None, (3,), (1,), None),
             Indexes(None, None, None, (2,)),
         )
-        attributes = (
-            input_node_parameters,
-            node_parameters_1,
-            node_parameters_2,
-            node_parameters_3,
-        )
+        attributes = {
+            0: input_node_parameters,
+            1: node_parameters_1,
+            2: node_parameters_2,
+            3: node_parameters_3,
+        }
 
         # create update sequence
         sequence1 = 3, continuous_node_prediction
@@ -148,10 +148,9 @@ class Testbinary(TestCase):
             update_sequence=update_sequence,
             data=data,
         )
-        for idx, val in zip(["surprise", "value"], [0.31326166, 1.0]):
-            assert jnp.isclose(new_attributes[0][idx], val)
         for idx, val in zip(
-            ["mean", "expected_mean", "expected_precision"], [1.0, 0.7310586, 5.0861616]
+            ["mean", "expected_mean", "binary_expected_precision"],
+            [1.0, 0.7310586, 5.0861616],
         ):
             assert jnp.isclose(new_attributes[1][idx], val)
         for idx, val in zip(
@@ -181,8 +180,6 @@ class Testbinary(TestCase):
 
         # Run the entire for loop
         last, _ = scan(scan_fn, attributes, data)
-        for idx, val in zip(["surprise", "value"], [3.1274157, 0.0]):
-            assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(
             ["mean", "expected_mean", "expected_precision"],
             [0.0, 0.95616907, 23.860779],

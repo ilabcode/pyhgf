@@ -1,9 +1,9 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict, Tuple
+from typing import Dict
 
-from jax import Array, jit
+from jax import jit
 
 from pyhgf.math import sigmoid
 from pyhgf.typing import Edges
@@ -12,7 +12,7 @@ from pyhgf.typing import Edges
 @partial(jit, static_argnames=("edges", "node_idx"))
 def binary_state_node_prediction(
     attributes: Dict, edges: Edges, node_idx: int, **args
-) -> Tuple[Array, ...]:
+) -> Dict:
     r"""Get the new expected mean and precision of a binary state node.
 
     The predictions of a binary state node :math:`b` at time :math:`k` depends on the
@@ -66,6 +66,6 @@ def binary_state_node_prediction(
     # Update this node's parameters - use different parameter names as these values are
     # not used for the update of the value parent of the binary state node
     attributes[node_idx]["binary_expected_precision"] = expected_precision
-    attributes[node_idx]["binary_expected_mean"] = expected_mean
+    attributes[node_idx]["expected_mean"] = expected_mean
 
-    return expected_precision, expected_mean
+    return attributes

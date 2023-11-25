@@ -5,25 +5,23 @@ from typing import Dict
 
 from jax import jit
 
-from pyhgf.typing import Edges
 
-
-@partial(jit, static_argnames=("edges", "node_idx"))
+@partial(jit, static_argnames=("node_idx"))
 def binary_input_prediction_error_infinite_precision(
-    attributes: Dict, node_idx: int, time_step: float, value: float
+    attributes: Dict, time_step: float, node_idx: int, value: float, **args
 ) -> Dict:
-    r"""Compute the prediction error of a binary input assuming an infinite precision.
+    """Compute the prediction error of a binary input assuming an infinite precision.
 
     Parameters
     ----------
-    value :
-        The new observed value.
-    time_step :
-        The interval between the previous time point and the current time point.
     attributes :
         The attributes of the probabilistic nodes.
+    time_step :
+        The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the value parent node that will be updated.
+    value :
+        The new observed value.
 
     Returns
     -------
@@ -44,26 +42,22 @@ def binary_input_prediction_error_infinite_precision(
     return attributes
 
 
-@partial(jit, static_argnames=("edges", "node_idx"))
+@partial(jit, static_argnames=("node_idx"))
 def binary_input_prediction_error_finite_precision(
-    attributes: Dict, edges: Edges, node_idx: int, time_step: float, value: float
+    attributes: Dict, time_step: float, node_idx: int, value: float, **args
 ) -> Dict:
     r"""Compute the prediction error of a binary input assuming a finite precision.
 
     Parameters
     ----------
-    value :
-        The new observed value.
-    time_step :
-        The interval between the previous time point and the current time point.
     attributes :
         The attributes of the probabilistic nodes.
-    edges :
-        The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+    time_step :
+        The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the value parent node that will be updated.
+    value :
+        The new observed value.
 
     Returns
     -------

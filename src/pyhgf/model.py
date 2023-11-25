@@ -221,6 +221,9 @@ class HGF(object):
                 tonic_drift=tonic_drift["1"]
                 if self.model_type != "binary"
                 else jnp.nan,
+                additional_parameters={"binary_expected_precision": jnp.nan}
+                if self.model_type == "binary"
+                else None,
             )
 
             #########

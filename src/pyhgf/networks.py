@@ -9,16 +9,24 @@ import pandas as pd
 from jax import jit
 from jax.typing import ArrayLike
 
-from pyhgf.math import gaussian_surprise
+from pyhgf.math import binary_surprise, gaussian_surprise
 from pyhgf.typing import Indexes, UpdateSequence
 from pyhgf.updates.categorical import categorical_input_update
+from pyhgf.updates.posterior.binary import binary_node_update_infinite
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
     continuous_node_update_ehgf,
 )
+from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
+from pyhgf.updates.prediction_error.inputs.binary import (
+    binary_input_prediction_error_infinite_precision,
+)
 from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
+)
+from pyhgf.updates.prediction_error.nodes.binary import (
+    binary_state_node_prediction_error,
 )
 from pyhgf.updates.prediction_error.nodes.continuous import (
     continuous_node_prediction_error,
@@ -301,11 +309,33 @@ def get_update_sequence(hgf: "HGF") -> List:
     for input_idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
         if kind == "continuous":
             update_fn = continuous_input_prediction_error
+            update_sequence.append((input_idx, update_fn))
         elif kind == "binary":
-            pass
+            # add the update steps for the binary state node as well
+            binary_state_idx = hgf.edges[input_idx].value_parents[0]  # type: ignore
+
+            # TODO: once HGF and Network classes implemented separately, we can add the
+            # finite binary HGF back
+            # if hgf.attributes[input_idx]["expected_precision"] == jnp.inf:
+            update_sequence.append(
+                (input_idx, binary_input_prediction_error_infinite_precision)
+            )
+            update_sequence.append((binary_state_idx, binary_node_update_infinite))
+            # else:
+            #     update_sequence.append(
+            #         (input_idx, binary_input_prediction_error_finite_precision)
+            #     )
+            #     update_sequence.append((binary_state_idx, binary_node_update_finite))
+            update_sequence.append(
+                (binary_state_idx, binary_state_node_prediction_error)
+            )
+            node_without_pe.remove(binary_state_idx)
+            node_without_update.remove(binary_state_idx)
+            prediction_sequence.insert(
+                0, (binary_state_idx, binary_state_node_prediction)
+            )
 
         # add the PE step to the sequence
-        update_sequence.append((input_idx, update_fn))
         node_without_pe.remove(input_idx)
 
         # input node does not need to update the posterior
@@ -331,6 +361,7 @@ def get_update_sequence(hgf: "HGF") -> List:
             # all the children have computed prediction errors
             if all([i not in node_without_pe for i in all_children]):
                 no_update = False
+
                 if hgf.update_type == "eHGF":
                     update_fn = continuous_node_update_ehgf
                 elif hgf.update_type == "standard":
@@ -444,19 +475,19 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     )
     structure_df = pd.concat([structure_df, df], axis=1)
 
-    # for value parents of continuous inputs nodes
-    continuous_parents_idxs = []
+    # for value parents of binary inputs nodes
+    binary_nodes_idxs = []
     for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
-        if kind == "continuous":
+        if kind == "binary":
             for par_idx in hgf.edges[idx].value_parents:  # type: ignore
-                continuous_parents_idxs.append(par_idx)
+                binary_nodes_idxs.append(par_idx)
 
     for i in indexes:
-        if i in continuous_parents_idxs:
-            surprise = gaussian_surprise(
-                x=hgf.node_trajectories[0]["value"],
+        if i in binary_nodes_idxs:
+            binary_input = hgf.edges[i].value_children[0]  # type: ignore
+            surprise = binary_surprise(
+                x=hgf.node_trajectories[binary_input]["value"],
                 expected_mean=hgf.node_trajectories[i]["expected_mean"],
-                expected_precision=hgf.node_trajectories[i]["expected_precision"],
             )
         else:
             surprise = gaussian_surprise(
