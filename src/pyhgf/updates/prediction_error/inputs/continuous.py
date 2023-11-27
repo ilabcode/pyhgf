@@ -17,9 +17,9 @@ def continuous_input_volatility_prediction_error(
     r"""Store noise prediction error from an input node.
 
     Input nodes can have noise parents, and therefore should compute the equivalent
-    of a volatility prediction error (VOPE), a noise prediction error (NOPE). The
-    volatility parent will use the NOPE value the same way than it uses VOPE values.
-    Note that the effective precision :math:`\gamma_j^{(k)}` if fixed to `1` so this
+    of a volatility prediction error (VOPE): a noise prediction error (NOPE). The
+    volatility parent will use the NOPE value the same way that it uses VOPE values.
+    Note that the effective precision :math:`\gamma_j^{(k)}` is fixed to `1` so this
     equivalence applies.
 
     The noise prediction error :math:`\epsilon_j^{(k)}` of an input node :math:`j` is
@@ -40,8 +40,9 @@ def continuous_input_volatility_prediction_error(
         The attributes of the probabilistic nodes.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
     node_idx :
         Pointer to the input node.
 
@@ -108,8 +109,9 @@ def continuous_input_value_prediction_error(
         The attributes of the probabilistic nodes.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
     node_idx :
         Pointer to the input node.
 
@@ -184,8 +186,8 @@ def continuous_input_prediction_error(
     attributes :
         The attributes of the probabilistic nodes.
     .. note::
-        The parameter structure also incorporate the value and volatility coupling
-        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        The parameter structure also incorporates the value and volatility coupling
+        strength with children and parents (i.e. `"value_coupling_parents"`,
         `"value_coupling_children"`, `"volatility_coupling_parents"`,
         `"volatility_coupling_children"`).
     time_step :
@@ -194,8 +196,9 @@ def continuous_input_prediction_error(
         Pointer to the input node.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
     value :
         The new observed value.
 

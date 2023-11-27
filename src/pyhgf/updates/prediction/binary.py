@@ -34,8 +34,9 @@ def binary_state_node_prediction(
         The attributes of the probabilistic nodes.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
     time_step :
         The interval between the previous time point and the current time point.
     node_idx :
@@ -59,7 +60,7 @@ def binary_state_node_prediction(
     # Estimate the new expected precision from the new expected mean
     expected_precision = 1 / (expected_mean * (1 - expected_mean))
 
-    # use the inverse to fit the posterio update of the value parent
+    # use the inverse to fit the posterior update of the value parent
     # (eq. 97, Weber et al., v1)
     attributes[node_idx]["expected_precision"] = 1 / expected_precision
 

@@ -24,8 +24,9 @@ def binary_node_update_infinite(
         parameters of value and volatility parents (if any) will be different.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
 
     Returns
     -------
@@ -64,8 +65,9 @@ def binary_node_update_finite(
         parameters of value and volatility parents (if any) will be different.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
 
     Returns
     -------

@@ -21,7 +21,7 @@ def categorical_input_update(
     """Update the categorical input node given an array of binary observations.
 
     This function should be called **after** the update of the implied binary HGFs. It
-    receive a `None` as the boolean observations are passed to the binary inputs
+    receives a `None` as the boolean observations are passed to the binary inputs
     directly. This update uses the expected probability of the binary input to update
     an implied Dirichlet distribution.
 
@@ -40,8 +40,9 @@ def categorical_input_update(
         strength. It should have the same length as the volatility parents' indexes.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
     node_idx :
         Pointer to the node that needs to be updated.
 
@@ -94,7 +95,7 @@ def categorical_input_update(
     attributes[node_idx]["kl_divergence"] = dirichlet_kullback_leibler(
         attributes[node_idx]["alpha"], alpha
     )
-    attributes[node_idx]["binary_surprise"] = jnp.sum(
+    attributes[node_idx]["surprise"] = jnp.sum(
         binary_surprise(
             x=attributes[node_idx]["value"], expected_mean=attributes[node_idx]["xi"]
         )

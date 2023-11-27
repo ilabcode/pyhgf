@@ -10,7 +10,7 @@ from jax import Array, jit
 def binary_state_node_prediction_error(
     attributes: Dict, node_idx: int, **args
 ) -> Array:
-    """Compute the value prediction-errors and predicted precision of a binary node.
+    """Compute the value prediction errors and predicted precision of a binary node.
 
     Parameters
     ----------

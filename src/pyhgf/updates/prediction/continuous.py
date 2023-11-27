@@ -59,7 +59,7 @@ def predict_mean(
     # Take the drift into account
     expected_mean += time_step * driftrate
 
-    # Add quatities that come from the autoregressive process if not zero
+    # Add qualities that come from the autoregressive process if not zero
     expected_mean += (
         time_step
         * attributes[node_idx]["autoregressive_coefficient"]
@@ -76,7 +76,7 @@ def predict_mean(
 def predict_precision(
     attributes: Dict, edges: Edges, time_step: float, node_idx: int
 ) -> Array:
-    r"""Compute the expected precision of a continuous state node node.
+    r"""Compute the expected precision of a continuous state node.
 
     The expected precision at time :math:`k` for a state node :math:`a` is given by:
 
@@ -125,7 +125,7 @@ def predict_precision(
         The new expected precision of the value parent.
     effective_precision :
         The effective_precision :math:`\gamma_a^{(k)}`. This value is stored in the
-        node for latter use in the update steps.
+        node for later use in the update steps.
 
     """
     # List the node's volatility parents
@@ -173,8 +173,8 @@ def continuous_node_prediction(
     attributes :
         The attributes of the probabilistic nodes.
     .. note::
-        The parameter structure also incorporate the value and volatility coupling
-        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        The parameter structure also incorporates the value and volatility coupling
+        strength with children and parents (i.e. `"value_coupling_parents"`,
         `"value_coupling_children"`, `"volatility_coupling_parents"`,
         `"volatility_coupling_children"`).
     time_step :
@@ -183,8 +183,9 @@ def continuous_node_prediction(
         Pointer to the node that will be updated.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
 
     Returns
     -------

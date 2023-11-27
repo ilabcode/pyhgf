@@ -28,8 +28,9 @@ def binary_input_prediction_error_infinite_precision(
         The interval between the previous time point and the current time point.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value and volatility parents and
+        children.
     node_idx :
         Pointer to the value parent node that will be updated.
     value :

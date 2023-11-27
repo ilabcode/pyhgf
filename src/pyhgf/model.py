@@ -564,7 +564,7 @@ class HGF(object):
             }
         elif kind == "categorical":
             input_node_parameters = {
-                "binary_surprise": 0.0,
+                "surprise": 0.0,
                 "kl_divergence": 0.0,
                 "time_step": jnp.nan,
                 "alpha": jnp.ones(categorical_parameters["n_categories"]),
