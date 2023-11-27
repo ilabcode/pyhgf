@@ -70,6 +70,7 @@ editable: true
 slideshow:
   slide_type: ''
 ---
+np.random.seed(123)
 dist_mean, dist_std = 5, 1
 input_data = np.random.normal(loc=dist_mean, scale=dist_std, size=1000)
 ```
@@ -81,7 +82,7 @@ slideshow:
   slide_type: ''
 ---
 mean_hgf = (
-    HGF(model_type=None)
+    HGF(model_type=None, update_type="standard")
     .add_input_node(kind="continuous", continuous_parameters={'continuous_precision': 1})
     .add_value_parent(children_idxs=[0], tonic_volatility=-8.0)
     .init()
@@ -93,6 +94,10 @@ mean_hgf.plot_network()
 
 ```{note}
 We are setting the tonic volatility to something low for visualization purposes, but changing this value can make the model learn in fewer iterations.
+```
+
+```{code-cell} ipython3
+mean_hgf.update_sequence
 ```
 
 ```{code-cell} ipython3
@@ -119,7 +124,6 @@ for i, color in zip([0, 2, 5, 10, 50, 500], plt.cm.Greys(np.linspace(.2, 1, 6)))
     # the model expectations
     ax.plot(x, norm(mean, std).pdf(x), color=color, label=i)
 
-
 # the sampling distribution
 ax.fill_between(x, norm(dist_mean, dist_std).pdf(x), color="#582766", alpha=.2)
 
@@ -144,6 +148,7 @@ editable: true
 slideshow:
   slide_type: ''
 ---
+np.random.seed(123)
 dist_mean, dist_std = 5, 1
 input_data = np.random.normal(loc=dist_mean, scale=dist_std, size=1000)
 ```
