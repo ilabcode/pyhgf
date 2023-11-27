@@ -5,10 +5,18 @@ from typing import Dict
 
 from jax import jit
 
+from pyhgf.math import binary_surprise
+from pyhgf.typing import Edges
 
-@partial(jit, static_argnames=("node_idx"))
+
+@partial(jit, static_argnames=("node_idx", "edges"))
 def binary_input_prediction_error_infinite_precision(
-    attributes: Dict, time_step: float, node_idx: int, value: float, **args
+    attributes: Dict,
+    time_step: float,
+    edges: Edges,
+    node_idx: int,
+    value: float,
+    **args
 ) -> Dict:
     """Compute the prediction error of a binary input assuming an infinite precision.
 
@@ -18,6 +26,10 @@ def binary_input_prediction_error_infinite_precision(
         The attributes of the probabilistic nodes.
     time_step :
         The interval between the previous time point and the current time point.
+    edges :
+        The edges of the probabilistic nodes as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index list value and volatility parents and children.
     node_idx :
         Pointer to the value parent node that will be updated.
     value :
@@ -38,6 +50,11 @@ def binary_input_prediction_error_infinite_precision(
     # store value and time step in the node's parameters
     attributes[node_idx]["value"] = value
     attributes[node_idx]["time_step"] = time_step
+
+    value_parent_idx = edges[node_idx].value_parents[0]  # type: ignore
+    attributes[node_idx]["surprise"] = binary_surprise(
+        x=value, expected_mean=attributes[value_parent_idx]["expected_mean"]
+    )
 
     return attributes
 

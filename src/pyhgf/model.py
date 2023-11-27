@@ -560,6 +560,7 @@ class HGF(object):
                 "eta1": binary_parameters["eta1"],
                 "time_step": jnp.nan,
                 "value": jnp.nan,
+                "surprise": jnp.nan,
             }
         elif kind == "categorical":
             input_node_parameters = {

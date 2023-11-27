@@ -150,12 +150,12 @@ def dirichlet_kullback_leibler(alpha_1: ArrayLike, alpha_2: ArrayLike) -> Array:
 
 
 def binary_surprise_finite_precision(
-    value: float,
-    expected_mean: float,
-    expected_precision: float,
-    eta0: float = 0.0,
-    eta1: float = 0.0,
-) -> float:
+    value: Union[ArrayLike, float],
+    expected_mean: Union[ArrayLike, float],
+    expected_precision: Union[ArrayLike, float],
+    eta0: Union[ArrayLike, float] = 0.0,
+    eta1: Union[ArrayLike, float] = 0.0,
+) -> Array:
     r"""Compute the binary surprise with finite precision.
 
     Parameters

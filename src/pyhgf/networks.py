@@ -243,6 +243,7 @@ def fill_categorical_state_node(
             value_coupling=1.0,
             precision=implied_binary_parameters["precision_1"],
             mean=implied_binary_parameters["mean_1"],
+            additional_parameters={"binary_expected_precision": jnp.nan},
         )
 
     # add the continuous parent node
@@ -486,10 +487,9 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
 
     # add the surprise computed from the continuous inputs
     for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
-        if kind == "continuous":
-            trajectories_df[
-                f"observation_input_{idx}_surprise"
-            ] = hgf.node_trajectories[idx]["surprise"]
+        trajectories_df[f"observation_input_{idx}_surprise"] = hgf.node_trajectories[
+            idx
+        ]["surprise"]
 
     # for value parents of binary inputs nodes
     binary_nodes_idxs = []

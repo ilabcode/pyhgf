@@ -7,7 +7,10 @@ import jax.numpy as jnp
 
 from pyhgf.networks import beliefs_propagation, list_branches
 from pyhgf.typing import Indexes
-from pyhgf.updates.posterior.continuous import continuous_node_update
+from pyhgf.updates.posterior.continuous import (
+    continuous_node_update,
+    continuous_node_update_ehgf,
+)
 from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
 )
@@ -21,17 +24,17 @@ class TestStructure(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "expected_precision": 1e4,
+            "input_noise": 1e4,
+            "expected_precision": jnp.nan,
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
             "volatility_coupling_parents": None,
             "value_coupling_parents": (1.0,),
             "temp": {
-                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         node_parameters_1 = {
@@ -46,10 +49,9 @@ class TestStructure(TestCase):
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
             "temp": {
-                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         node_parameters_2 = {
@@ -64,10 +66,9 @@ class TestStructure(TestCase):
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
             "temp": {
-                "predicted_volatility": 1.0,  # should be fixed to 1 for input nodes
+                "effective_precision": 1.0,
                 "value_prediction_error": 0.0,
                 "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
             },
         }
         edges = (
@@ -84,7 +85,7 @@ class TestStructure(TestCase):
         # create update sequence
         sequence1 = 0, continuous_input_prediction_error
         sequence2 = 1, continuous_node_update
-        sequence3 = 2, continuous_node_update
+        sequence3 = 2, continuous_node_update_ehgf
         update_sequence = (sequence1, sequence2, sequence3)
 
         # one batch of new observations with time step
@@ -98,8 +99,8 @@ class TestStructure(TestCase):
             edges=edges,
         )
 
-        assert new_attributes[1]["mean"] == 0.20007998
-        assert new_attributes[2]["precision"] == 1.0
+        assert new_attributes[1]["mean"] == 0.20008
+        assert new_attributes[2]["precision"] == 1.5
 
     def test_find_branch(self):
         """Test the find_branch function"""
