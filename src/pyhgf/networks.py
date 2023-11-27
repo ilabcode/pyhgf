@@ -363,7 +363,10 @@ def get_update_sequence(hgf: "HGF") -> List:
                 no_update = False
 
                 if hgf.update_type == "eHGF":
-                    update_fn = continuous_node_update_ehgf
+                    if hgf.edges[idx].volatility_children is not None:
+                        update_fn = continuous_node_update_ehgf
+                    else:
+                        update_fn = continuous_node_update
                 elif hgf.update_type == "standard":
                     update_fn = continuous_node_update
 
@@ -421,13 +424,13 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
 
     Returns
     -------
-    structure_df :
+    trajectories_df :
         Pandas data frame with the time series of sufficient statistics and
         the surprise of each node in the structure.
 
     """
     # get time and time steps from the first input node
-    structure_df = pd.DataFrame(
+    trajectories_df = pd.DataFrame(
         {
             "time_steps": hgf.node_trajectories[hgf.input_nodes_idx.idx[0]][
                 "time_step"
@@ -437,6 +440,9 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
             ),
         }
     )
+
+    # Observations
+    # ------------
 
     # add the observations from input nodes
     for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
@@ -452,9 +458,9 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
                     ]
                 )
             )
-            pd.concat([structure_df, df], axis=1)
+            pd.concat([trajectories_df, df], axis=1)
         else:
-            structure_df[f"observation_input_{idx}"] = hgf.node_trajectories[idx][
+            trajectories_df[f"observation_input_{idx}"] = hgf.node_trajectories[idx][
                 "value"
             ]
 
@@ -473,7 +479,17 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
             ]
         )
     )
-    structure_df = pd.concat([structure_df, df], axis=1)
+    trajectories_df = pd.concat([trajectories_df, df], axis=1)
+
+    # Surprises
+    # ---------
+
+    # add the surprise computed from the continuous inputs
+    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
+        if kind == "continuous":
+            trajectories_df[
+                f"observation_input_{idx}_surprise"
+            ] = hgf.node_trajectories[idx]["surprise"]
 
     # for value parents of binary inputs nodes
     binary_nodes_idxs = []
@@ -500,11 +516,11 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
         surprise = jnp.where(
             jnp.isnan(hgf.node_trajectories[i]["mean"]), jnp.nan, surprise
         )
-        structure_df[f"x_{i}_surprise"] = surprise
+        trajectories_df[f"x_{i}_surprise"] = surprise
 
     # compute the global surprise over all node
-    structure_df["surprise"] = structure_df.iloc[
-        :, structure_df.columns.str.contains("_surprise")
+    trajectories_df["total_surprise"] = trajectories_df.iloc[
+        :, trajectories_df.columns.str.contains("_surprise")
     ].sum(axis=1, min_count=1)
 
-    return structure_df
+    return trajectories_df

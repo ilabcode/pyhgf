@@ -546,6 +546,7 @@ class HGF(object):
                 "expected_precision": continuous_parameters["continuous_precision"],
                 "time_step": jnp.nan,
                 "value": jnp.nan,
+                "surprise": jnp.nan,
                 "temp": {
                     "effective_precision": 1.0,  # should be fixed to 1 for input nodes
                     "value_prediction_error": 0.0,

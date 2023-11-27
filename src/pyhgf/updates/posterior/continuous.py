@@ -350,11 +350,11 @@ def continuous_node_update(
     posterior_precision = posterior_update_precision_continuous_node(
         attributes, edges, node_idx
     )
+    attributes[node_idx]["precision"] = posterior_precision
+
     posterior_mean = posterior_update_mean_continuous_node(
         attributes, edges, node_idx, node_precision=attributes[node_idx]["precision"]
     )
-
-    attributes[node_idx]["precision"] = posterior_precision
     attributes[node_idx]["mean"] = posterior_mean
 
     return attributes

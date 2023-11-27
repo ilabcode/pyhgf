@@ -72,7 +72,10 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "binary_expected_precision": jnp.nan,
+            "temp": {
+                "value_prediction_error": 0.0,
+            },
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -87,7 +90,11 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "effective_precision": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+            },
         }
         node_parameters_3 = {
             "expected_precision": 1.0,
@@ -102,7 +109,11 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "effective_precision": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+            },
         }
 
         edges = (
@@ -181,7 +192,7 @@ class Testbinary(TestCase):
         # Run the entire for loop
         last, _ = scan(scan_fn, attributes, data)
         for idx, val in zip(
-            ["mean", "expected_mean", "expected_precision"],
+            ["mean", "expected_mean", "binary_expected_precision"],
             [0.0, 0.95616907, 23.860779],
         ):
             assert jnp.isclose(last[1][idx], val)

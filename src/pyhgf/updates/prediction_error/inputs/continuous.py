@@ -6,6 +6,7 @@ from typing import Dict
 import jax.numpy as jnp
 from jax import jit
 
+from pyhgf.math import gaussian_surprise
 from pyhgf.typing import Edges
 
 
@@ -159,6 +160,12 @@ def continuous_input_value_prediction_error(
     attributes[node_idx]["temp"]["value_prediction_error"] = value_prediction_error
     attributes[node_idx]["expected_precision"] = expected_precision
 
+    # compute the Gaussian surprise for the input node
+    attributes[node_idx]["surprise"] = gaussian_surprise(
+        x=attributes[node_idx]["value"],
+        expected_mean=attributes[value_parent_idx]["expected_mean"],
+        expected_precision=expected_precision,
+    )
     return attributes
 
 
