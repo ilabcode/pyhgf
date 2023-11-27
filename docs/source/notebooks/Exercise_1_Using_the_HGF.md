@@ -153,8 +153,8 @@ two_levels_continuous_hgf = HGF(
     n_levels=2,
     model_type="continuous",
     initial_mean={"1": 1.04, "2": 0.0},
-    initial_precision={"1": 1e4, "2": 1e1},
-    tonic_volatility={"1": -8.0, "2": -1.0},
+    initial_precision={"1": 1e4, "2": 1.0},
+    tonic_volatility={"1": -6.0, "2": -2.0},
 )
 ```
 
@@ -788,7 +788,7 @@ for _ in range(20):
 
     axs[3].plot(
         three_levels_df.time, 
-        three_levels_df.surprise,
+        three_levels_df.total_surprise,
         alpha=.4,
         linewidth=.5,
         color="#2a2a2a"
