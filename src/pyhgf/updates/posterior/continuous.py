@@ -145,7 +145,7 @@ def posterior_update_mean_continuous_node(
         ):
             # get the value prediction error (VAPE)
             # if this is jnp.nan (no observation) set the VAPE to 0.0
-            volatility_prediction_error = attributes[value_child_idx]["temp"][
+            volatility_prediction_error = attributes[volatility_child_idx]["temp"][
                 "volatility_prediction_error"
             ]
             volatility_prediction_error = jnp.where(
@@ -282,6 +282,17 @@ def posterior_update_precision_continuous_node(
                 value_coupling**2 * attributes[value_child_idx]["expected_precision"]
             )
 
+            # get the value prediction error (VAPE)
+            # if this is jnp.nan (no observation) set the VAPE to 0.0
+            value_prediction_error = attributes[value_child_idx]["temp"][
+                "value_prediction_error"
+            ]
+            precision_weigthed_prediction_error = jnp.where(
+                jnp.isnan(value_prediction_error),
+                0.0,
+                precision_weigthed_prediction_error,
+            )
+
     # Volatility coupling updates - update the precision of a volatility parent
     # -------------------------------------------------------------------------
     if edges[node_idx].volatility_children is not None:
@@ -298,6 +309,9 @@ def posterior_update_precision_continuous_node(
             volatility_prediction_error = attributes[volatility_child_idx]["temp"][
                 "volatility_prediction_error"
             ]
+            volatility_prediction_error = jnp.where(
+                jnp.isnan(volatility_prediction_error), 0.0, volatility_prediction_error
+            )
 
             # sum over all volatility children
             precision_weigthed_prediction_error += (
