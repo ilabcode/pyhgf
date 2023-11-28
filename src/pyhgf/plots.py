@@ -407,7 +407,9 @@ def plot_nodes(
         # plotting an input node
         # ----------------------
         if node_idx in hgf.input_nodes_idx.idx:
-            input_type = hgf.input_nodes_idx.kind[hgf.input_nodes_idx.idx == node_idx]
+            input_type = hgf.input_nodes_idx.kind[
+                hgf.input_nodes_idx.idx.index(node_idx)
+            ]
             if input_type == "continuous":
                 axs[i].scatter(
                     x=trajectories_df.time,
