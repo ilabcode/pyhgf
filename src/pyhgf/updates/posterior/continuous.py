@@ -30,9 +30,9 @@ def posterior_update_mean_continuous_node(
     and the state node and :math:`\delta_j^{(k)}` is the value prediction error that
     was computed beforehand. If the child node is an input node, this value was
     computed by
-    :py:function:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
+    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
     If the child node is a state node, this value was computed by
-    :py:function:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
+    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
     #. Mean update from volatility coupling.
 
@@ -66,9 +66,9 @@ def posterior_update_mean_continuous_node(
 
     If the child node is an input node, the volatility prediction error
     :math:`\Delta_j^{(k)}` was computed by
-    :py:function:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_volatility_prediction_error`.
+    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_volatility_prediction_error`.
     If the child node is a state node, this value was computed by
-    :py:function:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_volatility_prediction_error`.
+    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_volatility_prediction_error`.
 
     Parameters
     ----------
@@ -194,9 +194,9 @@ def posterior_update_precision_continuous_node(
     and the state node and :math:`\delta_j^{(k)}` is the value prediction error that
     was computed before hand. If the child node is an input node, this value was
     computed by
-    :py:function:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
+    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
     If the child node is a state node, this value was computed by
-    :py:function:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
+    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
 
     #. Precision update from volatility coupling.
