@@ -24,7 +24,10 @@ class Testmodel(TestCase):
             .add_input_node(kind="continuous", input_idxs=0)
             .add_input_node(kind="binary", input_idxs=1)
             .add_value_parent(children_idxs=0)
-            .add_value_parent(children_idxs=1)
+            .add_value_parent(
+                children_idxs=1,
+                additional_parameters={"binary_expected_precision": jnp.nan},
+            )
             .add_value_parent(children_idxs=[2, 3])
             .add_value_parent(children_idxs=4)
             .add_volatility_parent(children_idxs=[2, 3])

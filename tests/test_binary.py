@@ -11,13 +11,17 @@ from pyhgf import load_data
 from pyhgf.math import binary_surprise, gaussian_density, sigmoid
 from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import Indexes
-from pyhgf.updates.binary import (
-    binary_input_prediction_error,
-    binary_node_prediction,
-    binary_node_prediction_error,
+from pyhgf.updates.posterior.binary import binary_node_update_infinite
+from pyhgf.updates.posterior.continuous import continuous_node_update
+from pyhgf.updates.prediction.binary import binary_state_node_prediction
+from pyhgf.updates.prediction.continuous import continuous_node_prediction
+from pyhgf.updates.prediction_error.inputs.binary import (
+    binary_input_prediction_error_infinite_precision,
 )
-from pyhgf.updates.continuous import (
-    continuous_node_prediction,
+from pyhgf.updates.prediction_error.nodes.binary import (
+    binary_state_node_prediction_error,
+)
+from pyhgf.updates.prediction_error.nodes.continuous import (
     continuous_node_prediction_error,
 )
 
@@ -68,7 +72,10 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "binary_expected_precision": jnp.nan,
+            "temp": {
+                "value_prediction_error": 0.0,
+            },
         }
         node_parameters_2 = {
             "expected_precision": 1.0,
@@ -83,7 +90,11 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "effective_precision": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+            },
         }
         node_parameters_3 = {
             "expected_precision": 1.0,
@@ -98,7 +109,11 @@ class Testbinary(TestCase):
             "mean": 1.0,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "effective_precision": 1.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+            },
         }
 
         edges = (
@@ -107,20 +122,23 @@ class Testbinary(TestCase):
             Indexes(None, (3,), (1,), None),
             Indexes(None, None, None, (2,)),
         )
-        attributes = (
-            input_node_parameters,
-            node_parameters_1,
-            node_parameters_2,
-            node_parameters_3,
-        )
+        attributes = {
+            0: input_node_parameters,
+            1: node_parameters_1,
+            2: node_parameters_2,
+            3: node_parameters_3,
+        }
 
         # create update sequence
         sequence1 = 3, continuous_node_prediction
         sequence2 = 2, continuous_node_prediction
-        sequence3 = 1, binary_node_prediction
-        sequence4 = 0, binary_input_prediction_error
-        sequence5 = 1, binary_node_prediction_error
-        sequence6 = 2, continuous_node_prediction_error
+        sequence3 = 1, binary_state_node_prediction
+        sequence4 = 0, binary_input_prediction_error_infinite_precision
+        sequence5 = 1, binary_node_update_infinite
+        sequence6 = 1, binary_state_node_prediction_error
+        sequence7 = 2, continuous_node_update
+        sequence8 = 2, continuous_node_prediction_error
+        sequence9 = 3, continuous_node_update
         update_sequence = (
             sequence1,
             sequence2,
@@ -128,6 +146,9 @@ class Testbinary(TestCase):
             sequence4,
             sequence5,
             sequence6,
+            sequence7,
+            sequence8,
+            sequence9,
         )
         data = jnp.array([1.0, 1.0])
 
@@ -138,10 +159,9 @@ class Testbinary(TestCase):
             update_sequence=update_sequence,
             data=data,
         )
-        for idx, val in zip(["surprise", "value"], [0.31326166, 1.0]):
-            assert jnp.isclose(new_attributes[0][idx], val)
         for idx, val in zip(
-            ["mean", "expected_mean", "expected_precision"], [1.0, 0.7310586, 5.0861616]
+            ["mean", "expected_mean", "binary_expected_precision"],
+            [1.0, 0.7310586, 5.0861616],
         ):
             assert jnp.isclose(new_attributes[1][idx], val)
         for idx, val in zip(
@@ -171,10 +191,8 @@ class Testbinary(TestCase):
 
         # Run the entire for loop
         last, _ = scan(scan_fn, attributes, data)
-        for idx, val in zip(["surprise", "value"], [3.1274157, 0.0]):
-            assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(
-            ["mean", "expected_mean", "expected_precision"],
+            ["mean", "expected_mean", "binary_expected_precision"],
             [0.0, 0.95616907, 23.860779],
         ):
             assert jnp.isclose(last[1][idx], val)

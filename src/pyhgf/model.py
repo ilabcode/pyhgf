@@ -37,10 +37,10 @@ class HGF(object):
         as a function of time. Allowing for missing inputs add a conditional check for
         `jnp.nan` at every time step and should therefore be avoided if the input time
         series is certified without missing inputs.
-        .. warning::
-            Missing inputs are missing observation from the agent perspective and should
-            not be used to handle missing data point that are only missing in the event
-            log, or rejected trials.
+    .. warning::
+        Missing inputs are missing observation from the agent perspective and should
+        not be used to handle missing data point that are only missing in the event
+        log, or rejected trials.
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
@@ -221,6 +221,9 @@ class HGF(object):
                 tonic_drift=tonic_drift["1"]
                 if self.model_type != "binary"
                 else jnp.nan,
+                additional_parameters={"binary_expected_precision": jnp.nan}
+                if self.model_type == "binary"
+                else None,
             )
 
             #########
@@ -539,22 +542,29 @@ class HGF(object):
         if kind == "continuous":
             input_node_parameters = {
                 "volatility_coupling_parents": None,
+                "input_noise": continuous_parameters["continuous_precision"],
                 "expected_precision": continuous_parameters["continuous_precision"],
                 "time_step": jnp.nan,
                 "value": jnp.nan,
+                "surprise": jnp.nan,
+                "temp": {
+                    "effective_precision": 1.0,  # should be fixed to 1 for input nodes
+                    "value_prediction_error": 0.0,
+                    "volatility_prediction_error": 0.0,
+                },
             }
         elif kind == "binary":
             input_node_parameters = {
                 "expected_precision": binary_parameters["binary_precision"],
                 "eta0": binary_parameters["eta0"],
                 "eta1": binary_parameters["eta1"],
-                "surprise": jnp.nan,
                 "time_step": jnp.nan,
                 "value": jnp.nan,
+                "surprise": jnp.nan,
             }
         elif kind == "categorical":
             input_node_parameters = {
-                "binary_surprise": 0.0,
+                "surprise": 0.0,
                 "kl_divergence": 0.0,
                 "time_step": jnp.nan,
                 "alpha": jnp.ones(categorical_parameters["n_categories"]),
@@ -703,7 +713,12 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "effective_precision": 0.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
 
         # add more parameters (optional)
@@ -823,7 +838,12 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
-            "temp": {"predicted_volatility": 0.0},
+            "temp": {
+                "effective_precision": 0.0,
+                "value_prediction_error": 0.0,
+                "volatility_prediction_error": 0.0,
+                "expected_precision_children": 0.0,
+            },
         }
 
         # add more parameters (optional)
@@ -881,12 +901,10 @@ class HGF(object):
         See :py:func:`pyhgf.networks.get_update_sequence` for more details.
 
         """
-        update_sequence, prediction_sequence = get_update_sequence(
-            hgf=self, update_sequence=[], prediction_sequence=[]
+        self.update_sequence = tuple(
+            get_update_sequence(
+                hgf=self,
+            )
         )
-        # generate the prediction sequence here, in reverse order
-        prediction_sequence.reverse()
-        prediction_sequence.extend(update_sequence)
-        self.update_sequence = tuple(prediction_sequence)
 
         return self

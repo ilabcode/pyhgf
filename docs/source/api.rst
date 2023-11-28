@@ -7,124 +7,75 @@
    :depth: 5
 
 API
-+++
+###
 
 Updates functions
+*****************
+
+Update functions are the heart of probabilistic networks as they shape the propagation of beliefs in the neural hierarchy. The library implements the standard variational updates for value and volatility coupling, as described in Weber et al. (2023).
+
+The `updates` module contains the update functions used during the belief propagation. Update functions are available through three sub-modules, organized according to their functional roles. We usually dissociate the first updates, triggered top-down (from the leaves to the roots of the networks), that are prediction steps and recover the current state of inference. The second updates are the prediction error, signalling the divergence between the prediction and the new observation (for input nodes), or state (for state nodes). Interleaved with these steps are posterior update steps, where a node receives prediction errors from the child nodes and estimates new statistics.
+
+
+Posterior updates
+=================
+
+Update the sufficient statistics of a state node after receiving prediction errors from children nodes. The prediction errors from all the children below the node should be computed before calling the posterior update step.
+
+Binary nodes
+------------
+
+.. currentmodule:: pyhgf.updates.posterior.binary
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.posterior.binary
+
+    binary_node_update_infinite
+    binary_node_update_finite
+
+
+Categorical nodes
 -----------------
 
-The `updates` module contains the update function used both for prediction and prediction-error steps during the belief propagation. These functions call intenaly the more specific update function listed in the prediction and prediction-error sub-modules.
-
-Updating binary nodes
-=====================
-
-Core functionnalities to update *binary* nodes.
-
-.. currentmodule:: pyhgf.updates.binary
+.. currentmodule:: pyhgf.updates.posterior.categorical
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.binary
-
-    binary_node_prediction_error
-    binary_node_prediction
-    binary_input_prediction_error
-
-Updating continuous nodes
-=========================
-
-Core functionnalities to update *continuous* nodes.
-
-.. currentmodule:: pyhgf.updates.continuous
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.continuous
-
-    continuous_node_prediction_error
-    continuous_node_prediction
-    continuous_input_prediction_error
-
-Updating categorical nodes
-==========================
-
-Core functionnalities to update *categorical* nodes.
-
-.. currentmodule:: pyhgf.updates.categorical
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.categorical
+   :toctree: generated/pyhgf.updates.posterior.categorical
 
     categorical_input_update
 
-Prediction error steps
-======================
-
-Propagate prediction errors to the value and volatility parents of a given node.
-
-Binary nodes
-~~~~~~~~~~~~
-
-.. currentmodule:: pyhgf.updates.prediction_error.inputs.binary
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.inputs.binary
-
-    prediction_error_input_value_parent
-    input_surprise_inf
-    input_surprise_reg
-
-.. currentmodule:: pyhgf.updates.prediction_error.nodes.binary
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.nodes.binary
-
-    prediction_error_mean_value_parent
-    prediction_error_precision_value_parent
-    prediction_error_value_parent
-
 Continuous nodes
-~~~~~~~~~~~~~~~~
+----------------
 
-Updating continuous input nodes.
-
-.. currentmodule:: pyhgf.updates.prediction_error.inputs.continuous
+.. currentmodule:: pyhgf.updates.posterior.continuous
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.inputs.continuous
+   :toctree: generated/pyhgf.updates.posterior.continuous
 
-    prediction_error_input_precision_value_parent
-    prediction_error_input_precision_volatility_parent
-    prediction_error_input_mean_volatility_parent
-    prediction_error_input_mean_value_parent
-
-
-Updating continuous state nodes.
-
-.. currentmodule:: pyhgf.updates.prediction_error.nodes.continuous
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.nodes.continuous
-
-    prediction_error_mean_value_parent
-    prediction_error_precision_value_parent
-    prediction_error_precision_volatility_parent
-    prediction_error_mean_volatility_parent
+    posterior_update_mean_continuous_node
+    posterior_update_precision_continuous_node
+    continuous_node_update
+    continuous_node_update_ehgf
+    continuous_node_update_missing_observations
+    continuous_blank_update
 
 Prediction steps
 ================
 
-Compute the expectation for future observation given the influence of parent nodes.
+Compute the expectation for future observation given the influence of parent nodes. The prediction step are executed for all nodes, top-down, before any observation.
 
 Binary nodes
-~~~~~~~~~~~~
+------------
 
 .. currentmodule:: pyhgf.updates.prediction.binary
 
 .. autosummary::
    :toctree: generated/pyhgf.updates.prediction.binary
 
-    predict_binary_state_node
+    binary_state_node_prediction
 
 Continuous nodes
-~~~~~~~~~~~~~~~~
+----------------
 
 .. currentmodule:: pyhgf.updates.prediction.continuous
 
@@ -133,11 +84,69 @@ Continuous nodes
 
     predict_mean
     predict_precision
+    continuous_node_prediction
+
+Prediction error steps
+======================
+
+Compute the value and volatility prediction errors of a given node. The prediction error can only be computed after the posterior update (or observation) of a given node.
+
+Inputs
+------
+
+Binary inputs
+^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.inputs.binary
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.inputs.binary
+
+    binary_input_prediction_error_infinite_precision
+    binary_input_prediction_error_finite_precision
+
+Continuous inputs
+^^^^^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.inputs.continuous
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.inputs.continuous
+
+    continuous_input_volatility_prediction_error
+    continuous_input_value_prediction_error
+    continuous_input_prediction_error
+
+State nodes
+-----------
+
+
+Binary state nodes
+^^^^^^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.nodes.binary
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.nodes.binary
+
+    binary_state_node_prediction_error
+
+Continuous state nodes
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.nodes.continuous
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.nodes.continuous
+
+    continuous_node_value_prediction_error
+    continuous_node_volatility_prediction_error
+    continuous_node_prediction_error
 
 Distribution
-------------
+************
 
-The Herarchical Gaussian Filter as a PyMC distribution. This distribution can be
+The Hierarchical Gaussian Filter as a PyMC distribution. This distribution can be
 embedded in models using PyMC>=5.0.0.
 
 .. currentmodule:: pyhgf.distribution
@@ -150,11 +159,11 @@ embedded in models using PyMC>=5.0.0.
    HGFDistribution
 
 Model
------
+*****
 
-The main class used to create a standard Hierarchical Gaussian Filter for binary or
+The main class is used to create a standard Hierarchical Gaussian Filter for binary or
 continuous inputs, with two or three levels. This class wraps the previous JAX modules
-and create a standard node structure for these models.
+and creates a standard node structure for these models.
 
 .. currentmodule:: pyhgf.model
 
@@ -164,9 +173,9 @@ and create a standard node structure for these models.
    HGF
 
 Plots
------
+*****
 
-Plotting functionnalities to visualize parameters trajectories and correlations after
+Plotting functionalities to visualize parameters trajectories and correlations after
 observing new data.
 
 .. currentmodule:: pyhgf.plots
@@ -180,9 +189,9 @@ observing new data.
    plot_nodes
 
 Response
---------
+********
 
-A collection of responses functions. A response function is simply a callable taking at
+A collection of response functions. A response function is simply a callable taking at
 least the HGF instance as input after observation and returning surprise.
 
 .. currentmodule:: pyhgf.response
@@ -195,7 +204,7 @@ least the HGF instance as input after observation and returning surprise.
    first_level_binary_surprise
 
 Networks
---------
+********
 
 Utilities for manipulating networks of probabilistic nodes.
 
@@ -211,7 +220,7 @@ Utilities for manipulating networks of probabilistic nodes.
    get_update_sequence
 
 Math
-----
+****
 
 Math functions and probability densities.
 
@@ -225,3 +234,4 @@ Math functions and probability densities.
     binary_surprise
     gaussian_surprise
     dirichlet_kullback_leibler
+    binary_surprise_finite_precision

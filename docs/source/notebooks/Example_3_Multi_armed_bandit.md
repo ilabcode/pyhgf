@@ -68,10 +68,10 @@ two_armed_bandit_hgf = (
     .add_input_node(kind="binary", input_idxs=1)
     .add_input_node(kind="binary", input_idxs=2)
     .add_input_node(kind="binary", input_idxs=3)
-    .add_value_parent(children_idxs=[0])
-    .add_value_parent(children_idxs=[1])
-    .add_value_parent(children_idxs=[2])
-    .add_value_parent(children_idxs=[3])
+    .add_value_parent(children_idxs=[0], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[1], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[2], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[3], additional_parameters={'binary_expected_precision': jnp.nan})
     .add_value_parent(children_idxs=[4], tonic_volatility=-1.0)
     .add_value_parent(children_idxs=[5], tonic_volatility=-1.0)
     .add_value_parent(children_idxs=[6], tonic_volatility=-1.0)
@@ -216,10 +216,10 @@ two_armed_bandit_missing_inputs_hgf = (
     .add_input_node(kind="binary", input_idxs=1)
     .add_input_node(kind="binary", input_idxs=2)
     .add_input_node(kind="binary", input_idxs=3)
-    .add_value_parent(children_idxs=[0])
-    .add_value_parent(children_idxs=[1])
-    .add_value_parent(children_idxs=[2])
-    .add_value_parent(children_idxs=[3])
+    .add_value_parent(children_idxs=[0], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[1], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[2], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[3], additional_parameters={'binary_expected_precision': jnp.nan})
     .add_value_parent(children_idxs=[4], tonic_volatility=-2.0)
     .add_value_parent(children_idxs=[5], tonic_volatility=-2.0)
     .add_value_parent(children_idxs=[6], tonic_volatility=-2.0)
@@ -227,6 +227,10 @@ two_armed_bandit_missing_inputs_hgf = (
     .init()
 )
 two_armed_bandit_hgf.plot_network()
+```
+
+```{code-cell} ipython3
+two_armed_bandit_missing_inputs_hgf.update_sequence
 ```
 
 ```{code-cell} ipython3
@@ -270,11 +274,11 @@ two_armed_bandit_missing_inputs_hgf = (
     .add_input_node(kind="binary", input_idxs=1)
     .add_input_node(kind="binary", input_idxs=2)
     .add_input_node(kind="binary", input_idxs=3)
-    .add_value_parent(children_idxs=[0])
-    .add_value_parent(children_idxs=[1])
-    .add_value_parent(children_idxs=[2])
-    .add_value_parent(children_idxs=[3])
-    .add_value_parent(children_idxs=[4], tonic_volatility=tv)
+    .add_value_parent(children_idxs=[0], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[1], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[2], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[3], additional_parameters={'binary_expected_precision': jnp.nan})
+    .add_value_parent(children_idxs=[4], additional_parameters={'binary_expected_precision': jnp.nan}, tonic_volatility=tv)
     .add_value_parent(children_idxs=[5], tonic_volatility=tv)
     .add_value_parent(children_idxs=[6], tonic_volatility=tv)
     .add_value_parent(children_idxs=[7], tonic_volatility=tv)
@@ -333,6 +337,10 @@ responses = jnp.asarray(responses)
 First, we start by creating the response function we want to optimize (see also {ref}`custom_response_functions` on how to create such functions).
 
 ```{code-cell} ipython3
+jnp.isnan(input_data[:, 0])
+```
+
+```{code-cell} ipython3
 from pyhgf.math import binary_surprise
 from jax.tree_util import Partial
 from jax import jit
@@ -363,25 +371,12 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
     surprise = jnp.sum(binary_surprise(responses, p_a))
 
     # the surprise of the model is the sum of binary surprise at all input level
-    # plus the binary surprise for the agent decision 
-    surprise_1 = jnp.sum(binary_surprise(
-        x=input_data[:, 0],
-        expected_mean=hgf.node_trajectories[4]["expected_mean"]
-    ))
-    surprise_2 = jnp.sum(binary_surprise(
-        x=input_data[:, 1],
-        expected_mean=hgf.node_trajectories[5]["expected_mean"]
-    ))
-    surprise_3 = jnp.sum(binary_surprise(
-        x=input_data[:, 2],
-        expected_mean=hgf.node_trajectories[6]["expected_mean"]
-    ))
-    surprise_4 = jnp.sum(binary_surprise(
-        x=input_data[:, 3],
-        expected_mean=hgf.node_trajectories[7]["expected_mean"]
-    ))
-
-    surprise = surprise_1 + surprise_2 + surprise_3 + surprise_4 + surprise
+    # plus the binary surprise for the agent decision
+    #surprise_1 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 2]), 0.0, hgf.node_trajectories[0]["surprise"]))
+    #surprise_2 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 2]), 0.0, hgf.node_trajectories[1]["surprise"]))
+    #surprise_3 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 0]), 0.0, hgf.node_trajectories[2]["surprise"]))
+    #surprise_4 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 0]), 0.0, hgf.node_trajectories[3]["surprise"]))
+    #surprise = surprise_1 + surprise_2 + surprise_3 + surprise_4 + surprise
 
     surprise = jnp.where(
         jnp.isnan(surprise),
@@ -400,6 +395,10 @@ logp_fn = Partial(
 )
 ```
 
+```{code-cell} ipython3
+logp_fn(-6.0)
+```
+
 We create both jitted and the vector-jacobian product requiered for a custom Op in PyTensor:
 
 ```{code-cell} ipython3
@@ -410,6 +409,10 @@ def vjp_custom_op_jax(x, gz):
     return vjp_fn(gz)[0]
 
 jitted_vjp_custom_op_jax = jit(vjp_custom_op_jax)
+```
+
+```{code-cell} ipython3
+
 ```
 
 ```{code-cell} ipython3
@@ -475,7 +478,7 @@ slideshow:
   slide_type: ''
 ---
 with pm.Model() as model:
-    tonic_volatility = pm.Normal("tonic_volatility", -2.0, 2)
+    tonic_volatility = pm.Normal("tonic_volatility", -4.0, 5)
     pm.Potential("hgf", custom_op(tonic_volatility))
     idata = pm.sample(chains=2)
 ```
@@ -504,4 +507,8 @@ slideshow:
 ---
 %load_ext watermark
 %watermark -n -u -v -iv -w -p pyhgf,jax,jaxlib
+```
+
+```{code-cell} ipython3
+
 ```

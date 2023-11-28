@@ -163,22 +163,22 @@ def plot_trajectories(
     surprise_ax = axs[n_nodes].twinx()
     surprise_ax.fill_between(
         x=trajectories_df.time,
-        y1=trajectories_df.surprise,
-        y2=trajectories_df.surprise.min(),
+        y1=trajectories_df.total_surprise,
+        y2=trajectories_df.total_surprise.min(),
         label="Surprise",
         color="#7f7f7f",
         alpha=0.2,
     )
     surprise_ax.plot(
         trajectories_df.time,
-        trajectories_df.surprise,
+        trajectories_df.total_surprise,
         color="#2a2a2a",
         linewidth=0.5,
         linestyle="--",
         zorder=-1,
         label="Surprise",
     )
-    sp = trajectories_df.surprise.sum()
+    sp = trajectories_df.total_surprise.sum()
     surprise_ax.set_title(f"Total surprise: {sp:.2f}", loc="left")
     surprise_ax.set_ylabel("Surprise")
     surprise_ax.set_xlabel("Time")
@@ -204,7 +204,9 @@ def plot_correlations(hgf: "HGF") -> Axes:
     trajectories_df = hgf.to_pandas()
     trajectories_df = pd.concat(
         [
-            trajectories_df[["time", "observation_input_0", "surprise"]],
+            trajectories_df[
+                ["time", "observation_input_0", "observation_input_0_surprise"]
+            ],
             trajectories_df.filter(regex="expected"),
         ],
         axis=1,
