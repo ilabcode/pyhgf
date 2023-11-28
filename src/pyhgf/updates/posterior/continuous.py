@@ -17,8 +17,7 @@ def posterior_update_mean_continuous_node(
 ) -> float:
     r"""Update the mean of a state node using the value prediction errors.
 
-    1. Mean update from value coupling
-    ----------------------------------
+    #. Mean update from value coupling.
 
     The new mean of a state node :math:`b` value coupled with other input and/or state
     nodes :math:`j` at time :math:`k` is given by:
@@ -35,8 +34,7 @@ def posterior_update_mean_continuous_node(
     If the child node is a state node, this value was computed by
     :py:function:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
-    2. Mean update from volatility coupling
-    ---------------------------------------
+    #. Mean update from volatility coupling.
 
     The new mean of a state node :math:`b` volatility coupled with other input and/or
     state nodes :math:`j` at time :math:`k` is given by:
@@ -182,8 +180,7 @@ def posterior_update_precision_continuous_node(
 ) -> float:
     r"""Update the precision of a state node using the volatility prediction errors.
 
-    1. Precision update from value coupling
-    ---------------------------------------
+    #. Precision update from value coupling.
 
     The new precision of a state node :math:`b` value coupled with other input and/or
     state nodes :math:`j` at time :math:`k` is given by:
@@ -202,8 +199,7 @@ def posterior_update_precision_continuous_node(
     :py:function:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
 
-    2. Precision update from volatility coupling
-    --------------------------------------------
+    #. Precision update from volatility coupling.
 
     The new precision of a state node :math:`b` volatility coupled with other input
     and/or state nodes :math:`j` at time :math:`k` is given by:

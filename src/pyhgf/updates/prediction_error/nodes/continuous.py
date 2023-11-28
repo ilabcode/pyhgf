@@ -36,7 +36,7 @@ def continuous_node_value_prediction_error(
 
     See Also
     --------
-    prediction_error_precision_value_parent, prediction_error_input_mean_value_parent
+    continuous_node_volatility_prediction_error, continuous_node_prediction_error
 
     References
     ----------
@@ -84,7 +84,7 @@ def continuous_node_volatility_prediction_error(
 
     See Also
     --------
-    prediction_error_mean_volatility_parent
+    continuous_node_value_prediction_error, continuous_node_prediction_error
 
     References
     ----------
@@ -138,7 +138,7 @@ def continuous_node_prediction_error(
 
     See Also
     --------
-    continuous_input_value_prediction_error, continuous_input_value_prediction_error
+    continuous_node_volatility_prediction_error, continuous_node_value_prediction_error
 
     References
     ----------

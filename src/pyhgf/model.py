@@ -37,10 +37,10 @@ class HGF(object):
         as a function of time. Allowing for missing inputs add a conditional check for
         `jnp.nan` at every time step and should therefore be avoided if the input time
         series is certified without missing inputs.
-        .. warning::
-            Missing inputs are missing observation from the agent perspective and should
-            not be used to handle missing data point that are only missing in the event
-            log, or rejected trials.
+    .. warning::
+        Missing inputs are missing observation from the agent perspective and should
+        not be used to handle missing data point that are only missing in the event
+        log, or rejected trials.
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.

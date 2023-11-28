@@ -44,10 +44,8 @@ def binary_state_node_prediction(
 
     Returns
     -------
-    expected_precision :
-        The new expected precision.
-    expected_mean :
-        The mean expected mean.
+    attributes :
+        The attributes of the probabilistic nodes.
 
     """
     # List the (unique) value parent of the binary state node
