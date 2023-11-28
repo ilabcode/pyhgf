@@ -62,7 +62,7 @@ def posterior_update_mean_continuous_node(
         \gamma_j^{(k)} = \Omega_j^{(k)} \hat{\pi}_j^{(k)}
 
     with :math:`\Omega_j^{(k)}` the predicted volatility computed in the prediction
-    step py:func:`pyhgf.updates.prediction.predict_precision`.
+    step :py:func:`pyhgf.updates.prediction.predict_precision`.
 
     If the child node is an input node, the volatility prediction error
     :math:`\Delta_j^{(k)}` was computed by
