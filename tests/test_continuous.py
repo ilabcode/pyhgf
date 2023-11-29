@@ -89,7 +89,8 @@ class Testcontinuous(TestCase):
             Indexes(None, None, None, None),
             Indexes(None, None, None, None),
         )
-        data = jnp.array([0.2, 1.0])
+        data = jnp.array([0.2])
+        time_steps = jnp.ones(1)
 
         ###########################################
         # No value parent - no volatility parents #
@@ -100,7 +101,7 @@ class Testcontinuous(TestCase):
             attributes=attributes,
             edges=edges,
             update_sequence=update_sequence,
-            data=data,
+            input_data=(data, time_steps),
         )
 
         assert attributes[1] == new_attributes[1]
@@ -197,14 +198,15 @@ class Testcontinuous(TestCase):
             sequence5,
             sequence6,
         )
-        data = jnp.array([0.2, 1.0])
+        data = jnp.array([0.2])
+        time_steps = jnp.ones(1)
 
         # apply beliefs propagation updates
         new_attributes, _ = beliefs_propagation(
             edges=edges,
             attributes=attributes,
             update_sequence=update_sequence,
-            data=data,
+            input_data=(data, time_steps),
         )
 
         for idx, val in zip(["time_step", "value"], [1.0, 0.2]):
@@ -222,9 +224,6 @@ class Testcontinuous(TestCase):
 
     def test_scan_loop(self):
         timeserie = load_data("continuous")
-
-        # Create the data (value and time steps vectors)
-        data = jnp.array([timeserie, jnp.ones(len(timeserie), dtype=int)]).T
 
         ###############################################
         # one value parent with one volatility parent #
@@ -316,8 +315,11 @@ class Testcontinuous(TestCase):
             edges=edges,
         )
 
+        # Create the data (value and time steps vectors)
+        time_steps = jnp.ones((len(timeserie), 1))
+
         # Run the entire for loop
-        last, _ = scan(scan_fn, attributes, data)
+        last, _ = scan(scan_fn, attributes, (timeserie, time_steps))
         for idx, val in zip(["time_step", "value"], [1.0, 0.8241]):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(

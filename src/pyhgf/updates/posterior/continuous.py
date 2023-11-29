@@ -91,8 +91,8 @@ def posterior_update_mean_continuous_node(
     posterior_mean :
         The new posterior mean.
 
-    Notes
-    -----
+    Note
+    ----
     This update step is similar to the one used for the state node, except that it uses
     the observed value instead of the mean of the child node, and the expected mean of
     the parent node instead of the expected mean of the child node.
@@ -131,7 +131,7 @@ def posterior_update_mean_continuous_node(
             # sum the precision weigthed prediction errors over all children
             precision_weigthed_prediction_error += (
                 (value_coupling * attributes[value_child_idx]["expected_precision"])
-                / attributes[node_idx]["precision"]
+                / node_precision
             ) * value_prediction_error
 
     # Volatility coupling updates - update the mean of a volatility parent
@@ -247,8 +247,8 @@ def posterior_update_precision_continuous_node(
     posterior_precision :
         The new posterior precision.
 
-    Notes
-    -----
+    Note
+    ----
     This update step is similar to the one used for the state node, except that it uses
     the observed value instead of the mean of the child node, and the expected mean of
     the parent node instead of the expected mean of the child node.
