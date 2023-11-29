@@ -230,10 +230,6 @@ two_armed_bandit_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
-two_armed_bandit_missing_inputs_hgf.update_sequence
-```
-
-```{code-cell} ipython3
 two_armed_bandit_missing_inputs_hgf.input_data(input_data=missing_inputs_u.T);
 ```
 
@@ -287,9 +283,6 @@ two_armed_bandit_missing_inputs_hgf = (
 ```
 
 ```{code-cell} ipython3
-# add a time step vector
-input_data = np.c_[u.T, np.ones(u.shape[1])]
-
 # get the network variables from the HGF class
 attributes = two_armed_bandit_missing_inputs_hgf.attributes
 update_sequence = two_armed_bandit_missing_inputs_hgf.update_sequence
@@ -301,6 +294,7 @@ beta = 1.0
 ```
 
 ```{code-cell} ipython3
+input_data = u.astype(float).T
 responses = []  # 1: arm A - 0: arm B
 for i in range(input_data.shape[0]):
 
@@ -320,11 +314,12 @@ for i in range(input_data.shape[0]):
     else:
         input_data[i, 2:4] = np.nan
         responses.append(0)
-    
+    time_steps = np.ones(1)
+
     # update the probabilistic network
     attributes, _ = beliefs_propagation(
         attributes=attributes,
-        data=input_data[i],
+        input_data=(input_data[i], time_steps),
         update_sequence=update_sequence,
         edges=edges,
         input_nodes_idx=input_nodes_idx
@@ -335,10 +330,6 @@ responses = jnp.asarray(responses)
 ### Bayesian inference
 
 First, we start by creating the response function we want to optimize (see also {ref}`custom_response_functions` on how to create such functions).
-
-```{code-cell} ipython3
-jnp.isnan(input_data[:, 0])
-```
 
 ```{code-cell} ipython3
 from pyhgf.math import binary_surprise
@@ -390,7 +381,7 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
 logp_fn = Partial(
     two_bandits_logp, 
     hgf=two_armed_bandit_missing_inputs_hgf, 
-    input_data=input_data[:, :-1],
+    input_data=input_data,
     responses=responses
 )
 ```
@@ -409,10 +400,6 @@ def vjp_custom_op_jax(x, gz):
     return vjp_fn(gz)[0]
 
 jitted_vjp_custom_op_jax = jit(vjp_custom_op_jax)
-```
-
-```{code-cell} ipython3
-
 ```
 
 ```{code-cell} ipython3
