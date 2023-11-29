@@ -56,6 +56,7 @@ class Testbinary(TestCase):
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "observed": 1,
             "volatility_coupling_parents": None,
             "value_coupling_parents": (1.0,),
         }
@@ -70,6 +71,7 @@ class Testbinary(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "binary_expected_precision": jnp.nan,
@@ -88,6 +90,7 @@ class Testbinary(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -107,6 +110,7 @@ class Testbinary(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -152,13 +156,14 @@ class Testbinary(TestCase):
         )
         data = jnp.ones(1)
         time_steps = jnp.ones(1)
+        observed = jnp.ones(1)
 
         # apply sequence
         new_attributes, _ = beliefs_propagation(
             edges=edges,
             attributes=attributes,
             update_sequence=update_sequence,
-            input_data=(data, time_steps),
+            input_data=(data, time_steps, observed),
         )
         for idx, val in zip(
             ["mean", "expected_mean", "binary_expected_precision"],
@@ -183,6 +188,7 @@ class Testbinary(TestCase):
         # as the priors are ill defined here
         data = jnp.array([u[:5]]).T
         time_steps = jnp.ones((len(u[:5]), 1))
+        observed = jnp.ones((len(u[:5]), 1))
 
         # create the function that will be scaned
         scan_fn = Partial(
@@ -192,7 +198,7 @@ class Testbinary(TestCase):
         )
 
         # Run the entire for loop
-        last, _ = scan(scan_fn, attributes, (data, time_steps))
+        last, _ = scan(scan_fn, attributes, (data, time_steps, observed))
         for idx, val in zip(
             ["mean", "expected_mean", "binary_expected_precision"],
             [0.0, 0.95616907, 23.860779],

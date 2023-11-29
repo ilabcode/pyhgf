@@ -29,6 +29,7 @@ class TestStructure(TestCase):
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "observed": 1,
             "volatility_coupling_parents": None,
             "value_coupling_parents": (1.0,),
             "temp": {
@@ -46,6 +47,7 @@ class TestStructure(TestCase):
             "volatility_coupling_parents": (1.0,),
             "volatility_coupling_children": None,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -63,6 +65,7 @@ class TestStructure(TestCase):
             "volatility_coupling_parents": None,
             "volatility_coupling_children": (1.0,),
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -91,11 +94,12 @@ class TestStructure(TestCase):
         # one batch of new observations with time step
         data = jnp.array([0.2])
         time_steps = jnp.ones(1)
+        observed = jnp.ones(1)
 
         # apply sequence
         new_attributes, _ = beliefs_propagation(
             attributes=attributes,
-            input_data=(data, time_steps),
+            input_data=(data, time_steps, observed),
             update_sequence=update_sequence,
             edges=edges,
         )

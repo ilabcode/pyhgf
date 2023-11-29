@@ -352,6 +352,7 @@ class HGF(object):
         branches_idx: np.array,
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
+        is_observed: Optional[np.ndarray] = None,
     ):
         """Add new observations with custom update sequences.
 
@@ -377,6 +378,8 @@ class HGF(object):
             Time vector (optional). If `None`, the time vector will default to
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
+        is_observed :
+            A 2d boolean array masking `input_data`.
 
         """
         if self.verbose:
@@ -391,6 +394,10 @@ class HGF(object):
             time_steps = time_steps[..., jnp.newaxis]
         if input_data.ndim == 1:
             input_data = input_data[..., jnp.newaxis]
+
+        # is it observation or missing inputs
+        if is_observed is None:
+            is_observed = np.ones(input_data.shape, dtype=int)
 
         # create the update functions that will be scanned
         branches_fn = [
@@ -409,7 +416,7 @@ class HGF(object):
             return switch(idx, branches_fn, attributes, data)
 
         # wrap the inputs
-        scan_input = (input_data, time_steps), branches_idx
+        scan_input = (input_data, time_steps, is_observed), branches_idx
 
         # scan over the input data and apply the switching belief propagation functions
         _, node_trajectories = scan(switching_propagation, self.attributes, scan_input)
