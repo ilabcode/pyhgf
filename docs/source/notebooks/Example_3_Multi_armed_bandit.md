@@ -15,7 +15,7 @@ kernelspec:
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 (example_3)=
-# Example 3: A multi-armed bandit task with independent reward and punishments
+# Example 3: A multi-armed bandit task with independent rewards and punishments
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
@@ -46,24 +46,35 @@ import pymc as pm
 import seaborn as sns
 from scipy.stats import norm
 import jax.numpy as jnp
-
+from pyhgf.math import binary_surprise
+from jax.tree_util import Partial
+from jax import jit
+from pytensor.graph import Apply, Op
+import pytensor.tensor as pt
+from jax import grad, jit, vjp
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
+
+np.random.seed(123)
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}, "jp-MarkdownHeadingCollapsed": true}
 
-In this notebook, we are going to illustrate how to fit behavioural responses from a two-armed bandit task when the rewards and punishments are independent. The task is similar to what was used in {cite:p}`Pulcu2017`. This will also illustrate how to use missing observations and the impact it has on the belief trajectories.
+In this notebook, we are going to illustrate how to fit behavioural responses from a two-armed bandit task when the rewards and punishments are independent using a task similar to what was used in {cite:p}`Pulcu2017`. This will also illustrate how we can use missing/unobserved values in an input node, the impact this has on the belief trajectories, and how to deal with models where the decisions of the agent influence the observations.
 
-Because the rewards and punishments are independent, we simulate the task using four binary HGFs, assuming that on both arms, both rewards and punishments are evolving independently, and how to deal with models where the decisions of the agent influence the observations.
+In the task considered here, two armed bandits are presented to the participant on each trial, and the participant has to select one of them to get the reward and punishments associated. For both arms, the rewards and punishments are independent, which means that the participant has to infer four probabilities: $\{P(reward|A), P(loss|A), P(reward|B), P(loss|B)\}$. Because the rewards and punishments are independent, we simulate the task using four binary HGFs.
 
 ```{note}
-While the binary HGF is a special case of the categorical HGF where the number of categories is set to 2, the categorical HGF adds a volatility coupling between the binary branch (see {ref}`categorical_hgf`). Therefore a categorical HGF would not be suitable here as we want every branch of the network to evolve independently.
+While the binary HGF is a special case of the categorical HGF where the number of categories is set to 2, the categorical HGF assumes that only one category is presented on every trial, which is different from what we have here as on some trials, we could have both reward and loss on both arms. Also, a categorical HGF adds a volatility coupling between the binary branch (see {ref}`categorical_hgf`). Therefore, this model would not be suitable here as we want every branch of the network to evolve independently.
 ```
 
 ```{code-cell} ipython3
+# the tonic volatility used across the tutorial
+# this value is the same for four branches of the network
 tonic_volatility = -1.0
 ```
+
+We start by creating a network that consists in four two-levels HGF. Each branch is evolving independently and is not affecting the beliefs trajectories of other branches.
 
 ```{code-cell} ipython3
 two_armed_bandit_hgf = (
@@ -89,7 +100,7 @@ two_armed_bandit_hgf.plot_network()
 We start with a simple task structure where contingencies (i.e. the probability that a given armed bandit is associated with a win/loss) alternate between `0.2`, `0.5` and `0.8`. The rate of change in contingencies can be fast (i.e. high volatility blocks) or slow (i.e. low volatility blocks).
 
 ```{code-cell} ipython3
-# three levels of probability
+# three levels of contingencies
 high_prob, chance, low_prob = 0.8, 0.5, 0.2
 
 # create blocks of contingencies
@@ -99,7 +110,7 @@ chance_contingencies = np.array(chance).repeat(40)
 ```
 
 ```{code-cell} ipython3
-# create sequences of blocks for the different cases
+# create sequences of blocks for each arm/rewards
 win_arm1 = np.concatenate([stable_contingencies, chance_contingencies, volatile_contingencies])
 loss_arm1 = np.concatenate([volatile_contingencies, chance_contingencies, stable_contingencies])
 win_arm2 = np.concatenate([chance_contingencies, stable_contingencies, volatile_contingencies])
@@ -120,31 +131,33 @@ This gives the following task structure:
 # trial numbers
 trials = np.arange(len(win_arm1))
 
-_, axs = plt.subplots(figsize=(12, 6), nrows=4, sharex=True)
+_, axs = plt.subplots(figsize=(12, 6), nrows=4, sharex=True, sharey=True)
 
 for i, u, p, label, color in zip(
     range(4),
     [u_win_arm1, u_loss_arm1, u_win_arm2, u_loss_arm2], 
     [win_arm1, loss_arm1, win_arm2, loss_arm2], 
-    ["Arm 1 - Win", "Arm 1 - Loss", "Arm 2 - Win", "Arm 2 - Loss"],
+    ["P(Reward|A)", "P(Loss|A)", "P(Reward|B)", "P(Loss|B)"],
     ["seagreen", "firebrick", "seagreen", "firebrick"]
 ):
-    axs[i].scatter(trials, u, label="outcomes", alpha=.4, s=5, color="gray")
-    axs[i].plot(trials, p, "--", label=label, color=color)
-    axs[i].legend()
+    axs[i].scatter(trials, u, label="outcomes", alpha=.6, s=10, color="gray", edgecolor="k")
+    axs[i].plot(trials, p, "--", color=color)
+    axs[i].fill_between(trials, p, "--", label=label, color=color, alpha=.05)
+    axs[i].legend(loc='upper right')
+    axs[i].set_ylabel(label)
 plt.tight_layout()
 sns.despine();
 ```
 
 ## Simulate a dataset
 
-We can simlate our vector of observation. This is a two dimentional matrix with input observations for the four components of our model.
+We can simulate a vector of observation. This is a two-dimensional matrix with input observations for the four components of our model.
 
 ```{code-cell} ipython3
 u = np.array([u_win_arm1, u_loss_arm1, u_win_arm2, u_loss_arm2])
 ```
 
-From there, it is straightforward to feed these observations to our four branches HGF to retrieve the trajectories.
+From there, it is straightforward to feed these observations to our four branches to get an estimate of the trajectories.
 
 ```{note}
 Here, we are providing all the outcomes from all trials. This is not how the task would work as the participant will only be presented with the outcomes from the armed bandit chosen, and we are not using responses from the participant yet. See also {ref}`custom_response_functions` for details on the observations `u` and the responses `y`.
@@ -165,11 +178,11 @@ two_armed_bandit_hgf.plot_nodes(node_idxs=7, axs=axs[3])
 for i, p, label, color in zip(
     range(4),
     [win_arm1, loss_arm1, win_arm2, loss_arm2], 
-    ["Arm 1 - Win", "Arm 1 - Loss", "Arm 2 - Win", "Arm 2 - Loss"],
+    ["P(Reward|A)", "P(Loss|A)", "P(Reward|B)", "P(Loss|B)"],
     ["seagreen", "firebrick", "seagreen", "firebrick"]
 ):
     axs[i].plot(trials, p, "--", label=label, color=color)
-    axs[i].legend()
+    axs[i].legend(loc='upper right')
 
 plt.tight_layout()
 sns.despine();
@@ -182,7 +195,7 @@ Using the beliefs trajectories recovered from the model fits above, we can simul
 
 ### Decision rule
 
-The probability of chosing the arm $A$ given the probability of wining on both arms ${W_a; W_b}$ and the probability of loosing on both arms ${L_a; L_b}$, is given by the following softmax decision function:
+The probability of chosing the arm $A$ given the expected probabilities of wining on both arms ${W_a; W_b}$ and the expected probabilities of loosing on both arms ${L_a; L_b}$, is given by the following softmax decision function:
 
 $$
 p(A) = \frac{e^{\beta(W_a-L_a)}}{e^{\beta(W_a-L_a)} + e^{\beta(W_b-L_b)}}
@@ -191,7 +204,7 @@ $$
 where $\beta$ is the inverse temperature parameter.
 
 ```{code-cell} ipython3
-beta = 1.0
+beta = 1.0  # temperature parameter
 w_a = two_armed_bandit_hgf.node_trajectories[4]["expected_mean"]
 l_a = two_armed_bandit_hgf.node_trajectories[5]["expected_mean"]
 w_b = two_armed_bandit_hgf.node_trajectories[6]["expected_mean"]
@@ -200,19 +213,22 @@ l_b = two_armed_bandit_hgf.node_trajectories[7]["expected_mean"]
 p_a = np.exp(beta * (w_a-l_a)) / ( np.exp(beta * (w_a-l_a)) + np.exp(beta * (w_b-l_b)))
 ```
 
-Using these probabilities, we can infer which arm was selected at each trial and filter the inputs that are presented to the participant. Because it would be too chaotic to provide the information about the four hidden states at each trial, here the participant is only presented with the information about the arm that was selected. Therefore, when arm $A$ is selected, the inputs from arm $B$ are set to `jnp.nan` and will be ignored during the node update.
+Using these probabilities, we can infer which arm was selected at each trial and filter the inputs that are presented to the participant. Because it would be too chaotic to provide the information about the four hidden states at each trial, here the participant is only presented with the information about the arm that was selected. Therefore, when arm $A$ is selected, the inputs from arm $B$ are hidden.
+
++++
+
+```{note}
+Input nodes can receive missing or unobserved values. Missing inputs are used to indicate an absence of observation from the agent's point of view and should not be used for missing records or excluded trials. When an input is labelled as missing, we use the total volatility at the parents' level to decrease their precision as a function of time elapsed, but the mean of the belief is still the same. This behaviour accounts for the fact that the Gaussian Random Walk continues while no observations are made and the uncertainty increases accordingly. It could be assumed that there is also a limit to this behaviour and that the uncertainty will not increase infinitely. AR1 nodes are good candidates as volatility parents to implement this behaviour. 
+```
 
 ```{code-cell} ipython3
+# a new matrix of observations
 missing_inputs_u = u.astype(float)
 
-# filter the input sequence using the agent's decisions
+# create a mask to filter the observations using the agent's decisions
 is_observed = np.ones(u.shape)
 is_observed[:2, p_a<=.5] = 0
 is_observed[2:, p_a>.5] = 0
-```
-
-```{note}
-Missing inputs are used to indicate an absence of observation from the agent's point of view and should not be used for missing records or excluded trials. When an input is labelled as missing, we use the total volatility at the parents' level to decrease their precision as a function of time elapsed, but the means are still the same. Because this functionality implies an overhead of checks, it is deactivated by default. To activate it, we need to set `allow_missing_iputs` to `True` upon model creation.
 ```
 
 ```{code-cell} ipython3
@@ -232,10 +248,11 @@ two_armed_bandit_missing_inputs_hgf = (
     .add_value_parent(children_idxs=[7], tonic_volatility=tonic_volatility)
     .init()
 )
-two_armed_bandit_hgf.plot_network()
+two_armed_bandit_missing_inputs_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
+# note that we are providing the mask as parameter of the input function
 two_armed_bandit_missing_inputs_hgf.input_data(
     input_data=missing_inputs_u.T,
     is_observed=is_observed.T,
@@ -254,13 +271,13 @@ plt.tight_layout()
 sns.despine();
 ```
 
-We can now see from the plot above that the branches of the networks are now only updated if the participant actually chose the corresponding arm. Otherwise the expected probability remains the same but the uncertainty will increase over time.
+We can now see from the plot above that the branches of the networks are only updated if the participant actually chose the corresponding arm. Otherwise, the expected probability remains the same but the uncertainty will increase over time.
 
 +++
 
 ## Parameter recovery
 
-Now that we have set a model with the required number of branches, and allowed this model to observe missing inputs, we can simulate responses from a participant and try to recover the parameters. It should be noted here that this kind of model implies that the decisions of the agent directly influence the observations, as only the outcomes from the selected armed bandit are presented to the participant. This implies that - for simulations - we cannot iterate over the whole set of observations before estimating the decision function, and should every step sequentially in a for loop. This is an important difference as most of the models discussed in the other tutorials filter all the observations first, and then compute the response costs, as the two processes are not influencing each other.
+Now that we have set a model with the required number of branches, and allowed this model to observe missing inputs, we can simulate responses from a participant and try to recover the parameters of interest (here focusing on the tonic volatility at the second level). It should be noted here that this kind of model implies that the decisions of the agent directly influence the observations, as only the outcomes from the selected armed bandit are presented to the participant. This implies that - in the context of simulations - we cannot iterate over the whole batch of observations before estimating the decision function, and should instead compute every step sequentially in a for loop. This is an important difference as most of the models discussed in the other tutorials filter all the observations first, and then compute the response costs, as the two processes are not influencing each other.
 
 ### Real-time decision and belief updating
 
@@ -299,28 +316,31 @@ attributes = two_armed_bandit_missing_inputs_hgf.attributes
 update_sequence = two_armed_bandit_missing_inputs_hgf.update_sequence
 edges = two_armed_bandit_missing_inputs_hgf.edges
 input_nodes_idx = two_armed_bandit_missing_inputs_hgf.input_nodes_idx.idx
-
-# temperature parameter for decision softmax
-beta = 1.0
 ```
 
 ```{code-cell} ipython3
 input_data = u.astype(float).T
 responses = []  # 1: arm A - 0: arm B
+
+# for each observation
 for i in range(input_data.shape[0]):
 
+    # the observation mask - default to 1
     observed = np.ones(4)
 
-    # expectations about the outcomes
+    # the time elapsed between two trials - defaults to 1
+    time_steps = np.ones(1)
+
+    # the expectations about the outcomes
     w_a = attributes[4]["expected_mean"]
     l_a = attributes[5]["expected_mean"]
     w_b = attributes[6]["expected_mean"]
     l_b = attributes[7]["expected_mean"]
 
-    # decision function
+    # the decision function
     p_a = np.exp(beta * (w_a-l_a)) / ( np.exp(beta * (w_a-l_a)) + np.exp(beta * (w_b-l_b)))
 
-    # response
+    # sample a decision using the probability
     response = np.random.binomial(p=.4, n=1)
     responses.append(response)
 
@@ -330,8 +350,6 @@ for i in range(input_data.shape[0]):
     else:
         observed[:2] = 0
 
-    time_steps = np.ones(1)
-
     # update the probabilistic network
     attributes, _ = beliefs_propagation(
         attributes=attributes,
@@ -340,28 +358,21 @@ for i in range(input_data.shape[0]):
         edges=edges,
         input_nodes_idx=input_nodes_idx,
     )
-responses = jnp.asarray(responses)
+responses = jnp.asarray(responses)  # vector of responses
 ```
 
 ### Bayesian inference
 
-First, we start by creating the response function we want to optimize (see also {ref}`custom_response_functions` on how to create such functions).
+Using the responses simulated above, we can try to recover the value of the tonic volatility. First, we start by creating the response function we want to optimize (see also {ref}`custom_response_functions` on how to create such functions).
 
 ```{code-cell} ipython3
-# create a mask to hide the observations from the arm that was not selected
+# create a mask to hide the observations from the arm that was not selected by the participant
 observed = np.ones(input_data.shape)
 observed[2:, responses] = 0
 observed[:2, ~responses] = 0
 ```
 
 ```{code-cell} ipython3
-from pyhgf.math import binary_surprise
-from jax.tree_util import Partial
-from jax import jit
-from pytensor.graph import Apply, Op
-import pytensor.tensor as pt
-from jax import grad, jit, vjp
-
 def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
 
     # replace with a new omega in the model
@@ -400,6 +411,8 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
     return -surprise
 ```
 
+We create both jitted and the vector-jacobian product requiered for a custom Op in PyTensor:
+
 ```{code-cell} ipython3
 logp_fn = Partial(
     two_bandits_logp, 
@@ -408,8 +421,6 @@ logp_fn = Partial(
     responses=responses
 )
 ```
-
-We create both jitted and the vector-jacobian product requiered for a custom Op in PyTensor:
 
 ```{code-cell} ipython3
 jitted_custom_op_jax = jit(logp_fn)
@@ -420,6 +431,8 @@ def vjp_custom_op_jax(x, gz):
 
 jitted_vjp_custom_op_jax = jit(vjp_custom_op_jax)
 ```
+
+The log probability function and the gradient of this function are then passed to a new `Op`, which is a class that can be manipulated inside PyMC graphs.
 
 ```{code-cell} ipython3
 ---
@@ -477,6 +490,8 @@ custom_op = CustomOp()
 vjp_custom_op = VJPCustomOp()
 ```
 
+We are now ready to sample the model and estimate the value of tonic volatility.
+
 ```{code-cell} ipython3
 ---
 editable: true
@@ -495,7 +510,7 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-_, ax = plt.subplots(figsize=(12, 6))
+_, ax = plt.subplots(figsize=(8, 4))
 az.plot_posterior(idata, ax=ax, kind='hist')
 ax.axvline(tonic_volatility, color="r", label="Tonic volatility")
 plt.legend();
