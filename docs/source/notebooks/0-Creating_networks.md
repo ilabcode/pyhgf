@@ -462,23 +462,13 @@ Work in progress
 
 ## Working with missing or unobserved input sequences
 
-```{code-cell} ipython3
-# creating a network that contains two binary child nodes
-# value coupled to one value parent node
-many_binary_children_hgf = (
-    HGF(model_type=None)
-    .add_input_node(kind="binary")
-    .add_input_node(kind="binary", input_idxs=1)
-    .add_value_parent(children_idxs=[0], additional_parameters={"binary_expected_precision": np.nan})
-    .add_value_parent(children_idxs=[1], additional_parameters={"binary_expected_precision": np.nan})
-    .add_value_parent(children_idxs=[2, 3])
-    .add_volatility_parent(children_idxs=[4])
-    .init()
-)
++++
 
-# plot the network
-many_binary_children_hgf.plot_network()
+```{warning}
+Work in progress
 ```
+
++++
 
 # System configuration
 

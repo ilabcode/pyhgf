@@ -12,11 +12,7 @@ from pyhgf.typing import Edges
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def categorical_input_update(
-    attributes: Dict,
-    time_step: float,
-    node_idx: int,
-    edges: Edges,
-    value: float,
+    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the categorical input node given an array of binary observations.
 
@@ -27,24 +23,21 @@ def categorical_input_update(
 
     Parameters
     ----------
-    value :
-        The new observed value. This here is ignored as the observed values are passed
-        to the binary inputs directly.
-    time_step :
-        The interval between the previous time point and the current time point.
     attributes :
         The attributes of the probabilistic nodes.
     .. note::
         `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"volatility_coupling"` is the volatility coupling
         strength. It should have the same length as the volatility parents' indexes.
+    time_step :
+        The interval between the previous time point and the current time point.
+    node_idx :
+        Pointer to the node that needs to be updated.
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
         number. For each node, the index lists the value and volatility parents and
         children.
-    node_idx :
-        Pointer to the node that needs to be updated.
 
     Returns
     -------
