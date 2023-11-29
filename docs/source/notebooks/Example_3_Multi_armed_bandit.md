@@ -62,6 +62,10 @@ While the binary HGF is a special case of the categorical HGF where the number o
 ```
 
 ```{code-cell} ipython3
+tonic_volatility = -1.0
+```
+
+```{code-cell} ipython3
 two_armed_bandit_hgf = (
     HGF(model_type=None)
     .add_input_node(kind="binary", input_idxs=0)
@@ -72,10 +76,10 @@ two_armed_bandit_hgf = (
     .add_value_parent(children_idxs=[1], additional_parameters={'binary_expected_precision': jnp.nan})
     .add_value_parent(children_idxs=[2], additional_parameters={'binary_expected_precision': jnp.nan})
     .add_value_parent(children_idxs=[3], additional_parameters={'binary_expected_precision': jnp.nan})
-    .add_value_parent(children_idxs=[4], tonic_volatility=-1.0)
-    .add_value_parent(children_idxs=[5], tonic_volatility=-1.0)
-    .add_value_parent(children_idxs=[6], tonic_volatility=-1.0)
-    .add_value_parent(children_idxs=[7], tonic_volatility=-1.0)
+    .add_value_parent(children_idxs=[4], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[5], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[6], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[7], tonic_volatility=tonic_volatility)
     .init()
 )
 two_armed_bandit_hgf.plot_network()
@@ -199,10 +203,12 @@ p_a = np.exp(beta * (w_a-l_a)) / ( np.exp(beta * (w_a-l_a)) + np.exp(beta * (w_b
 Using these probabilities, we can infer which arm was selected at each trial and filter the inputs that are presented to the participant. Because it would be too chaotic to provide the information about the four hidden states at each trial, here the participant is only presented with the information about the arm that was selected. Therefore, when arm $A$ is selected, the inputs from arm $B$ are set to `jnp.nan` and will be ignored during the node update.
 
 ```{code-cell} ipython3
-# filter the input sequence using the agent's decisions
 missing_inputs_u = u.astype(float)
-missing_inputs_u[:2, p_a<=.5] = np.nan
-missing_inputs_u[2:, p_a>.5] = np.nan
+
+# filter the input sequence using the agent's decisions
+is_observed = np.ones(u.shape)
+is_observed[:2, p_a<=.5] = 0
+is_observed[2:, p_a>.5] = 0
 ```
 
 ```{note}
@@ -211,7 +217,7 @@ Missing inputs are used to indicate an absence of observation from the agent's p
 
 ```{code-cell} ipython3
 two_armed_bandit_missing_inputs_hgf = (
-    HGF(model_type=None, allow_missing_inputs=True)
+    HGF(model_type=None)
     .add_input_node(kind="binary", input_idxs=0)
     .add_input_node(kind="binary", input_idxs=1)
     .add_input_node(kind="binary", input_idxs=2)
@@ -220,17 +226,20 @@ two_armed_bandit_missing_inputs_hgf = (
     .add_value_parent(children_idxs=[1], additional_parameters={'binary_expected_precision': jnp.nan})
     .add_value_parent(children_idxs=[2], additional_parameters={'binary_expected_precision': jnp.nan})
     .add_value_parent(children_idxs=[3], additional_parameters={'binary_expected_precision': jnp.nan})
-    .add_value_parent(children_idxs=[4], tonic_volatility=-2.0)
-    .add_value_parent(children_idxs=[5], tonic_volatility=-2.0)
-    .add_value_parent(children_idxs=[6], tonic_volatility=-2.0)
-    .add_value_parent(children_idxs=[7], tonic_volatility=-2.0)
+    .add_value_parent(children_idxs=[4], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[5], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[6], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[7], tonic_volatility=tonic_volatility)
     .init()
 )
 two_armed_bandit_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
-two_armed_bandit_missing_inputs_hgf.input_data(input_data=missing_inputs_u.T);
+two_armed_bandit_missing_inputs_hgf.input_data(
+    input_data=missing_inputs_u.T,
+    is_observed=is_observed.T,
+);
 ```
 
 ```{code-cell} ipython3
@@ -262,24 +271,26 @@ from pyhgf.networks import beliefs_propagation
 ```
 
 ```{code-cell} ipython3
-tv = -3.0
-
 two_armed_bandit_missing_inputs_hgf = (
-    HGF(model_type=None, allow_missing_inputs=True, verbose=False)
+    HGF(model_type=None, verbose=False)
     .add_input_node(kind="binary", input_idxs=0)
     .add_input_node(kind="binary", input_idxs=1)
     .add_input_node(kind="binary", input_idxs=2)
     .add_input_node(kind="binary", input_idxs=3)
-    .add_value_parent(children_idxs=[0], additional_parameters={'binary_expected_precision': jnp.nan})
-    .add_value_parent(children_idxs=[1], additional_parameters={'binary_expected_precision': jnp.nan})
-    .add_value_parent(children_idxs=[2], additional_parameters={'binary_expected_precision': jnp.nan})
-    .add_value_parent(children_idxs=[3], additional_parameters={'binary_expected_precision': jnp.nan})
-    .add_value_parent(children_idxs=[4], additional_parameters={'binary_expected_precision': jnp.nan}, tonic_volatility=tv)
-    .add_value_parent(children_idxs=[5], tonic_volatility=tv)
-    .add_value_parent(children_idxs=[6], tonic_volatility=tv)
-    .add_value_parent(children_idxs=[7], tonic_volatility=tv)
+    .add_value_parent(children_idxs=[0], additional_parameters={'binary_expected_precision': 0.0})
+    .add_value_parent(children_idxs=[1], additional_parameters={'binary_expected_precision': 0.0})
+    .add_value_parent(children_idxs=[2], additional_parameters={'binary_expected_precision': 0.0})
+    .add_value_parent(children_idxs=[3], additional_parameters={'binary_expected_precision': 0.0})
+    .add_value_parent(children_idxs=[4], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[5], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[6], tonic_volatility=tonic_volatility)
+    .add_value_parent(children_idxs=[7], tonic_volatility=tonic_volatility)
     .init()
 )
+```
+
+```{code-cell} ipython3
+two_armed_bandit_missing_inputs_hgf.plot_network()
 ```
 
 ```{code-cell} ipython3
@@ -298,6 +309,8 @@ input_data = u.astype(float).T
 responses = []  # 1: arm A - 0: arm B
 for i in range(input_data.shape[0]):
 
+    observed = np.ones(4)
+
     # expectations about the outcomes
     w_a = attributes[4]["expected_mean"]
     l_a = attributes[5]["expected_mean"]
@@ -307,22 +320,25 @@ for i in range(input_data.shape[0]):
     # decision function
     p_a = np.exp(beta * (w_a-l_a)) / ( np.exp(beta * (w_a-l_a)) + np.exp(beta * (w_b-l_b)))
 
+    # response
+    response = np.random.binomial(p=.4, n=1)
+    responses.append(response)
+
     # hide the observations that were not selected
-    if p_a > .5:
-        input_data[i, :2] = np.nan
-        responses.append(1)
+    if response:
+        observed[2:] = 0
     else:
-        input_data[i, 2:4] = np.nan
-        responses.append(0)
+        observed[:2] = 0
+
     time_steps = np.ones(1)
 
     # update the probabilistic network
     attributes, _ = beliefs_propagation(
         attributes=attributes,
-        input_data=(input_data[i], time_steps),
+        input_data=(input_data[i], time_steps, observed),
         update_sequence=update_sequence,
         edges=edges,
-        input_nodes_idx=input_nodes_idx
+        input_nodes_idx=input_nodes_idx,
     )
 responses = jnp.asarray(responses)
 ```
@@ -330,6 +346,13 @@ responses = jnp.asarray(responses)
 ### Bayesian inference
 
 First, we start by creating the response function we want to optimize (see also {ref}`custom_response_functions` on how to create such functions).
+
+```{code-cell} ipython3
+# create a mask to hide the observations from the arm that was not selected
+observed = np.ones(input_data.shape)
+observed[2:, responses] = 0
+observed[:2, ~responses] = 0
+```
 
 ```{code-cell} ipython3
 from pyhgf.math import binary_surprise
@@ -348,7 +371,7 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
     hgf.attributes[11]["tonic_volatility"] = tonic_volatility
 
     # run the model forward
-    hgf.input_data(input_data=input_data)
+    hgf.input_data(input_data=input_data, is_observed=observed)
 
     # probabilities of choosing arm A
     beta = 1.0
@@ -363,11 +386,11 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
 
     # the surprise of the model is the sum of binary surprise at all input level
     # plus the binary surprise for the agent decision
-    #surprise_1 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 2]), 0.0, hgf.node_trajectories[0]["surprise"]))
-    #surprise_2 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 2]), 0.0, hgf.node_trajectories[1]["surprise"]))
-    #surprise_3 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 0]), 0.0, hgf.node_trajectories[2]["surprise"]))
-    #surprise_4 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 0]), 0.0, hgf.node_trajectories[3]["surprise"]))
-    #surprise = surprise_1 + surprise_2 + surprise_3 + surprise_4 + surprise
+    surprise_1 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 2]), 0.0, hgf.node_trajectories[0]["surprise"]))
+    surprise_2 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 2]), 0.0, hgf.node_trajectories[1]["surprise"]))
+    surprise_3 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 0]), 0.0, hgf.node_trajectories[2]["surprise"]))
+    surprise_4 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 0]), 0.0, hgf.node_trajectories[3]["surprise"]))
+    surprise = surprise_1 + surprise_2 + surprise_3 + surprise_4 + surprise
 
     surprise = jnp.where(
         jnp.isnan(surprise),
@@ -384,10 +407,6 @@ logp_fn = Partial(
     input_data=input_data,
     responses=responses
 )
-```
-
-```{code-cell} ipython3
-logp_fn(-6.0)
 ```
 
 We create both jitted and the vector-jacobian product requiered for a custom Op in PyTensor:
@@ -465,8 +484,8 @@ slideshow:
   slide_type: ''
 ---
 with pm.Model() as model:
-    tonic_volatility = pm.Normal("tonic_volatility", -4.0, 5)
-    pm.Potential("hgf", custom_op(tonic_volatility))
+    omega = pm.Normal("omega", -4.0, 2)
+    pm.Potential("hgf", custom_op(omega))
     idata = pm.sample(chains=2)
 ```
 
@@ -478,7 +497,7 @@ slideshow:
 ---
 _, ax = plt.subplots(figsize=(12, 6))
 az.plot_posterior(idata, ax=ax, kind='hist')
-ax.axvline(tv, color="r", label="Tonic volatility")
+ax.axvline(tonic_volatility, color="r", label="Tonic volatility")
 plt.legend();
 ```
 

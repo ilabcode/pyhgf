@@ -332,7 +332,7 @@ class HGF(object):
 
         # is it observation or missing inputs
         if is_observed is None:
-            is_observed = np.ones(input_data.shape)
+            is_observed = np.ones(input_data.shape, dtype=int)
 
         # this is where the model loop over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
