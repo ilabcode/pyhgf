@@ -123,9 +123,9 @@ def posterior_update_mean_continuous_node(
             value_prediction_error = attributes[value_child_idx]["temp"][
                 "value_prediction_error"
             ]
-            value_prediction_error = jnp.where(
-                jnp.isnan(value_prediction_error), 0.0, value_prediction_error
-            )
+
+            # cancel the prediction error if the child value was not observed
+            value_prediction_error *= attributes[value_child_idx]["observed"]
 
             # expected precisions from the value children
             # sum the precision weigthed prediction errors over all children
@@ -146,9 +146,6 @@ def posterior_update_mean_continuous_node(
             volatility_prediction_error = attributes[volatility_child_idx]["temp"][
                 "volatility_prediction_error"
             ]
-            volatility_prediction_error = jnp.where(
-                jnp.isnan(volatility_prediction_error), 0.0, volatility_prediction_error
-            )
 
             # retrieve the effective precision (γ) computed during the prediction step
             effective_precision = attributes[volatility_child_idx]["temp"][
@@ -162,6 +159,11 @@ def posterior_update_mean_continuous_node(
 
             # weight using the node's precision
             precision_weigthed_prediction_error *= 1 / (2 * node_precision)
+
+            # cancel the prediction error if the child value was not observed
+            precision_weigthed_prediction_error *= attributes[volatility_child_idx][
+                "observed"
+            ]
 
     # Compute the new posterior mean
     # using value prediction errors from both value and volatility coupling
@@ -177,6 +179,7 @@ def posterior_update_precision_continuous_node(
     attributes: Dict,
     edges: Edges,
     node_idx: int,
+    time_step: float,
 ) -> float:
     r"""Update the precision of a state node using the volatility prediction errors.
 
@@ -241,6 +244,8 @@ def posterior_update_precision_continuous_node(
         For each node, the index list value and volatility parents and children.
     node_idx :
         Pointer to the value parent node that will be updated.
+    time_step :
+        The time elapsed between this observation and the previous one.
 
     Returns
     -------
@@ -278,16 +283,10 @@ def posterior_update_precision_continuous_node(
                 value_coupling**2 * attributes[value_child_idx]["expected_precision"]
             )
 
-            # get the value prediction error (VAPE)
-            # if this is jnp.nan (no observation) set the VAPE to 0.0
-            value_prediction_error = attributes[value_child_idx]["temp"][
-                "value_prediction_error"
+            # cancel the prediction error if the child value was not observed
+            precision_weigthed_prediction_error *= attributes[value_child_idx][
+                "observed"
             ]
-            precision_weigthed_prediction_error = jnp.where(
-                jnp.isnan(value_prediction_error),
-                0.0,
-                precision_weigthed_prediction_error,
-            )
 
     # Volatility coupling updates - update the precision of a volatility parent
     # -------------------------------------------------------------------------
@@ -305,9 +304,6 @@ def posterior_update_precision_continuous_node(
             volatility_prediction_error = attributes[volatility_child_idx]["temp"][
                 "volatility_prediction_error"
             ]
-            volatility_prediction_error = jnp.where(
-                jnp.isnan(volatility_prediction_error), 0.0, volatility_prediction_error
-            )
 
             # sum over all volatility children
             precision_weigthed_prediction_error += (
@@ -320,6 +316,11 @@ def posterior_update_precision_continuous_node(
                 * volatility_prediction_error
             )
 
+            # cancel the prediction error if the child value was not observed
+            precision_weigthed_prediction_error *= attributes[volatility_child_idx][
+                "observed"
+            ]
+
     # Compute the new posterior precision
     # using value prediction errors from both value and volatility coupling
     posterior_precision = (
@@ -327,8 +328,54 @@ def posterior_update_precision_continuous_node(
     )
 
     # ensure the new precision is greater than 0
-    posterior_precision = jnp.where(
-        posterior_precision <= 0, jnp.nan, posterior_precision
+    observed_posterior_precision = jnp.where(
+        posterior_precision > 1e-128, posterior_precision, jnp.nan
+    )
+
+    # additionnal steps for unobserved values
+    # ----------------------------------------------------------------------------------
+
+    # List the node's volatility parents
+    volatility_parents_idxs = edges[node_idx].volatility_parents
+
+    # Get the tonic volatility from the node
+    total_volatility = attributes[node_idx]["tonic_volatility"]
+
+    # Look at the (optional) volatility parents and add their value to the tonic
+    # volatility to get the total volatility
+    if volatility_parents_idxs is not None:
+        for volatility_parents_idx, volatility_coupling in zip(
+            volatility_parents_idxs,
+            attributes[node_idx]["volatility_coupling_parents"],
+        ):
+            total_volatility += (
+                volatility_coupling * attributes[volatility_parents_idx]["mean"]
+            )
+
+    # compute the predicted_volatility from the total volatility
+    predicted_volatility = time_step * jnp.exp(total_volatility)
+
+    # Estimate the new precision for the continuous state node
+    unobserved_posterior_precision = 1 / (
+        (1 / attributes[node_idx]["precision"]) + predicted_volatility
+    )
+
+    # if
+
+    # for all children, look at the values of VAPE
+    # if all these values are NaNs, the node has not received observations
+    observations = []
+    if edges[node_idx].value_children is not None:
+        for children_idx in edges[node_idx].value_children:  # type: ignore
+            observations.append(attributes[children_idx]["observed"])
+    if edges[node_idx].volatility_children is not None:
+        for children_idx in edges[node_idx].volatility_children:  # type: ignore
+            observations.append(attributes[children_idx]["observed"])
+    observations = jnp.any(jnp.array(observations))
+
+    posterior_precision = (
+        unobserved_posterior_precision * (1 - observations)  # type: ignore
+        + observed_posterior_precision * observations
     )
 
     return posterior_precision
@@ -336,7 +383,7 @@ def posterior_update_precision_continuous_node(
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_node_update(
-    attributes: Dict, node_idx: int, edges: Edges, **args
+    attributes: Dict, node_idx: int, edges: Edges, time_step: float, **args
 ) -> Dict:
     """Update the posterior of a continuous node using the standard HGF update.
 
@@ -356,6 +403,8 @@ def continuous_node_update(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
+    time_step :
+        The time elapsed between this observation and the previous one.
 
     Returns
     -------
@@ -375,7 +424,7 @@ def continuous_node_update(
     """
     # update the posterior mean and precision
     posterior_precision = posterior_update_precision_continuous_node(
-        attributes, edges, node_idx
+        attributes, edges, node_idx, time_step
     )
     attributes[node_idx]["precision"] = posterior_precision
 
@@ -389,7 +438,7 @@ def continuous_node_update(
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_node_update_ehgf(
-    attributes: Dict, node_idx: int, edges: Edges, **args
+    attributes: Dict, node_idx: int, edges: Edges, time_step: float, **args
 ) -> Dict:
     """Update the posterior of a continuous node using the eHGF update.
 
@@ -415,6 +464,8 @@ def continuous_node_update_ehgf(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
+    time_step :
+        The time elapsed between this observation and the previous one.
 
     Returns
     -------
@@ -443,7 +494,7 @@ def continuous_node_update_ehgf(
     attributes[node_idx]["mean"] = posterior_mean
 
     posterior_precision = posterior_update_precision_continuous_node(
-        attributes, edges, node_idx
+        attributes, edges, node_idx, time_step
     )
     attributes[node_idx]["precision"] = posterior_precision
 

@@ -30,6 +30,9 @@ def binary_state_node_prediction_error(
         attributes[node_idx]["mean"] - attributes[node_idx]["expected_mean"]
     )
 
+    # cancel the prediction error if the value was not observed
+    value_prediction_error *= attributes[node_idx]["observed"]
+
     # scale the prediction error so it can be used in the posterior update
     # (eq. 98, Weber et al., v1)
     value_prediction_error /= attributes[node_idx]["expected_precision"]

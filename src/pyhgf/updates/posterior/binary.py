@@ -46,6 +46,7 @@ def binary_node_update_infinite(
     attributes[node_idx]["precision"] = attributes[value_child_idx][
         "expected_precision"
     ]
+    attributes[node_idx]["observed"] = attributes[value_child_idx]["observed"]
 
     return attributes
 

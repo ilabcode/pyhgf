@@ -217,11 +217,9 @@ class HGF(object):
                 precision=initial_precision["1"],
                 tonic_volatility=tonic_volatility["1"]
                 if self.model_type != "binary"
-                else jnp.nan,
-                tonic_drift=tonic_drift["1"]
-                if self.model_type != "binary"
-                else jnp.nan,
-                additional_parameters={"binary_expected_precision": jnp.nan}
+                else 0.0,
+                tonic_drift=tonic_drift["1"] if self.model_type != "binary" else 0.0,
+                additional_parameters={"binary_expected_precision": 0.0}
                 if self.model_type == "binary"
                 else None,
             )
@@ -295,6 +293,7 @@ class HGF(object):
             (
                 jnp.ones((1, len(self.input_nodes_idx.idx))),
                 jnp.ones((1, 1)),
+                jnp.ones((1, 1)),
             ),
         )
         if self.verbose:
@@ -306,6 +305,7 @@ class HGF(object):
         self,
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
+        is_observed: Optional[np.ndarray] = None,
     ) -> "HGF":
         """Add new observations.
 
@@ -317,6 +317,8 @@ class HGF(object):
             Time vector (optional). If `None`, the time vector will default to
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
+        is_observed :
+            A 2d boolean array masking `input_data`.
 
         """
         if self.verbose:
@@ -328,11 +330,15 @@ class HGF(object):
         if input_data.ndim == 1:
             input_data = input_data[..., jnp.newaxis]
 
+        # is it observation or missing inputs
+        if is_observed is None:
+            is_observed = np.ones(input_data.shape)
+
         # this is where the model loop over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
         _, node_trajectories = scan(
-            self.scan_fn, self.attributes, (input_data, time_steps)
+            self.scan_fn, self.attributes, (input_data, time_steps, is_observed)
         )
 
         # trajectories of the network attributes a each time point
@@ -548,9 +554,10 @@ class HGF(object):
                 "volatility_coupling_parents": None,
                 "input_noise": continuous_parameters["continuous_precision"],
                 "expected_precision": continuous_parameters["continuous_precision"],
-                "time_step": jnp.nan,
-                "value": jnp.nan,
-                "surprise": jnp.nan,
+                "time_step": 0.0,
+                "value": 0.0,
+                "surprise": 0.0,
+                "observed": 0,
                 "temp": {
                     "effective_precision": 1.0,  # should be fixed to 1 for input nodes
                     "value_prediction_error": 0.0,
@@ -562,9 +569,10 @@ class HGF(object):
                 "expected_precision": binary_parameters["binary_precision"],
                 "eta0": binary_parameters["eta0"],
                 "eta1": binary_parameters["eta1"],
-                "time_step": jnp.nan,
-                "value": jnp.nan,
-                "surprise": jnp.nan,
+                "time_step": 0.0,
+                "value": 0.0,
+                "observed": 0,
+                "surprise": 0.0,
             }
         elif kind == "categorical":
             input_node_parameters = {
@@ -717,6 +725,7 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
+            "observed": 1,
             "temp": {
                 "effective_precision": 0.0,
                 "value_prediction_error": 0.0,
@@ -842,6 +851,7 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
+            "observed": 1,
             "temp": {
                 "effective_precision": 0.0,
                 "value_prediction_error": 0.0,
