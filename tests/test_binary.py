@@ -150,14 +150,15 @@ class Testbinary(TestCase):
             sequence8,
             sequence9,
         )
-        data = jnp.array([1.0, 1.0])
+        data = jnp.ones(1)
+        time_steps = jnp.ones(1)
 
         # apply sequence
         new_attributes, _ = beliefs_propagation(
             edges=edges,
             attributes=attributes,
             update_sequence=update_sequence,
-            data=data,
+            input_data=(data, time_steps),
         )
         for idx, val in zip(
             ["mean", "expected_mean", "binary_expected_precision"],
@@ -180,7 +181,8 @@ class Testbinary(TestCase):
 
         # Create the data (value and time steps vectors) - only use the 5 first trials
         # as the priors are ill defined here
-        data = jnp.array([u, jnp.ones(len(u), dtype=int)]).T[:5]
+        data = jnp.array([u[:5]]).T
+        time_steps = jnp.ones((len(u[:5]), 1))
 
         # create the function that will be scaned
         scan_fn = Partial(
@@ -190,7 +192,7 @@ class Testbinary(TestCase):
         )
 
         # Run the entire for loop
-        last, _ = scan(scan_fn, attributes, data)
+        last, _ = scan(scan_fn, attributes, (data, time_steps))
         for idx, val in zip(
             ["mean", "expected_mean", "binary_expected_precision"],
             [0.0, 0.95616907, 23.860779],

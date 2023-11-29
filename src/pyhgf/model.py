@@ -292,7 +292,10 @@ class HGF(object):
         _ = scan(
             self.scan_fn,
             self.attributes,
-            jnp.array([jnp.ones(len(self.input_nodes_idx.idx) + 1)]),
+            (
+                jnp.ones((1, len(self.input_nodes_idx.idx))),
+                jnp.ones((1, 1)),
+            ),
         )
         if self.verbose:
             print("... Cache the belief propagation function.")
@@ -319,19 +322,18 @@ class HGF(object):
         if self.verbose:
             print((f"Adding {len(input_data)} new observations."))
         if time_steps is None:
-            time_steps = np.ones(len(input_data))  # time steps vector
-
-        # concatenate data and time
-        time_steps = time_steps[..., jnp.newaxis]
+            time_steps = np.ones((len(input_data), 1))  # time steps vector
+        else:
+            time_steps = time_steps[..., jnp.newaxis]
         if input_data.ndim == 1:
             input_data = input_data[..., jnp.newaxis]
-
-        data = jnp.concatenate((input_data, time_steps), dtype=float, axis=1)
 
         # this is where the model loop over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
-        _, node_trajectories = scan(self.scan_fn, self.attributes, data)
+        _, node_trajectories = scan(
+            self.scan_fn, self.attributes, (input_data, time_steps)
+        )
 
         # trajectories of the network attributes a each time point
         self.node_trajectories = node_trajectories
@@ -377,10 +379,12 @@ class HGF(object):
             time_steps = np.ones(len(input_data))  # time steps vector
 
         # concatenate data and time
-        time_steps = time_steps[..., jnp.newaxis]
+        if time_steps is None:
+            time_steps = np.ones((len(input_data), 1))  # time steps vector
+        else:
+            time_steps = time_steps[..., jnp.newaxis]
         if input_data.ndim == 1:
             input_data = input_data[..., jnp.newaxis]
-        data = jnp.concatenate((input_data, time_steps), dtype=float, axis=1)
 
         # create the update functions that will be scanned
         branches_fn = [
@@ -399,7 +403,7 @@ class HGF(object):
             return switch(idx, branches_fn, attributes, data)
 
         # wrap the inputs
-        scan_input = data, branches_idx
+        scan_input = (input_data, time_steps), branches_idx
 
         # scan over the input data and apply the switching belief propagation functions
         _, node_trajectories = scan(switching_propagation, self.attributes, scan_input)
@@ -410,7 +414,7 @@ class HGF(object):
         # because some of the input node might not have been updated, here we manually
         # insert the input data to the input node (without triggering updates)
         for idx, inp in zip(self.input_nodes_idx.idx, range(input_data.shape[1])):
-            self.node_trajectories[idx]["value"] = input_data[:, inp]
+            self.node_trajectories[idx]["value"] = input_data[inp]
 
         return self
 

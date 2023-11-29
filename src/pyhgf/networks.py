@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 @partial(jit, static_argnames=("update_sequence", "edges", "input_nodes_idx"))
 def beliefs_propagation(
     attributes: Dict,
-    data: ArrayLike,
+    input_data: ArrayLike,
     update_sequence: UpdateSequence,
     edges: Tuple,
     input_nodes_idx: Tuple = (0,),
@@ -58,7 +58,7 @@ def beliefs_propagation(
     attributes :
         The dictionaries of nodes' parameters. This variable is updated and returned
         after the beliefs propagation step.
-    data :
+    input_data :
         An array containing the new observation(s) as well as the time steps. The new
         observations can be a single value or a vector of observation with a length
         matching the length `input_nodes_idx`. `input_nodes_idx` is used to index the
@@ -80,9 +80,8 @@ def beliefs_propagation(
 
 
     """
-    # extract value(s) and time steps from the data
-    values = data[:-1]
-    time_step = data[-1]
+    # extract value(s) and time steps
+    values, time_step = input_data
 
     input_nodes_idx = jnp.asarray(input_nodes_idx)
     # Fit the model with the current time and value variables, given the model structure
@@ -95,7 +94,7 @@ def beliefs_propagation(
 
         attributes = update_fn(
             attributes=attributes,
-            time_step=time_step,
+            time_step=time_step[0],
             node_idx=node_idx,
             edges=edges,
             value=value,

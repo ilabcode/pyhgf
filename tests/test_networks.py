@@ -89,12 +89,13 @@ class TestStructure(TestCase):
         update_sequence = (sequence1, sequence2, sequence3)
 
         # one batch of new observations with time step
-        data = jnp.array([0.2, 1.0])
+        data = jnp.array([0.2])
+        time_steps = jnp.ones(1)
 
         # apply sequence
         new_attributes, _ = beliefs_propagation(
             attributes=attributes,
-            data=data,
+            input_data=(data, time_steps),
             update_sequence=update_sequence,
             edges=edges,
         )
