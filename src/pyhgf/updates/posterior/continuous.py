@@ -89,8 +89,8 @@ def posterior_update_mean_continuous_node(
     posterior_mean :
         The new posterior mean.
 
-    Note
-    ----
+    Notes
+    -----
     This update step is similar to the one used for the state node, except that it uses
     the observed value instead of the mean of the child node, and the expected mean of
     the parent node instead of the expected mean of the child node.
@@ -250,8 +250,8 @@ def posterior_update_precision_continuous_node(
     posterior_precision :
         The new posterior precision.
 
-    Note
-    ----
+    Notes
+    -----
     This update step is similar to the one used for the state node, except that it uses
     the observed value instead of the mean of the child node, and the expected mean of
     the parent node instead of the expected mean of the child node.

@@ -281,9 +281,9 @@ slideshow:
 missing_inputs_u = u.astype(float)
 
 # create a mask to filter the observations using the agent's decisions
-is_observed = np.ones(u.shape)
-is_observed[:2, p_a<=.5] = 0
-is_observed[2:, p_a>.5] = 0
+observed = np.ones(u.shape)
+observed[:2, p_a<=.5] = 0
+observed[2:, p_a>.5] = 0
 ```
 
 ```{code-cell} ipython3
@@ -315,7 +315,7 @@ two_armed_bandit_missing_inputs_hgf.plot_network()
 # note that we are providing the mask as parameter of the input function
 two_armed_bandit_missing_inputs_hgf.input_data(
     input_data=missing_inputs_u.T,
-    is_observed=is_observed.T,
+    observed=observed.T,
 );
 ```
 
@@ -454,7 +454,7 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses, observed):
     hgf.attributes[11]["tonic_volatility"] = tonic_volatility
 
     # run the model forward
-    hgf.input_data(input_data=input_data, is_observed=observed)
+    hgf.input_data(input_data=input_data, observed=observed)
 
     # probabilities of choosing arm A
     beta = 1.0

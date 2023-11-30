@@ -290,7 +290,7 @@ class HGF(object):
         self,
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
-        is_observed: Optional[np.ndarray] = None,
+        observed: Optional[np.ndarray] = None,
     ) -> "HGF":
         """Add new observations.
 
@@ -302,9 +302,9 @@ class HGF(object):
             Time vector (optional). If `None`, the time vector will default to
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
-        is_observed :
+        observed :
             A 2d boolean array masking `input_data`. In case of missing inputs, (i.e.
-            `is_observed` is `0`), the input node will have value and volatility set to
+            `observed` is `0`), the input node will have value and volatility set to
             `0.0`. If the parent(s) of this input receive prediction error from other
             children, they simply ignore this one. If they are not receiving other
             prediction errors, they are updated by keeping the same mean be decreasing
@@ -326,14 +326,14 @@ class HGF(object):
             input_data = input_data[..., jnp.newaxis]
 
         # is it observation or missing inputs
-        if is_observed is None:
-            is_observed = np.ones(input_data.shape, dtype=int)
+        if observed is None:
+            observed = np.ones(input_data.shape, dtype=int)
 
         # this is where the model loop over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
         _, node_trajectories = scan(
-            self.scan_fn, self.attributes, (input_data, time_steps, is_observed)
+            self.scan_fn, self.attributes, (input_data, time_steps, observed)
         )
 
         # trajectories of the network attributes a each time point
@@ -347,7 +347,7 @@ class HGF(object):
         branches_idx: np.array,
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
-        is_observed: Optional[np.ndarray] = None,
+        observed: Optional[np.ndarray] = None,
     ):
         """Add new observations with custom update sequences.
 
@@ -373,9 +373,9 @@ class HGF(object):
             Time vector (optional). If `None`, the time vector will default to
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
-        is_observed :
+        observed :
             A 2d boolean array masking `input_data`. In case of missing inputs, (i.e.
-            `is_observed` is `0`), the input node will have value and volatility set to
+            `observed` is `0`), the input node will have value and volatility set to
             `0.0`. If the parent(s) of this input receive prediction error from other
             children, they simply ignore this one. If they are not receiving other
             prediction errors, they are updated by keeping the same mean be decreasing
@@ -401,8 +401,8 @@ class HGF(object):
             input_data = input_data[..., jnp.newaxis]
 
         # is it observation or missing inputs
-        if is_observed is None:
-            is_observed = np.ones(input_data.shape, dtype=int)
+        if observed is None:
+            observed = np.ones(input_data.shape, dtype=int)
 
         # create the update functions that will be scanned
         branches_fn = [
@@ -421,7 +421,7 @@ class HGF(object):
             return switch(idx, branches_fn, attributes, data)
 
         # wrap the inputs
-        scan_input = (input_data, time_steps, is_observed), branches_idx
+        scan_input = (input_data, time_steps, observed), branches_idx
 
         # scan over the input data and apply the switching belief propagation functions
         _, node_trajectories = scan(switching_propagation, self.attributes, scan_input)

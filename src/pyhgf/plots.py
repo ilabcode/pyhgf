@@ -235,8 +235,8 @@ def plot_network(hgf: "HGF") -> "Source":
     hgf :
         An instance of the HGF model containing a node structure.
 
-    Note
-    ----
+    Notes
+    -----
     This function requires [Graphviz](https://github.com/xflr6/graphviz) to be
     installed to work correctly.
 

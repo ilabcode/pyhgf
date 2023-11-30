@@ -80,7 +80,7 @@ def beliefs_propagation(
 
     """
     # extract value(s) and time steps
-    values, time_step, is_observed = input_data
+    values, time_step, observed = input_data
 
     input_nodes_idx = jnp.asarray(input_nodes_idx)
     # Fit the model with the current time and value variables, given the model structure
@@ -92,7 +92,7 @@ def beliefs_propagation(
         value = jnp.sum(jnp.where(jnp.equal(input_nodes_idx, node_idx), values, 0.0))
 
         # is it an observation or a missing observation
-        observed = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * is_observed)
+        observed = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * observed)
 
         attributes = update_fn(
             attributes=attributes,
