@@ -60,23 +60,40 @@ np.random.seed(123)
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}, "jp-MarkdownHeadingCollapsed": true}
 
-In this notebook, we are going to illustrate how to fit behavioural responses from a two-armed bandit task when the rewards and punishments are independent using a task similar to what was used in {cite:p}`Pulcu2017`. This will also illustrate how we can use missing/unobserved values in an input node, the impact this has on the belief trajectories, and how to deal with models where the decisions of the agent influence the observations.
+In this notebook, we are going to illustrate how to fit behavioural responses from a two-armed bandit task when the rewards and punishments are independent using a task similar to what was used in {cite:p}`Pulcu2017` (see {ref}`task`). This will also illustrate how we can use missing/unobserved values in an input node, the impact this has on the belief trajectories, and how to deal with models where the decisions of the agent influence the observations.
 
-In the task considered here, two armed bandits are presented to the participant on each trial, and the participant has to select one of them to get the reward and punishments associated. For both arms, the rewards and punishments are independent, which means that the participant has to infer four probabilities: $\{P(reward|A), P(loss|A), P(reward|B), P(loss|B)\}$. Because the rewards and punishments are independent, we simulate the task using four binary HGFs.
+```{figure} https://iiif.elifesciences.org/lax/27879%2Felife-27879-fig1-v3.tif/full/1500,/0/default.jpg
+---
+name: task
+---
+In the task considered here, two armed bandits are presented to the participant on each trial, and the participant has to select one of them to get the reward and punishments associated. In our simulation, we generalize further and consider that for both arms, the rewards and punishments are independent, which means that the participant has to infer four probabilities: $\{P(reward|A), P(loss|A), P(reward|B), P(loss|B)\}$. Because the rewards and punishments are independent, we simulate the task using four binary HGFs. Figure from {cite:p}`Pulcu2017`.
+```
 
 ```{note}
 While the binary HGF is a special case of the categorical HGF where the number of categories is set to 2, the categorical HGF assumes that only one category is presented on every trial, which is different from what we have here as on some trials, we could have both reward and loss on both arms. Also, a categorical HGF adds a volatility coupling between the binary branch (see {ref}`categorical_hgf`). Therefore, this model would not be suitable here as we want every branch of the network to evolve independently.
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 # the tonic volatility used across the tutorial
 # this value is the same for four branches of the network
-tonic_volatility = -1.0
+tonic_volatility = -1.5
 ```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 We start by creating a network that consists in four two-levels HGF. Each branch is evolving independently and is not affecting the beliefs trajectories of other branches.
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 two_armed_bandit_hgf = (
     HGF(model_type=None)
     .add_input_node(kind="binary", input_idxs=0)
@@ -96,20 +113,32 @@ two_armed_bandit_hgf = (
 two_armed_bandit_hgf.plot_network()
 ```
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 ## Task structure
 We start with a simple task structure where contingencies (i.e. the probability that a given armed bandit is associated with a win/loss) alternate between `0.2`, `0.5` and `0.8`. The rate of change in contingencies can be fast (i.e. high volatility blocks) or slow (i.e. low volatility blocks).
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 # three levels of contingencies
 high_prob, chance, low_prob = 0.8, 0.5, 0.2
 
 # create blocks of contingencies
-stable_contingencies = np.array([low_prob, high_prob]).repeat(20)
-volatile_contingencies = np.tile(np.array([low_prob, high_prob]).repeat(10), 3)
-chance_contingencies = np.array(chance).repeat(40)
+stable_contingencies = np.array([low_prob, high_prob]).repeat(40)
+volatile_contingencies = np.tile(np.array([low_prob, high_prob]).repeat(10), 6)
+chance_contingencies = np.array(chance).repeat(80)
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 # create sequences of blocks for each arm/rewards
 win_arm1 = np.concatenate([stable_contingencies, chance_contingencies, volatile_contingencies])
 loss_arm1 = np.concatenate([volatile_contingencies, chance_contingencies, stable_contingencies])
@@ -118,6 +147,11 @@ loss_arm2 = np.concatenate([chance_contingencies, volatile_contingencies, stable
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 # sample trial level outcomes from the sequences
 u_win_arm1 = np.random.binomial(n=1, p=win_arm1)
 u_loss_arm1 = np.random.binomial(n=1, p=loss_arm1)
@@ -125,9 +159,17 @@ u_win_arm2 = np.random.binomial(n=1, p=win_arm2)
 u_loss_arm2 = np.random.binomial(n=1, p=loss_arm2)
 ```
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 This gives the following task structure:
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input, full-width]
+---
 # trial numbers
 trials = np.arange(len(win_arm1))
 
@@ -148,6 +190,8 @@ for i, u, p, label, color in zip(
 plt.tight_layout()
 sns.despine();
 ```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 ## Simulate a dataset
 
@@ -213,15 +257,22 @@ l_b = two_armed_bandit_hgf.node_trajectories[7]["expected_mean"]
 p_a = np.exp(beta * (w_a-l_a)) / ( np.exp(beta * (w_a-l_a)) + np.exp(beta * (w_b-l_b)))
 ```
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 Using these probabilities, we can infer which arm was selected at each trial and filter the inputs that are presented to the participant. Because it would be too chaotic to provide the information about the four hidden states at each trial, here the participant is only presented with the information about the arm that was selected. Therefore, when arm $A$ is selected, the inputs from arm $B$ are hidden.
 
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-```{note}
+```{margin}
 Input nodes can receive missing or unobserved values. Missing inputs are used to indicate an absence of observation from the agent's point of view and should not be used for missing records or excluded trials. When an input is labelled as missing, we use the total volatility at the parents' level to decrease their precision as a function of time elapsed, but the mean of the belief is still the same. This behaviour accounts for the fact that the Gaussian Random Walk continues while no observations are made and the uncertainty increases accordingly. It could be assumed that there is also a limit to this behaviour and that the uncertainty will not increase infinitely. AR1 nodes are good candidates as volatility parents to implement this behaviour. 
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 # a new matrix of observations
 missing_inputs_u = u.astype(float)
 
@@ -232,6 +283,11 @@ is_observed[2:, p_a>.5] = 0
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 two_armed_bandit_missing_inputs_hgf = (
     HGF(model_type=None)
     .add_input_node(kind="binary", input_idxs=0)
@@ -319,6 +375,11 @@ input_nodes_idx = two_armed_bandit_missing_inputs_hgf.input_nodes_idx.idx
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 input_data = u.astype(float).T
 responses = []  # 1: arm A - 0: arm B
 
@@ -341,7 +402,7 @@ for i in range(input_data.shape[0]):
     p_a = np.exp(beta * (w_a-l_a)) / ( np.exp(beta * (w_a-l_a)) + np.exp(beta * (w_b-l_b)))
 
     # sample a decision using the probability
-    response = np.random.binomial(p=.4, n=1)
+    response = np.random.binomial(p=p_a, n=1)
     responses.append(response)
 
     # hide the observations that were not selected
@@ -373,7 +434,12 @@ observed[:2, ~responses] = 0
 ```
 
 ```{code-cell} ipython3
-def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
+def two_bandits_logp(tonic_volatility, hgf, input_data, responses, observed):
 
     # replace with a new omega in the model
     hgf.attributes[8]["tonic_volatility"] = tonic_volatility
@@ -397,11 +463,10 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
 
     # the surprise of the model is the sum of binary surprise at all input level
     # plus the binary surprise for the agent decision
-    surprise_1 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 2]), 0.0, hgf.node_trajectories[0]["surprise"]))
-    surprise_2 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 2]), 0.0, hgf.node_trajectories[1]["surprise"]))
-    surprise_3 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 0]), 0.0, hgf.node_trajectories[2]["surprise"]))
-    surprise_4 = jnp.sum(jnp.where(jnp.isnan(input_data[:, 0]), 0.0, hgf.node_trajectories[3]["surprise"]))
-    surprise = surprise_1 + surprise_2 + surprise_3 + surprise_4 + surprise
+    surprise += jnp.sum(hgf.node_trajectories[0]["surprise"])
+    surprise += jnp.sum(hgf.node_trajectories[1]["surprise"])
+    surprise += jnp.sum(hgf.node_trajectories[2]["surprise"])
+    surprise += jnp.sum(hgf.node_trajectories[3]["surprise"])
 
     surprise = jnp.where(
         jnp.isnan(surprise),
@@ -411,18 +476,37 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses):
     return -surprise
 ```
 
-We create both jitted and the vector-jacobian product requiered for a custom Op in PyTensor:
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+```{margin}
+The response function computes the sum of the binary surprise (see {py:func}`pyhgf.math.binary_surprise`) at the first level of the four binary HGFs, and adds the binary surprise for the observed decision given the probabilities predicted by the sigmoid decision rule. While we are mostly interested in predicting the latter (and could use solely this quantity for optimization), this can produce situations where the binary HGFs are forced toward *extreme* beliefs in a way that overfit the responses from the participant. Adding their surprise in the equation ensures that these situations are limited, as such trajectories are also associated with extreme surprise. As always, we return the negative surprise to get a log probability that can be manipulated by PyMC.
+```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
+We create both a jitted version of this function and the vector-jacobian product (gradient) requiered for a custom Op in PyTensor:
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 logp_fn = Partial(
     two_bandits_logp, 
     hgf=two_armed_bandit_missing_inputs_hgf, 
     input_data=input_data,
-    responses=responses
+    responses=responses,
+    observed=observed
 )
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 jitted_custom_op_jax = jit(logp_fn)
 
 def vjp_custom_op_jax(x, gz):
@@ -431,6 +515,8 @@ def vjp_custom_op_jax(x, gz):
 
 jitted_vjp_custom_op_jax = jit(vjp_custom_op_jax)
 ```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 The log probability function and the gradient of this function are then passed to a new `Op`, which is a class that can be manipulated inside PyMC graphs.
 
@@ -490,6 +576,8 @@ custom_op = CustomOp()
 vjp_custom_op = VJPCustomOp()
 ```
 
++++ {"editable": true, "slideshow": {"slide_type": ""}}
+
 We are now ready to sample the model and estimate the value of tonic volatility.
 
 ```{code-cell} ipython3
@@ -499,7 +587,7 @@ slideshow:
   slide_type: ''
 ---
 with pm.Model() as model:
-    omega = pm.Normal("omega", -4.0, 2)
+    omega = pm.Normal("omega", -4.0, 5)
     pm.Potential("hgf", custom_op(omega))
     idata = pm.sample(chains=2)
 ```
@@ -531,5 +619,10 @@ slideshow:
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 
 ```
