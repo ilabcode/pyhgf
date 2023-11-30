@@ -92,7 +92,7 @@ def beliefs_propagation(
         value = jnp.sum(jnp.where(jnp.equal(input_nodes_idx, node_idx), values, 0.0))
 
         # is it an observation or a missing observation
-        observed = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * observed)
+        observed_value = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * observed)
 
         attributes = update_fn(
             attributes=attributes,
@@ -100,7 +100,7 @@ def beliefs_propagation(
             node_idx=node_idx,
             edges=edges,
             value=value,
-            observed=observed,
+            observed=observed_value,
         )
 
     return (

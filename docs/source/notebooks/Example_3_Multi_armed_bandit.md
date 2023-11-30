@@ -59,7 +59,7 @@ from pyhgf.model import HGF
 np.random.seed(123)
 ```
 
-+++ {"editable": true, "slideshow": {"slide_type": ""}, "jp-MarkdownHeadingCollapsed": true}
++++ {"editable": true, "jp-MarkdownHeadingCollapsed": true, "slideshow": {"slide_type": ""}}
 
 In this notebook, we are going to illustrate how to fit behavioural responses from a two-armed bandit task when the rewards and punishments are independent using a task similar to what was used in {cite:p}`Pulcu2017` (see {ref}`task`). This will also illustrate how we can use missing/unobserved values in an input node, the impact this has on the belief trajectories, and how to deal with models where the decisions of the agent influence the observations.
 
