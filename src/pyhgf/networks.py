@@ -16,7 +16,6 @@ from pyhgf.updates.posterior.categorical import categorical_input_update
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
     continuous_node_update_ehgf,
-    continuous_node_update_missing_observations,
 )
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
@@ -316,22 +315,6 @@ def get_update_sequence(hgf: "HGF") -> List:
             update_fn = continuous_input_prediction_error
             update_sequence.append((input_idx, update_fn))
 
-            # special case: the network should handle missing inputs
-            # the continuous parent of the input node node is also updated here
-            if hgf.allow_missing_inputs:
-                continuous_parent_idx = hgf.edges[input_idx].value_parents[
-                    0
-                ]  # type: ignore
-                update_sequence.append(
-                    (continuous_parent_idx, continuous_node_update_missing_observations)
-                )
-                node_without_update.remove(continuous_parent_idx)
-
-                # the prediction sequence is the update sequence in reverse order
-                prediction_sequence.insert(
-                    0, (continuous_parent_idx, continuous_node_prediction)
-                )
-
         elif kind == "binary":
             # add the update steps for the binary state node as well
             binary_state_idx = hgf.edges[input_idx].value_parents[0]  # type: ignore
@@ -356,22 +339,6 @@ def get_update_sequence(hgf: "HGF") -> List:
             prediction_sequence.insert(
                 0, (binary_state_idx, binary_state_node_prediction)
             )
-
-            # special case: the network should handle missing inputs
-            # the continuous parent of the binary state node is also updated here
-            if hgf.allow_missing_inputs:
-                continuous_parent_idx = hgf.edges[binary_state_idx].value_parents[
-                    0
-                ]  # type: ignore
-                update_sequence.append(
-                    (continuous_parent_idx, continuous_node_update_missing_observations)
-                )
-                node_without_update.remove(continuous_parent_idx)
-
-                # the prediction sequence is the update sequence in reverse order
-                prediction_sequence.insert(
-                    0, (continuous_parent_idx, continuous_node_prediction)
-                )
 
         # add the PE step to the sequence
         node_without_pe.remove(input_idx)

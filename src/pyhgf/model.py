@@ -30,17 +30,6 @@ class HGF(object):
     ----------
     attributes :
         The attributes of the probabilistic nodes.
-    allow_missing_inputs :
-        If `False` (default), all the observation provided to the input nodes should be
-        real or integer. If `True`, missing inputs are allowed as `jnp.nan`. In case of
-        missing inputs, the continuous parents are updated by decreasing the precision
-        as a function of time. Allowing for missing inputs add a conditional check for
-        `jnp.nan` at every time step and should therefore be avoided if the input time
-        series is certified without missing inputs.
-    .. warning::
-        Missing inputs are missing observation from the agent perspective and should
-        not be used to handle missing data point that are only missing in the event
-        log, or rejected trials.
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
@@ -109,7 +98,6 @@ class HGF(object):
             "3": 0.0,
         },
         verbose: bool = True,
-        allow_missing_inputs: bool = False,
     ):
         r"""Parameterization of the HGF model.
 
@@ -161,8 +149,6 @@ class HGF(object):
         verbose :
             The verbosity of the methods for model creation and fitting. Defaults to
             `True`.
-        allow_missing_inputs :
-            Whether the network should handle missing inputs. Defaults to `False`.
 
         """
         self.model_type = model_type
@@ -174,7 +160,6 @@ class HGF(object):
         self.attributes: Dict = {}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
-        self.allow_missing_inputs = allow_missing_inputs
 
         if model_type not in ["continuous", "binary"]:
             if self.verbose:
@@ -318,7 +303,17 @@ class HGF(object):
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
         is_observed :
-            A 2d boolean array masking `input_data`.
+            A 2d boolean array masking `input_data`. In case of missing inputs, (i.e.
+            `is_observed` is `0`), the input node will have value and volatility set to
+            `0.0`. If the parent(s) of this input receive prediction error from other
+            children, they simply ignore this one. If they are not receiving other
+            prediction errors, they are updated by keeping the same mean be decreasing
+            the precision as a function of time to reflect the evolution of the
+            underlying Gaussian Random Walk.
+        .. warning::
+            Missing inputs are missing observations from the agent's perspective and
+            should not be used to handle missing data points that were observed (e.g.
+            missing in the event log, or rejected trials).
 
         """
         if self.verbose:
@@ -379,7 +374,17 @@ class HGF(object):
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
         is_observed :
-            A 2d boolean array masking `input_data`.
+            A 2d boolean array masking `input_data`. In case of missing inputs, (i.e.
+            `is_observed` is `0`), the input node will have value and volatility set to
+            `0.0`. If the parent(s) of this input receive prediction error from other
+            children, they simply ignore this one. If they are not receiving other
+            prediction errors, they are updated by keeping the same mean be decreasing
+            the precision as a function of time to reflect the evolution of the
+            underlying Gaussian Random Walk.
+        .. warning::
+            Missing inputs are missing observations from the agent's perspective and
+            should not be used to handle missing data points that were observed (e.g.
+            missing in the event log, or rejected trials).
 
         """
         if self.verbose:
