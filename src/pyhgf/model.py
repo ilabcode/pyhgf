@@ -30,17 +30,6 @@ class HGF(object):
     ----------
     attributes :
         The attributes of the probabilistic nodes.
-    allow_missing_inputs :
-        If `False` (default), all the observation provided to the input nodes should be
-        real or integer. If `True`, missing inputs are allowed as `jnp.nan`. In case of
-        missing inputs, the continuous parents are updated by decreasing the precision
-        as a function of time. Allowing for missing inputs add a conditional check for
-        `jnp.nan` at every time step and should therefore be avoided if the input time
-        series is certified without missing inputs.
-    .. warning::
-        Missing inputs are missing observation from the agent perspective and should
-        not be used to handle missing data point that are only missing in the event
-        log, or rejected trials.
     edges :
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
@@ -109,7 +98,6 @@ class HGF(object):
             "3": 0.0,
         },
         verbose: bool = True,
-        allow_missing_inputs: bool = False,
     ):
         r"""Parameterization of the HGF model.
 
@@ -161,8 +149,6 @@ class HGF(object):
         verbose :
             The verbosity of the methods for model creation and fitting. Defaults to
             `True`.
-        allow_missing_inputs :
-            Whether the network should handle missing inputs. Defaults to `False`.
 
         """
         self.model_type = model_type
@@ -174,7 +160,6 @@ class HGF(object):
         self.attributes: Dict = {}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
-        self.allow_missing_inputs = allow_missing_inputs
 
         if model_type not in ["continuous", "binary"]:
             if self.verbose:
@@ -217,11 +202,9 @@ class HGF(object):
                 precision=initial_precision["1"],
                 tonic_volatility=tonic_volatility["1"]
                 if self.model_type != "binary"
-                else jnp.nan,
-                tonic_drift=tonic_drift["1"]
-                if self.model_type != "binary"
-                else jnp.nan,
-                additional_parameters={"binary_expected_precision": jnp.nan}
+                else 0.0,
+                tonic_drift=tonic_drift["1"] if self.model_type != "binary" else 0.0,
+                additional_parameters={"binary_expected_precision": 0.0}
                 if self.model_type == "binary"
                 else None,
             )
@@ -295,6 +278,7 @@ class HGF(object):
             (
                 jnp.ones((1, len(self.input_nodes_idx.idx))),
                 jnp.ones((1, 1)),
+                jnp.ones((1, 1)),
             ),
         )
         if self.verbose:
@@ -306,6 +290,7 @@ class HGF(object):
         self,
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
+        is_observed: Optional[np.ndarray] = None,
     ) -> "HGF":
         """Add new observations.
 
@@ -317,6 +302,18 @@ class HGF(object):
             Time vector (optional). If `None`, the time vector will default to
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
+        is_observed :
+            A 2d boolean array masking `input_data`. In case of missing inputs, (i.e.
+            `is_observed` is `0`), the input node will have value and volatility set to
+            `0.0`. If the parent(s) of this input receive prediction error from other
+            children, they simply ignore this one. If they are not receiving other
+            prediction errors, they are updated by keeping the same mean be decreasing
+            the precision as a function of time to reflect the evolution of the
+            underlying Gaussian Random Walk.
+        .. warning::
+            Missing inputs are missing observations from the agent's perspective and
+            should not be used to handle missing data points that were observed (e.g.
+            missing in the event log, or rejected trials).
 
         """
         if self.verbose:
@@ -328,11 +325,15 @@ class HGF(object):
         if input_data.ndim == 1:
             input_data = input_data[..., jnp.newaxis]
 
+        # is it observation or missing inputs
+        if is_observed is None:
+            is_observed = np.ones(input_data.shape, dtype=int)
+
         # this is where the model loop over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
         _, node_trajectories = scan(
-            self.scan_fn, self.attributes, (input_data, time_steps)
+            self.scan_fn, self.attributes, (input_data, time_steps, is_observed)
         )
 
         # trajectories of the network attributes a each time point
@@ -346,6 +347,7 @@ class HGF(object):
         branches_idx: np.array,
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
+        is_observed: Optional[np.ndarray] = None,
     ):
         """Add new observations with custom update sequences.
 
@@ -371,6 +373,18 @@ class HGF(object):
             Time vector (optional). If `None`, the time vector will default to
             `np.ones(len(input_data))`. This vector is automatically transformed
             into a time steps vector.
+        is_observed :
+            A 2d boolean array masking `input_data`. In case of missing inputs, (i.e.
+            `is_observed` is `0`), the input node will have value and volatility set to
+            `0.0`. If the parent(s) of this input receive prediction error from other
+            children, they simply ignore this one. If they are not receiving other
+            prediction errors, they are updated by keeping the same mean be decreasing
+            the precision as a function of time to reflect the evolution of the
+            underlying Gaussian Random Walk.
+        .. warning::
+            Missing inputs are missing observations from the agent's perspective and
+            should not be used to handle missing data points that were observed (e.g.
+            missing in the event log, or rejected trials).
 
         """
         if self.verbose:
@@ -385,6 +399,10 @@ class HGF(object):
             time_steps = time_steps[..., jnp.newaxis]
         if input_data.ndim == 1:
             input_data = input_data[..., jnp.newaxis]
+
+        # is it observation or missing inputs
+        if is_observed is None:
+            is_observed = np.ones(input_data.shape, dtype=int)
 
         # create the update functions that will be scanned
         branches_fn = [
@@ -403,7 +421,7 @@ class HGF(object):
             return switch(idx, branches_fn, attributes, data)
 
         # wrap the inputs
-        scan_input = (input_data, time_steps), branches_idx
+        scan_input = (input_data, time_steps, is_observed), branches_idx
 
         # scan over the input data and apply the switching belief propagation functions
         _, node_trajectories = scan(switching_propagation, self.attributes, scan_input)
@@ -548,9 +566,10 @@ class HGF(object):
                 "volatility_coupling_parents": None,
                 "input_noise": continuous_parameters["continuous_precision"],
                 "expected_precision": continuous_parameters["continuous_precision"],
-                "time_step": jnp.nan,
-                "value": jnp.nan,
-                "surprise": jnp.nan,
+                "time_step": 0.0,
+                "value": 0.0,
+                "surprise": 0.0,
+                "observed": 0,
                 "temp": {
                     "effective_precision": 1.0,  # should be fixed to 1 for input nodes
                     "value_prediction_error": 0.0,
@@ -562,9 +581,10 @@ class HGF(object):
                 "expected_precision": binary_parameters["binary_precision"],
                 "eta0": binary_parameters["eta0"],
                 "eta1": binary_parameters["eta1"],
-                "time_step": jnp.nan,
-                "value": jnp.nan,
-                "surprise": jnp.nan,
+                "time_step": 0.0,
+                "value": 0.0,
+                "observed": 0,
+                "surprise": 0.0,
             }
         elif kind == "categorical":
             input_node_parameters = {
@@ -717,6 +737,7 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
+            "observed": 1,
             "temp": {
                 "effective_precision": 0.0,
                 "value_prediction_error": 0.0,
@@ -842,6 +863,7 @@ class HGF(object):
             "tonic_drift": tonic_drift,
             "autoregressive_coefficient": autoregressive_coefficient,
             "autoregressive_intercept": autoregressive_intercept,
+            "observed": 1,
             "temp": {
                 "effective_precision": 0.0,
                 "value_prediction_error": 0.0,

@@ -178,6 +178,7 @@ def continuous_input_prediction_error(
     node_idx: int,
     edges: Edges,
     value: float,
+    observed: bool,
 ) -> Dict:
     """Store prediction errors in an input node.
 
@@ -201,6 +202,8 @@ def continuous_input_prediction_error(
         children.
     value :
         The new observed value.
+    observed :
+        Whether value was observed or not.
 
     Returns
     -------
@@ -220,6 +223,7 @@ def continuous_input_prediction_error(
     """
     # store value and time step in the node's parameters
     attributes[node_idx]["value"] = value
+    attributes[node_idx]["observed"] = observed
     attributes[node_idx]["time_step"] = time_step
 
     if (edges[node_idx].value_parents is not None) or (

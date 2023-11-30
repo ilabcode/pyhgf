@@ -56,8 +56,6 @@ Continuous nodes
     posterior_update_precision_continuous_node
     continuous_node_update
     continuous_node_update_ehgf
-    continuous_node_update_missing_observations
-    continuous_blank_update
 
 Prediction steps
 ================

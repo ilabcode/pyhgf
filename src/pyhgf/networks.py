@@ -16,7 +16,6 @@ from pyhgf.updates.posterior.categorical import categorical_input_update
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
     continuous_node_update_ehgf,
-    continuous_node_update_missing_observations,
 )
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
@@ -81,7 +80,7 @@ def beliefs_propagation(
 
     """
     # extract value(s) and time steps
-    values, time_step = input_data
+    values, time_step, is_observed = input_data
 
     input_nodes_idx = jnp.asarray(input_nodes_idx)
     # Fit the model with the current time and value variables, given the model structure
@@ -92,12 +91,16 @@ def beliefs_propagation(
         # otherwise, just pass 0.0 and the value will be ignored
         value = jnp.sum(jnp.where(jnp.equal(input_nodes_idx, node_idx), values, 0.0))
 
+        # is it an observation or a missing observation
+        observed = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * is_observed)
+
         attributes = update_fn(
             attributes=attributes,
             time_step=time_step[0],
             node_idx=node_idx,
             edges=edges,
             value=value,
+            observed=observed,
         )
 
     return (
@@ -312,22 +315,6 @@ def get_update_sequence(hgf: "HGF") -> List:
             update_fn = continuous_input_prediction_error
             update_sequence.append((input_idx, update_fn))
 
-            # special case: the network should handle missing inputs
-            # the continuous parent of the input node node is also updated here
-            if hgf.allow_missing_inputs:
-                continuous_parent_idx = hgf.edges[input_idx].value_parents[
-                    0
-                ]  # type: ignore
-                update_sequence.append(
-                    (continuous_parent_idx, continuous_node_update_missing_observations)
-                )
-                node_without_update.remove(continuous_parent_idx)
-
-                # the prediction sequence is the update sequence in reverse order
-                prediction_sequence.insert(
-                    0, (continuous_parent_idx, continuous_node_prediction)
-                )
-
         elif kind == "binary":
             # add the update steps for the binary state node as well
             binary_state_idx = hgf.edges[input_idx].value_parents[0]  # type: ignore
@@ -352,22 +339,6 @@ def get_update_sequence(hgf: "HGF") -> List:
             prediction_sequence.insert(
                 0, (binary_state_idx, binary_state_node_prediction)
             )
-
-            # special case: the network should handle missing inputs
-            # the continuous parent of the binary state node is also updated here
-            if hgf.allow_missing_inputs:
-                continuous_parent_idx = hgf.edges[binary_state_idx].value_parents[
-                    0
-                ]  # type: ignore
-                update_sequence.append(
-                    (continuous_parent_idx, continuous_node_update_missing_observations)
-                )
-                node_without_update.remove(continuous_parent_idx)
-
-                # the prediction sequence is the update sequence in reverse order
-                prediction_sequence.insert(
-                    0, (continuous_parent_idx, continuous_node_prediction)
-                )
 
         # add the PE step to the sequence
         node_without_pe.remove(input_idx)

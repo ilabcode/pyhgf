@@ -460,6 +460,16 @@ Work in progress
 
 +++
 
+## Working with missing or unobserved input sequences
+
++++
+
+```{warning}
+Work in progress
+```
+
++++
+
 # System configuration
 
 ```{code-cell} ipython3

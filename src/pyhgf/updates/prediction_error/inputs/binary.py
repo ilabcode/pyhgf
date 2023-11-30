@@ -16,6 +16,7 @@ def binary_input_prediction_error_infinite_precision(
     edges: Edges,
     node_idx: int,
     value: float,
+    observed: bool,
     **args
 ) -> Dict:
     """Compute the prediction error of a binary input assuming an infinite precision.
@@ -35,6 +36,8 @@ def binary_input_prediction_error_infinite_precision(
         Pointer to the value parent node that will be updated.
     value :
         The new observed value.
+    observed :
+        Whether value was observed or not.
 
     Returns
     -------
@@ -50,11 +53,15 @@ def binary_input_prediction_error_infinite_precision(
     """
     # store value and time step in the node's parameters
     attributes[node_idx]["value"] = value
+    attributes[node_idx]["observed"] = observed
     attributes[node_idx]["time_step"] = time_step
 
     value_parent_idx = edges[node_idx].value_parents[0]  # type: ignore
-    attributes[node_idx]["surprise"] = binary_surprise(
-        x=value, expected_mean=attributes[value_parent_idx]["expected_mean"]
+    attributes[node_idx]["surprise"] = (
+        binary_surprise(
+            x=value, expected_mean=attributes[value_parent_idx]["expected_mean"]
+        )
+        * observed
     )
 
     return attributes

@@ -33,6 +33,7 @@ class Testcontinuous(TestCase):
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "observed": 1,
             "volatility_coupling_parents": None,
             "value_coupling_parents": None,
             "temp": {
@@ -52,6 +53,7 @@ class Testcontinuous(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -71,6 +73,7 @@ class Testcontinuous(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -91,6 +94,7 @@ class Testcontinuous(TestCase):
         )
         data = jnp.array([0.2])
         time_steps = jnp.ones(1)
+        observed = jnp.ones(1)
 
         ###########################################
         # No value parent - no volatility parents #
@@ -101,7 +105,7 @@ class Testcontinuous(TestCase):
             attributes=attributes,
             edges=edges,
             update_sequence=update_sequence,
-            input_data=(data, time_steps),
+            input_data=(data, time_steps, observed),
         )
 
         assert attributes[1] == new_attributes[1]
@@ -125,6 +129,7 @@ class Testcontinuous(TestCase):
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "observed": 1,
             "volatility_coupling_parents": (1.0,),
             "value_coupling_parents": (1.0,),
             "temp": {
@@ -144,6 +149,7 @@ class Testcontinuous(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -163,6 +169,7 @@ class Testcontinuous(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": 1.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -200,13 +207,14 @@ class Testcontinuous(TestCase):
         )
         data = jnp.array([0.2])
         time_steps = jnp.ones(1)
+        observed = jnp.ones(1)
 
         # apply beliefs propagation updates
         new_attributes, _ = beliefs_propagation(
             edges=edges,
             attributes=attributes,
             update_sequence=update_sequence,
-            input_data=(data, time_steps),
+            input_data=(data, time_steps, observed),
         )
 
         for idx, val in zip(["time_step", "value"], [1.0, 0.2]):
@@ -234,6 +242,7 @@ class Testcontinuous(TestCase):
             "surprise": 0.0,
             "time_step": 0.0,
             "value": 0.0,
+            "observed": 1,
             "volatility_coupling_parents": None,
             "value_coupling_parents": (1.0,),
             "temp": {
@@ -253,6 +262,7 @@ class Testcontinuous(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -272,6 +282,7 @@ class Testcontinuous(TestCase):
             "autoregressive_coefficient": 0.0,
             "autoregressive_intercept": 0.0,
             "mean": 1.0,
+            "observed": 1,
             "tonic_volatility": -3.0,
             "tonic_drift": 0.0,
             "temp": {
@@ -317,9 +328,10 @@ class Testcontinuous(TestCase):
 
         # Create the data (value and time steps vectors)
         time_steps = jnp.ones((len(timeserie), 1))
+        observed = jnp.ones((len(timeserie), 1))
 
         # Run the entire for loop
-        last, _ = scan(scan_fn, attributes, (timeserie, time_steps))
+        last, _ = scan(scan_fn, attributes, (timeserie, time_steps, observed))
         for idx, val in zip(["time_step", "value"], [1.0, 0.8241]):
             assert jnp.isclose(last[0][idx], val)
         for idx, val in zip(
