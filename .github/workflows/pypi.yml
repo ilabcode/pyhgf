@@ -28,6 +28,11 @@ jobs:
         --wheel
         --outdir dist/
         .
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v3
+      with:
+        name: python-package-distributions
+        path: dist/
 
   publish-to-pypi:
     name: >-
