@@ -235,8 +235,8 @@ def plot_network(hgf: "HGF") -> "Source":
     hgf :
         An instance of the HGF model containing a node structure.
 
-    Note
-    ----
+    Notes
+    -----
     This function requires [Graphviz](https://github.com/xflr6/graphviz) to be
     installed to work correctly.
 
@@ -596,26 +596,34 @@ def plot_nodes(
             if show_surprise:
                 if not trajectories_df[f"x_{node_idx}_surprise"].isnull().all():
                     surprise_ax = axs[i].twinx()
-                    surprise_ax.plot(
-                        trajectories_df.time,
-                        trajectories_df[f"x_{node_idx}_surprise"],
-                        color="#2a2a2a",
-                        linewidth=0.5,
-                        zorder=-1,
-                        label="Surprise",
+
+                    node_surprise = trajectories_df[f"x_{node_idx}_surprise"].to_numpy()
+                    sp = node_surprise.sum()
+                    surprise_ax.set_title(
+                        f"Node {node_idx} - Surprise: {sp:.2f}",
+                        loc="left",
                     )
                     surprise_ax.fill_between(
                         x=trajectories_df.time,
-                        y1=trajectories_df[f"x_{node_idx}_surprise"],
-                        y2=trajectories_df[f"x_{node_idx}_surprise"].min(),
+                        y1=node_surprise,
+                        y2=node_surprise.min(),
+                        where=hgf.node_trajectories[node_idx]["observed"],
                         color="#7f7f7f",
                         alpha=0.1,
                         zorder=-1,
                     )
-                    sp = trajectories_df[f"x_{node_idx}_surprise"].sum()
-                    surprise_ax.set_title(
-                        f"Node {node_idx} - Surprise: {sp:.2f}",
-                        loc="left",
+
+                    # hide surprise if the input was not observed
+                    node_surprise[
+                        hgf.node_trajectories[node_idx]["observed"] == 0
+                    ] = np.nan
+                    surprise_ax.plot(
+                        trajectories_df.time,
+                        node_surprise,
+                        color="#2a2a2a",
+                        linewidth=0.5,
+                        zorder=-1,
+                        label="Surprise",
                     )
                     surprise_ax.set_ylabel("Surprise")
                     surprise_ax.legend()

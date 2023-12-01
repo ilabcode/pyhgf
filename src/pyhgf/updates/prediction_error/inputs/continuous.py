@@ -120,8 +120,8 @@ def continuous_input_value_prediction_error(
     attributes :
         The attributes of the probabilistic nodes.
 
-    Note
-    ----
+    Notes
+    -----
     This update step is similar to the one used for the state node, except that it uses
     the observed value instead of the mean of the child node, and the expected mean of
     the parent node instead of the expected mean of the child node.

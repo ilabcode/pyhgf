@@ -26,6 +26,7 @@ kernelspec:
 editable: true
 slideshow:
   slide_type: ''
+tags: [hide-cell]
 ---
 %%capture
 import sys
@@ -58,7 +59,7 @@ from pyhgf.model import HGF
 np.random.seed(123)
 ```
 
-+++ {"editable": true, "slideshow": {"slide_type": ""}, "jp-MarkdownHeadingCollapsed": true}
++++ {"editable": true, "jp-MarkdownHeadingCollapsed": true, "slideshow": {"slide_type": ""}}
 
 In this notebook, we are going to illustrate how to fit behavioural responses from a two-armed bandit task when the rewards and punishments are independent using a task similar to what was used in {cite:p}`Pulcu2017` (see {ref}`task`). This will also illustrate how we can use missing/unobserved values in an input node, the impact this has on the belief trajectories, and how to deal with models where the decisions of the agent influence the observations.
 
@@ -66,6 +67,8 @@ In this notebook, we are going to illustrate how to fit behavioural responses fr
 ---
 name: task
 ---
+Experimental design
+
 In the task considered here, two armed bandits are presented to the participant on each trial, and the participant has to select one of them to get the reward and punishments associated. In our simulation, we generalize further and consider that for both arms, the rewards and punishments are independent, which means that the participant has to infer four probabilities: $\{P(reward|A), P(loss|A), P(reward|B), P(loss|B)\}$. Because the rewards and punishments are independent, we simulate the task using four binary HGFs. Figure from {cite:p}`Pulcu2017`.
 ```
 
@@ -263,7 +266,7 @@ Using these probabilities, we can infer which arm was selected at each trial and
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-```{margin}
+```{note}
 Input nodes can receive missing or unobserved values. Missing inputs are used to indicate an absence of observation from the agent's point of view and should not be used for missing records or excluded trials. When an input is labelled as missing, we use the total volatility at the parents' level to decrease their precision as a function of time elapsed, but the mean of the belief is still the same. This behaviour accounts for the fact that the Gaussian Random Walk continues while no observations are made and the uncertainty increases accordingly. It could be assumed that there is also a limit to this behaviour and that the uncertainty will not increase infinitely. AR1 nodes are good candidates as volatility parents to implement this behaviour. 
 ```
 
@@ -277,9 +280,9 @@ slideshow:
 missing_inputs_u = u.astype(float)
 
 # create a mask to filter the observations using the agent's decisions
-is_observed = np.ones(u.shape)
-is_observed[:2, p_a<=.5] = 0
-is_observed[2:, p_a>.5] = 0
+observed = np.ones(u.shape)
+observed[:2, p_a<=.5] = 0
+observed[2:, p_a>.5] = 0
 ```
 
 ```{code-cell} ipython3
@@ -311,7 +314,7 @@ two_armed_bandit_missing_inputs_hgf.plot_network()
 # note that we are providing the mask as parameter of the input function
 two_armed_bandit_missing_inputs_hgf.input_data(
     input_data=missing_inputs_u.T,
-    is_observed=is_observed.T,
+    observed=observed.T,
 );
 ```
 
@@ -326,6 +329,8 @@ two_armed_bandit_missing_inputs_hgf.plot_nodes(node_idxs=7, axs=axs[3])
 plt.tight_layout()
 sns.despine();
 ```
+
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 We can now see from the plot above that the branches of the networks are only updated if the participant actually chose the corresponding arm. Otherwise, the expected probability remains the same but the uncertainty will increase over time.
 
@@ -448,7 +453,7 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses, observed):
     hgf.attributes[11]["tonic_volatility"] = tonic_volatility
 
     # run the model forward
-    hgf.input_data(input_data=input_data, is_observed=observed)
+    hgf.input_data(input_data=input_data, observed=observed)
 
     # probabilities of choosing arm A
     beta = 1.0
@@ -478,7 +483,7 @@ def two_bandits_logp(tonic_volatility, hgf, input_data, responses, observed):
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
-```{margin}
+```{hint}
 The response function computes the sum of the binary surprise (see {py:func}`pyhgf.math.binary_surprise`) at the first level of the four binary HGFs, and adds the binary surprise for the observed decision given the probabilities predicted by the sigmoid decision rule. While we are mostly interested in predicting the latter (and could use solely this quantity for optimization), this can produce situations where the binary HGFs are forced toward *extreme* beliefs in a way that overfit the responses from the participant. Adding their surprise in the equation ensures that these situations are limited, as such trajectories are also associated with extreme surprise. As always, we return the negative surprise to get a log probability that can be manipulated by PyMC.
 ```
 

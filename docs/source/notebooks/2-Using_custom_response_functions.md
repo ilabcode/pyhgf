@@ -26,6 +26,7 @@ kernelspec:
 editable: true
 slideshow:
   slide_type: ''
+tags: [hide-cell]
 ---
 %%capture
 import sys

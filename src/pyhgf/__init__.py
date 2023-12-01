@@ -23,8 +23,8 @@ def load_data(dataset: str) -> Union[Tuple[np.ndarray, ...], np.ndarray]:
     data : np.ndarray
         The data (a 1d timeseries).
 
-    Note
-    ----
+    Notes
+    -----
     The continuous time series is the standard USD-CHF conversion rates over time used
     in the Matlab examples.
 

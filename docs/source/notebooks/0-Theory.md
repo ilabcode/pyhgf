@@ -299,7 +299,7 @@ The two-level and three-level Hierarchical Gaussian Filters for binary or contin
 These models were described in {cite:p}`2014:mathys,2011:mathys`. The binary HGF has the particularity that it uses a sigmoid transform in the input node to convert continuous values into binary probabilities. For both models, volatility coupling is depicted with dashed lines, and value coupling with straight lines. The three-level HGF has one volatility layer more than the two-level HGF, which is used to estimate higher-order uncertainty.
 ```
 
-+++
++++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 ```{hint}
 Hierarchical Gaussian Filters are inspired by other simpler models for Bayesian filtering and reinforcement learning. These models can be seen for example as generalisation of the [Kalman Filter](https://en.wikipedia.org/wiki/Kalman_filter) or the [Rescorla-Wagner model](https://en.wikipedia.org/wiki/Rescorla%E2%80%93Wagner_model). Specifically:
