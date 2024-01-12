@@ -592,7 +592,7 @@ class HGF(object):
                     coupling_idxs = tuple(indexes[0])
                     coupling_strengths = tuple(indexes[1])
             else:
-                coupling_idxs, coupling_strengths = (), ()
+                coupling_idxs, coupling_strengths = None, None
             couplings.append((coupling_idxs, coupling_strengths))
 
         # create the default parameters set accroding to the node type
@@ -672,7 +672,7 @@ class HGF(object):
                 n_categories = node_parameters["n_categories"]
             else:
                 n_categories = 4
-            implied_binary_parameters = {
+            binary_parameters = {
                 "eta0": 0.0,
                 "eta1": 1.0,
                 "binary_precision": jnp.inf,
@@ -686,8 +686,11 @@ class HGF(object):
                 "tonic_volatility_2": -4.0,
                 "tonic_volatility_3": -4.0,
             }
+            binary_idxs: List[int] = [
+                1 + i + len(self.edges) for i in range(n_categories)
+            ]
             default_parameters = {
-                "binary_idxs": [i + len(self.edges) for i in range(n_categories)],
+                "binary_idxs": binary_idxs,  # type: ignore
                 "n_categories": n_categories,
                 "surprise": 0.0,
                 "kl_divergence": 0.0,
@@ -697,7 +700,7 @@ class HGF(object):
                 "xi": jnp.array([1.0 / n_categories] * n_categories),
                 "mean": jnp.array([1.0 / n_categories] * n_categories),
                 "value": jnp.zeros(n_categories),
-                "implied_binary_parameters": implied_binary_parameters,
+                "binary_parameters": binary_parameters,
             }
 
         # update the defaults using the provided parameters
@@ -749,69 +752,72 @@ class HGF(object):
                     "volatility_parents",
                 ],
             ):
-                coupling_idxs, coupling_strengths = coupling
-                for idx, coupling_strength in zip(coupling_idxs, coupling_strengths):
-                    # unpack this node's edges
-                    (
-                        value_parents,
-                        volatility_parents,
-                        value_children,
-                        volatility_children,
-                    ) = edges_as_list[idx]
+                if coupling[0] is not None:
+                    coupling_idxs, coupling_strengths = coupling
+                    for idx, coupling_strength in zip(
+                        coupling_idxs, coupling_strengths  # type: ignore
+                    ):
+                        # unpack this node's edges
+                        (
+                            value_parents,
+                            volatility_parents,
+                            value_children,
+                            volatility_children,
+                        ) = edges_as_list[idx]
 
-                    # update the parents/children's edges depending on the coupling
-                    if edge_type == "value_parents":
-                        if value_children is None:
-                            value_children = (node_idx,)
-                            self.attributes[idx]["value_coupling_children"] = (
-                                coupling_strength,
-                            )
-                        else:
-                            value_children = value_children + (node_idx,)
-                            self.attributes[idx]["value_coupling_children"] += (
-                                coupling_strength,
-                            )
-                    elif edge_type == "volatility_parents":
-                        if volatility_children is None:
-                            volatility_children = (node_idx,)
-                            self.attributes[idx]["volatility_coupling_children"] = (
-                                coupling_strength,
-                            )
-                        else:
-                            volatility_children = volatility_children + (node_idx,)
-                            self.attributes[idx]["volatility_coupling_children"] += (
-                                coupling_strength,
-                            )
-                    elif edge_type == "value_children":
-                        if value_parents is None:
-                            value_parents = (node_idx,)
-                            self.attributes[idx]["value_coupling_parents"] = (
-                                coupling_strength,
-                            )
-                        else:
-                            value_parents = value_parents + (node_idx,)
-                            self.attributes[idx]["value_coupling_parents"] += (
-                                coupling_strength,
-                            )
-                    elif edge_type == "volatility_children":
-                        if volatility_parents is None:
-                            volatility_parents = (node_idx,)
-                            self.attributes[idx]["volatility_coupling_parents"] = (
-                                coupling_strength,
-                            )
-                        else:
-                            volatility_parents = volatility_parents + (node_idx,)
-                            self.attributes[idx]["volatility_coupling_parents"] += (
-                                coupling_strength,
-                            )
+                        # update the parents/children's edges depending on the coupling
+                        if edge_type == "value_parents":
+                            if value_children is None:
+                                value_children = (node_idx,)
+                                self.attributes[idx]["value_coupling_children"] = (
+                                    coupling_strength,
+                                )
+                            else:
+                                value_children = value_children + (node_idx,)
+                                self.attributes[idx]["value_coupling_children"] += (
+                                    coupling_strength,
+                                )
+                        elif edge_type == "volatility_parents":
+                            if volatility_children is None:
+                                volatility_children = (node_idx,)
+                                self.attributes[idx]["volatility_coupling_children"] = (
+                                    coupling_strength,
+                                )
+                            else:
+                                volatility_children = volatility_children + (node_idx,)
+                                self.attributes[idx][
+                                    "volatility_coupling_children"
+                                ] += (coupling_strength,)
+                        elif edge_type == "value_children":
+                            if value_parents is None:
+                                value_parents = (node_idx,)
+                                self.attributes[idx]["value_coupling_parents"] = (
+                                    coupling_strength,
+                                )
+                            else:
+                                value_parents = value_parents + (node_idx,)
+                                self.attributes[idx]["value_coupling_parents"] += (
+                                    coupling_strength,
+                                )
+                        elif edge_type == "volatility_children":
+                            if volatility_parents is None:
+                                volatility_parents = (node_idx,)
+                                self.attributes[idx]["volatility_coupling_parents"] = (
+                                    coupling_strength,
+                                )
+                            else:
+                                volatility_parents = volatility_parents + (node_idx,)
+                                self.attributes[idx]["volatility_coupling_parents"] += (
+                                    coupling_strength,
+                                )
 
-                    # save the updated edges back
-                    edges_as_list[idx] = Indexes(
-                        value_parents,
-                        volatility_parents,
-                        value_children,
-                        volatility_children,
-                    )
+                        # save the updated edges back
+                        edges_as_list[idx] = Indexes(
+                            value_parents,
+                            volatility_parents,
+                            value_children,
+                            volatility_children,
+                        )
 
         # convert the list back to a tuple
         self.edges = tuple(edges_as_list)
@@ -822,7 +828,8 @@ class HGF(object):
             self = fill_categorical_state_node(
                 self,
                 node_idx=node_idx,
-                implied_binary_parameters=implied_binary_parameters,
+                binary_input_idxs=node_parameters["binary_idxs"],  # type: ignore
+                binary_parameters=binary_parameters,
             )
 
         return self
