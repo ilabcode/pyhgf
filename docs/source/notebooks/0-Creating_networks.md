@@ -142,14 +142,12 @@ For example, the following networks are valid HGF structures:
 ```{code-cell} ipython3
 a_custom_hgf = (
     HGF(model_type=None)
-    .add_input_node(kind="continuous")
-    .add_value_parent(children_idxs=[0])
-    .add_value_parent(children_idxs=[1])
-    .add_value_parent(children_idxs=[1])
-    .add_value_parent(children_idxs=[1])
-    .add_volatility_parent(children_idxs=[2, 3])
-    .add_volatility_parent(children_idxs=[4])
-    .add_value_parent(children_idxs=[5, 6])
+    .add_nodes(kind="continuous-input")
+    .add_nodes(value_children=0)
+    .add_nodes(value_children=1, n_nodes=3)
+    .add_nodes(volatility_children=[2, 3])
+    .add_nodes(volatility_children=4)
+    .add_nodes(volatility_children=[5, 6])
 )
 a_custom_hgf.plot_network()
 ```
@@ -157,11 +155,11 @@ a_custom_hgf.plot_network()
 ```{code-cell} ipython3
 another_custom_hgf = (
     HGF(model_type=None)
-    .add_input_node(kind="continuous", input_idxs=[0, 1, 2])
-    .add_value_parent(children_idxs=[0])
-    .add_value_parent(children_idxs=[1])
-    .add_value_parent(children_idxs=[2])
-    .add_volatility_parent(children_idxs=[3, 4, 5])
+    .add_nodes(kind="continuous-input", n_nodes=3)
+    .add_nodes(value_children=0)
+    .add_nodes(value_children=1)
+    .add_nodes(value_children=2)
+    .add_nodes(volatility_children=[3, 4, 5])
 )
 another_custom_hgf.plot_network()
 ```
@@ -215,10 +213,9 @@ input_data = np.array([u_0, u_1]).T
 # creating a network that contains many child nodes are value coupled to one parent node
 many_value_children_hgf = (
     HGF(model_type=None)
-    .add_input_node(kind="continuous")
-    .add_input_node(kind="continuous", input_idxs=1)
-    .add_value_parent(children_idxs=[0, 1])
-    .add_volatility_parent(children_idxs=[2], mean=4.0)
+    .add_nodes(kind="continuous-input", n_nodes=2)
+    .add_nodes(value_children=[0, 1])
+    .add_nodes(volatility_children=2, node_parameters={"mean": 4.0})
     .init()
 )
 
@@ -272,14 +269,13 @@ input_data = np.array([u_0, u_1]).T
 ```
 
 ```{code-cell} ipython3
-# creating a network that contains many child nodes are volatility coupled to one parent node
+# creating a network that contains many child nodes that are volatility coupled to one parent node
 many_volatility_children_hgf = (
     HGF(model_type=None)
-    .add_input_node(kind="continuous")
-    .add_input_node(kind="continuous", input_idxs=1)
-    .add_value_parent(children_idxs=[0])
-    .add_value_parent(children_idxs=[1])
-    .add_volatility_parent(children_idxs=[2, 3], mean=5.0)
+    .add_nodes(kind="continuous-input", n_nodes=2)
+    .add_nodes(value_children=0)
+    .add_nodes(value_children=1)
+    .add_nodes(volatility_children=[2, 3], node_parameters={"mean": 4.0})
     .init()
 )
 
@@ -323,7 +319,7 @@ tags: [hide-input]
 ---
 np.random.seed(123)
 
-# simulate two binary outcomes from sinuosidal contingencies
+# simulate two binary outcomes from sinusoidal contingencies
 u_0_prob = (np.sin(np.arange(0, 1000) / 45) + 1) / 2
 u_0 = np.random.binomial(p=u_0_prob, n=1)
 
@@ -343,12 +339,11 @@ slideshow:
 # value coupled to one value parent node
 many_binary_children_hgf = (
     HGF(model_type=None)
-    .add_input_node(kind="binary")
-    .add_input_node(kind="binary", input_idxs=1)
-    .add_value_parent(children_idxs=[0], additional_parameters={"binary_expected_precision": np.nan})
-    .add_value_parent(children_idxs=[1], additional_parameters={"binary_expected_precision": np.nan})
-    .add_value_parent(children_idxs=[2, 3])
-    .add_volatility_parent(children_idxs=[4])
+    .add_nodes(kind="binary-input", n_nodes=2)
+    .add_nodes(kind="binary-state", value_children=0)
+    .add_nodes(kind="binary-state", value_children=1)
+    .add_nodes(value_children=[2, 3])
+    .add_nodes(volatility_children=4)
     .init()
 )
 
