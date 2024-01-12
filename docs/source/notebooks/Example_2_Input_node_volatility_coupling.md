@@ -84,8 +84,8 @@ slideshow:
 ---
 mean_hgf = (
     HGF(model_type=None, update_type="standard")
-    .add_input_node(kind="continuous", continuous_parameters={'continuous_precision': 1})
-    .add_value_parent(children_idxs=[0], tonic_volatility=-8.0)
+    .add_nodes(kind="continuous-input", node_parameters={'input_noise': 1.0, "expected_precision": 1.0})
+    .add_nodes(value_children=0, node_parameters={"tonic_volatility": -8.0})
     .init()
 ).input_data(input_data)
 mean_hgf.plot_network()
@@ -95,10 +95,6 @@ mean_hgf.plot_network()
 
 ```{note}
 We are setting the tonic volatility to something low for visualization purposes, but changing this value can make the model learn in fewer iterations.
-```
-
-```{code-cell} ipython3
-mean_hgf.update_sequence
 ```
 
 ```{code-cell} ipython3
@@ -162,9 +158,9 @@ slideshow:
 ---
 mean_precision_hgf = (
     HGF(model_type=None)
-    .add_input_node(kind="continuous", continuous_parameters={'continuous_precision': 0.01})
-    .add_value_parent(children_idxs=[0], tonic_volatility=-6.0)
-    .add_volatility_parent(children_idxs=[0], tonic_volatility=-6.0)
+    .add_nodes(kind="continuous-input", node_parameters={'input_noise': 0.01, "expected_precision": 0.01})
+    .add_nodes(value_children=0, node_parameters={"tonic_volatility": -6.0})
+    .add_nodes(volatility_children=0, node_parameters={"tonic_volatility": -6.0})
     .init()
 ).input_data(input_data)
 mean_precision_hgf.plot_network()
