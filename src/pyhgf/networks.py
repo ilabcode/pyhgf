@@ -200,7 +200,7 @@ def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List
 
 
 def fill_categorical_state_node(
-    hgf: "HGF", node_idx: int, implied_binary_parameters: Dict
+    hgf: "HGF", node_idx: int, binary_input_idxs: List[int], binary_parameters: Dict
 ) -> "HGF":
     """Generate a binary network implied by categorical state(-transition) nodes.
 
@@ -210,7 +210,9 @@ def fill_categorical_state_node(
         Instance of a HGF model.
     node_idx :
         Index to the categorical state node.
-    implied_binary_parameters :
+    binary_input_idxs :
+        The idexes of the binary input nodes.
+    binary_parameters :
         Parameters for the set of implied binary HGFs.
 
     Returns
@@ -219,58 +221,56 @@ def fill_categorical_state_node(
         The updated instance of the HGF model.
 
     """
-    # add thew binary inputs
-    hgf.add_input_node(
-        kind="binary",
-        input_idxs=implied_binary_parameters["binary_idxs"],
-        binary_parameters={
-            key: implied_binary_parameters[key]
-            for key in ["eta0", "eta1", "binary_precision"]
+    # add the binary inputs - one for each category
+    hgf.add_nodes(
+        kind="binary-input",
+        n_nodes=len(binary_input_idxs),
+        node_parameters={
+            key: binary_parameters[key] for key in ["eta0", "eta1", "binary_precision"]
         },
     )
 
     # add the value dependency between the categorical and binary nodes
     edges_as_list: List[Indexes] = list(hgf.edges)
-    edges_as_list[node_idx] = Indexes(
-        tuple(implied_binary_parameters["binary_idxs"]), None, None, None
-    )
-    for binary_idx in implied_binary_parameters["binary_idxs"]:
+    edges_as_list[node_idx] = Indexes(tuple(binary_input_idxs), None, None, None)
+    for binary_idx in binary_input_idxs:
         edges_as_list[binary_idx] = Indexes(None, None, (node_idx,), None)
     hgf.edges = tuple(edges_as_list)
 
     # loop over the number of categories and create as many second-levels binary HGF
-    for i in range(implied_binary_parameters["n_categories"]):
+    for i in range(binary_parameters["n_categories"]):
         # binary state node
-        hgf.add_value_parent(
-            children_idxs=implied_binary_parameters["binary_idxs"][i],
-            value_coupling=1.0,
-            precision=implied_binary_parameters["precision_1"],
-            mean=implied_binary_parameters["mean_1"],
-            additional_parameters={"binary_expected_precision": jnp.nan},
+        hgf.add_nodes(
+            kind="binary-state",
+            value_children=binary_input_idxs[i],
+            node_parameters={
+                "mean": binary_parameters["mean_1"],
+                "precision": binary_parameters["precision_1"],
+            },
         )
 
     # add the continuous parent node
-    for i in range(implied_binary_parameters["n_categories"]):
-        hgf.add_value_parent(
-            children_idxs=implied_binary_parameters["binary_idxs"][i]
-            + implied_binary_parameters["n_categories"],
-            value_coupling=1.0,
-            mean=implied_binary_parameters["mean_2"],
-            precision=implied_binary_parameters["precision_2"],
-            tonic_volatility=implied_binary_parameters["tonic_volatility_2"],
+    for i in range(binary_parameters["n_categories"]):
+        hgf.add_nodes(
+            value_children=binary_input_idxs[i] + binary_parameters["n_categories"],
+            node_parameters={
+                "mean": binary_parameters["mean_2"],
+                "precision": binary_parameters["precision_2"],
+                "tonic_volatility": binary_parameters["tonic_volatility_2"],
+            },
         )
 
     # add the higher level volatility parents
     # as a shared parents between the second level nodes
-    hgf.add_volatility_parent(
-        children_idxs=[
-            idx + 2 * implied_binary_parameters["n_categories"]
-            for idx in implied_binary_parameters["binary_idxs"]
+    hgf.add_nodes(
+        volatility_children=[
+            idx + 2 * binary_parameters["n_categories"] for idx in binary_input_idxs
         ],
-        volatility_coupling=1.0,
-        mean=implied_binary_parameters["mean_3"],
-        precision=implied_binary_parameters["precision_3"],
-        tonic_volatility=implied_binary_parameters["tonic_volatility_3"],
+        node_parameters={
+            "mean": binary_parameters["mean_3"],
+            "precision": binary_parameters["precision_3"],
+            "tonic_volatility": binary_parameters["tonic_volatility_3"],
+        },
     )
 
     return hgf

@@ -172,76 +172,80 @@ class HGF(object):
                         f"with {self.n_levels} levels."
                     )
                 )
-            #########
-            # Input #
-            #########
             if model_type == "continuous":
-                self.add_input_node(
-                    kind="continuous",
-                    continuous_parameters={
-                        "continuous_precision": continuous_precision
+                # Input
+                self.add_nodes(
+                    kind="continuous-input",
+                    node_parameters={"continuous_precision": continuous_precision},
+                )
+
+                # X-1
+                self.add_nodes(
+                    value_children=([0], [1.0]),
+                    node_parameters={
+                        "mean": initial_mean["1"],
+                        "precision": initial_precision["1"],
+                        "tonic_volatility": tonic_volatility["1"],
+                        "tonic_drift": tonic_drift["1"],
                     },
                 )
+
+                # X-2
+                self.add_nodes(
+                    volatility_children=([1], [volatility_coupling["1"]]),
+                    node_parameters={
+                        "mean": initial_mean["2"],
+                        "precision": initial_precision["2"],
+                        "tonic_volatility": tonic_volatility["2"],
+                        "tonic_drift": tonic_drift["2"],
+                    },
+                )
+
             elif model_type == "binary":
-                self.add_input_node(
-                    kind="binary",
-                    binary_parameters={
+                # Input
+                self.add_nodes(
+                    kind="binary-input",
+                    node_parameters={
                         "eta0": eta0,
                         "eta1": eta1,
                         "binary_precision": binary_precision,
                     },
                 )
 
-            #########
-            # x - 1 #
-            #########
-            self.add_value_parent(
-                children_idxs=[0],
-                value_coupling=1.0,
-                mean=initial_mean["1"],
-                precision=initial_precision["1"],
-                tonic_volatility=tonic_volatility["1"]
-                if self.model_type != "binary"
-                else 0.0,
-                tonic_drift=tonic_drift["1"] if self.model_type != "binary" else 0.0,
-                additional_parameters={"binary_expected_precision": 0.0}
-                if self.model_type == "binary"
-                else None,
-            )
-
-            #########
-            # x - 2 #
-            #########
-            if model_type == "continuous":
-                self.add_volatility_parent(
-                    children_idxs=[1],
-                    volatility_coupling=volatility_coupling["1"],
-                    mean=initial_mean["2"],
-                    precision=initial_precision["2"],
-                    tonic_volatility=tonic_volatility["2"],
-                    tonic_drift=tonic_drift["2"],
+                # X -1
+                self.add_nodes(
+                    kind="binary-state",
+                    value_children=([0], [1.0]),
+                    node_parameters={
+                        "mean": initial_mean["1"],
+                        "precision": initial_precision["1"],
+                    },
                 )
-            elif model_type == "binary":
-                self.add_value_parent(
-                    children_idxs=[1],
-                    value_coupling=1.0,
-                    mean=initial_mean["2"],
-                    precision=initial_precision["2"],
-                    tonic_volatility=tonic_volatility["2"],
-                    tonic_drift=tonic_drift["2"],
+
+                # X -2
+                self.add_nodes(
+                    kind="continuous-state",
+                    value_children=([1], [1.0]),
+                    node_parameters={
+                        "mean": initial_mean["2"],
+                        "precision": initial_precision["2"],
+                        "tonic_volatility": tonic_volatility["2"],
+                        "tonic_drift": tonic_drift["2"],
+                    },
                 )
 
             #########
             # x - 3 #
             #########
             if self.n_levels == 3:
-                self.add_volatility_parent(
-                    children_idxs=[2],
-                    volatility_coupling=volatility_coupling["2"],
-                    mean=initial_mean["3"],
-                    precision=initial_precision["3"],
-                    tonic_volatility=tonic_volatility["3"],
-                    tonic_drift=tonic_drift["3"],
+                self.add_nodes(
+                    volatility_children=([2], [volatility_coupling["2"]]),
+                    node_parameters={
+                        "mean": initial_mean["3"],
+                        "precision": initial_precision["3"],
+                        "tonic_volatility": tonic_volatility["3"],
+                        "tonic_drift": tonic_drift["3"],
+                    },
                 )
 
             # initialize the model so it is ready to receive new observations
@@ -501,71 +505,148 @@ class HGF(object):
         """
         return to_pandas(self)
 
-    def add_input_node(
+    def add_nodes(
         self,
-        kind: str,
-        input_idxs: Union[List, int] = 0,
-        continuous_parameters: Dict = {"continuous_precision": 1e4},
-        binary_parameters: Dict = {
-            "eta0": 0.0,
-            "eta1": 1.0,
-            "binary_precision": jnp.inf,
-        },
-        categorical_parameters: Dict = {"n_categories": 4},
-        additional_parameters: Optional[Dict] = None,
+        kind: str = "continuous-state",
+        n_nodes: int = 1,
+        node_parameters: Dict = {},
+        value_children: Optional[Union[List, Tuple, int]] = None,
+        value_parents: Optional[Union[List, Tuple, int]] = None,
+        volatility_children: Optional[Union[List, Tuple, int]] = None,
+        volatility_parents: Optional[Union[List, Tuple, int]] = None,
     ):
-        """Create an input node.
-
-        Three types of input nodes are supported:
-
-        - `continuous`: receive a continuous observation as input. The parameter
-        `continuous_precision` is required.
-        - `binary` receive a single boolean as observation. The parameters
-        `binary_precision`, `eta0` and `eta1` are required.
-        - `categorical` receive a boolean array as observation. The parameters are
-        `n_categories` required.
-
-        .. note:
-           When using `categorical`, the implied `n` binary HGFs are automatically
-           created with a shared volatility parent at the third level, resulting in a
-           network with `3n + 2` nodes in total.
+        """Add new input/state node(s) to the neural network.
 
         Parameters
         ----------
         kind :
-            The kind of input that should be created (can be `"continuous"`, `"binary"`
-            or `"categorical"`).
-        input_idxs :
-            The index of the new input (defaults to `0`).
-        continuous_parameters :
-            Parameters provided to the continuous input node. Contains:
-            - `continuous_precision` (the precision of the observations), which
-              defaults to `1e4`.
-        binary_parameters :
-            Parameters provided to the binary input node. Contains:
-            - `binary_precision`, the binary input precision, which defaults to
-            `jnp.inf`.
-            - `eta0`, the lower bound of the binary process. Defaults to `0.0`.
-            - `eta1`, the higher bound of the binary process. Defaults to `1.0`.
-        categorical_parameters :
-            Parameters provided to the categorical input node. Contains:
-            - `n_categories`, the number of categories implied by the categorical state
-            node(s).
-            .. note::
-               When using a categorical state node, the `binary_parameters` can be used
-               to parametrize the implied collection of binray HGFs.
-        additional_parameters :
-            Add more custom parameters to the input node.
+            The kind of node to create. If `"continuous-state"` (default), the node will
+            be a regular state node that can have value and/or volatility
+            parents/children. The hierarchical dependencies are specified using the
+            corresponding parameters below. If `"binary-state"`, the node should be the
+            value parent of a binary input. To create an input node, three types of
+            inputs are supported:
+            - `continuous-input`: receive a continuous observation as input.
+            - `binary-input` receive a single boolean as observation. The parameters
+            provided to the binary input node contain: 1. `binary_precision`, the binary
+            input precision, which defaults to `jnp.inf`. 2. `eta0`, the lower bound of
+            the binary process, which defaults to `0.0`. 3. `eta1`, the higher bound of
+            the binary process, which defaults to `1.0`.
+            - `categorical-input` receive a boolean array as observation. The parameters
+            provided to the categorical input node contain: 1. `n_categories`, the
+            number of categories implied by the categorical state.
+
+        .. note::
+           When using a categorical state node, the `binary_parameters` can be used to
+           parametrize the implied collection of binray HGFs.
+
+        .. note:
+           When using `categorical-input`, the implied `n` binary HGFs are automatically
+           created with a shared volatility parent at the third level, resulting in a
+           network with `3n + 2` nodes in total.
+
+        n_nodes :
+            The number of nodes to create (defaults to `1`).
+        node_parameters :
+            Dictionary of parameters. The default values are automatically infered
+            from the node type. Different values can be provided by passing them in the
+            dictionary, whcih will overwrite the defaults.
+        value_children:
+            Indexes to the node's value children. The index can be passed as an integer
+            or a list of integers, in case of multiple children. The coupling stregth
+            can be controlled by passing a tuple, where the first item is the list of
+            indexes, and the second item is the list of coupling strenghts.
+        value_parents:
+            Indexes to the node's value parents. The index can be passed as an integer
+            or a list of integers, in case of multiple children. The coupling stregth
+            can be controlled by passing a tuple, where the first item is the list of
+            indexes, and the second item is the list of coupling strenghts.
+        volatility_children:
+            Indexes to the node's volatility children. The index can be passed as an
+            integer or a list of integers, in case of multiple children. The coupling
+            stregth can be controlled by passing a tuple, where the first item is the
+            list of indexes, and the second item is the list of coupling strenghts.
+        volatility_parents:
+            Indexes to the node's volatility parents. The index can be passed as an
+            integer or a list of integers, in case of multiple children. The coupling
+            stregth can be controlled by passing a tuple, where the first item is the
+            list of indexes, and the second item is the list of coupling strenghts.
 
         """
-        if not isinstance(input_idxs, list):
-            input_idxs = [input_idxs]
+        # extract the node coupling indexes and coupling strengths
+        couplings = []
+        for indexes in [
+            value_children,
+            value_parents,
+            volatility_children,
+            volatility_parents,
+        ]:
+            if indexes is not None:
+                if isinstance(indexes, int):
+                    coupling_idxs = tuple([indexes])
+                    coupling_strengths = tuple([1.0])
+                elif isinstance(indexes, list):
+                    coupling_idxs = tuple(indexes)
+                    coupling_strengths = tuple([1.0] * len(coupling_idxs))
+                elif isinstance(indexes, tuple):
+                    coupling_idxs = tuple(indexes[0])
+                    coupling_strengths = tuple(indexes[1])
+            else:
+                coupling_idxs, coupling_strengths = None, None
+            couplings.append((coupling_idxs, coupling_strengths))
 
-        if kind == "continuous":
-            input_node_parameters = {
+        # create the default parameters set accroding to the node type
+        if kind == "continuous-state":
+            default_parameters = {
+                "mean": 0.0,
+                "expected_mean": 0.0,
+                "precision": 1.0,
+                "expected_precision": 1.0,
+                "volatility_coupling_children": couplings[2][1],
+                "volatility_coupling_parents": couplings[3][1],
+                "value_coupling_children": couplings[0][1],
+                "value_coupling_parents": couplings[1][1],
+                "tonic_volatility": -4.0,
+                "tonic_drift": 0.0,
+                "autoregressive_coefficient": 0.0,
+                "autoregressive_intercept": 0.0,
+                "observed": 1,
+                "temp": {
+                    "effective_precision": 0.0,
+                    "value_prediction_error": 0.0,
+                    "volatility_prediction_error": 0.0,
+                    "expected_precision_children": 0.0,
+                },
+            }
+        elif kind == "binary-state":
+            default_parameters = {
+                "mean": 0.0,
+                "expected_mean": 0.0,
+                "precision": 1.0,
+                "expected_precision": 1.0,
+                "volatility_coupling_children": couplings[2][1],
+                "volatility_coupling_parents": couplings[3][1],
+                "value_coupling_children": couplings[0][1],
+                "value_coupling_parents": couplings[1][1],
+                "tonic_volatility": 0.0,
+                "tonic_drift": 0.0,
+                "autoregressive_coefficient": 0.0,
+                "autoregressive_intercept": 0.0,
+                "observed": 1,
+                "binary_expected_precision": 0.0,
+                "temp": {
+                    "effective_precision": 0.0,
+                    "value_prediction_error": 0.0,
+                    "volatility_prediction_error": 0.0,
+                    "expected_precision_children": 0.0,
+                },
+            }
+        elif kind == "continuous-input":
+            default_parameters = {
                 "volatility_coupling_parents": None,
-                "input_noise": continuous_parameters["continuous_precision"],
-                "expected_precision": continuous_parameters["continuous_precision"],
+                "value_coupling_parents": None,
+                "input_noise": 1e4,
+                "expected_precision": 1e4,
                 "time_step": 0.0,
                 "value": 0.0,
                 "surprise": 0.0,
@@ -576,348 +657,180 @@ class HGF(object):
                     "volatility_prediction_error": 0.0,
                 },
             }
-        elif kind == "binary":
-            input_node_parameters = {
-                "expected_precision": binary_parameters["binary_precision"],
-                "eta0": binary_parameters["eta0"],
-                "eta1": binary_parameters["eta1"],
+        elif kind == "binary-input":
+            default_parameters = {
+                "expected_precision": jnp.inf,
+                "eta0": 0.0,
+                "eta1": 1.0,
                 "time_step": 0.0,
                 "value": 0.0,
                 "observed": 0,
                 "surprise": 0.0,
             }
-        elif kind == "categorical":
-            input_node_parameters = {
+        elif kind == "categorical-input":
+            if "n_categories" in node_parameters:
+                n_categories = node_parameters["n_categories"]
+            else:
+                n_categories = 4
+            binary_parameters = {
+                "eta0": 0.0,
+                "eta1": 1.0,
+                "binary_precision": jnp.inf,
+                "n_categories": n_categories,
+                "precision_1": 1.0,
+                "precision_2": 1.0,
+                "precision_3": 1.0,
+                "mean_1": 0.0,
+                "mean_2": -jnp.log(n_categories - 1),
+                "mean_3": 0.0,
+                "tonic_volatility_2": -4.0,
+                "tonic_volatility_3": -4.0,
+            }
+            binary_idxs: List[int] = [
+                1 + i + len(self.edges) for i in range(n_categories)
+            ]
+            default_parameters = {
+                "binary_idxs": binary_idxs,  # type: ignore
+                "n_categories": n_categories,
                 "surprise": 0.0,
                 "kl_divergence": 0.0,
                 "time_step": jnp.nan,
-                "alpha": jnp.ones(categorical_parameters["n_categories"]),
-                "pe": jnp.zeros(categorical_parameters["n_categories"]),
-                "xi": jnp.array(
-                    [1.0 / categorical_parameters["n_categories"]]
-                    * categorical_parameters["n_categories"]
-                ),
-                "mean": jnp.array(
-                    [1.0 / categorical_parameters["n_categories"]]
-                    * categorical_parameters["n_categories"]
-                ),
-                "value": jnp.zeros(categorical_parameters["n_categories"]),
+                "alpha": jnp.ones(n_categories),
+                "pe": jnp.zeros(n_categories),
+                "xi": jnp.array([1.0 / n_categories] * n_categories),
+                "mean": jnp.array([1.0 / n_categories] * n_categories),
+                "value": jnp.zeros(n_categories),
+                "binary_parameters": binary_parameters,
             }
 
-        # add more parameters (optional)
-        if additional_parameters is not None:
-            input_node_parameters = {**input_node_parameters, **additional_parameters}
+        # update the defaults using the provided parameters
+        default_parameters.update(node_parameters)
+        node_parameters = default_parameters
 
-        for input_idx in input_idxs:
-            if input_idx in self.attributes.keys():
-                raise Exception(
-                    f"A node with index {input_idx} already exists in the HGF network."
+        if "input" in kind:
+            input_type = kind.split("-")[0]
+        else:
+            input_type = None
+
+        # convert the structure to a list to modify it
+        edges_as_list: List[Indexes] = list(self.edges)
+
+        for _ in range(n_nodes):
+            node_idx = len(self.attributes)  # the index of the new node
+
+            # add a new edge
+            edges_as_list.append(
+                Indexes(
+                    couplings[1][0], couplings[3][0], couplings[0][0], couplings[2][0]
                 )
+            )
 
-            if input_idx == 0:
+            if node_idx == 0:
                 # this is the first node, create the node structure
-
-                self.attributes = {input_idx: input_node_parameters}
-                self.edges = (Indexes(None, None, None, None),)
-                self.input_nodes_idx = InputIndexes((input_idx,), (kind,))
+                self.attributes = {node_idx: node_parameters}
+                if input_type is not None:
+                    self.input_nodes_idx = InputIndexes((node_idx,), (input_type,))
             else:
                 # update the node structure
-                self.attributes[input_idx] = input_node_parameters
-                self.edges += (Indexes(None, None, None, None),)
+                self.attributes[node_idx] = node_parameters
 
-                # add information about the new input node in the indexes
-                new_idx = self.input_nodes_idx.idx
-                new_idx += (input_idx,)
-                new_kind = self.input_nodes_idx.kind
-                new_kind += (kind,)
-                self.input_nodes_idx = InputIndexes(new_idx, new_kind)
+                if input_type is not None:
+                    # add information about the new input node in the indexes
+                    new_idx = self.input_nodes_idx.idx
+                    new_idx += (node_idx,)
+                    new_kind = self.input_nodes_idx.kind
+                    new_kind += (input_type,)
+                    self.input_nodes_idx = InputIndexes(new_idx, new_kind)
 
-            # if we are creating a categorical state or state-transition node
-            # we have to generate the implied binary network(s) here
-            if kind == "categorical":
-                implied_binary_parameters = {
-                    "eta0": 0.0,
-                    "eta1": 1.0,
-                    "binary_precision": jnp.inf,
-                    "binary_idxs": [
-                        i + len(self.edges)
-                        for i in range(categorical_parameters["n_categories"])
-                    ],
-                    "n_categories": categorical_parameters["n_categories"],
-                    "precision_1": 1.0,
-                    "precision_2": 1.0,
-                    "precision_3": 1.0,
-                    "mean_1": 0.0,
-                    "mean_2": -jnp.log(categorical_parameters["n_categories"] - 1),
-                    "mean_3": 0.0,
-                    "tonic_volatility_2": -4.0,
-                    "tonic_volatility_3": -4.0,
-                }
-                implied_binary_parameters.update(binary_parameters)
+            # update the existing edge structure so it link to the new node as well
+            for coupling, edge_type in zip(
+                couplings,
+                [
+                    "value_children",
+                    "value_parents",
+                    "volatility_children",
+                    "volatility_parents",
+                ],
+            ):
+                if coupling[0] is not None:
+                    coupling_idxs, coupling_strengths = coupling
+                    for idx, coupling_strength in zip(
+                        coupling_idxs, coupling_strengths  # type: ignore
+                    ):
+                        # unpack this node's edges
+                        (
+                            value_parents,
+                            volatility_parents,
+                            value_children,
+                            volatility_children,
+                        ) = edges_as_list[idx]
 
-                self = fill_categorical_state_node(
-                    self,
-                    node_idx=input_idx,
-                    implied_binary_parameters=implied_binary_parameters,
-                )
+                        # update the parents/children's edges depending on the coupling
+                        if edge_type == "value_parents":
+                            if value_children is None:
+                                value_children = (node_idx,)
+                                self.attributes[idx]["value_coupling_children"] = (
+                                    coupling_strength,
+                                )
+                            else:
+                                value_children = value_children + (node_idx,)
+                                self.attributes[idx]["value_coupling_children"] += (
+                                    coupling_strength,
+                                )
+                        elif edge_type == "volatility_parents":
+                            if volatility_children is None:
+                                volatility_children = (node_idx,)
+                                self.attributes[idx]["volatility_coupling_children"] = (
+                                    coupling_strength,
+                                )
+                            else:
+                                volatility_children = volatility_children + (node_idx,)
+                                self.attributes[idx][
+                                    "volatility_coupling_children"
+                                ] += (coupling_strength,)
+                        elif edge_type == "value_children":
+                            if value_parents is None:
+                                value_parents = (node_idx,)
+                                self.attributes[idx]["value_coupling_parents"] = (
+                                    coupling_strength,
+                                )
+                            else:
+                                value_parents = value_parents + (node_idx,)
+                                self.attributes[idx]["value_coupling_parents"] += (
+                                    coupling_strength,
+                                )
+                        elif edge_type == "volatility_children":
+                            if volatility_parents is None:
+                                volatility_parents = (node_idx,)
+                                self.attributes[idx]["volatility_coupling_parents"] = (
+                                    coupling_strength,
+                                )
+                            else:
+                                volatility_parents = volatility_parents + (node_idx,)
+                                self.attributes[idx]["volatility_coupling_parents"] += (
+                                    coupling_strength,
+                                )
 
-        return self
-
-    def add_value_parent(
-        self,
-        children_idxs: Union[List, int],
-        value_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
-        mean: Union[float, np.ndarray, ArrayLike] = 0.0,
-        precision: Union[float, np.ndarray, ArrayLike] = 1.0,
-        tonic_volatility: Union[float, np.ndarray, ArrayLike] = -4.0,
-        tonic_drift: Union[float, np.ndarray, ArrayLike] = 0.0,
-        autoregressive_coefficient: float = 0.0,
-        autoregressive_intercept: float = 0.0,
-        additional_parameters: Optional[Dict] = None,
-    ):
-        r"""Add a value parent to a given set of nodes.
-
-        Parameters
-        ----------
-        children_idxs :
-            The child(s) node index(es).
-        value_coupling :
-            The value coupling between the child and parent node. This is will be
-            appended to the `value_coupling_children` parameters in the parent node,
-            and to the `value_coupling_parents` in the child node(s).
-        mean :
-            The mean of the Gaussian distribution. This value is passed both to the
-            current and expected states.
-        precision :
-            The precision of the Gaussian distribution (inverse variance). This value is
-            passed both to the current and expected states.
-        tonic_volatility :
-            The tonic part of the variance (the variance that is not inherited from
-            volatility parent(s)).
-        tonic_drift :
-            The drift of the random walk. Defaults to `0.0` (no drift).
-        autoregressive_coefficient :
-            The autoregressive coefficient is only used to parametrize the AR1 process
-            and represents the autoregressive coefficient. If
-            :math:`-1 \\le \\phi \\le 1`, the process is stationary and will revert to
-            the autoregressive intercept.
-        autoregressive_intercept :
-            The parameter `m` is only used to parametrize the AR1 process and represents
-            the autoregressive intercept. If :math:`-1 \\le \\phi \\le 1`, this is the
-            value to which the process will revert to.
-        additional_parameters :
-            Add more custom parameters to the node.
-
-        """
-        if not isinstance(children_idxs, list):
-            children_idxs = [children_idxs]
-
-        # how many nodes in structure
-        n_nodes = len(self.edges)
-        parent_idx = n_nodes  # append a new parent in the structure
-
-        if parent_idx in self.attributes.keys():
-            raise Exception(
-                f"A node with index {parent_idx} already exists in the HGF network."
-            )
-
-        # parent's parameter
-        node_parameters = {
-            "mean": mean,
-            "expected_mean": mean,
-            "precision": precision,
-            "expected_precision": precision,
-            "volatility_coupling_children": None,
-            "volatility_coupling_parents": None,
-            "value_coupling_children": tuple(
-                value_coupling for _ in range(len(children_idxs))
-            ),
-            "value_coupling_parents": None,
-            "tonic_volatility": tonic_volatility,
-            "tonic_drift": tonic_drift,
-            "autoregressive_coefficient": autoregressive_coefficient,
-            "autoregressive_intercept": autoregressive_intercept,
-            "observed": 1,
-            "temp": {
-                "effective_precision": 0.0,
-                "value_prediction_error": 0.0,
-                "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
-            },
-        }
-
-        # add more parameters (optional)
-        if additional_parameters is not None:
-            node_parameters = {**node_parameters, **additional_parameters}
-
-        # add a new node to connection structure with no parents
-        self.edges += (Indexes(None, None, tuple(children_idxs), None),)
-
-        # add a new parameters to parameters structure
-        self.attributes[parent_idx] = node_parameters
-
-        # convert the structure to a list to modify it
-        edges_as_list: List[Indexes] = list(self.edges)
-
-        for idx in children_idxs:
-            # add this node as parent and set value coupling
-            if edges_as_list[idx].value_parents is not None:
-                # append new index
-                new_value_parents_idx = edges_as_list[idx].value_parents + (parent_idx,)
-                edges_as_list[idx] = Indexes(
-                    new_value_parents_idx,
-                    edges_as_list[idx].volatility_parents,
-                    edges_as_list[idx].value_children,
-                    edges_as_list[idx].volatility_children,
-                )
-                # set the value coupling strength
-                self.attributes[idx]["value_coupling_parents"] += (value_coupling,)
-            else:
-                # append new index
-                new_value_parents_idx = (parent_idx,)
-                edges_as_list[idx] = Indexes(
-                    new_value_parents_idx,
-                    edges_as_list[idx].volatility_parents,
-                    edges_as_list[idx].value_children,
-                    edges_as_list[idx].volatility_children,
-                )
-                # set the value coupling strength
-                self.attributes[idx]["value_coupling_parents"] = (value_coupling,)
+                        # save the updated edges back
+                        edges_as_list[idx] = Indexes(
+                            value_parents,
+                            volatility_parents,
+                            value_children,
+                            volatility_children,
+                        )
 
         # convert the list back to a tuple
         self.edges = tuple(edges_as_list)
 
-        return self
-
-    def add_volatility_parent(
-        self,
-        children_idxs: Union[List, int],
-        volatility_coupling: Union[float, np.ndarray, ArrayLike] = 1.0,
-        mean: Union[float, np.ndarray, ArrayLike] = 0.0,
-        precision: Union[float, np.ndarray, ArrayLike] = 1.0,
-        tonic_volatility: Union[float, np.ndarray, ArrayLike] = -4.0,
-        tonic_drift: Union[float, np.ndarray, ArrayLike] = 0.0,
-        autoregressive_coefficient: float = 0.0,
-        autoregressive_intercept: float = 0.0,
-        additional_parameters: Optional[Dict] = None,
-    ):
-        r"""Add a volatility parent to a given set of nodes.
-
-        Parameters
-        ----------
-        children_idxs :
-            The child(s) node index(es).
-        volatility_coupling :
-            The volatility coupling between the child and parent node. This is will be
-            appended to the `volatility_coupling_children` parameters in the parent
-            node, and to the `volatility_coupling_parents` in the child node(s).
-        mean :
-            The mean of the Gaussian distribution. This value is passed both to the
-            current and expected states.
-        precision :
-            The precision of the Gaussian distribution (inverse variance). This
-            value is passed both to the current and expected states.
-        tonic_volatility :
-            The tonic part of the variance (the variance that is not inherited from
-            volatility parent(s)).
-        tonic_drift :
-            The drift of the random walk. Defaults to `0.0` (no drift).
-        autoregressive_coefficient :
-            The autoregressive coefficient is only used to parametrize the AR1 process
-            and represents the autoregressive coefficient. If
-            :math:`-1 \\le \\phi \\le 1`, the process is stationary and will revert to
-            the autoregressive intercept.
-        autoregressive_intercept :
-            The parameter `m` is only used to parametrize the AR1 process and represents
-            the autoregressive intercept. If :math:`-1 \\le \\phi \\le 1`, this is the
-            value to which the process will revert to.
-        additional_parameters :
-            Add more custom parameters to the node.
-
-        """
-        if not isinstance(children_idxs, list):
-            children_idxs = [children_idxs]
-
-        # how many nodes in structure
-        n_nodes = len(self.edges)
-        parent_idx = n_nodes  # append a new parent in the structure
-
-        if parent_idx in self.attributes.keys():
-            raise Exception(
-                f"A node with index {parent_idx} already exists in the HGF network."
+        # if we are creating a categorical state or state-transition node
+        # we have to generate the implied binary network(s) here
+        if kind == "categorical-input":
+            self = fill_categorical_state_node(
+                self,
+                node_idx=node_idx,
+                binary_input_idxs=node_parameters["binary_idxs"],  # type: ignore
+                binary_parameters=binary_parameters,
             )
-
-        # parent's parameter
-        node_parameters = {
-            "mean": mean,
-            "expected_mean": mean,
-            "precision": precision,
-            "expected_precision": precision,
-            "volatility_coupling_children": tuple(
-                volatility_coupling for _ in range(len(children_idxs))
-            ),
-            "volatility_coupling_parents": None,
-            "value_coupling_children": None,
-            "value_coupling_parents": None,
-            "tonic_volatility": tonic_volatility,
-            "tonic_drift": tonic_drift,
-            "autoregressive_coefficient": autoregressive_coefficient,
-            "autoregressive_intercept": autoregressive_intercept,
-            "observed": 1,
-            "temp": {
-                "effective_precision": 0.0,
-                "value_prediction_error": 0.0,
-                "volatility_prediction_error": 0.0,
-                "expected_precision_children": 0.0,
-            },
-        }
-
-        # add more parameters (optional)
-        if additional_parameters is not None:
-            node_parameters = {**node_parameters, **additional_parameters}
-
-        # add a new node to the connection structure with no parents
-        self.edges += (Indexes(None, None, None, tuple(children_idxs)),)
-
-        # add a new parameter to the parameters structure
-        self.attributes[parent_idx] = node_parameters
-
-        # convert the structure to a list to modify it
-        edges_as_list: List[Indexes] = list(self.edges)
-
-        for idx in children_idxs:
-            # add this node as a parent and set value coupling
-            if edges_as_list[idx].volatility_parents is not None:
-                # append new index
-                new_volatility_parents_idx = edges_as_list[idx].volatility_parents + (
-                    parent_idx,
-                )
-                edges_as_list[idx] = Indexes(
-                    edges_as_list[idx].value_parents,
-                    new_volatility_parents_idx,
-                    edges_as_list[idx].value_children,
-                    edges_as_list[idx].volatility_children,
-                )
-                # set the value coupling strength
-                self.attributes[idx]["volatility_coupling_parents"] += (
-                    volatility_coupling,
-                )
-            else:
-                # append new index
-                new_volatility_parents_idx = (parent_idx,)
-                edges_as_list[idx] = Indexes(
-                    edges_as_list[idx].value_parents,
-                    new_volatility_parents_idx,
-                    edges_as_list[idx].value_children,
-                    edges_as_list[idx].volatility_children,
-                )
-                # set the value coupling strength
-                self.attributes[idx]["volatility_coupling_parents"] = (
-                    volatility_coupling,
-                )
-
-        # convert the list back to a tuple
-        self.edges = tuple(edges_as_list)
 
         return self
 

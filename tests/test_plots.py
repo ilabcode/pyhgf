@@ -143,10 +143,12 @@ class Testplots(TestCase):
         # create the categorical HGF
         categorical_hgf = (
             HGF(model_type=None, verbose=False)
-            .add_input_node(
-                kind="categorical",
-                categorical_parameters={"n_categories": 3},
-                binary_parameters={"omega_2": -2.0},
+            .add_nodes(
+                kind="categorical-input",
+                node_parameters={
+                    "n_categories": 3,
+                    "binary_parameters": {"tonic_volatility_2": -2.0},
+                },
             )
             .init()
         )

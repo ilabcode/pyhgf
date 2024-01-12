@@ -103,10 +103,6 @@ Here we use the total Gaussian surprise ({py:func}`pyhgf.response.total_gaussian
 ```
 
 ```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="continuous",
