@@ -23,7 +23,7 @@ from pyhgf.typing import Edges, Indexes, InputIndexes, UpdateSequence
 class HGF(object):
     r"""The two-level and three-level Hierarchical Gaussian Filters (HGF).
 
-    This class uses pre-made nodes structures that correspond to the most widely used
+    This class uses pre-made node structures that correspond to the most widely used
     HGF. The inputs can be continuous or binary.
 
     Attributes
@@ -32,8 +32,8 @@ class HGF(object):
         The attributes of the probabilistic nodes.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
-        For each node, the index list value and volatility parents and children.
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
+        number. For each node, the index lists the value/volatility parents/children.
     input_nodes_idx :
         Indexes of the input nodes with input types
         :py:class:`pyhgf.typing.InputIndexes`. The default input node is `0` if the
@@ -41,12 +41,12 @@ class HGF(object):
     model_type :
         The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
     n_levels :
-        The number of hierarchies in the model, including the input vector. Cannot be
+        The number of hierarchies in the model, including the input vector. It cannot be
         less than 2.
     node_trajectories :
         The dynamic of the node's beliefs after updating.
     update_sequence :
-        The sequence of update functions that are applied during the beliefs propagation
+        The sequence of update functions that are applied during the belief propagation
         step.
     update_type :
         The type of update to perform for volatility coupling. Can be `"eHGF"`
@@ -55,8 +55,8 @@ class HGF(object):
         precision of the parent node, which generally reduces the errors associated with
         impossible parameter space and improves sampling.
     .. note::
-        The parameter structure also incorporate the value and volatility coupling
-        strenght with children and parents (i.e. `"value_coupling_parents"`,
+        The parameter structure also incorporates the value and volatility coupling
+        strength with children and parents (i.e. `"value_coupling_parents"`,
         `"value_coupling_children"`, `"volatility_coupling_parents"`,
         `"volatility_coupling_children"`).
     scan_fn :
@@ -105,12 +105,12 @@ class HGF(object):
         ----------
         n_levels :
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
-            `None`, the nodes hierarchy is not created and might be provided afterward.
+            `None`, the nodes hierarchy is not created and might be provided afterwards.
             Defaults to `2` for a 2-level HGF.
         model_type : str
             The model type to use (can be `"continuous"` or `"binary"`).
         update_type:
-            The type of volatility update to perform. Can be `"eHGF"` (default) or
+            The type of volatility update to perform. It can be `"eHGF"` (default) or
             `"standard"`. The eHGF update step tends to be more robust and produce fewer
             invalid space errors and is therefore recommended by default.
         initial_mean :
@@ -264,7 +264,7 @@ class HGF(object):
             if self.verbose:
                 print("... Create the update sequence from the network structure.")
 
-        # create the belief propagation function that will be scaned
+        # create the belief propagation function that will be scanned
         if self.scan_fn is None:
             self.scan_fn = Partial(
                 beliefs_propagation,
@@ -311,7 +311,7 @@ class HGF(object):
             `observed` is `0`), the input node will have value and volatility set to
             `0.0`. If the parent(s) of this input receive prediction error from other
             children, they simply ignore this one. If they are not receiving other
-            prediction errors, they are updated by keeping the same mean be decreasing
+            prediction errors, they are updated by keeping the same mean by decreasing
             the precision as a function of time to reflect the evolution of the
             underlying Gaussian Random Walk.
         .. warning::
@@ -333,7 +333,7 @@ class HGF(object):
         if observed is None:
             observed = np.ones(input_data.shape, dtype=int)
 
-        # this is where the model loop over the whole input time series
+        # this is where the model loops over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
         _, node_trajectories = scan(
@@ -430,10 +430,10 @@ class HGF(object):
         # scan over the input data and apply the switching belief propagation functions
         _, node_trajectories = scan(switching_propagation, self.attributes, scan_input)
 
-        # the node structure at each value update
+        # the node structure at each value updates
         self.node_trajectories = node_trajectories
 
-        # because some of the input node might not have been updated, here we manually
+        # because some of the input nodes might not have been updated, here we manually
         # insert the input data to the input node (without triggering updates)
         for idx, inp in zip(self.input_nodes_idx.idx, range(input_data.shape[1])):
             self.node_trajectories[idx]["value"] = input_data[inp]
@@ -548,29 +548,29 @@ class HGF(object):
         n_nodes :
             The number of nodes to create (defaults to `1`).
         node_parameters :
-            Dictionary of parameters. The default values are automatically infered
+            Dictionary of parameters. The default values are automatically inferred
             from the node type. Different values can be provided by passing them in the
-            dictionary, whcih will overwrite the defaults.
+            dictionary, which will overwrite the defaults.
         value_children:
             Indexes to the node's value children. The index can be passed as an integer
-            or a list of integers, in case of multiple children. The coupling stregth
+            or a list of integers, in case of multiple children. The coupling strength
             can be controlled by passing a tuple, where the first item is the list of
-            indexes, and the second item is the list of coupling strenghts.
+            indexes, and the second item is the list of coupling strengths.
         value_parents:
             Indexes to the node's value parents. The index can be passed as an integer
-            or a list of integers, in case of multiple children. The coupling stregth
+            or a list of integers, in case of multiple children. The coupling strength
             can be controlled by passing a tuple, where the first item is the list of
-            indexes, and the second item is the list of coupling strenghts.
+            indexes, and the second item is the list of coupling strengths.
         volatility_children:
             Indexes to the node's volatility children. The index can be passed as an
             integer or a list of integers, in case of multiple children. The coupling
-            stregth can be controlled by passing a tuple, where the first item is the
-            list of indexes, and the second item is the list of coupling strenghts.
+            strength can be controlled by passing a tuple, where the first item is the
+            list of indexes, and the second item is the list of coupling strengths.
         volatility_parents:
             Indexes to the node's volatility parents. The index can be passed as an
             integer or a list of integers, in case of multiple children. The coupling
-            stregth can be controlled by passing a tuple, where the first item is the
-            list of indexes, and the second item is the list of coupling strenghts.
+            strength can be controlled by passing a tuple, where the first item is the
+            list of indexes, and the second item is the list of coupling strengths.
 
         """
         # extract the node coupling indexes and coupling strengths
@@ -595,7 +595,7 @@ class HGF(object):
                 coupling_idxs, coupling_strengths = None, None
             couplings.append((coupling_idxs, coupling_strengths))
 
-        # create the default parameters set accroding to the node type
+        # create the default parameters set according to the node type
         if kind == "continuous-state":
             default_parameters = {
                 "mean": 0.0,
@@ -742,7 +742,7 @@ class HGF(object):
                     new_kind += (input_type,)
                     self.input_nodes_idx = InputIndexes(new_idx, new_kind)
 
-            # update the existing edge structure so it link to the new node as well
+            # update the existing edge structure so it links to the new node as well
             for coupling, edge_type in zip(
                 couplings,
                 [

@@ -15,7 +15,7 @@ def posterior_update_mean_continuous_node(
 ) -> float:
     r"""Update the mean of a state node using the value prediction errors.
 
-    #. Mean update from value coupling.
+    1. Mean update from value coupling.
 
     The new mean of a state node :math:`b` value coupled with other input and/or state
     nodes :math:`j` at time :math:`k` is given by:
@@ -32,7 +32,7 @@ def posterior_update_mean_continuous_node(
     If the child node is a state node, this value was computed by
     :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
-    #. Mean update from volatility coupling.
+    2. Mean update from volatility coupling.
 
     The new mean of a state node :math:`b` volatility coupled with other input and/or
     state nodes :math:`j` at time :math:`k` is given by:
@@ -107,7 +107,10 @@ def posterior_update_mean_continuous_node(
 
     """
     # sum the prediction errors from both value and volatility coupling
-    precision_weigthed_prediction_error = 0.0
+    (
+        value_precision_weigthed_prediction_error,
+        volatility_precision_weigthed_prediction_error,
+    ) = (0.0, 0.0)
 
     # Value coupling updates - update the mean of a value parent
     # ----------------------------------------------------------
@@ -127,7 +130,7 @@ def posterior_update_mean_continuous_node(
 
             # expected precisions from the value children
             # sum the precision weigthed prediction errors over all children
-            precision_weigthed_prediction_error += (
+            value_precision_weigthed_prediction_error += (
                 (value_coupling * attributes[value_child_idx]["expected_precision"])
                 / node_precision
             ) * value_prediction_error
@@ -139,8 +142,7 @@ def posterior_update_mean_continuous_node(
             edges[node_idx].volatility_children,  # type: ignore
             attributes[node_idx]["volatility_coupling_children"],
         ):
-            # get the value prediction error (VAPE)
-            # if this is jnp.nan (no observation) set the VAPE to 0.0
+            # get the volatility prediction error (VOPE)
             volatility_prediction_error = attributes[volatility_child_idx]["temp"][
                 "volatility_prediction_error"
             ]
@@ -151,7 +153,7 @@ def posterior_update_mean_continuous_node(
             ]
 
             # the precision weigthed prediction error
-            precision_weigthed_prediction_error += (
+            precision_weigthed_prediction_error = (
                 volatility_coupling * effective_precision * volatility_prediction_error
             )
 
@@ -163,10 +165,17 @@ def posterior_update_mean_continuous_node(
                 "observed"
             ]
 
+            # aggregate over volatility children
+            volatility_precision_weigthed_prediction_error += (
+                precision_weigthed_prediction_error
+            )
+
     # Compute the new posterior mean
     # using value prediction errors from both value and volatility coupling
     posterior_mean = (
-        attributes[node_idx]["expected_mean"] + precision_weigthed_prediction_error
+        attributes[node_idx]["expected_mean"]
+        + value_precision_weigthed_prediction_error
+        + volatility_precision_weigthed_prediction_error
     )
 
     return posterior_mean
@@ -357,8 +366,6 @@ def posterior_update_precision_continuous_node(
     unobserved_posterior_precision = 1 / (
         (1 / attributes[node_idx]["precision"]) + predicted_volatility
     )
-
-    # if
 
     # for all children, look at the values of VAPE
     # if all these values are NaNs, the node has not received observations
