@@ -21,18 +21,18 @@ class Testmodel(TestCase):
 
         custom_hgf = (
             HGF(model_type=None)
-            .add_input_node(kind="continuous", input_idxs=0)
-            .add_input_node(kind="binary", input_idxs=1)
-            .add_value_parent(children_idxs=0)
-            .add_value_parent(
-                children_idxs=1,
-                additional_parameters={"binary_expected_precision": jnp.nan},
+            .add_nodes(kind="continuous-input")
+            .add_nodes(kind="binary-input")
+            .add_nodes(value_children=0)
+            .add_nodes(
+                kind="binary-state",
+                value_children=1,
             )
-            .add_value_parent(children_idxs=[2, 3])
-            .add_value_parent(children_idxs=4)
-            .add_volatility_parent(children_idxs=[2, 3])
-            .add_volatility_parent(children_idxs=2)
-            .add_volatility_parent(children_idxs=7)
+            .add_nodes(value_children=[2, 3])
+            .add_nodes(value_children=4)
+            .add_nodes(volatility_children=[2, 3])
+            .add_nodes(volatility_children=2)
+            .add_nodes(volatility_children=7)
             .init()
         )
 
