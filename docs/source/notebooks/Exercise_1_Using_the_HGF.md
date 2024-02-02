@@ -611,7 +611,7 @@ slideshow:
   slide_type: ''
 ---
 with two_levels_binary_hgf:
-    two_levels_idata = pm.sample(chains=4, idata_kwargs={"log_likelihood": True})
+    two_levels_idata = pm.sample(chains=4, cores=1, idata_kwargs={"log_likelihood": True})
 ```
 
 ```{code-cell} ipython3
@@ -685,7 +685,7 @@ slideshow:
   slide_type: ''
 ---
 with three_levels_binary_hgf:
-    three_levels_idata = pm.sample(chains=4, idata_kwargs={"log_likelihood": True})
+    three_levels_idata = pm.sample(chains=4, cores=1, idata_kwargs={"log_likelihood": True})
 ```
 
 ```{code-cell} ipython3
