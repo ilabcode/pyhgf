@@ -585,7 +585,7 @@ slideshow:
 with pm.Model() as model:
     omega = pm.Normal("omega", -4.0, 5)
     pm.Potential("hgf", custom_op(omega))
-    idata = pm.sample(chains=2)
+    idata = pm.sample(chains=4, cores=1)
 ```
 
 ```{code-cell} ipython3
