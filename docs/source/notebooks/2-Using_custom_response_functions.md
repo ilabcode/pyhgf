@@ -280,7 +280,7 @@ with pm.Model() as sigmoid_hgf:
 
 ```{code-cell} ipython3
 with sigmoid_hgf:
-    sigmoid_hgf_idata = pm.sample(chains=4)
+    sigmoid_hgf_idata = pm.sample(chains=4, cores=1)
 ```
 
 ```{code-cell} ipython3
