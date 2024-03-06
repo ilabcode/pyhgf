@@ -6,7 +6,7 @@
 
 PyHGF is a Python library written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html) to create and manipulate graph neural networks that can perform belief updates through the diffusion of predictions and precision-weighted prediction errors. These networks can serve as biologically plausible computational models of cognitive functions for computational psychiatry and reinforcement learning or as a generalisation of Bayesian filtering to arbitrarily sized graphical structures for signal processing. In their most standard form, these models are a generalisation and nodalisation of the Hierarchical Gaussian Filters (HGF) for predictive coding. The library is made modular and designed to facilitate the manipulation of probabilistic networks, so the user can focus on model design. The core functions are derivable, JIT-able, and designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement learning, Bayesian inference or optimization. 
 
-* 📖 [API Documentation](https://ilabcode.github.io/pyhgf/)  
+* 📖 [API Documentation](https://ilabcode.github.io/pyhgf/api.html)  
 * ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/learn.html)  
 
 ## Getting started
