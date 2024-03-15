@@ -30,11 +30,12 @@ def hgf_logp(
     mean_3: Union[np.ndarray, ArrayLike, float] = 0.0,
     volatility_coupling_1: Union[np.ndarray, ArrayLike, float] = 1.0,
     volatility_coupling_2: Union[np.ndarray, ArrayLike, float] = 1.0,
+    response_function_parameters: List[Union[np.ndarray, ArrayLike, float]] = [1.0],
     input_data: List[np.ndarray] = [np.nan],
     response_function: Optional[Callable] = None,
     model_type: str = "continuous",
     n_levels: int = 2,
-    response_function_parameters: List[Tuple] = [()],
+    response_function_inputs: List[np.ndarray] = [np.nan],
     time_steps: Optional[List] = None,
 ) -> float:
     r"""HGF log-probability given input data, response function and parameters.
@@ -117,10 +118,14 @@ def hgf_logp(
         The number of hierarchies in the perceptual model (can be `2` or `3`). If
         `None`, the nodes hierarchy is not created and might be provided afterwards
         using :py:meth:`pyhgf.model.HGF.add_nodes`.
-    response_function_parameters :
+    response_function_inputs :
         A list of tuples with the same length as the number of models. Each tuple
         contains additional data and parameters that can be accessible to the response
         functions.
+    response_function_parameters :
+        A list of additional parameters that will be passed to the response function.
+        This can include values over which inferece is performed in a PyMC model (e.g.
+        the inverse temperature of a binary softmax).
     time_steps :
         List of 1d Numpy arrays containing the time vectors for each input time series.
         If one of the list items is `None`, or if `None` is provided instead, the time
@@ -174,6 +179,8 @@ def hgf_logp(
         jnp.zeros(n),
     )
 
+    if response_function_inputs is None:
+        response_function_inputs = [None] * n
     if response_function_parameters is None:
         response_function_parameters = [None] * n
 
@@ -232,6 +239,7 @@ def hgf_logp(
             .input_data(input_data=input_data[i], time_steps=time_steps[i])
             .surprise(
                 response_function=response_function,
+                response_function_inputs=response_function_inputs[i],
                 response_function_parameters=response_function_parameters[i],
             )
         )
@@ -250,7 +258,7 @@ class HGFLogpGradOp(Op):
         model_type: str = "continous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
-        response_function_parameters: Optional[List[Optional[Tuple]]] = None,
+        response_function_inputs: Optional[List[Optional[Tuple]]] = None,
     ):
         """Initialize function.
 
@@ -273,7 +281,7 @@ class HGFLogpGradOp(Op):
             using `add_nodes()`.
         response_function :
             The response function to use to compute the model surprise.
-        response_function_parameters :
+        response_function_inputs :
             A list of tuples with the same length as the number of models. Each tuple
             contains additional data and parameters that can be accessible to the
             response functions.
@@ -288,9 +296,9 @@ class HGFLogpGradOp(Op):
                     time_steps=time_steps,
                     response_function=response_function,
                     model_type=model_type,
-                    response_function_parameters=response_function_parameters,
+                    response_function_inputs=response_function_inputs,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             )
         )
 
@@ -312,6 +320,7 @@ class HGFLogpGradOp(Op):
         mean_3=np.array(0.0),
         volatility_coupling_1=np.array(1.0),
         volatility_coupling_2=np.array(0.0),
+        response_function_parameters=np.array(1.0),
     ):
         """Initialize node structure."""
         # Convert our inputs to symbolic variables
@@ -332,6 +341,7 @@ class HGFLogpGradOp(Op):
             pt.as_tensor_variable(mean_3),
             pt.as_tensor_variable(volatility_coupling_1),
             pt.as_tensor_variable(volatility_coupling_2),
+            pt.as_tensor_variable(response_function_parameters),
         ]
         # This `Op` will return one gradient per input. For simplicity, we assume
         # each output is of the same type as the input. In practice, you should use
@@ -359,6 +369,7 @@ class HGFLogpGradOp(Op):
             grad_mean_3,
             grad_volatility_coupling_1,
             grad_volatility_coupling_2,
+            grad_response_function_parameters,
         ) = self.grad_logp(*inputs)
 
         outputs[0][0] = np.asarray(grad_tonic_volatility_1, dtype=node.outputs[0].dtype)
@@ -382,6 +393,9 @@ class HGFLogpGradOp(Op):
         )
         outputs[15][0] = np.asarray(
             grad_volatility_coupling_2, dtype=node.outputs[15].dtype
+        )
+        outputs[16][0] = np.asarray(
+            grad_response_function_parameters, dtype=node.outputs[15].dtype
         )
 
 
@@ -452,7 +466,7 @@ class HGFDistribution(Op):
         model_type: str = "continuous",
         n_levels: int = 2,
         response_function: Optional[Callable] = None,
-        response_function_parameters: Optional[List[Optional[Tuple]]] = None,
+        response_function_inputs: Optional[List[Optional[Tuple]]] = None,
     ):
         """Distribution initialization.
 
@@ -475,7 +489,7 @@ class HGFDistribution(Op):
             using `add_nodes()`.
         response_function :
             The response function to use to compute the model surprise.
-        response_function_parameters :
+        response_function_inputs :
             A list of tuples with the same length as the number of models. Each tuple
             contains additional data and parameters that can be accessible to the
             response functions.
@@ -490,7 +504,7 @@ class HGFDistribution(Op):
                 time_steps=time_steps,
                 response_function=response_function,
                 model_type=model_type,
-                response_function_parameters=response_function_parameters,
+                response_function_inputs=response_function_inputs,
             ),
         )
 
@@ -501,7 +515,7 @@ class HGFDistribution(Op):
             model_type=model_type,
             n_levels=n_levels,
             response_function=response_function,
-            response_function_parameters=response_function_parameters,
+            response_function_inputs=response_function_inputs,
         )
 
     def make_node(
@@ -522,6 +536,7 @@ class HGFDistribution(Op):
         mean_3=np.array(0.0),
         volatility_coupling_1=np.array(1.0),
         volatility_coupling_2=np.array(1.0),
+        response_function_parameters=np.array(1.0),
     ):
         """Convert inputs to symbolic variables."""
         inputs = [
@@ -541,6 +556,7 @@ class HGFDistribution(Op):
             pt.as_tensor_variable(mean_3),
             pt.as_tensor_variable(volatility_coupling_1),
             pt.as_tensor_variable(volatility_coupling_2),
+            pt.as_tensor_variable(response_function_parameters),
         ]
         # Define the type of output returned by the wrapped JAX function
         outputs = [pt.dscalar()]
@@ -570,6 +586,7 @@ class HGFDistribution(Op):
             grad_mean_3,
             grad_volatility_coupling_1,
             grad_volatility_coupling_2,
+            grad_response_function_parameters,
         ) = self.hgf_logp_grad_op(*inputs)
         # If there are inputs for which the gradients will never be needed or cannot
         # be computed, `pytensor.gradient.grad_not_implemented` should  be used as the
@@ -592,4 +609,5 @@ class HGFDistribution(Op):
             output_gradient * grad_mean_3,
             output_gradient * grad_volatility_coupling_1,
             output_gradient * grad_volatility_coupling_2,
+            output_gradient * grad_response_function_parameters,
         ]
