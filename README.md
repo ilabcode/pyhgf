@@ -40,7 +40,7 @@ The resulting probabilistic network operates as a filter toward new observation.
 
 You can find a deeper introduction to how to create and manipulate networks under the following link:
 
-* 🎓 [How to create and manipulate networks of probabilistic nodes](https://ilabcode.github.io/pyhgf/notebooks/0-Creating_networks.html#creating-and-manipulating-networks-of-probabilistic-nodes)  
+* 🎓 [How to create and manipulate networks of probabilistic nodes](https://ilabcode.github.io/pyhgf/notebooks/0.1-Creating_networks.html#creating-and-manipulating-networks-of-probabilistic-nodes)  
 
 ### The Hierarchical Gaussian Filter
 
@@ -52,7 +52,7 @@ The pyhgf package includes pre-implemented standard HGF models that can be used 
 
 You can find a deeper introduction on how does the HGF works under the following link:
 
-* 🎓 [Introduction to the Hierarchical Gaussian Filter](https://ilabcode.github.io/pyhgf/notebooks/0-Theory.html#theory)  
+* 🎓 [Introduction to the Hierarchical Gaussian Filter](https://ilabcode.github.io/pyhgf/notebooks/0.2-Theory.html#theory)  
 
 ### Model fitting
 
