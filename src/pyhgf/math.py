@@ -95,7 +95,7 @@ def gaussian_surprise(
 
     Examples
     --------
-    >>> from pyhgf.continuous import gaussian_surprise
+    >>> from pyhgf.math import gaussian_surprise
     >>> gaussian_surprise(x=2.0, expected_mean=0.0, expected_precision=1.0)
     `Array(2.9189386, dtype=float32, weak_type=True)`
 

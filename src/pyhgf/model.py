@@ -10,6 +10,7 @@ from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
 from pyhgf.networks import (
+    add_edges,
     beliefs_propagation,
     fill_categorical_state_node,
     get_update_sequence,
@@ -17,7 +18,8 @@ from pyhgf.networks import (
 )
 from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
-from pyhgf.typing import Edges, Indexes, InputIndexes, UpdateSequence
+from pyhgf.typing import DirichletNode, Edges, Indexes, InputIndexes, UpdateSequence
+from pyhgf.updates.prediction_error.inputs.dirichlet import create_cluster_fn
 
 
 class HGF(object):
@@ -160,6 +162,7 @@ class HGF(object):
         self.attributes: Dict = {}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
+        self.dirichlet_node: Optional[DirichletNode] = None
 
         if model_type not in ["continuous", "binary"]:
             if self.verbose:
@@ -524,8 +527,9 @@ class HGF(object):
             be a regular state node that can have value and/or volatility
             parents/children. The hierarchical dependencies are specified using the
             corresponding parameters below. If `"binary-state"`, the node should be the
-            value parent of a binary input. To create an input node, three types of
-            inputs are supported:
+            value parent of a binary input. If `"dirichlet-input"`, the node implement
+            a Dirichlet process using the branching approach. To create an input node,
+            three types of inputs are supported:
             - `continuous-input`: receive a continuous observation as input.
             - `binary-input` receive a single boolean as observation. The parameters
             provided to the binary input node contain: 1. `binary_precision`, the binary
@@ -535,6 +539,7 @@ class HGF(object):
             - `categorical-input` receive a boolean array as observation. The parameters
             provided to the categorical input node contain: 1. `n_categories`, the
             number of categories implied by the categorical state.
+            - `dirichlet-input`.
 
         .. note::
            When using a categorical state node, the `binary_parameters` can be used to
@@ -573,7 +578,22 @@ class HGF(object):
             list of indexes, and the second item is the list of coupling strengths.
 
         """
-        # extract the node coupling indexes and coupling strengths
+        if kind not in [
+            "continuous-input",
+            "binary-input",
+            "categorical-input",
+            "dirichlet-input",
+            "continuous-state",
+            "binary-state",
+        ]:
+            raise ValueError(
+                (
+                    "Invalid node type. Should be one of the following: "
+                    "'continuous-input', 'binary-input', 'categorical-input', "
+                    "'dirichlet-input', 'continuous-state', 'binary-state'."
+                )
+            )
+        # transform coupling parameter into tuple of indexes and strenghts
         couplings = []
         for indexes in [
             value_children,
@@ -594,6 +614,12 @@ class HGF(object):
             else:
                 coupling_idxs, coupling_strengths = None, None
             couplings.append((coupling_idxs, coupling_strengths))
+        (
+            value_children,
+            value_parents,
+            volatility_children,
+            volatility_parents,
+        ) = couplings
 
         # create the default parameters set according to the node type
         if kind == "continuous-state":
@@ -702,6 +728,23 @@ class HGF(object):
                 "value": jnp.zeros(n_categories),
                 "binary_parameters": binary_parameters,
             }
+        elif kind == "dirichlet-input":
+            self.dirichlet_node = DirichletNode(
+                base_network=node_parameters["base_network"],
+                likelihood_fn=node_parameters["log_likelihood_fn"],
+                cluster_input_idxs=(),
+            )
+
+            # drop static arguments from the dictionary
+            node_parameters.pop("base_network")
+            node_parameters.pop("log_likelihood_fn")
+
+            default_parameters = {
+                "n": [],  # type: ignore
+                "n_total": 0,  # the total number of observations in the node
+                "n_clusters": 0,
+                "alpha": 1.0,  # concentration parameter for the implied Dirichlet dist.
+            }
 
         # update the defaults using the provided parameters
         default_parameters.update(node_parameters)
@@ -712,18 +755,16 @@ class HGF(object):
         else:
             input_type = None
 
-        # convert the structure to a list to modify it
-        edges_as_list: List[Indexes] = list(self.edges)
-
+        # Create the new nodes
+        # --------------------
         for _ in range(n_nodes):
+            # convert the structure to a list to modify it
+            edges_as_list: List[Indexes] = list(self.edges)
+
             node_idx = len(self.attributes)  # the index of the new node
 
-            # add a new edge
-            edges_as_list.append(
-                Indexes(
-                    couplings[1][0], couplings[3][0], couplings[0][0], couplings[2][0]
-                )
-            )
+            # add a new node and connect it to the parents and children
+            edges_as_list.append(Indexes(None, None, None, None))
 
             if node_idx == 0:
                 # this is the first node, create the node structure
@@ -742,89 +783,66 @@ class HGF(object):
                     new_kind += (input_type,)
                     self.input_nodes_idx = InputIndexes(new_idx, new_kind)
 
-            # update the existing edge structure so it links to the new node as well
-            for coupling, edge_type in zip(
-                couplings,
-                [
-                    "value_children",
-                    "value_parents",
-                    "volatility_children",
-                    "volatility_parents",
-                ],
-            ):
-                if coupling[0] is not None:
-                    coupling_idxs, coupling_strengths = coupling
-                    for idx, coupling_strength in zip(
-                        coupling_idxs, coupling_strengths  # type: ignore
-                    ):
-                        # unpack this node's edges
-                        (
-                            value_parents,
-                            volatility_parents,
-                            value_children,
-                            volatility_children,
-                        ) = edges_as_list[idx]
+            # convert the list back to a tuple
+            self.edges = tuple(edges_as_list)
 
-                        # update the parents/children's edges depending on the coupling
-                        if edge_type == "value_parents":
-                            if value_children is None:
-                                value_children = (node_idx,)
-                                self.attributes[idx]["value_coupling_children"] = (
-                                    coupling_strength,
-                                )
-                            else:
-                                value_children = value_children + (node_idx,)
-                                self.attributes[idx]["value_coupling_children"] += (
-                                    coupling_strength,
-                                )
-                        elif edge_type == "volatility_parents":
-                            if volatility_children is None:
-                                volatility_children = (node_idx,)
-                                self.attributes[idx]["volatility_coupling_children"] = (
-                                    coupling_strength,
-                                )
-                            else:
-                                volatility_children = volatility_children + (node_idx,)
-                                self.attributes[idx][
-                                    "volatility_coupling_children"
-                                ] += (coupling_strength,)
-                        elif edge_type == "value_children":
-                            if value_parents is None:
-                                value_parents = (node_idx,)
-                                self.attributes[idx]["value_coupling_parents"] = (
-                                    coupling_strength,
-                                )
-                            else:
-                                value_parents = value_parents + (node_idx,)
-                                self.attributes[idx]["value_coupling_parents"] += (
-                                    coupling_strength,
-                                )
-                        elif edge_type == "volatility_children":
-                            if volatility_parents is None:
-                                volatility_parents = (node_idx,)
-                                self.attributes[idx]["volatility_coupling_parents"] = (
-                                    coupling_strength,
-                                )
-                            else:
-                                volatility_parents = volatility_parents + (node_idx,)
-                                self.attributes[idx]["volatility_coupling_parents"] += (
-                                    coupling_strength,
-                                )
+            # Update the edges of the parents and children accordingly
+            # --------------------------------------------------------
+            if value_parents[0] is not None:
+                self.add_edges(
+                    kind="value",
+                    parent_idxs=value_parents[0],
+                    children_idxs=node_idx,
+                    coupling_strengths=value_parents[1],  # type: ignore
+                )
+            if value_children[0] is not None:
+                self.add_edges(
+                    kind="value",
+                    parent_idxs=node_idx,
+                    children_idxs=value_children[0],
+                    coupling_strengths=value_children[1],  # type: ignore
+                )
+            if volatility_children[0] is not None:
+                self.add_edges(
+                    kind="volatility",
+                    parent_idxs=node_idx,
+                    children_idxs=volatility_children[0],
+                    coupling_strengths=volatility_children[1],  # type: ignore
+                )
+            if volatility_parents[0] is not None:
+                self.add_edges(
+                    kind="volatility",
+                    parent_idxs=volatility_parents[0],
+                    children_idxs=node_idx,
+                    coupling_strengths=volatility_parents[1],  # type: ignore
+                )
 
-                        # save the updated edges back
-                        edges_as_list[idx] = Indexes(
-                            value_parents,
-                            volatility_parents,
-                            value_children,
-                            volatility_children,
-                        )
+        if kind == "dirichlet-input":
+            # create the first empty temporary cluster using the cluster creation
+            # function with defaults parameters
+            assert isinstance(self.dirichlet_node, DirichletNode)
+            (
+                attributes,
+                edges,
+                input_nodes_idx,
+                dirichlet_node,
+            ) = create_cluster_fn(
+                attributes=self.attributes,
+                edges=self.edges,
+                input_nodes_idx=self.input_nodes_idx,
+                base_network=self.dirichlet_node.base_network,  # type:ignore
+                dirichlet_node_idx=node_idx,
+                dirichlet_node=self.dirichlet_node,
+            )
 
-        # convert the list back to a tuple
-        self.edges = tuple(edges_as_list)
+            self.attributes = attributes
+            self.edges = edges
+            self.input_nodes_idx = input_nodes_idx
+            self.dirichlet_node = dirichlet_node
 
-        # if we are creating a categorical state or state-transition node
-        # we have to generate the implied binary network(s) here
-        if kind == "categorical-input":
+        elif kind == "categorical-input":
+            # if we are creating a categorical state or state-transition node
+            # we have to generate the implied binary network(s) here
             self = fill_categorical_state_node(
                 self,
                 node_idx=node_idx,
@@ -845,5 +863,40 @@ class HGF(object):
                 hgf=self,
             )
         )
+
+        return self
+
+    def add_edges(
+        self,
+        kind="value",
+        parent_idxs=Union[int, List[int]],
+        children_idxs=Union[int, List[int]],
+        coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
+    ) -> "HGF":
+        """Add a value or volatility coupling link between a set of nodes.
+
+        Parameters
+        ----------
+        kind :
+            The kind of coupling, can be `"value"` or `"volatility"`.
+        parent_idxs :
+            The index(es) of the parent node(s).
+        children_idxs :
+            The index(es) of the children node(s).
+        coupling_strengths :
+            The coupling strength betwen the parents and children.
+
+        """
+        attributes, edges = add_edges(
+            attributes=self.attributes,
+            edges=self.edges,
+            kind=kind,
+            parent_idxs=parent_idxs,
+            children_idxs=children_idxs,
+            coupling_strengths=coupling_strengths,
+        )
+
+        self.attributes = attributes
+        self.edges = edges
 
         return self

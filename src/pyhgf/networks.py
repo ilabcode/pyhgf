@@ -1,7 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
@@ -10,7 +10,7 @@ from jax import jit
 from jax.typing import ArrayLike
 
 from pyhgf.math import binary_surprise, gaussian_surprise
-from pyhgf.typing import Indexes, UpdateSequence
+from pyhgf.typing import Edges, Indexes, UpdateSequence
 from pyhgf.updates.posterior.binary import binary_node_update_infinite
 from pyhgf.updates.posterior.categorical import categorical_input_update
 from pyhgf.updates.posterior.continuous import (
@@ -24,6 +24,9 @@ from pyhgf.updates.prediction_error.inputs.binary import (
 )
 from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
+)
+from pyhgf.updates.prediction_error.inputs.dirichlet import (
+    dirichlet_input_prediction_error,
 )
 from pyhgf.updates.prediction_error.nodes.binary import (
     binary_state_node_prediction_error,
@@ -315,6 +318,10 @@ def get_update_sequence(hgf: "HGF") -> List:
             update_fn = continuous_input_prediction_error
             update_sequence.append((input_idx, update_fn))
 
+        elif kind == "dirichlet":
+            update_fn = dirichlet_input_prediction_error
+            update_sequence.append((input_idx, update_fn))
+
         elif kind == "binary":
             # add the update steps for the binary state node as well
             binary_state_idx = hgf.edges[input_idx].value_parents[0]  # type: ignore
@@ -528,3 +535,200 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     ].sum(axis=1, min_count=1)
 
     return trajectories_df
+
+
+def concatenate_networks(attributes_1, attributes_2, edges_1, edges_2):
+    """Concatenate two networks.
+
+    Parameters
+    ----------
+    attributes_1 :
+        The attributes of the first network.
+    attributes_2 :
+        The attributes of the second network.
+    edges_1 :
+        The edges of the first network.
+    edges_2 :
+        The edges of the second network.
+
+    Returns
+    -------
+    attributes :
+        The attribute of the concatenated networks.
+    edges :
+        The edges of the concatenated networks.
+
+    """
+    n_nodes = len(attributes_2)
+    edges_1 = list(edges_1)
+    attributes = {}
+    for i in range(len(attributes_1)):
+        # update the attributes
+        attributes[i + n_nodes] = attributes_1[i]
+
+        # update the edges
+        edges_1[i] = Indexes(
+            value_parents=(
+                tuple([e + n_nodes for e in list(edges_1[i].value_parents)])
+                if edges_1[i].value_parents is not None
+                else None
+            ),
+            volatility_parents=(
+                tuple([e + n_nodes for e in list(edges_1[i].volatility_parents)])
+                if edges_1[i].volatility_parents is not None
+                else None
+            ),
+            value_children=(
+                tuple([e + n_nodes for e in list(edges_1[i].value_children)])
+                if edges_1[i].value_children is not None
+                else None
+            ),
+            volatility_children=(
+                tuple([e + n_nodes for e in list(edges_1[i].volatility_children)])
+                if edges_1[i].volatility_children is not None
+                else None
+            ),
+        )
+
+    edges_1 = tuple(edges_1)
+
+    attributes = {**attributes_2, **attributes}
+    edges = edges_2 + edges_1
+
+    return attributes, edges
+
+
+def add_edges(
+    attributes: Dict,
+    edges: Edges,
+    kind="value",
+    parent_idxs=Union[int, List[int]],
+    children_idxs=Union[int, List[int]],
+    coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
+) -> Tuple:
+    """Add a value or volatility coupling link between a set of nodes.
+
+    Parameters
+    ----------
+    attributes :
+        Attributes of the neural network.
+    edges :
+        Edges of the neural network.
+    kind :
+        The kind of coupling can be `"value"` or `"volatility"`.
+    parent_idxs :
+        The index(es) of the parent node(s).
+    children_idxs :
+        The index(es) of the children node(s).
+    coupling_strengths :
+        The coupling strength between the parents and children.
+
+    """
+    if kind not in ["value", "volatility"]:
+        raise ValueError(
+            f"The kind of coupling should be value or volatility, got {kind}"
+        )
+    if isinstance(children_idxs, int):
+        children_idxs = [children_idxs]
+    assert isinstance(children_idxs, (list, tuple))
+
+    if isinstance(parent_idxs, int):
+        parent_idxs = [parent_idxs]
+    assert isinstance(parent_idxs, (list, tuple))
+
+    if isinstance(coupling_strengths, int):
+        coupling_strengths = [float(coupling_strengths)]
+    if isinstance(coupling_strengths, float):
+        coupling_strengths = [coupling_strengths]
+
+    assert isinstance(coupling_strengths, (list, tuple))
+
+    edges_as_list = list(edges)
+    # update the parent nodes
+    # -----------------------
+    for parent_idx in parent_idxs:
+        # unpack the parent's edges
+        (
+            value_parents,
+            volatility_parents,
+            value_children,
+            volatility_children,
+        ) = edges_as_list[parent_idx]
+
+        if kind == "value":
+            if value_children is None:
+                value_children = tuple(children_idxs)
+                attributes[parent_idx]["value_coupling_children"] = tuple(
+                    coupling_strengths
+                )
+            else:
+                value_children = value_children + tuple(children_idxs)
+                attributes[parent_idx]["value_coupling_children"] += tuple(
+                    coupling_strengths
+                )
+        elif kind == "volatility":
+            if volatility_children is None:
+                volatility_children = tuple(children_idxs)
+                attributes[parent_idx]["volatility_coupling_children"] = tuple(
+                    coupling_strengths
+                )
+            else:
+                volatility_children = volatility_children + tuple(children_idxs)
+                attributes[parent_idx]["volatility_coupling_children"] += tuple(
+                    coupling_strengths
+                )
+
+        # save the updated edges back
+        edges_as_list[parent_idx] = Indexes(
+            value_parents,
+            volatility_parents,
+            value_children,
+            volatility_children,
+        )
+
+    # update the children nodes
+    # -------------------------
+    for children_idx in children_idxs:
+        # unpack this node's edges
+        (
+            value_parents,
+            volatility_parents,
+            value_children,
+            volatility_children,
+        ) = edges_as_list[children_idx]
+
+        if kind == "value":
+            if value_parents is None:
+                value_parents = tuple(parent_idxs)
+                attributes[children_idx]["value_coupling_parents"] = tuple(
+                    coupling_strengths
+                )
+            else:
+                value_parents = value_parents + tuple(parent_idxs)
+                attributes[children_idx]["value_coupling_parents"] += tuple(
+                    coupling_strengths
+                )
+        elif kind == "volatility":
+            if volatility_parents is None:
+                volatility_parents = tuple(parent_idxs)
+                attributes[children_idx]["volatility_coupling_parents"] = tuple(
+                    coupling_strengths
+                )
+            else:
+                volatility_parents = volatility_parents + tuple(parent_idxs)
+                attributes[children_idx]["volatility_coupling_parents"] += tuple(
+                    coupling_strengths
+                )
+
+        # save the updated edges back
+        edges_as_list[children_idx] = Indexes(
+            value_parents,
+            volatility_parents,
+            value_children,
+            volatility_children,
+        )
+
+    # convert the list back to a tuple
+    edges = tuple(edges_as_list)
+
+    return attributes, edges

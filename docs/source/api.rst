@@ -115,6 +115,16 @@ Continuous inputs
     continuous_input_value_prediction_error
     continuous_input_prediction_error
 
+Dirichlet processes
+^^^^^^^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.inputs.dirichlet
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.inputs.continuous
+
+    dirichlet_input_prediction_error
+
 State nodes
 -----------
 
@@ -216,6 +226,8 @@ Utilities for manipulating networks of probabilistic nodes.
    list_branches
    fill_categorical_state_node
    get_update_sequence
+   concatenate_networks
+   add_edges
 
 Math
 ****

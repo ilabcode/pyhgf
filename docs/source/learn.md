@@ -95,13 +95,17 @@ Recovering parameters from the generative model and using the sampling functiona
 
 ## Use cases
 
+### Signal processing
 ::::{grid} 3
 
 :::{grid-item-card}  Bayesian filtering of cardiac dynamics
 :link: example_1
 :link-type: ref
-
 :::
+::::
+
+
+::::{grid} 3
 
 :::{grid-item-card}  Value and volatility coupling with an input node
 :link: example_2
@@ -109,6 +113,18 @@ Recovering parameters from the generative model and using the sampling functiona
 :img-top: ./images/input_mean_precision.png
 
 :::
+
+:::{grid-item-card}  Multi-armed bandit task with independent reward and punishments
+:link: example_3
+:link-type: ref
+:img-top: ./images/multiarmedbandittask.png
+
+:::
+::::
+
+### Non-parametric predictive coding
+
+::::{grid} 3
 
 :::{grid-item-card}  Multi-armed bandit task with independent reward and punishments
 :link: example_3

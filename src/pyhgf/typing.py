@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, NamedTuple, Optional, Tuple
+from typing import Callable, NamedTuple, Optional, Tuple, Type
 
 
 class Indexes(NamedTuple):
@@ -22,3 +22,11 @@ class InputIndexes(NamedTuple):
 Edges = Tuple[Indexes, ...]
 
 UpdateSequence = Tuple[Tuple[int, Callable], ...]
+
+
+class DirichletNode(NamedTuple):
+    """Static arguments of a Dirichlet node."""
+
+    base_network: Type
+    likelihood_fn: Callable
+    cluster_input_idxs: Tuple

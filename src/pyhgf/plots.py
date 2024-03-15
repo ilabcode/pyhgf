@@ -263,6 +263,8 @@ def plot_network(hgf: "HGF") -> "Source":
             label, shape = f"Bi-{idx}", "box"
         elif kind == "categorical":
             label, shape = f"Ca-{idx}", "diamond"
+        elif kind == "dirichlet":
+            label, shape = f"DP-{idx}", "doublecircle"
         graphviz_structure.node(
             f"x_{idx}",
             label=label,
@@ -614,9 +616,9 @@ def plot_nodes(
                     )
 
                     # hide surprise if the input was not observed
-                    node_surprise[
-                        hgf.node_trajectories[node_idx]["observed"] == 0
-                    ] = np.nan
+                    node_surprise[hgf.node_trajectories[node_idx]["observed"] == 0] = (
+                        np.nan
+                    )
                     surprise_ax.plot(
                         trajectories_df.time,
                         node_surprise,
