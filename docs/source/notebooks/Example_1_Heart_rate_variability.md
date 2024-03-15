@@ -31,7 +31,7 @@ tags: [hide-cell]
 %%capture
 import sys
 if 'google.colab' in sys.modules:
-    !pip install pyhgf systole
+    !pip install pyhgf systole watermark
 ```
 
 ```{code-cell} ipython3
