@@ -142,16 +142,22 @@ def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None) -
     return surprise
 
 
-def binary_softmax(hgf: "HGF", response_function_parameters=ArrayLike) -> Array:
+def binary_softmax(
+    hgf: "HGF",
+    response_function_inputs=ArrayLike,
+    response_function_parameters=ArrayLike,
+) -> Array:
     """Surprise under the binary sofmax model.
 
     Parameters
     ----------
     hgf :
         An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, here containing the decision from the
+        paraticipant at time *k* [0 or 1].
     response_function_parameters :
-        The additionnal parameters should include the vector of decisions at time *k*
-        [0 or 1].
+        Additionnal parameters for the response function (optional).
 
     Returns
     -------
@@ -164,7 +170,59 @@ def binary_softmax(hgf: "HGF", response_function_parameters=ArrayLike) -> Array:
 
     # the sum of the binary surprises
     surprise = jnp.sum(
-        binary_surprise(x=response_function_parameters, expected_mean=beliefs)
+        binary_surprise(x=response_function_inputs, expected_mean=beliefs)
+    )
+
+    # ensure that inf is returned if the model cannot fit
+    surprise = jnp.where(jnp.isnan(surprise), jnp.inf, surprise)
+
+    return surprise
+
+
+def binary_softmax_inverse_temperature(
+    hgf: "HGF",
+    response_function_inputs=ArrayLike,
+    response_function_parameters=ArrayLike,
+) -> Array:
+    r"""Surprise from a binary sofmax parametrized by the inverse temperature.
+
+    The probability of chosing A is given by:
+
+    .. math::
+
+       P(A|\hat{\mu}^{(k)_{1}, t) = \frac{1}{1+e^{-t\hat{\mu}^{(k)_{1}}}
+
+    Where :math:`\hat{mu}^{(k)_{1}` is the expected probability of A at the firt level,
+    and :math:`t` is the temperature parameter.
+
+    Parameters
+    ----------
+    hgf :
+        An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, here containing the decision from the
+        paraticipant at time *k* [0 or 1].
+    response_function_parameters :
+        Additionnal parameters for the response function (optional). Here, the inverse
+        temperature  is provided.
+
+    Returns
+    -------
+    surprise :
+        The surprise under the binary sofmax model.
+
+    """
+    # the expected values at the first level of the HGF
+    beliefs = 1 / (
+        1
+        + jnp.exp(
+            -response_function_parameters * hgf.node_trajectories[1]["expected_mean"]
+        )
+    )
+
+    # the sum of the binary surprises
+    surprise = jnp.sum(
+        binary_surprise(x=response_function_inputs, expected_mean=beliefs)
     )
 
     # ensure that inf is returned if the model cannot fit
