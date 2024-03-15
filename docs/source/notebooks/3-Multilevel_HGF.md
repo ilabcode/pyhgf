@@ -15,7 +15,7 @@ kernelspec:
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
 (multilevel_hgf)=
-# Multilevel embeding of Hierarchical Gaussian Filters
+# Embeding Hierarchical Gaussian Filters in a multilevel Bayesian model
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
 
@@ -30,6 +30,7 @@ tags: [hide-cell]
 ---
 %%capture
 import sys
+
 if 'google.colab' in sys.modules:
     !pip install pyhgf watermark
 ```
@@ -47,218 +48,150 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pymc as pm
 from numpy import loadtxt
-
 from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution, hgf_logp
-from pyhgf.response import first_level_binary_surprise
+from pyhgf.model import HGF
+from pyhgf.response import binary_softmax_inverse_temperature
+import pytensor.tensor as tt
 ```
 
 ```{code-cell} ipython3
 np.random.seed(123)
 ```
 
-In the previous tutorials, we discussed the use of binary and continuous Hierarchical Gaussian Filters (HGF) with 2 or 3 levels of volatility. The way we presented those models was by operating at the agent level (i.e. the observations were made by one agent, and we estimated the posterior density distribution of parameters for that agent). However, many situations in computational psychiatry and cognitive modelling will require making inferences at the population level, therefore fitting many models at the same time and estimating the density distribution of hyper-priors (see for example case studies from {cite:p}`2014:lee`). 
+In the previous tutorials, we discussed using binary, categorical and continuous Hierarchical Gaussian Filters (HGF) with different levels of volatility. By creating HGF networks this way, we were simulating computations occurring at the agent level (i.e. both the observations and actions were made by one agent, and we estimated the posterior density distribution of parameters for that agent). However, many situations in experimental neuroscience and computational psychiatry will require us to go one step further and to make inferences at the population level, therefore fitting many models at the same time and estimating the density distribution of hyper-priors (see for example case studies from {cite:p}`2014:lee`). 
 
-Luckily, we already have all the components in place to do that. We have already embedded the HGF model in a Bayesian network, where prior distributions were set over some parameters of interest. We just need to extend this approach a bit, and explicitly state that we want to fit many models (participants) at the same time, and draw their parameter values from a hyper-prior (i.e. the group-level distribution).
+Luckily, we already have all the components in place to do that. We already used Bayesian networks in the previous sections when we were inferring the distribution of some parameters. Here, we only had one agent (i.e. one participant), and therefore did not need any hyperprior. We need to extend this approach a bit, and explicitly state that we want to fit many models (participants) simultaneously, and draw the values of some parameters from a hyper-prior (i.e. the group-level distribution).
+
+But before we move forward, maybe it is worth clarifying some of the terminology we use, especially as, starting from now, many things are called **networks** but are pointing to different parts of the workflow. We can indeed distinguish two kinds:
+1. The predictive coding neural networks. This is the kind of network that [pyhgf](https://github.com/ilabcode/pyhgf) is designed to handle (see {ref}`#probabilistic_networks`). Every HGF model is an instance of such a network.
+2. The Bayesian (multilevel) network is the computational graph that is created with tools like [pymc](https://www.pymc.io/welcome.html). This graph will represent the dependencies between our variables and the way they are transformed.
+
+In this notebook, we are going to create the second type of network and incorporate many networks of the first type in it as custom distribution.
+
++++
+
+## Simulate a dataset
+We start by simulating a dataset that would containt the decisions from a group of participants undergoing a standard one-armed bandit task. We use the same binary time series as reference than from the previous tutorials. This would represent the association between the stimuli and the outcome, this is controlled by the experimenter and here we assume all participants are presented with the same sequence of association.
+
+```{code-cell} ipython3
+u, _ = load_data("binary")
+```
+
+Using the same reasoning as in the previous tutorial {ref}`#custom_response_functions`, we simulate the trajectories of beliefs from participants being presented with this sequence of observation. Here, we vary one parameter in the perceptual model, we assume that the tonic volatility from the second level is sampled from a population distribution such as: 
+
+$$
+\omega_{2_i} \sim \mathcal{N}(-4.0, 1.0)
+$$
+
+This produces belief trajectories that can be used to infer propensity for decision at each time point. Moreover, we will assume that the decision function incorporates the possibility of a bias in the link between the belief and the decision in the form of the inverse temperature parameter, such as:
+
+$$
+P(A|\hat{\mu}_1^{(k)}, t) = \frac{1}{1+e^{-t\hat{\mu}_1^{(k)}}}
+$$
+
+Where $A$ is a positive association between the stimulus and the outcome and $t$ is the temperature parameter.
+
+```{code-cell} ipython3
+def sigmoid(x, temperature):
+    """The sigmoid response function with inverse temperature parameter."""
+    return 1 / (1 + np.exp(-temperature * x))
+```
+
+```{code-cell} ipython3
+N = 10  # number of agents/participants in the study
+
+# create just one default network - we will simply change the values of interest before fitting to save time
+agent = HGF(
+    n_levels=2,
+    verbose=False,
+    model_type="binary",
+    initial_mean={"1": 0.0, "2": 0.0},
+    initial_precision={"1": 0.0, "2": 1e1},
+    tonic_volatility={"2": -4.0},
+)
+
+# observations (always the same), simulated decisions, samples values for temperature and volatility
+inputs, responses, temperatures, volatilities = [], [], [], []
+for i in range(N):
+    # sample one new value of the tonic volatility at the second level and fit to observations
+    volatility = np.random.normal(-4.0, 1.0)
+    agent.attributes[2]["tonic_volatility"] = volatility
+    agent.input_data(input_data=u)
+
+    # sample one value for the inverse temperature (here in log space) and simulate responses
+    temperature = np.exp(np.random.normal(.5, .5))
+    p = sigmoid(x=agent.node_trajectories[1]["expected_mean"], temperature=temperature)
+
+    # store observations and decisions separately
+    inputs.append(u)
+    responses.append(np.random.binomial(p=p, n=1))
+```
+
+## A multilevel binary HGF
+In this part, we start embedding the HGF in a multilevel model using PyMC. We use the same core distribution (the [HGFDistribution class](pyhgf.distribution.HGFDistribution)) and leverage the possibility of automatic broadcasting (see below) to apply the same procedure to multiple HGF models in parallel. Note that the list of observations and decisions from all participants is provided and stored when we create the [PyTensor](https://pytensor.readthedocs.io) Op instance so it is not necessary to provide it thereafter.
 
 +++
 
 ```{hint} Using automatic broadcasting
-To estimate group-level parameters, we will have to fit multiple models at the same time, either on different input data, or on the same data with different parameters, or on different datasets with different parameters. This steps is handled natively both by the [log probability function](pyhgf.distribution.hgf_logp) and the [HGFDistribution class](pyhgf.distribution.HGFDistribution) using a pseudo [broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) approach. When a list of *n* input time series is provided, the function will automatically apply *n* models using the provided parameters. If for some parameters an array of length *n* is provided, each model will use the n-th value as parameter. Here, we are going to rely on this feature to compute the log probability of *n* model, using *n* time series as input and *n* different parameters to test.
+To estimate group-level parameters, we will have to fit multiple models at the same time, either on different input data, on the same data with different parameters or on different datasets with different parameters. This step is handled natively both by the [log probability function](pyhgf.distribution.hgf_logp) and the [HGFDistribution class](pyhgf.distribution.HGFDistribution) using a pseudo [broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) approach. When a list of *n* input time series is provided, the function will automatically apply *n* models using the provided parameters. If for some parameters an array of length *n* is provided, each model will use the n-th value as a parameter. Here, we are going to rely on this feature to compute the log probability of *n* model, using *n* time series as input and *n* different parameters to test.
 ```
-
-+++
-
-## A multilevel continuous HGF
-### Simulate a dataset
-
-Using the example of a hierarchical Gaussian Random Walk that we depicted in the {ref}`theory` section, we are going to us this generative model to simulate 8 random walks using known parameters and infer afterhand the group-level value of $\omega_1$ from this dataset. The generative model is given by:
-
-$$
-\omega_1, \omega_2 = -10.0  \\
-\mu_1, \mu_2 = 0.0  \\
-u^{(k)} \sim \mathcal{N}(x_1^{(k)} , 1e-4) \\
-x_1^{(k)} \sim \mathcal{N}(x_1^{(k)} | x_1^{(k-1)}, \exp(\kappa_1 x_2^{(k)} + \omega_1)) \\
-x_2^{(k)} \sim \mathcal{N}(x_2^{(k)} | x_2^{(k-1)}, \exp(\omega_2)) \\
-$$
-
-```{note}
-Here we are usig a noisy input node.
-```
-
-```{code-cell} ipython3
-np.random.seed(123)
-n_data = 8
-dataset = []
-for participant in range(n_data):
-    input_data = []
-    kappa_1 = 1.0
-    omega_1, omega_2 = -10.0, -10.0
-    mu_1, mu_2 = 0.0, 0.0
-
-    for i in range(1000):
-        
-        # x2
-        pi_2 = np.exp(omega_2)
-        mu_2 = np.random.normal(mu_2, pi_2**.5)
-
-        # x1
-        pi_1 = np.exp(kappa_1 * mu_2 + omega_1)
-        mu_1 = np.random.normal(mu_1, pi_1**.5)
-        
-        # input node
-        u = np.random.normal(mu_1, 1e-4**.5)
-        input_data.append(u)
-
-    dataset.append(np.array(input_data))
-```
-
-```{code-cell} ipython3
-_, axs = plt.subplots(figsize=(12, 3))
-for rw in dataset:
-    axs.plot(rw, alpha=.6, linewidth=1)
-```
-
-### Model
-
-+++
-
-Here, we want to estimate the group-level value of $\omega_1$ parameter. For each *participant*, the value will be drawn from a hyper-prior using this structure:
-
-$$
-\mu_1 \sim \mathcal{N}(\mu=0.0, \sigma=10.0)  \\
-\sigma_1 \sim \mathcal{HalfCauchy}(\beta=2.0)  \\
-\lambda \sim \mathcal{N}(\mu=0.0, \sigma=1.0) \\
-\omega_i = \mu_1 + \sigma_1 * \lambda  \\
-u_{i} \sim \mathcal{HGF}(\omega_1=\omega_i, \omega_2=-10.0)
-$$
-with $i \in {1,...,8}$.
-
-+++
-
-```{note}
-We are using a non-centered parametriztion to avoid invalid samples caused by [Neal's funnel](https://num.pyro.ai/en/stable/examples/funnel.html) {cite}`neal:2003`.
-```
-
-```{code-cell} ipython3
-hgf_logp_op = HGFDistribution(
-    n_levels=2,
-    model_type="continuous",
-    input_data=dataset,
-)
-```
-
-```{code-cell} ipython3
-with pm.Model() as model:
-    
-    # Hypterpriors
-    # ------------
-    mu_omega_1 = pm.Normal("mu_omega_1", mu=0, sigma=10.0)
-    sigma_omega_1 = pm.HalfCauchy("sigma_omega_1", 2)
-    
-    # Priors
-    # ------
-    offset = pm.Normal("offset", 0, 1, shape=n_data)
-    tonic_volatility_1 = pm.Deterministic("tonic_volatility_1", mu_omega_1 + offset * sigma_omega_1)
-
-    # The multi-HGF distribution
-    # --------------------------
-    pm.Potential("hgf_loglike", hgf_logp_op(
-        tonic_volatility_1=tonic_volatility_1, tonic_volatility_2=-10.0)
-                )
-```
-
-```{code-cell} ipython3
-pm.model_to_graphviz(model)
-```
-
-```{code-cell} ipython3
-with model:
-    idata = pm.sample(chains=1)
-```
-
-```{code-cell} ipython3
-az.plot_posterior(idata, var_names=["mu_omega_1", "sigma_omega_1"], figsize=(13, 5));
-plt.tight_layout()
-```
-
-As expected, the highest density aroud the group-level mean estimate inlcude `10.0`, the real value.
-
-+++
-
-## A multilevel binary HGF
-
-+++
-
-### Simulate a dataset
-
-```{code-cell} ipython3
-np.random.seed(123)
-n_data = 5
-dataset = []
-for participant in range(n_data):
-    input_data = []
-    omega_2 = -2.0
-    mu_2 = 0.0
-
-    for i in range(500):
-        
-        # x2
-        pi_2 = np.exp(omega_2)
-        mu_2 = np.random.normal(mu_2, pi_2**.5)
-
-        # x1
-        s2 = 1/(1+np.exp(-mu_2))  # sigmoid function
-        u = np.random.binomial(n=1, p=s2)       
-        input_data.append(float(u))
-
-    dataset.append(np.array(input_data))
-```
-
-### Without hyper-priors
 
 ```{code-cell} ipython3
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
-    input_data=dataset,
-    response_function=first_level_binary_surprise,
+    input_data=inputs,
+    response_function=binary_softmax_inverse_temperature,
+    response_function_inputs=responses,
 )
 ```
 
 ```{code-cell} ipython3
 with pm.Model() as two_levels_binary_hgf:
-    
-    # Hypterpriors
-    # ------------
-    mu_omega_1 = pm.Uniform("mu_omega_1", -5, 2)
-    sigma_omega_1 = pm.HalfCauchy("sigma_omega_1", 2)
-    
-    # Priors
-    # ------
-    offset = pm.Normal("offset", 0, 1, shape=n_data)
-    tonic_volatility_2 = pm.Deterministic("tonic_volatility_2", mu_omega_1 + offset * sigma_omega_1)
+
+    # tonic volatility
+    mu_volatility = pm.Normal("mu_volatility", -5, 5)
+    sigma_volatility = pm.HalfNormal("sigma_volatility", 10)
+    volatility = pm.Normal("volatility", mu=mu_volatility, sigma=sigma_volatility, shape=N)
+
+    # inverse temperature
+    mu_temperature = pm.Normal("mu_temperature", 0, 2)
+    sigma_temperature = pm.HalfNormal("sigma_temperature", 2)
+    inverse_temperature = pm.LogNormal("inverse_temperature", mu=mu_temperature, sigma=sigma_temperature, shape=N)
 
     # The multi-HGF distribution
     # --------------------------
-    pm.Potential("hgf_loglike", hgf_logp_op(tonic_volatility_2=tonic_volatility_2))
+    pm.Potential("hgf_loglike", 
+             hgf_logp_op(
+                 tonic_volatility_2=volatility,
+                 response_function_parameters=inverse_temperature
+             )
+        )
 ```
 
-#### Visualizing the model
+## Plot the computational graph
+The multilevel model includes hyperpriors over the mean and standard deviation of both the inverse temperature and the tonic volatility of the second level.
+
+```{note}
+We are sampling the inverse temperature in log space to ensure it will always be higher than 0, while being able to use normal hyper-priors at the group level.
+```
 
 ```{code-cell} ipython3
 pm.model_to_graphviz(two_levels_binary_hgf)
 ```
 
-#### Sampling
+## Sampling
 
 ```{code-cell} ipython3
 with two_levels_binary_hgf:
-    two_level_hgf_idata = pm.sample(chains=1)
+    two_level_hgf_idata = pm.sample(chains=2, cores=1)
 ```
 
+## Visualization of the posterior distributions
+
 ```{code-cell} ipython3
-az.plot_trace(two_level_hgf_idata);
+az.plot_posterior(two_level_hgf_idata, var_names=["mu_temperature", "mu_volatility"], ref_val=[.5, -4.0])
 plt.tight_layout()
 ```
 
