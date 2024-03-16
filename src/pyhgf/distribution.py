@@ -320,7 +320,7 @@ class HGFLogpGradOp(Op):
         mean_3=np.array(0.0),
         volatility_coupling_1=np.array(1.0),
         volatility_coupling_2=np.array(0.0),
-        response_function_parameters=np.array(1.0),
+        response_function_parameters=np.array([1.0]),
     ):
         """Initialize node structure."""
         # Convert our inputs to symbolic variables
@@ -536,7 +536,7 @@ class HGFDistribution(Op):
         mean_3=np.array(0.0),
         volatility_coupling_1=np.array(1.0),
         volatility_coupling_2=np.array(1.0),
-        response_function_parameters=np.array(1.0),
+        response_function_parameters=np.array([1.0]),
     ):
         """Convert inputs to symbolic variables."""
         inputs = [

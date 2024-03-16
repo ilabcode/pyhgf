@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 def first_level_gaussian_surprise(
-    hgf: "HGF", response_function_parameters=None
+    hgf: "HGF", response_function_inputs=None, response_function_parameters=None
 ) -> Array:
     """Gaussian surprise at the first level of a probabilistic network.
 
@@ -26,8 +26,10 @@ def first_level_gaussian_surprise(
     ----------
     hgf :
         An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, not required here.
     response_function_parameters :
-        No additional parameters are required to compute the Gaussian surprise.
+        Additionnal parameters for the response function, not required here.
 
     Returns
     -------
@@ -51,7 +53,9 @@ def first_level_gaussian_surprise(
     )
 
 
-def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Array:
+def total_gaussian_surprise(
+    hgf: "HGF", response_function_inputs=None, response_function_parameters=None
+) -> Array:
     """Sum of the Gaussian surprise across the probabilistic network.
 
     .. note::
@@ -61,8 +65,10 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Ar
     ----------
     hgf :
         An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, not required here.
     response_function_parameters :
-        No additional parameters are required to compute the Gaussian surprise.
+        Additionnal parameters for the response function, not required here.
 
     Returns
     -------
@@ -104,7 +110,9 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Ar
     )
 
 
-def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None) -> Array:
+def first_level_binary_surprise(
+    hgf: "HGF", response_function_inputs=None, response_function_parameters=None
+) -> Array:
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
@@ -116,8 +124,10 @@ def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None) -
     ----------
     hgf :
         An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, not required here.
     response_function_parameters :
-        No additional parameters are required to compute the binary surprise.
+        Additionnal parameters for the response function, not required here.
 
     Returns
     -------
@@ -157,7 +167,7 @@ def binary_softmax(
         The inputs to the response functions, here containing the decision from the
         paraticipant at time *k* [0 or 1].
     response_function_parameters :
-        Additionnal parameters for the response function (optional).
+        Additionnal parameters for the response function, not required here.
 
     Returns
     -------

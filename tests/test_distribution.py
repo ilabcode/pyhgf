@@ -30,7 +30,7 @@ class TestDistribution(TestCase):
                 input_data=[timeserie],
                 response_function=first_level_gaussian_surprise,
                 model_type="continuous",
-                response_function_parameters=None,
+                response_function_inputs=None,
                 time_steps=None,
             )
         )
@@ -52,6 +52,7 @@ class TestDistribution(TestCase):
             mean_3=jnp.nan,
             volatility_coupling_1=1.0,
             volatility_coupling_2=jnp.nan,
+            response_function_parameters=[jnp.nan],
         )
         assert jnp.isclose(logp, 1141.0911)
 
@@ -68,7 +69,7 @@ class TestDistribution(TestCase):
                 input_data=[u],
                 response_function=first_level_binary_surprise,
                 model_type="binary",
-                response_function_parameters=None,
+                response_function_inputs=None,
             )
         )
 
@@ -89,6 +90,7 @@ class TestDistribution(TestCase):
             mean_3=jnp.nan,
             volatility_coupling_1=jnp.array(1.0),
             volatility_coupling_2=jnp.nan,
+            response_function_parameters=[jnp.nan],
         )
         assert jnp.isclose(logp, -215.58821)
 
@@ -107,9 +109,9 @@ class TestDistribution(TestCase):
                     input_data=[timeserie],
                     response_function=first_level_gaussian_surprise,
                     model_type="continuous",
-                    response_function_parameters=None,
+                    response_function_inputs=None,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             ),
         )
 
@@ -130,6 +132,7 @@ class TestDistribution(TestCase):
             mean_3,
             volatility_coupling_1,
             volatility_coupling_2,
+            response_function_parameters,
         ) = grad_logp(
             np.array(-3.0),
             np.array(-3.0),
@@ -147,6 +150,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
             np.array(1.0),
             np.array(0.0),
+            np.array([np.nan]),
         )
 
         assert jnp.isclose(tonic_volatility_1, -7.864815)
@@ -166,9 +170,9 @@ class TestDistribution(TestCase):
                     input_data=[u],
                     response_function=first_level_binary_surprise,
                     model_type="binary",
-                    response_function_parameters=None,
+                    response_function_inputs=None,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             ),
         )
 
@@ -189,6 +193,7 @@ class TestDistribution(TestCase):
             mean_3,
             volatility_coupling_1,
             volatility_coupling_2,
+            response_function_parameters,
         ) = grad_logp(
             np.array(0.0),
             np.array(-2.0),
@@ -206,6 +211,7 @@ class TestDistribution(TestCase):
             np.array(0.0),
             np.array(1.0),
             np.array(1.0),
+            np.array([np.nan]),
         )
 
         assert jnp.isclose(tonic_volatility_2, -3.4070916)
@@ -225,7 +231,7 @@ class TestDistribution(TestCase):
             model_type="continuous",
             n_levels=2,
             response_function=first_level_gaussian_surprise,
-            response_function_parameters=None,
+            response_function_inputs=None,
         )
 
         logp = hgf_logp_op(
@@ -245,6 +251,7 @@ class TestDistribution(TestCase):
             mean_3=np.array(0.0),
             volatility_coupling_1=np.array(1.0),
             volatility_coupling_2=np.array(0.0),
+            response_function_parameters=np.array([np.nan]),
         ).eval()
 
         assert jnp.isclose(logp, 1141.09106445)
@@ -261,7 +268,7 @@ class TestDistribution(TestCase):
             model_type="binary",
             n_levels=2,
             response_function=first_level_binary_surprise,
-            response_function_parameters=None,
+            response_function_inputs=None,
         )
 
         logp = hgf_logp_op(
@@ -281,6 +288,7 @@ class TestDistribution(TestCase):
             mean_3=np.inf,
             volatility_coupling_1=1.0,
             volatility_coupling_2=np.inf,
+            response_function_parameters=np.array([np.nan]),
         ).eval()
 
         assert jnp.isclose(logp, -215.58821106)
@@ -300,7 +308,7 @@ class TestDistribution(TestCase):
             input_data=[timeserie],
             n_levels=2,
             response_function=first_level_gaussian_surprise,
-            response_function_parameters=None,
+            response_function_inputs=None,
         )
 
         tonic_volatility_1 = hgf_logp_grad_op(
@@ -331,7 +339,7 @@ class TestDistribution(TestCase):
             input_data=[u],
             n_levels=2,
             response_function=first_level_binary_surprise,
-            response_function_parameters=None,
+            response_function_inputs=None,
         )
 
         tonic_volatility_2 = hgf_logp_grad_op(
@@ -364,7 +372,6 @@ class TestDistribution(TestCase):
             n_levels=2,
             input_data=[timeserie],
             response_function=first_level_gaussian_surprise,
-            response_function_parameters=(np.array(1), 1),
         )
 
         with pm.Model() as model:
@@ -402,7 +409,6 @@ class TestDistribution(TestCase):
             model_type="binary",
             input_data=[u],
             response_function=first_level_binary_surprise,
-            response_function_parameters=(np.array(1), 1),
         )
 
         with pm.Model() as model:
