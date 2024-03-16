@@ -47,6 +47,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 import pymc as pm
+import seaborn as sns
 from numpy import loadtxt
 from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution, hgf_logp
@@ -87,15 +88,31 @@ $$
 This produces belief trajectories that can be used to infer propensity for decision at each time point. Moreover, we will assume that the decision function incorporates the possibility of a bias in the link between the belief and the decision in the form of the inverse temperature parameter, such as:
 
 $$
-P(A|\hat{\mu}_1^{(k)}, t) = \frac{1}{1+e^{-t\hat{\mu}_1^{(k)}}}
+P(A|\mu, t) = \frac{\mu^t}{\mu^t + (1-\mu)^t}
 $$
 
-Where $A$ is a positive association between the stimulus and the outcome and $t$ is the temperature parameter.
+Where $A$ is a positive association between the stimulus and the outcome, $\mu = \hat{\mu}_1^{(k)}$, the expected probability from the first level and $t$ is the temperature parameter.
 
 ```{code-cell} ipython3
 def sigmoid(x, temperature):
     """The sigmoid response function with inverse temperature parameter."""
-    return 1 / (1 + np.exp(-temperature * x))
+    return (x**temperature) / (x**temperature + (1-x)**temperature)
+```
+
+```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+tags: [hide-input]
+---
+x = np.linspace(0, 1, 500)
+sns.set_palette("rocket")
+for temp in [0.5, 1.0, 6.0, 64.0]:
+    plt.plot(x, sigmoid(x, temp), label=f"$\lambda  = {temp}$")
+plt.title("The unit square sigmoid function")
+plt.legend()
+sns.despine();
 ```
 
 ```{code-cell} ipython3
@@ -111,7 +128,7 @@ agent = HGF(
     tonic_volatility={"2": -4.0},
 )
 
-# observations (always the same), simulated decisions, samples values for temperature and volatility
+# observations (always the same), simulated decisions, sample values for temperature and volatility
 inputs, responses, temperatures, volatilities = [], [], [], []
 for i in range(N):
     # sample one new value of the tonic volatility at the second level and fit to observations
@@ -194,6 +211,10 @@ with two_levels_binary_hgf:
 az.plot_posterior(two_level_hgf_idata, var_names=["mu_temperature", "mu_volatility"], ref_val=[.5, -4.0])
 plt.tight_layout()
 ```
+
+The reference values on both posterior distributions indicate the mean of the distribution used for simulation. 
+
++++
 
 # System configuration
 

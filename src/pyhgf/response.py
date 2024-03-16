@@ -223,11 +223,12 @@ def binary_softmax_inverse_temperature(
 
     """
     # the expected values at the first level of the HGF
-    beliefs = 1 / (
-        1
-        + jnp.exp(
-            -response_function_parameters * hgf.node_trajectories[1]["expected_mean"]
-        )
+    beliefs = (
+        hgf.node_trajectories[1]["expected_mean"] ** response_function_parameters
+    ) / (
+        hgf.node_trajectories[1]["expected_mean"] ** response_function_parameters
+        + (1 - hgf.node_trajectories[1]["expected_mean"])
+        ** response_function_parameters
     )
 
     # the sum of the binary surprises

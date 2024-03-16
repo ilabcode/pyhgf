@@ -38,7 +38,7 @@ class TestResponses(TestCase):
             response_function_inputs=y,
             response_function_parameters=2.0,
         )
-        assert np.isclose(surprise, 257.66257)
+        assert np.isclose(surprise, 188.77818)
 
 
 if __name__ == "__main__":
