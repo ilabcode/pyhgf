@@ -175,7 +175,7 @@ But here, we need a clear definition of what this means *to perform better* for 
 ````{hint} What is a *response function*?
 Most of the work around HGFs consists in creating and adapting {term}`Response model` to work with a given experimental design. There is no limit in terms of what can be used as a {term}`Response model`, provided that the {term}`Perceptual model` and the {term}`Decision rule` are clearly defined.
 
-In [pyhgf](https://github.com/ilabcode/pyhgf), the {term}`Perceptual model` is the probabilistic network created with the main {py:class}`pyhgf.model.HGF` and {py:class}`pyhgf.distribution.HGFDistribution` classes. The {term}`Response model` is something that is implicitly defined when we create the {term}`Response function`, a Python function that computes the negative of the log-likelihood of the actions given the perceptual model. This {term}`Response function` can be passed as an argument to the main classes using the keywords arguments `response_function` and `response_function_parameters`. The `response_function` can be any callable that returns the surprise $S$ of observing action $y$ given this model, and the {term}`Decision rule`. The `response_function_parameters` is where additional parameters or observations can be provided. Critically, this is where the actions $y$ should be provided.
+In [pyhgf](https://github.com/ilabcode/pyhgf), the {term}`Perceptual model` is the probabilistic network created with the main {py:class}`pyhgf.model.HGF` and {py:class}`pyhgf.distribution.HGFDistribution` classes. The {term}`Response model` is something that is implicitly defined when we create the {term}`Response function`, a Python function that computes the negative of the log-likelihood of the actions given the perceptual model. This {term}`Response function` can be passed as an argument to the main classes using the keywords arguments `response_function`, `response_function_inputs` and `response_function_parameters`. The `response_function` can be any callable that returns the surprise $S$ of observing action $y$ given this model, and the {term}`Decision rule`. The `response_function_inputs` are the additional data to the response function (optional) while `response_function_parameters` are the additional parameters (optional). The `response_function_inputs` is where the actions $y$ should be provided.
 
 ```{important}
 A *response function* should not return the actions given perceptual inputs $y | u$ (this is what the {term}`Decision rule` does), but the [surprise](https://en.wikipedia.org/wiki/Information_content) $S$ associated with the observation of actions given the perceptual inputs $S(y | u)$, which is defined by:
@@ -208,16 +208,17 @@ editable: true
 slideshow:
   slide_type: ''
 ---
-def response_function(hgf, response_function_parameters):
+def response_function(hgf, response_function_inputs, response_function_parameters=None):
     """A simple response function returning the binary surprise."""
 
-    # get the responses from the additional parameters tuple
-    responses = response_function_parameters[0]
+    # response_function_parameters can be used to parametrize the response function (e.g. inverse temperature)
+    # ...<
 
     # the expected values at the first level of the HGF
     beliefs = hgf.node_trajectories[1]["expected_mean"]
 
-    return jnp.sum(jnp.where(responses, -jnp.log(beliefs), -jnp.log(1.0 - beliefs)))
+    # get the decision from the inputs to the response function
+    return jnp.sum(jnp.where(response_function_inputs, -jnp.log(beliefs), -jnp.log(1.0 - beliefs)))
 ```
 
 This function takes the expected probability from the binary node and uses it to predict the participant's decision. The surprise is computed using the binary surprise (see {py:func}`pyhgf.update.binary.binary_surprise`). This corresponds to the standard binary softmax response function that is also accessible from the {py:func}`pyhgf.response.binary_softmax` function.
@@ -239,7 +240,7 @@ slideshow:
   slide_type: ''
 ---
 # return the overall surprise
-response_function(hgf=agent, response_function_parameters=(responses, ))
+response_function(hgf=agent, response_function_inputs=responses)
 ```
 
 +++ {"editable": true, "slideshow": {"slide_type": ""}}
@@ -260,7 +261,7 @@ hgf_logp_op = HGFDistribution(
     model_type="binary",
     input_data=[u],
     response_function=response_function,
-    response_function_parameters=[(responses, )]
+    response_function_inputs=[responses]
 )
 ```
 

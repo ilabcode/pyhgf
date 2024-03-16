@@ -459,12 +459,16 @@ class HGF(object):
     def surprise(
         self,
         response_function: Optional[Callable] = None,
-        response_function_parameters: Tuple = (),
+        response_function_inputs: Tuple = (),
+        response_function_parameters: Optional[
+            Union[np.ndarray, ArrayLike, float]
+        ] = None,
     ):
-        """Surprise (negative log probability) under new observations.
+        """Surprise of the model conditioned by the response function.
 
-        The surprise depends on the input data, the model parameters, the response
-        function and its additional parameters(optional).
+        The surprise (negative log probability) depends on the input data, the model
+        parameters, the response function, its inputs and its additional parameters
+        (optional).
 
         Parameters
         ----------
@@ -472,8 +476,14 @@ class HGF(object):
             The response function to use to compute the model surprise. If `None`
             (default), return the sum of Gaussian surprise if `model_type=="continuous"`
             or the sum of the binary surprise if `model_type=="binary"`.
+        response_function_inputs :
+            A list of tuples with the same length as the number of models. Each tuple
+            contains additional data and parameters that can be accessible to the
+            response functions.
         response_function_parameters :
-            Additional parameters to the response function (optional).
+            A list of additional parameters that will be passed to the response
+            function. This can include values over which inferece is performed in a
+            PyMC model (e.g. the inverse temperature of a binary softmax).
 
         Returns
         -------
@@ -490,6 +500,7 @@ class HGF(object):
 
         return response_function(
             hgf=self,
+            response_function_inputs=response_function_inputs,
             response_function_parameters=response_function_parameters,
         )
 

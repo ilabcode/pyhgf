@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 def first_level_gaussian_surprise(
-    hgf: "HGF", response_function_parameters=None
+    hgf: "HGF", response_function_inputs=None, response_function_parameters=None
 ) -> Array:
     """Gaussian surprise at the first level of a probabilistic network.
 
@@ -26,8 +26,10 @@ def first_level_gaussian_surprise(
     ----------
     hgf :
         An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, not required here.
     response_function_parameters :
-        No additional parameters are required to compute the Gaussian surprise.
+        Additionnal parameters for the response function, not required here.
 
     Returns
     -------
@@ -51,7 +53,9 @@ def first_level_gaussian_surprise(
     )
 
 
-def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Array:
+def total_gaussian_surprise(
+    hgf: "HGF", response_function_inputs=None, response_function_parameters=None
+) -> Array:
     """Sum of the Gaussian surprise across the probabilistic network.
 
     .. note::
@@ -61,8 +65,10 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Ar
     ----------
     hgf :
         An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, not required here.
     response_function_parameters :
-        No additional parameters are required to compute the Gaussian surprise.
+        Additionnal parameters for the response function, not required here.
 
     Returns
     -------
@@ -104,7 +110,9 @@ def total_gaussian_surprise(hgf: "HGF", response_function_parameters=None) -> Ar
     )
 
 
-def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None) -> Array:
+def first_level_binary_surprise(
+    hgf: "HGF", response_function_inputs=None, response_function_parameters=None
+) -> Array:
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
@@ -116,8 +124,10 @@ def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None) -
     ----------
     hgf :
         An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, not required here.
     response_function_parameters :
-        No additional parameters are required to compute the binary surprise.
+        Additionnal parameters for the response function, not required here.
 
     Returns
     -------
@@ -142,16 +152,22 @@ def first_level_binary_surprise(hgf: "HGF", response_function_parameters=None) -
     return surprise
 
 
-def binary_softmax(hgf: "HGF", response_function_parameters=ArrayLike) -> Array:
+def binary_softmax(
+    hgf: "HGF",
+    response_function_inputs=ArrayLike,
+    response_function_parameters=ArrayLike,
+) -> Array:
     """Surprise under the binary sofmax model.
 
     Parameters
     ----------
     hgf :
         An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, here containing the decision from the
+        paraticipant at time *k* [0 or 1].
     response_function_parameters :
-        The additionnal parameters should include the vector of decisions at time *k*
-        [0 or 1].
+        Additionnal parameters for the response function, not required here.
 
     Returns
     -------
@@ -164,7 +180,60 @@ def binary_softmax(hgf: "HGF", response_function_parameters=ArrayLike) -> Array:
 
     # the sum of the binary surprises
     surprise = jnp.sum(
-        binary_surprise(x=response_function_parameters, expected_mean=beliefs)
+        binary_surprise(x=response_function_inputs, expected_mean=beliefs)
+    )
+
+    # ensure that inf is returned if the model cannot fit
+    surprise = jnp.where(jnp.isnan(surprise), jnp.inf, surprise)
+
+    return surprise
+
+
+def binary_softmax_inverse_temperature(
+    hgf: "HGF",
+    response_function_inputs=ArrayLike,
+    response_function_parameters=ArrayLike,
+) -> Array:
+    r"""Surprise from a binary sofmax parametrized by the inverse temperature.
+
+    The probability of chosing A is given by:
+
+    .. math::
+
+       P(A|\hat{\mu}^{(k)_{1}, t) = \frac{1}{1+e^{-t\hat{\mu}^{(k)_{1}}}
+
+    Where :math:`\hat{mu}^{(k)_{1}` is the expected probability of A at the firt level,
+    and :math:`t` is the temperature parameter.
+
+    Parameters
+    ----------
+    hgf :
+        An instance of the HGF model.
+    response_function_inputs :
+        The inputs to the response functions, here containing the decision from the
+        paraticipant at time *k* [0 or 1].
+    response_function_parameters :
+        Additionnal parameters for the response function (optional). Here, the inverse
+        temperature  is provided.
+
+    Returns
+    -------
+    surprise :
+        The surprise under the binary sofmax model.
+
+    """
+    # the expected values at the first level of the HGF
+    beliefs = (
+        hgf.node_trajectories[1]["expected_mean"] ** response_function_parameters
+    ) / (
+        hgf.node_trajectories[1]["expected_mean"] ** response_function_parameters
+        + (1 - hgf.node_trajectories[1]["expected_mean"])
+        ** response_function_parameters
+    )
+
+    # the sum of the binary surprises
+    surprise = jnp.sum(
+        binary_surprise(x=response_function_inputs, expected_mean=beliefs)
     )
 
     # ensure that inf is returned if the model cannot fit

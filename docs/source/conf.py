@@ -111,4 +111,7 @@ myst_enable_extensions = ["dollarmath", "colon_fence"]
 
 html_sidebars = {
   "api": [],
+  "cite": [],
+  "learn": [],
+  "references": [],
 }
