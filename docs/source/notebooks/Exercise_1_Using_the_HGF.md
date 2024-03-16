@@ -370,7 +370,7 @@ We now have a model with beliefs trajectories and we want to see how these belie
 ```{code-cell} ipython3
 two_levels_hgf.surprise(
     response_function=binary_softmax,  # the response model
-    response_function_parameters=y     # the decision vector
+    response_function_inputs=y     # the decision vector
 )
 ```
 
@@ -578,7 +578,7 @@ hgf_logp_op = HGFDistribution(
     model_type="binary",
     input_data=[u],
     response_function=binary_softmax,
-    response_function_parameters=[y],
+    response_function_inputs=[y],
 )
 ```
 
@@ -648,7 +648,7 @@ hgf_logp_op = HGFDistribution(
     model_type="binary",
     input_data=[u],
     response_function=binary_softmax,
-    response_function_parameters=[y]
+    response_function_inputs=[y]
 )
 ```
 
