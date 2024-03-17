@@ -35,6 +35,11 @@ class Testmodel(TestCase):
             .add_nodes(volatility_children=7)
         )
 
+        custom_hgf.create_belief_propagation_fn()
+        custom_hgf.create_belief_propagation_fn(overwrite=False)
+        custom_hgf.create_belief_propagation_fn(overwrite=True)
+        custom_hgf.cache_belief_propagation_fn()
+
         custom_hgf.input_data(input_data=np.array([0.2, 1]))
 
         ##############
