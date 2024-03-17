@@ -108,7 +108,6 @@ two_armed_bandit_hgf = (
     .add_nodes(value_children=5, node_parameters={"tonic_volatility": tonic_volatility})
     .add_nodes(value_children=6, node_parameters={"tonic_volatility": tonic_volatility})
     .add_nodes(value_children=7, node_parameters={"tonic_volatility": tonic_volatility})
-    .init()
 )
 two_armed_bandit_hgf.plot_network()
 ```
@@ -299,7 +298,6 @@ two_armed_bandit_missing_inputs_hgf = (
     .add_nodes(value_children=5, node_parameters={"tonic_volatility": tonic_volatility})
     .add_nodes(value_children=6, node_parameters={"tonic_volatility": tonic_volatility})
     .add_nodes(value_children=7, node_parameters={"tonic_volatility": tonic_volatility})
-    .init()
 )
 two_armed_bandit_missing_inputs_hgf.plot_network()
 ```
@@ -354,8 +352,7 @@ two_armed_bandit_missing_inputs_hgf = (
     .add_nodes(value_children=5, node_parameters={"tonic_volatility": tonic_volatility})
     .add_nodes(value_children=6, node_parameters={"tonic_volatility": tonic_volatility})
     .add_nodes(value_children=7, node_parameters={"tonic_volatility": tonic_volatility})
-    .init()
-)
+).create_belief_propagation_fn()
 ```
 
 ```{code-cell} ipython3
