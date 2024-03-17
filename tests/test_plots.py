@@ -141,16 +141,12 @@ class Testplots(TestCase):
         input_data = np.vstack([[0.0] * input_data.shape[1], input_data])
 
         # create the categorical HGF
-        categorical_hgf = (
-            HGF(model_type=None, verbose=False)
-            .add_nodes(
-                kind="categorical-input",
-                node_parameters={
-                    "n_categories": 3,
-                    "binary_parameters": {"tonic_volatility_2": -2.0},
-                },
-            )
-            .init()
+        categorical_hgf = HGF(model_type=None, verbose=False).add_nodes(
+            kind="categorical-input",
+            node_parameters={
+                "n_categories": 3,
+                "binary_parameters": {"tonic_volatility_2": -2.0},
+            },
         )
 
         # fitting the model forwards
