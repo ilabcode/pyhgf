@@ -123,13 +123,13 @@ agent = HGF(
     n_levels=2,
     verbose=False,
     model_type="binary",
-    initial_mean={"1": 0.0, "2": 0.0},
-    initial_precision={"1": 0.0, "2": 1e1},
-    tonic_volatility={"2": -4.0},
+    initial_mean={"1": 0.5, "2": 0.0},
 )
+```
 
+```{code-cell} ipython3
 # observations (always the same), simulated decisions, sample values for temperature and volatility
-inputs, responses, temperatures, volatilities = [], [], [], []
+responses = []
 for i in range(N):
     # sample one new value of the tonic volatility at the second level and fit to observations
     volatility = np.random.normal(-4.0, 1.0)
@@ -141,7 +141,6 @@ for i in range(N):
     p = sigmoid(x=agent.node_trajectories[1]["expected_mean"], temperature=temperature)
 
     # store observations and decisions separately
-    inputs.append(u)
     responses.append(np.random.binomial(p=p, n=1))
 ```
 
@@ -158,7 +157,7 @@ To estimate group-level parameters, we will have to fit multiple models at the s
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
-    input_data=inputs,
+    input_data=[u] * N,
     response_function=binary_softmax_inverse_temperature,
     response_function_inputs=responses,
 )
@@ -212,7 +211,7 @@ az.plot_posterior(two_level_hgf_idata, var_names=["mu_temperature", "mu_volatili
 plt.tight_layout()
 ```
 
-The reference values on both posterior distributions indicate the mean of the distribution used for simulation. 
+The reference values on both posterior distributions indicate the mean of the distribution used for simulation.
 
 +++
 

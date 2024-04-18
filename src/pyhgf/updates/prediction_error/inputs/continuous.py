@@ -83,6 +83,7 @@ def continuous_input_volatility_prediction_error(
 def continuous_input_value_prediction_error(
     attributes: Dict,
     edges: Edges,
+    time_step: float,
     node_idx: int,
 ) -> Dict:
     r"""Store value prediction error and expected precision from an input node.
@@ -112,6 +113,8 @@ def continuous_input_value_prediction_error(
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
         number. For each node, the index lists the value and volatility parents and
         children.
+    time_step :
+        The time interval between the previous time point and the current time point.
     node_idx :
         Pointer to the input node.
 
@@ -149,14 +152,19 @@ def continuous_input_value_prediction_error(
     expected_precision = attributes[node_idx]["input_noise"]
 
     # influence of a volatility parent on the input node
-    volatility_parent = edges[node_idx].volatility_parents  # type:ignore
-    if volatility_parent is not None:
-        volatility_coupling = attributes[volatility_parent[0]][
-            "volatility_coupling_children"
-        ][0]
-        expected_precision *= 1 / jnp.exp(
-            attributes[volatility_parent[0]]["expected_mean"] * volatility_coupling
-        )
+    volatility_parents_idxs = edges[node_idx].volatility_parents  # type:ignore
+    if volatility_parents_idxs is not None:
+        for volatility_parents_idx, volatility_coupling in zip(
+            volatility_parents_idxs,
+            attributes[node_idx]["volatility_coupling_parents"],
+        ):
+            expected_precision *= 1 / (
+                time_step
+                * jnp.exp(
+                    attributes[volatility_parents_idx]["expected_mean"]
+                    * volatility_coupling
+                )
+            )
 
     # store in the current node for later use in the update step
     attributes[node_idx]["temp"]["value_prediction_error"] = value_prediction_error
@@ -232,13 +240,15 @@ def continuous_input_prediction_error(
         # Store value prediction errors
         # -----------------------------
         attributes = continuous_input_value_prediction_error(
-            attributes=attributes, edges=edges, node_idx=node_idx
+            attributes=attributes, edges=edges, node_idx=node_idx, time_step=time_step
         )
 
         # Store volatility prediction errors
         # ----------------------------------
         attributes = continuous_input_volatility_prediction_error(
-            attributes=attributes, edges=edges, node_idx=node_idx
+            attributes=attributes,
+            edges=edges,
+            node_idx=node_idx,
         )
 
     return attributes
