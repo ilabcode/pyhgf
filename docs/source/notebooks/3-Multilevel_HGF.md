@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.1
+    jupytext_version: 1.16.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -109,13 +109,18 @@ tags: [hide-input]
 x = np.linspace(0, 1, 500)
 sns.set_palette("rocket")
 for temp in [0.5, 1.0, 6.0, 64.0]:
-    plt.plot(x, sigmoid(x, temp), label=f"$\lambda  = {temp}$")
+    plt.plot(x, sigmoid(x, temp), label=rf'$ \lambda = {temp}$');
 plt.title("The unit square sigmoid function")
 plt.legend()
 sns.despine();
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 N = 10  # number of agents/participants in the study
 
 # create just one default network - we will simply change the values of interest before fitting to save time
@@ -154,10 +159,15 @@ To estimate group-level parameters, we will have to fit multiple models at the s
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 hgf_logp_op = HGFDistribution(
     n_levels=2,
     model_type="binary",
-    input_data=[u] * N,
+    input_data=[u] * N,  # the inputs are the same for all agents - just duplicate the array
     response_function=binary_softmax_inverse_temperature,
     response_function_inputs=responses,
 )
@@ -223,5 +233,10 @@ The reference values on both posterior distributions indicate the mean of the di
 ```
 
 ```{code-cell} ipython3
+---
+editable: true
+slideshow:
+  slide_type: ''
+---
 
 ```

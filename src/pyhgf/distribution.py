@@ -395,7 +395,7 @@ class HGFLogpGradOp(Op):
             grad_volatility_coupling_2, dtype=node.outputs[15].dtype
         )
         outputs[16][0] = np.asarray(
-            grad_response_function_parameters, dtype=node.outputs[15].dtype
+            grad_response_function_parameters, dtype=node.outputs[16].dtype
         )
 
 
