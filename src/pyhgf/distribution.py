@@ -306,20 +306,20 @@ class HGFLogpGradOp(Op):
         self,
         tonic_volatility_1=np.array(-3.0),
         tonic_volatility_2=np.array(-3.0),
-        tonic_volatility_3=np.array(0.0),
+        tonic_volatility_3=np.array(-3.0),
         continuous_precision=np.array(1e4),
         binary_precision=np.inf,
         tonic_drift_1=np.array(0.0),
         tonic_drift_2=np.array(0.0),
         tonic_drift_3=np.array(0.0),
-        precision_1=np.array(1e4),
-        precision_2=np.array(1e1),
+        precision_1=np.array(1.0),
+        precision_2=np.array(1.0),
         precision_3=np.array(0.0),
         mean_1=np.array(0.0),
         mean_2=np.array(0.0),
         mean_3=np.array(0.0),
         volatility_coupling_1=np.array(1.0),
-        volatility_coupling_2=np.array(0.0),
+        volatility_coupling_2=np.array(1.0),
         response_function_parameters=np.array([1.0]),
     ):
         """Initialize node structure."""
@@ -395,7 +395,7 @@ class HGFLogpGradOp(Op):
             grad_volatility_coupling_2, dtype=node.outputs[15].dtype
         )
         outputs[16][0] = np.asarray(
-            grad_response_function_parameters, dtype=node.outputs[15].dtype
+            grad_response_function_parameters, dtype=node.outputs[16].dtype
         )
 
 

@@ -12,7 +12,10 @@ from jax.tree_util import Partial
 
 from pyhgf import load_data
 from pyhgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
-from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
+from pyhgf.response import (
+    binary_softmax_inverse_temperature,
+    first_level_gaussian_surprise,
+)
 
 
 class TestDistribution(TestCase):
@@ -61,15 +64,15 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        u, _ = load_data("binary")
+        u, y = load_data("binary")
         jax_logp = jit(
             Partial(
                 hgf_logp,
                 n_levels=2,
                 input_data=[u],
-                response_function=first_level_binary_surprise,
+                response_function=binary_softmax_inverse_temperature,
                 model_type="binary",
-                response_function_inputs=None,
+                response_function_inputs=[y],
             )
         )
 
@@ -90,9 +93,9 @@ class TestDistribution(TestCase):
             mean_3=jnp.nan,
             volatility_coupling_1=jnp.array(1.0),
             volatility_coupling_2=jnp.nan,
-            response_function_parameters=[jnp.nan],
+            response_function_parameters=[1.0],
         )
-        assert jnp.isclose(logp, -215.58821)
+        assert jnp.isclose(logp, -200.24422)
 
     def test_grad_logp(self):
         ##################
@@ -160,7 +163,7 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        u, _ = load_data("binary")
+        u, y = load_data("binary")
 
         grad_logp = jit(
             grad(
@@ -168,9 +171,9 @@ class TestDistribution(TestCase):
                     hgf_logp,
                     n_levels=2,
                     input_data=[u],
-                    response_function=first_level_binary_surprise,
+                    response_function=binary_softmax_inverse_temperature,
                     model_type="binary",
-                    response_function_inputs=None,
+                    response_function_inputs=[y],
                 ),
                 argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             ),
@@ -211,10 +214,10 @@ class TestDistribution(TestCase):
             np.array(0.0),
             np.array(1.0),
             np.array(1.0),
-            np.array([np.nan]),
+            np.array([1.0]),
         )
 
-        assert jnp.isclose(tonic_volatility_2, -3.4070916)
+        assert jnp.isclose(tonic_volatility_2, 15.896532)
 
     def test_aesara_logp(self):
         """Test the aesara hgf_logp op."""
@@ -261,14 +264,14 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        u, _ = load_data("binary")
+        u, y = load_data("binary")
 
         hgf_logp_op = HGFDistribution(
             input_data=[u],
             model_type="binary",
             n_levels=2,
-            response_function=first_level_binary_surprise,
-            response_function_inputs=None,
+            response_function=binary_softmax_inverse_temperature,
+            response_function_inputs=[y],
         )
 
         logp = hgf_logp_op(
@@ -288,10 +291,10 @@ class TestDistribution(TestCase):
             mean_3=np.inf,
             volatility_coupling_1=1.0,
             volatility_coupling_2=np.inf,
-            response_function_parameters=np.array([np.nan]),
+            response_function_parameters=np.array([1.0]),
         ).eval()
 
-        assert jnp.isclose(logp, -215.58821106)
+        assert jnp.isclose(logp, -200.24421692)
 
     def test_aesara_grad_logp(self):
         """Test the aesara gradient hgf_logp op."""
@@ -332,14 +335,14 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        u, _ = load_data("binary")
+        u, y = load_data("binary")
 
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="binary",
             input_data=[u],
             n_levels=2,
-            response_function=first_level_binary_surprise,
-            response_function_inputs=None,
+            response_function=binary_softmax_inverse_temperature,
+            response_function_inputs=[y],
         )
 
         tonic_volatility_2 = hgf_logp_grad_op(
@@ -356,7 +359,7 @@ class TestDistribution(TestCase):
             volatility_coupling_1=1.0,
         )[1].eval()
 
-        assert jnp.isclose(tonic_volatility_2, 2.6409647)
+        assert jnp.isclose(tonic_volatility_2, 10.8664665)
 
     def test_pymc_sampling(self):
         """Test the aesara hgf_logp op."""
@@ -402,13 +405,14 @@ class TestDistribution(TestCase):
         ##########
 
         # Create the data (value and time vectors)
-        u, _ = load_data("binary")
+        u, y = load_data("binary")
 
         hgf_logp_op = HGFDistribution(
             n_levels=2,
             model_type="binary",
             input_data=[u],
-            response_function=first_level_binary_surprise,
+            response_function=binary_softmax_inverse_temperature,
+            response_function_inputs=[y],
         )
 
         with pm.Model() as model:
@@ -418,8 +422,7 @@ class TestDistribution(TestCase):
                 "hhgf_loglike",
                 hgf_logp_op(
                     tonic_volatility_2=tonic_volatility_2,
-                    binary_precision=np.inf,
-                    precision_2=1.0,
+                    response_function_parameters=[1.0],
                 ),
             )
 
@@ -427,12 +430,12 @@ class TestDistribution(TestCase):
 
         pointslogs = model.point_logps(initial_point)
         assert pointslogs["tonic_volatility_2"] == -1.61
-        assert pointslogs["hhgf_loglike"] == -221.62
+        assert pointslogs["hhgf_loglike"] == -212.59
 
         with model:
             idata = pm.sample(chains=2, cores=1, tune=1000)
 
-        assert -4 < round(az.summary(idata)["mean"].values[0]) < -2
+        assert -2 < round(az.summary(idata)["mean"].values[0]) < 0
 
 
 if __name__ == "__main__":

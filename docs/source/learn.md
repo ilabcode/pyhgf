@@ -87,6 +87,7 @@ How to use any model as a distribution to perform hierarchical inference at the 
 :::{grid-item-card}  Parameter recovery, prior and posterior predictive sampling
 :link: parameters_recovery
 :link-type: ref
+:img-top: ./images/parameter_recovery.png
 
 
 Recovering parameters from the generative model and using the sampling functionalities to estimate prior and posterior uncertainties.
