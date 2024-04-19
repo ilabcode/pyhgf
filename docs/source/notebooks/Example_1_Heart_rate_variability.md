@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.1
+    jupytext_version: 1.16.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -45,8 +45,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pymc as pm
 import seaborn as sns
-from bokeh.io import output_notebook
-from bokeh.plotting import show
 from systole import import_dataset1
 from systole.detection import ecg_peaks
 from systole.plots import plot_raw
@@ -55,10 +53,6 @@ from systole.utils import input_conversion
 from pyhgf.distribution import HGFDistribution
 from pyhgf.model import HGF
 from pyhgf.response import total_gaussian_surprise
-```
-
-```{code-cell} ipython3
-output_notebook()
 ```
 
 The nodalized version of the Hierarchical Gaussian Filter that is implemented in [pyhgf](https://github.com/ilabcode/pyhgf) opens the possibility to create filters with multiple inputs. Here, we illustrate how we can use this feature to create an agent that is filtering their physiological signals in real-time. We use a two-level Hierarchical Gaussian Filter to predict the dynamics of the instantaneous heart rate (the RR interval measured at each heartbeat). We then extract the trajectory of surprise at each predictive node to relate it with the cognitive task performed by the participant while the signal is being recorded.
@@ -79,9 +73,7 @@ ecg = physio_df.ecg
 ### Plot the signal with instantaneous heart rate derivations
 
 ```{code-cell} ipython3
-show(
-    plot_raw(ecg, modality='ecg', sfreq=1000, show_heart_rate=True, backend="bokeh")
-)
+plot_raw(ecg, modality='ecg', sfreq=1000, show_heart_rate=True);
 ```
 
 ### Preprocessing
