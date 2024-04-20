@@ -104,8 +104,6 @@ The categorical Hierarchical Gaussian Filter is a generalisation of the binary H
 
 Introducing with example the continuous Hierarchical Gaussian filter and its applications to signal processing.
 
-+++
-
 :::
 ::::
 
@@ -151,9 +149,11 @@ Examples of possible applications and extensions of the standards Hierarchical G
 
 ::::{grid} 3
 
-:::{grid-item-card}  Bayesian filtering of cardiac dynamics
+:::{grid-item-card}  Inferring cardiac beliefs using Bayesian filtering
 :link: example_1
 :link-type: ref
+
+Application of continuous Bayesian filtering to cardiac physiological recordings to infer interoceptive beliefs and their volatility.
 
 :::
 
@@ -162,12 +162,16 @@ Examples of possible applications and extensions of the standards Hierarchical G
 :link-type: ref
 :img-top: ./images/input_mean_precision.png
 
+Dynamic inference over both the mean and variance of a normal distribution.
+
 :::
 
 :::{grid-item-card}  Multi-armed bandit task with independent reward and punishments
 :link: example_3
 :link-type: ref
 :img-top: ./images/multiarmedbandittask.png
+
+A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit where the probabilities of the outcomes are evolving independently.
 
 :::
 ::::
@@ -182,6 +186,8 @@ Hand-on exercises to build intuition around the main components of the HGF and u
 :::{grid-item-card}  Applying the Hierarchical Gaussian Filter through practical exercises
 :link: hgf_exercises
 :link-type: ref
+
+In-depth introduction to the Hierarchical Gaussian Filter for computational psychiatry (Computational Psychiatry Course, Zurich). About 4 hours. 
 
 :::
 ::::
