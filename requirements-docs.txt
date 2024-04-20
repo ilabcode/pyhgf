@@ -11,3 +11,4 @@ watermark
 systole>=0.3.0
 sphinx-togglebutton
 sphinx-design
+ipywidgets

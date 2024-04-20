@@ -1,3 +1,50 @@
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: Theory
+
+notebooks/0.1-Creating_networks.ipynb
+notebooks/0.2-Theory.ipynb
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: The Hierarchical Gaussian Filter
+
+notebooks/1.1-Binary_HGF.ipynb
+notebooks/1.2-Categorical_HGF.ipynb
+notebooks/1.3-Continuous_HGF.ipynb
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: Tutorials
+
+notebooks/2-Using_custom_response_functions.ipynb
+notebooks/3-Multilevel_HGF.ipynb
+notebooks/4-Parameter_recovery.ipynb
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: Use cases
+
+notebooks/Example_1_Heart_rate_variability.ipynb
+notebooks/Example_2_Input_node_volatility_coupling.ipynb
+notebooks/Example_3_Multi_armed_bandit.ipynb
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: Exercises
+
+notebooks/Exercise_1_Using_the_HGF.ipynb
+```
+
 # Learn
 
 In this section, you can find tutorial notebooks that describe the internals of pyhgf, the theory behind the Hierarchical Gaussian filter, and step-by-step application and use cases of the model. At the beginning of every tutorial, you will find a badge [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.1-Creating_networks.ipynb) to run the notebook interactively in a Google Colab session.
@@ -27,7 +74,7 @@ How the generative model of the Hierarchical Gaussian filter can be turned into 
 ::::
 
 
-## Tutorials
+## The Hierarchical Gaussian Filter
 
 ::::{grid} 3
 
@@ -45,7 +92,7 @@ Introducing with example the binary Hierarchical Gaussian filter and its applica
 :link-type: ref
 :img-top: ./images/categorical.png
 
-The categorical Hierarchical Gaussian Filter as a generalisation of the binary version.
+The categorical Hierarchical Gaussian Filter is a generalisation of the binary HGF to handle categorical distribution with and without transition probabilities.
 
 :::
 
@@ -62,6 +109,9 @@ Introducing with example the continuous Hierarchical Gaussian filter and its app
 :::
 ::::
 
+## Tutorials
+
+Advanced customisation of predictive coding neural networks and Bayesian modelling for group studies. 
 
 ::::{grid} 3
 
@@ -78,6 +128,7 @@ How to adapt any model to specific behaviours and experimental design by using c
 :::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
 :link: multilevel_hgf
 :link-type: ref
+:img-top: ./images/multilevel-hgf.png
 
 
 How to use any model as a distribution to perform hierarchical inference at the group level.
@@ -95,6 +146,8 @@ Recovering parameters from the generative model and using the sampling functiona
 ::::
 
 ## Use cases
+
+Examples of possible applications and extensions of the standards Hierarchical Gaussian Filters to more complex experimental designs
 
 ::::{grid} 3
 

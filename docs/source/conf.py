@@ -51,6 +51,12 @@ extensions = [
 
 panels_add_bootstrap_css = False
 
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "jax": ("https://jax.readthedocs.io/en/latest", None),
+}
+
 # Generate the API documentation when building
 autosummary_generate = True
 numpydoc_show_class_members = False
@@ -65,15 +71,15 @@ plot_formats = [("png", 90)]
 plot_html_show_formats = False
 plot_html_show_source_link = False
 
-source_suffix = ['.rst', '.md']
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'myst-nb',
+    '.ipynb': 'myst-nb',
+    '.myst': 'myst-nb',
+}
 
 # The master toctree document.
 master_doc = "index"
-
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["notebooks/*.ipynb"]
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -105,6 +111,7 @@ html_theme_options = {
     "logo": {
         "text": "pyhgf",
     },
+    "show_nav_level": 2
 }
 
 myst_enable_extensions = ["dollarmath", "colon_fence"]
@@ -112,6 +119,5 @@ myst_enable_extensions = ["dollarmath", "colon_fence"]
 html_sidebars = {
   "api": [],
   "cite": [],
-  "learn": [],
   "references": [],
 }

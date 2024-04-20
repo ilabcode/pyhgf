@@ -448,7 +448,7 @@ class HGFDistribution(Op):
     Sample the model - Using 4 chain, 4 cores and 1000 warmups.
 
     >>> with model:
-    >>>     hgf_samples = pm.sample(chains=4, cores=4, tune=1000)
+    >>>     hgf_samples = pm.sample(chains=2, cores=1, tune=1000)
 
     Print a summary of the results using Arviz
 
