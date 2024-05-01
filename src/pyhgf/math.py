@@ -8,6 +8,21 @@ from jax.scipy.special import digamma, gamma
 from jax.typing import ArrayLike
 
 
+class SufficientStatistics:
+    """Sufficient statistics from the exponential family distributions.
+
+    The sufficient statistics are returned as a one dimentional vector of unique values.
+    """
+
+    def normal(x):
+        """Compute sufficient statistics from a normal distribution."""
+        return jnp.array([x, x**2])
+
+    def multivariate_normal(x):
+        """Compute sufficient statistics from an n dimentional normal distribution."""
+        return jnp.hstack([x, jnp.outer(x, x)[jnp.tril_indices(x.shape[0])]])
+
+
 def gaussian_density(x: ArrayLike, mean: ArrayLike, precision: ArrayLike) -> ArrayLike:
     """Gaussian density as defined by mean and precision."""
     return precision / jnp.sqrt(2 * jnp.pi) * jnp.exp(-precision / 2 * (x - mean) ** 2)
