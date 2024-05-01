@@ -102,7 +102,7 @@ def continuous_input_value_prediction_error(
 
         \hat{\pi}_j^{(k)} = \frac{1}{\zeta} * \frac{1}{e^{\kappa_j \mu_a}}
 
-    where :math:`\zeta` is the input noise (in real space).
+    where :math:`\zeta` is the input precision (in real space).
 
     Parameters
     ----------
@@ -149,7 +149,7 @@ def continuous_input_value_prediction_error(
     )
 
     # expected precision from the input node
-    expected_precision = attributes[node_idx]["input_noise"]
+    expected_precision = attributes[node_idx]["input_precision"]
 
     # influence of a volatility parent on the input node
     volatility_parents_idxs = edges[node_idx].volatility_parents  # type:ignore
