@@ -486,14 +486,17 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     )
     trajectories_df = pd.concat([trajectories_df, df], axis=1)
 
-    # Surprises
-    # ---------
+    # Expectations and surprises
+    # --------------------------
 
-    # add the surprise computed from the continuous inputs
+    # add the surprise and expected precision computed from the continuous inputs
     for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
         trajectories_df[f"observation_input_{idx}_surprise"] = hgf.node_trajectories[
             idx
         ]["surprise"]
+        trajectories_df[
+            f"observation_input_{idx}_expected_precision"
+        ] = hgf.node_trajectories[idx]["expected_precision"]
 
     # for value parents of binary inputs nodes
     binary_nodes_idxs = []
