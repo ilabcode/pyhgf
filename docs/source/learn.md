@@ -5,6 +5,7 @@
 
 notebooks/0.1-Creating_networks.ipynb
 notebooks/0.2-Theory.ipynb
+notebooks/0.3-Generalised_filtering.ipynb
 ```
 
 ```{toctree}
@@ -69,6 +70,16 @@ How to create and manipulate a network of probabilistic nodes for reinforcement 
 
 
 How the generative model of the Hierarchical Gaussian filter can be turned into update functions that update nodes through value and volatility coupling?
+
+:::
+
+:::{grid-item-card}  Generalised Bayesian filtering
+:link: generalised_filtering
+:link-type: ref
+:img-top: ./images/multivariate_hgf.gif
+
+
+Predict, filter and smooth any distribution from the exponential family using generalisations of the Hierarchical Gaussian Filter.
 
 :::
 ::::
