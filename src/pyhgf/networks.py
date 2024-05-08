@@ -494,9 +494,10 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
         trajectories_df[f"observation_input_{idx}_surprise"] = hgf.node_trajectories[
             idx
         ]["surprise"]
-        trajectories_df[
-            f"observation_input_{idx}_expected_precision"
-        ] = hgf.node_trajectories[idx]["expected_precision"]
+        if kind != "categorical":
+            trajectories_df[
+                f"observation_input_{idx}_expected_precision"
+            ] = hgf.node_trajectories[idx]["expected_precision"]
 
     # for value parents of binary inputs nodes
     binary_nodes_idxs = []
