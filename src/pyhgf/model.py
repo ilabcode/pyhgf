@@ -693,7 +693,7 @@ class HGF(object):
             default_parameters = {
                 "volatility_coupling_parents": None,
                 "value_coupling_parents": None,
-                "input_noise": 1e4,
+                "input_precision": 1e4,
                 "expected_precision": 1e4,
                 "time_step": 0.0,
                 "value": 0.0,

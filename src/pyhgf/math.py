@@ -4,8 +4,91 @@ from typing import Union
 
 import jax.numpy as jnp
 from jax import Array
-from jax.scipy.special import digamma, gamma
+from jax.scipy.special import digamma, gamma, gammaln
 from jax.typing import ArrayLike
+
+
+class MultivariateNormal:
+    """The multivariate normal as an exponential family distribution.
+
+    References
+    ----------
+    .. [1]https://en.wikipedia.org/wiki/Exponential_family
+
+    """
+
+    def sufficient_statistics(x):
+        """Compute the sufficient statistics for the multivariate normal."""
+        return jnp.hstack([x, jnp.outer(x, x)[jnp.tril_indices(x.shape[0])]])
+
+    def base_measure(k):
+        """Compute the base measures for the multivariate normal."""
+        return (2 * jnp.pi) ** (-k / 2)
+
+
+class Normal:
+    """The univariate normal as an exponential family distribution.
+
+    References
+    ----------
+    .. [1]https://en.wikipedia.org/wiki/Exponential_family
+
+    """
+
+    def sufficient_statistics(x):
+        """Compute the sufficient statistics for the univariate normal."""
+        return jnp.array([x, x**2])
+
+    def base_measure(k):
+        """Compute the base measure for the univariate normal."""
+        return 1 / (jnp.sqrt(2 * jnp.pi))
+
+
+def gaussian_predictive_distribution(x, xi, nu):
+    r"""Density of the Gaussian-predictive distribution.
+
+    This distribution is parametrized by hyperparameters from the exponential family as:
+
+    .. math::
+
+        \begin{cases}
+            \mathcal{NP}(x, \xi, \nu) :=
+            \sqrt{\frac{1}{\pi(\nu+1)(\xi_{x^2}-\xi_{x}^2)}}
+            \frac{\Gamma(\frac{\nu+2}{2})}{\Gamma(\frac{\nu+1}{2})}
+            \left( 1+\frac{(x-\xi_{x})^2}{(\nu+1)(\xi_{x^2}-\xi_x^2)} \right)
+            ^{-\frac{\nu+2}{2}}
+        \end{cases}
+
+    Parameters
+    ----------
+    x :
+        The point at which the density is evaluated.
+    xi :
+        Hyperparameter updated by the sufficient statistics of the observed variables.
+    nu :
+        Hyperparameter over the number of valid observation (pseudo-counts).
+
+    Returns
+    -------
+    y :
+        The probability density evaluated at *x*.
+
+    References
+    ----------
+    .. [1] Mathys, C., & Weber, L. (2020). Hierarchical Gaussian filtering of sufficient
+       statistic time series for active inference. In Communications in Computer and
+       Information Science. Active Inference (pp. 52–58).
+       doi:10.1007/978-3-030-64919-7_7
+
+    """
+    return (
+        jnp.sqrt(1 / (jnp.pi * (nu + 1) * (xi[1] - xi[0] ** 2)))
+        * jnp.exp(
+            (gammaln((nu + 2) / 2) - gammaln((nu + 1) / 2))
+        )  # use gammaln to avoid numerical overflow
+        * (1 + ((x - xi[0]) ** 2) / ((nu + 1) * (xi[1] - xi[0] ** 2)))
+        ** (-(nu + 2) / 2)
+    )
 
 
 def gaussian_density(x: ArrayLike, mean: ArrayLike, precision: ArrayLike) -> ArrayLike:

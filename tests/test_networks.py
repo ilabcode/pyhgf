@@ -24,7 +24,7 @@ class TestStructure(TestCase):
         # one value parent with one volatility parent #
         ###############################################
         input_node_parameters = {
-            "input_noise": 1e4,
+            "input_precision": 1e4,
             "expected_precision": jnp.nan,
             "surprise": 0.0,
             "time_step": 0.0,

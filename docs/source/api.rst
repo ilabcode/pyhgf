@@ -229,6 +229,9 @@ Math functions and probability densities.
 .. autosummary::
    :toctree: generated/pyhgf.math
 
+    MultivariateNormal
+    Normal
+    gaussian_predictive_distribution
     gaussian_density
     sigmoid
     binary_surprise
