@@ -3,8 +3,8 @@
 :hidden:
 :caption: Theory
 
-notebooks/0.1-Creating_networks.ipynb
-notebooks/0.2-Theory.ipynb
+notebooks/0.1-Theory.ipynb
+notebooks/0.2-Creating_networks.ipynb
 notebooks/0.3-Generalised_filtering.ipynb
 ```
 
@@ -54,15 +54,6 @@ In this section, you can find tutorial notebooks that describe the internals of 
 
 ::::{grid} 2
 
-:::{grid-item-card}  Creating and manipulating networks of probabilistic nodes
-:link: probabilistic_networks
-:link-type: ref
-:img-top: ./images/graph_networks.svg
-
-How to create and manipulate a network of probabilistic nodes for reinforcement learning? Working at the intersection of graphs, neural networks and probabilistic frameworks.
-
-:::
-
 :::{grid-item-card}  An introduction to the Hierarchical Gaussian Filter
 :link: theory
 :link-type: ref
@@ -70,6 +61,15 @@ How to create and manipulate a network of probabilistic nodes for reinforcement 
 
 
 How the generative model of the Hierarchical Gaussian filter can be turned into update functions that update nodes through value and volatility coupling?
+
+:::
+
+:::{grid-item-card}  Creating and manipulating networks of probabilistic nodes
+:link: probabilistic_networks
+:link-type: ref
+:img-top: ./images/graph_networks.svg
+
+How to create and manipulate a network of probabilistic nodes for reinforcement learning? Working at the intersection of graphs, neural networks and probabilistic frameworks.
 
 :::
 
