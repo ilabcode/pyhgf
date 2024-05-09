@@ -656,8 +656,7 @@ class HGF(object):
                 "value_coupling_parents": couplings[1][1],
                 "tonic_volatility": -4.0,
                 "tonic_drift": 0.0,
-                "autoregressive_coefficient": 0.0,
-                "autoregressive_intercept": 0.0,
+                "autoconnection_strength": 1.0,
                 "observed": 1,
                 "temp": {
                     "effective_precision": 0.0,
@@ -678,8 +677,7 @@ class HGF(object):
                 "value_coupling_parents": couplings[1][1],
                 "tonic_volatility": 0.0,
                 "tonic_drift": 0.0,
-                "autoregressive_coefficient": 0.0,
-                "autoregressive_intercept": 0.0,
+                "autoconnection_strength": 1.0,
                 "observed": 1,
                 "binary_expected_precision": 0.0,
                 "temp": {

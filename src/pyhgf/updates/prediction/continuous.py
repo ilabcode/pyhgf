@@ -18,6 +18,32 @@ def predict_mean(
 ) -> Array:
     r"""Compute the expected mean of a continuous state node.
 
+    The expected mean at time :math:`k` for a state node :math:`a` with optional value
+    parent(s) :math:`b` is given by:
+
+    .. math::
+
+        \hat{\mu}_a^{(k)} = \lambda_a \mu_a^{(k-1)} + P_a^{(k)}
+
+    where P_a^{(k)} is the drift rate (the total predicted drift of the mean, which sums
+    the tonic and - optionally - phasic drifts). The variable :math:`lambda_a`
+    represents the state's autoconnection strength, with :math:`\lambda_a \in [0, 1]`.
+    When :math:`lambda_a = 1`, the node is performing a Gaussian Random Walk using the
+    value :math:` P_a^{(k)}` as total drift rate. When :math:`\lambda_a < 1`, the state
+    will revert back to the total mean :math:`M_a`, which is given by:
+
+    .. math::
+            M_a = \frac{\rho_a + f\left(x_b^{(k)}\right)} {1-\lambda_a},
+
+    If :math:`\lambda_a = 0`, the node is not influenced by its own mean anymore, but
+    by the value received by the value parent.
+
+    .. hint::
+
+        By combining one parameter :math:`\lambda_a \in [0, 1]` and the influence of
+        value parents, it is possible to implement both Gaussian Random Walks and
+        Autoregressive Processes, without requiring specific coupling types.
+
     Parameters
     ----------
     attributes :
@@ -35,7 +61,13 @@ def predict_mean(
     Returns
     -------
     expected_mean :
-        The new expected mean of the value parent.
+        The new expected mean of the state node.
+
+    References
+    ----------
+    .. [1] Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., &
+       Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1).
+       arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
     # List the node's value parents
@@ -53,21 +85,10 @@ def predict_mean(
         ):
             driftrate += psi * attributes[value_parent_idx]["mean"]
 
-    # New expected mean from the previous value
-    expected_mean = attributes[node_idx]["mean"]
-
-    # Take the drift into account
-    expected_mean += time_step * driftrate
-
-    # Add qualities that come from the autoregressive process if not zero
-    expected_mean += (
-        time_step
-        * attributes[node_idx]["autoregressive_coefficient"]
-        * (
-            attributes[node_idx]["autoregressive_intercept"]
-            - attributes[node_idx]["mean"]
-        )
-    )
+    # The new expected mean from the previous value
+    expected_mean = (
+        attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
+    ) + (time_step * driftrate)
 
     return expected_mean
 
@@ -126,6 +147,12 @@ def predict_precision(
     effective_precision :
         The effective_precision :math:`\gamma_a^{(k)}`. This value is stored in the
         node for later use in the update steps.
+
+    References
+    ----------
+    .. [1] Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., &
+       Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1).
+       arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
     # List the node's volatility parents
