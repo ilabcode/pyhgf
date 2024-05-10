@@ -562,6 +562,7 @@ class HGF(object):
         value_parents: Optional[Union[List, Tuple, int]] = None,
         volatility_children: Optional[Union[List, Tuple, int]] = None,
         volatility_parents: Optional[Union[List, Tuple, int]] = None,
+        **kwargs,
     ):
         """Add new input/state node(s) to the neural network.
 
@@ -575,18 +576,18 @@ class HGF(object):
             value parent of a binary input. To create an input node, three types of
             inputs are supported:
             - `continuous-input`: receive a continuous observation as input.
-            - `binary-input` receive a single boolean as observation. The parameters
+            - `binary-input` receives a single boolean as observation. The parameters
             provided to the binary input node contain: 1. `binary_precision`, the binary
             input precision, which defaults to `jnp.inf`. 2. `eta0`, the lower bound of
             the binary process, which defaults to `0.0`. 3. `eta1`, the higher bound of
             the binary process, which defaults to `1.0`.
-            - `categorical-input` receive a boolean array as observation. The parameters
-            provided to the categorical input node contain: 1. `n_categories`, the
-            number of categories implied by the categorical state.
+            - `categorical-input` receives a boolean array as observation. The
+            parameters provided to the categorical input node contain: 1.
+            `n_categories`, the number of categories implied by the categorical state.
 
         .. note::
            When using a categorical state node, the `binary_parameters` can be used to
-           parametrize the implied collection of binray HGFs.
+           parametrize the implied collection of binary HGFs.
 
         .. note:
            When using `categorical-input`, the implied `n` binary HGFs are automatically
@@ -599,26 +600,29 @@ class HGF(object):
             Dictionary of parameters. The default values are automatically inferred
             from the node type. Different values can be provided by passing them in the
             dictionary, which will overwrite the defaults.
-        value_children:
+        value_children :
             Indexes to the node's value children. The index can be passed as an integer
             or a list of integers, in case of multiple children. The coupling strength
             can be controlled by passing a tuple, where the first item is the list of
             indexes, and the second item is the list of coupling strengths.
-        value_parents:
+        value_parents :
             Indexes to the node's value parents. The index can be passed as an integer
             or a list of integers, in case of multiple children. The coupling strength
             can be controlled by passing a tuple, where the first item is the list of
             indexes, and the second item is the list of coupling strengths.
-        volatility_children:
+        volatility_children :
             Indexes to the node's volatility children. The index can be passed as an
             integer or a list of integers, in case of multiple children. The coupling
             strength can be controlled by passing a tuple, where the first item is the
             list of indexes, and the second item is the list of coupling strengths.
-        volatility_parents:
+        volatility_parents :
             Indexes to the node's volatility parents. The index can be passed as an
             integer or a list of integers, in case of multiple children. The coupling
             strength can be controlled by passing a tuple, where the first item is the
             list of indexes, and the second item is the list of coupling strengths.
+        **kwargs :
+            Additional keyword parameters will be passed and overwrite the node
+            attributes.
 
         """
         # extract the node coupling indexes and coupling strengths
@@ -749,7 +753,26 @@ class HGF(object):
                 "binary_parameters": binary_parameters,
             }
 
-        # update the defaults using the provided parameters
+        if kwargs is not None:
+            # ensure that all passed values are valid keys
+            invalid_keys = [
+                key for key in kwargs.keys() if key not in default_parameters.keys()
+            ]
+
+            if invalid_keys:
+                raise ValueError(
+                    (
+                        "Some parameter(s) passed as keyword arguments were not found "
+                        f"in the default key list for this node (i.e. {invalid_keys})."
+                        " If you want to create a new key in the node attributes, "
+                        "please use the node_parameters argument instead."
+                    )
+                )
+
+            # if keyword parameters were provided, overwrite the node_parameter dict
+            node_parameters.update(kwargs)
+
+        # update the defaults using the provided parameters (both keywords and dict)
         default_parameters.update(node_parameters)
         node_parameters = default_parameters
 
