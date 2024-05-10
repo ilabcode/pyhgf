@@ -562,7 +562,7 @@ class HGF(object):
         value_parents: Optional[Union[List, Tuple, int]] = None,
         volatility_children: Optional[Union[List, Tuple, int]] = None,
         volatility_parents: Optional[Union[List, Tuple, int]] = None,
-        **kwargs,
+        **additional_parameters,
     ):
         """Add new input/state node(s) to the neural network.
 
@@ -720,6 +720,8 @@ class HGF(object):
         elif kind == "categorical-input":
             if "n_categories" in node_parameters:
                 n_categories = node_parameters["n_categories"]
+            elif "n_categories" in additional_parameters:
+                n_categories = additional_parameters["n_categories"]
             else:
                 n_categories = 4
             binary_parameters = {
@@ -753,10 +755,12 @@ class HGF(object):
                 "binary_parameters": binary_parameters,
             }
 
-        if kwargs is not None:
+        if bool(additional_parameters):
             # ensure that all passed values are valid keys
             invalid_keys = [
-                key for key in kwargs.keys() if key not in default_parameters.keys()
+                key
+                for key in additional_parameters.keys()
+                if key not in default_parameters.keys()
             ]
 
             if invalid_keys:
@@ -769,10 +773,10 @@ class HGF(object):
                     )
                 )
 
-            # if keyword parameters were provided, overwrite the node_parameter dict
-            node_parameters.update(kwargs)
+            # if keyword parameters were provided, update the default_parameters dict
+            default_parameters.update(additional_parameters)
 
-        # update the defaults using the provided parameters (both keywords and dict)
+        # update the defaults using the dict parameters
         default_parameters.update(node_parameters)
         node_parameters = default_parameters
 
