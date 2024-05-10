@@ -52,16 +52,15 @@ In this section, you can find tutorial notebooks that describe the internals of 
 
 ## Theory
 
-::::{grid} 2
+::::{grid} 1 1 2 3
+:gutter: 1
 
 :::{grid-item-card}  An introduction to the Hierarchical Gaussian Filter
 :link: theory
 :link-type: ref
 :img-top: ./images/trajectories.png
 
-
 How the generative model of the Hierarchical Gaussian filter can be turned into update functions that update nodes through value and volatility coupling?
-
 :::
 
 :::{grid-item-card}  Creating and manipulating networks of probabilistic nodes
@@ -70,7 +69,6 @@ How the generative model of the Hierarchical Gaussian filter can be turned into 
 :img-top: ./images/graph_networks.svg
 
 How to create and manipulate a network of probabilistic nodes for reinforcement learning? Working at the intersection of graphs, neural networks and probabilistic frameworks.
-
 :::
 
 :::{grid-item-card}  Generalised Bayesian filtering
@@ -80,14 +78,14 @@ How to create and manipulate a network of probabilistic nodes for reinforcement 
 
 
 Predict, filter and smooth any distribution from the exponential family using generalisations of the Hierarchical Gaussian Filter.
-
 :::
 ::::
 
 
 ## The Hierarchical Gaussian Filter
 
-::::{grid} 3
+::::{grid} 1 1 2 3
+:gutter: 1
 
 :::{grid-item-card}  The binary Hierarchical Gaussian Filter
 :link: binary_hgf
@@ -95,7 +93,6 @@ Predict, filter and smooth any distribution from the exponential family using ge
 :img-top: ./images/binary.png
 
 Introducing with example the binary Hierarchical Gaussian filter and its applications to reinforcement learning.
-
 :::
 
 :::{grid-item-card}  The categorical Hierarchical Gaussian Filter
@@ -104,7 +101,6 @@ Introducing with example the binary Hierarchical Gaussian filter and its applica
 :img-top: ./images/categorical.png
 
 The categorical Hierarchical Gaussian Filter is a generalisation of the binary HGF to handle categorical distribution with and without transition probabilities.
-
 :::
 
 :::{grid-item-card}  The continuous Hierarchical Gaussian Filter
@@ -112,26 +108,24 @@ The categorical Hierarchical Gaussian Filter is a generalisation of the binary H
 :link-type: ref
 :img-top: ./images/continuous.png
 
-
 Introducing with example the continuous Hierarchical Gaussian filter and its applications to signal processing.
-
 :::
+
 ::::
 
 ## Tutorials
 
 Advanced customisation of predictive coding neural networks and Bayesian modelling for group studies. 
 
-::::{grid} 3
+::::{grid} 1 1 2 3
+:gutter: 1
 
 :::{grid-item-card}  Using custom response functions
 :link: custom_response_functions
 :link-type: ref
 :img-top: ./images/response_models.png
 
-
 How to adapt any model to specific behaviours and experimental design by using custom response functions.
-
 :::
 
 :::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
@@ -139,16 +133,13 @@ How to adapt any model to specific behaviours and experimental design by using c
 :link-type: ref
 :img-top: ./images/multilevel-hgf.png
 
-
 How to use any model as a distribution to perform hierarchical inference at the group level.
-
 :::
 
 :::{grid-item-card}  Parameter recovery, prior and posterior predictive sampling
 :link: parameters_recovery
 :link-type: ref
 :img-top: ./images/parameter_recovery.png
-
 
 Recovering parameters from the generative model and using the sampling functionalities to estimate prior and posterior uncertainties.
 :::
@@ -158,7 +149,8 @@ Recovering parameters from the generative model and using the sampling functiona
 
 Examples of possible applications and extensions of the standards Hierarchical Gaussian Filters to more complex experimental designs
 
-::::{grid} 3
+::::{grid} 1 1 2 3
+:gutter: 1
 
 :::{grid-item-card}  Inferring cardiac beliefs using Bayesian filtering
 :link: example_1
@@ -174,7 +166,6 @@ Application of continuous Bayesian filtering to cardiac physiological recordings
 :img-top: ./images/input_mean_precision.png
 
 Dynamic inference over both the mean and variance of a normal distribution.
-
 :::
 
 :::{grid-item-card}  Multi-armed bandit task with independent reward and punishments
@@ -183,8 +174,8 @@ Dynamic inference over both the mean and variance of a normal distribution.
 :img-top: ./images/multiarmedbandittask.png
 
 A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit where the probabilities of the outcomes are evolving independently.
-
 :::
+
 ::::
 
 ## Exercises
@@ -192,13 +183,14 @@ A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit
 Hand-on exercises to build intuition around the main components of the HGF and use an agent that optimizes its action under noisy observations.
 
 
-::::{grid} 2
+::::{grid} 1 1 2 3
+:gutter: 1
 
 :::{grid-item-card}  Applying the Hierarchical Gaussian Filter through practical exercises
 :link: hgf_exercises
 :link-type: ref
 
 In-depth introduction to the Hierarchical Gaussian Filter for computational psychiatry (Computational Psychiatry Course, Zurich). About 4 hours. 
-
 :::
+
 ::::
