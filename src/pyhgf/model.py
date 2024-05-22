@@ -176,7 +176,8 @@ class HGF(object):
                 # Input
                 self.add_nodes(
                     kind="continuous-input",
-                    node_parameters={"continuous_precision": continuous_precision},
+                    input_precision=continuous_precision,
+                    expected_precision=continuous_precision,
                 )
 
                 # X-1
