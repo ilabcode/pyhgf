@@ -174,12 +174,11 @@ def plot_trajectories(
         trajectories_df.total_surprise,
         color="#2a2a2a",
         linewidth=0.5,
-        linestyle="--",
         zorder=-1,
         label="Surprise",
     )
     sp = trajectories_df.total_surprise.sum()
-    surprise_ax.set_title(f"Total surprise: {sp:.2f}", loc="left")
+    surprise_ax.set_title(f"Total surprise: {sp:.2f}", loc="right")
     surprise_ax.set_ylabel("Surprise")
     surprise_ax.set_xlabel("Time")
 
@@ -318,12 +317,12 @@ def plot_nodes(
     color: Optional[Union[Tuple, str]] = None,
     axs: Optional[Union[List, Axes]] = None,
 ):
-    r"""Plot the sufficient statistics trajectories of a set of nodes.
+    r"""Plot the trajectory of expected sufficient statistics of a set of nodes.
 
-    This function will plot the mean and precision (converted into standard deviation)
-    and the Gaussian surprise after observing the input value. If `children_inputs` is
-    `True`, will also plot the children input (mean for value coupling and precision
-    for volatility coupling).
+    This function will plot the expected mean and precision (converted into standard
+    deviation) before observation, and the Gaussian surprise after observation. If
+    `children_inputs` is `True`, will also plot the children input (mean for value
+    coupling and precision for volatility coupling).
 
     Parameters
     ----------
@@ -430,12 +429,39 @@ def plot_nodes(
                     edgecolors="k",
                     zorder=10,
                 )
+
+            # plotting standard deviation
+            if ci is True:
+                precision = trajectories_df[
+                    f"observation_input_{node_idx}_expected_precision"
+                ]
+                sd = np.sqrt(1 / precision)
+                y1 = trajectories_df[f"observation_input_{node_idx}"] - sd
+                y2 = trajectories_df[f"observation_input_{node_idx}"] + sd
+
+                axs[i].fill_between(
+                    x=trajectories_df["time"],
+                    y1=y1,
+                    y2=y2,
+                    alpha=0.4,
+                    color=color,
+                    zorder=2,
+                )
+
             axs[i].set_title(
                 f"{input_type.capitalize()} Input Node {node_idx}",
                 loc="left",
             )
             axs[i].legend()
         else:
+            # plotting state nodes
+            # --------------------
+
+            axs[i].set_title(
+                f"State Node {node_idx}",
+                loc="left",
+            )
+
             # show the expected states
             # ------------------------
 
@@ -591,40 +617,44 @@ def plot_nodes(
                             )
                             axs[i].legend()
 
-            # plotting surprise
-            # -----------------
-            if show_surprise:
-                if not trajectories_df[f"x_{node_idx}_surprise"].isnull().all():
-                    surprise_ax = axs[i].twinx()
+        # plotting surprise
+        # -----------------
+        if show_surprise:
+            if node_idx in hgf.input_nodes_idx.idx:
+                node_surprise = trajectories_df[
+                    f"observation_input_{node_idx}_surprise"
+                ].to_numpy()
+            else:
+                node_surprise = trajectories_df[f"x_{node_idx}_surprise"].to_numpy()
 
-                    node_surprise = trajectories_df[f"x_{node_idx}_surprise"].to_numpy()
-                    sp = node_surprise.sum()
-                    surprise_ax.set_title(
-                        f"Node {node_idx} - Surprise: {sp:.2f}",
-                        loc="left",
-                    )
-                    surprise_ax.fill_between(
-                        x=trajectories_df.time,
-                        y1=node_surprise,
-                        y2=node_surprise.min(),
-                        where=hgf.node_trajectories[node_idx]["observed"],
-                        color="#7f7f7f",
-                        alpha=0.1,
-                        zorder=-1,
-                    )
+            if not np.isnan(node_surprise).all():
+                surprise_ax = axs[i].twinx()
 
-                    # hide surprise if the input was not observed
-                    node_surprise[
-                        hgf.node_trajectories[node_idx]["observed"] == 0
-                    ] = np.nan
-                    surprise_ax.plot(
-                        trajectories_df.time,
-                        node_surprise,
-                        color="#2a2a2a",
-                        linewidth=0.5,
-                        zorder=-1,
-                        label="Surprise",
-                    )
-                    surprise_ax.set_ylabel("Surprise")
-                    surprise_ax.legend()
+                sp = node_surprise.sum()
+                surprise_ax.set_title(
+                    f"Surprise: {sp:.2f}",
+                    loc="right",
+                )
+                surprise_ax.fill_between(
+                    x=trajectories_df.time,
+                    y1=node_surprise,
+                    y2=node_surprise.min(),
+                    where=hgf.node_trajectories[node_idx]["observed"],
+                    color="#7f7f7f",
+                    alpha=0.1,
+                    zorder=-1,
+                )
+
+                # hide surprise if the input was not observed
+                node_surprise[hgf.node_trajectories[node_idx]["observed"] == 0] = np.nan
+                surprise_ax.plot(
+                    trajectories_df.time,
+                    node_surprise,
+                    color="#2a2a2a",
+                    linewidth=0.5,
+                    zorder=-1,
+                    label="Surprise",
+                )
+                surprise_ax.set_ylabel("Surprise")
+                surprise_ax.legend()
     return axs
