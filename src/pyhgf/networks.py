@@ -10,7 +10,7 @@ from jax import jit
 from jax.typing import ArrayLike
 
 from pyhgf.math import binary_surprise, gaussian_surprise
-from pyhgf.typing import Indexes, UpdateSequence
+from pyhgf.typing import AdjacencyLists, Attributes, Structure, UpdateSequence
 from pyhgf.updates.posterior.binary import binary_node_update_infinite
 from pyhgf.updates.posterior.categorical import categorical_input_update
 from pyhgf.updates.posterior.continuous import (
@@ -36,13 +36,12 @@ if TYPE_CHECKING:
     from pyhgf.model import HGF
 
 
-@partial(jit, static_argnames=("update_sequence", "edges", "input_nodes_idx"))
+@partial(jit, static_argnames=("update_sequence", "structure"))
 def beliefs_propagation(
-    attributes: Dict,
+    attributes: Attributes,
     input_data: ArrayLike,
     update_sequence: UpdateSequence,
-    edges: Tuple,
-    input_nodes_idx: Tuple = (0,),
+    structure: Structure,
 ) -> Tuple[Dict, Dict]:
     """Update the network's parameters after observing new data point(s).
 
@@ -60,39 +59,38 @@ def beliefs_propagation(
     input_data :
         An array containing the new observation(s) as well as the time steps. The new
         observations can be a single value or a vector of observation with a length
-        matching the length `input_nodes_idx`. `input_nodes_idx` is used to index the
+        matching the length `inputs.idx`. `inputs.idx` is used to index the
         ith value in the vector to the ith input node, so the ordering of the input
         array matters. The time steps are the last column of the array, the default is
         unit incrementation.
     update_sequence :
         The sequence of updates that will be applied to the node structure.
-    edges :
-        The nodes structure.
-    input_nodes_idx :
-        An array of input indexes. The default is `[0]` (one input node, the first node
-        in the network).
+    structure :
+        Information on the network's structure, including input types and edges.
 
     Returns
     -------
     attributes, attributes :
         A tuple of parameters structure (carryover and accumulated).
 
-
     """
+    # unpack static info about the network structure
+    inputs, edges = structure
+    input_idxs = jnp.array(inputs.idx)
+
     # extract value(s) and time steps
     values, time_step, observed = input_data
 
-    input_nodes_idx = jnp.asarray(input_nodes_idx)
     # Fit the model with the current time and value variables, given the model structure
     for sequence in update_sequence:
         node_idx, update_fn = sequence
 
         # if we are updating an input node, select the value that should be passed
         # otherwise, just pass 0.0 and the value will be ignored
-        value = jnp.sum(jnp.where(jnp.equal(input_nodes_idx, node_idx), values, 0.0))
+        value = jnp.sum(jnp.where(jnp.equal(input_idxs, node_idx), values, 0.0))
 
         # is it an observation or a missing observation
-        observed_value = jnp.sum(jnp.equal(input_nodes_idx, node_idx) * observed)
+        observed_value = jnp.sum(jnp.equal(input_idxs, node_idx) * observed)
 
         attributes = update_fn(
             attributes=attributes,
@@ -231,10 +229,10 @@ def fill_categorical_state_node(
     )
 
     # add the value dependency between the categorical and binary nodes
-    edges_as_list: List[Indexes] = list(hgf.edges)
-    edges_as_list[node_idx] = Indexes(tuple(binary_input_idxs), None, None, None)
+    edges_as_list: List[AdjacencyLists] = list(hgf.edges)
+    edges_as_list[node_idx] = AdjacencyLists(tuple(binary_input_idxs), None, None, None)
     for binary_idx in binary_input_idxs:
-        edges_as_list[binary_idx] = Indexes(None, None, (node_idx,), None)
+        edges_as_list[binary_idx] = AdjacencyLists(None, None, (node_idx,), None)
     hgf.edges = tuple(edges_as_list)
 
     # loop over the number of categories and create as many second-levels binary HGF
@@ -310,12 +308,12 @@ def get_update_sequence(hgf: "HGF") -> List:
     node_without_update = [i for i in range(n_nodes)]
 
     # start with the update of all input nodes
-    for input_idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
-        if kind == "continuous":
+    for input_idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
+        if kind == 0:
             update_fn = continuous_input_prediction_error
             update_sequence.append((input_idx, update_fn))
 
-        elif kind == "binary":
+        elif kind == 1:
             # add the update steps for the binary state node as well
             binary_state_idx = hgf.edges[input_idx].value_parents[0]  # type: ignore
 
@@ -416,8 +414,8 @@ def get_update_sequence(hgf: "HGF") -> List:
     prediction_sequence.extend(update_sequence)
 
     # add the categorical update here, if any
-    for kind, idx in zip(hgf.input_nodes_idx.kind, hgf.input_nodes_idx.idx):
-        if kind == "categorical":
+    for kind, idx in zip(hgf.inputs.kind, hgf.inputs.idx):
+        if kind == 2:
             # create a new sequence step and add it to the list
             prediction_sequence.append((idx, categorical_input_update))
 
@@ -437,12 +435,8 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     # get time and time steps from the first input node
     trajectories_df = pd.DataFrame(
         {
-            "time_steps": hgf.node_trajectories[hgf.input_nodes_idx.idx[0]][
-                "time_step"
-            ],
-            "time": jnp.cumsum(
-                hgf.node_trajectories[hgf.input_nodes_idx.idx[0]]["time_step"]
-            ),
+            "time_steps": hgf.node_trajectories[hgf.inputs.idx[0]]["time_step"],
+            "time": jnp.cumsum(hgf.node_trajectories[hgf.inputs.idx[0]]["time_step"]),
         }
     )
 
@@ -450,8 +444,8 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     # ------------
 
     # add the observations from input nodes
-    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
-        if kind == "categorical":
+    for idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
+        if kind == 2:
             df = pd.DataFrame(
                 dict(
                     [
@@ -471,9 +465,7 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
 
     # loop over non input nodes and store sufficient statistics with surprise
     indexes = [
-        i
-        for i in range(1, len(hgf.node_trajectories))
-        if i not in hgf.input_nodes_idx.idx
+        i for i in range(1, len(hgf.node_trajectories)) if i not in hgf.inputs.idx
     ]
     df = pd.DataFrame(
         dict(
@@ -490,19 +482,19 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     # --------------------------
 
     # add the surprise and expected precision computed from the continuous inputs
-    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
+    for idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
         trajectories_df[f"observation_input_{idx}_surprise"] = hgf.node_trajectories[
             idx
         ]["surprise"]
-        if kind != "categorical":
+        if kind != 2:
             trajectories_df[
                 f"observation_input_{idx}_expected_precision"
             ] = hgf.node_trajectories[idx]["expected_precision"]
 
     # for value parents of binary inputs nodes
     binary_nodes_idxs = []
-    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
-        if kind == "binary":
+    for idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
+        if kind == 1:
             for par_idx in hgf.edges[idx].value_parents:  # type: ignore
                 binary_nodes_idxs.append(par_idx)
 

@@ -6,7 +6,7 @@ from unittest import TestCase
 import jax.numpy as jnp
 
 from pyhgf.networks import beliefs_propagation, list_branches
-from pyhgf.typing import Indexes
+from pyhgf.typing import AdjacencyLists, Inputs
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
     continuous_node_update_ehgf,
@@ -75,9 +75,9 @@ class TestStructure(TestCase):
             },
         }
         edges = (
-            Indexes((1,), None, None, None),
-            Indexes(None, (2,), (0,), None),
-            Indexes(None, None, None, (1,)),
+            AdjacencyLists((1,), None, None, None),
+            AdjacencyLists(None, (2,), (0,), None),
+            AdjacencyLists(None, None, None, (1,)),
         )
         attributes = (
             input_node_parameters,
@@ -95,13 +95,14 @@ class TestStructure(TestCase):
         data = jnp.array([0.2])
         time_steps = jnp.ones(1)
         observed = jnp.ones(1)
+        inputs = Inputs(0, 1)
 
         # apply sequence
         new_attributes, _ = beliefs_propagation(
             attributes=attributes,
             input_data=(data, time_steps, observed),
             update_sequence=update_sequence,
-            edges=edges,
+            structure=(inputs, edges),
         )
 
         assert new_attributes[1]["mean"] == 0.20008
@@ -110,11 +111,11 @@ class TestStructure(TestCase):
     def test_find_branch(self):
         """Test the find_branch function"""
         edges = (
-            Indexes((1,), None, None, None),
-            Indexes(None, (2,), (0,), None),
-            Indexes(None, None, None, (1,)),
-            Indexes((4,), None, None, None),
-            Indexes(None, None, (3,), None),
+            AdjacencyLists((1,), None, None, None),
+            AdjacencyLists(None, (2,), (0,), None),
+            AdjacencyLists(None, None, None, (1,)),
+            AdjacencyLists((4,), None, None, None),
+            AdjacencyLists(None, None, (3,), None),
         )
         branch_list = list_branches([0], edges, branch_list=[])
         assert branch_list == [0, 1, 2]

@@ -9,6 +9,8 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.axes import Axes
 
+from pyhgf.typing import input_types
+
 if TYPE_CHECKING:
     from graphviz.sources import Source
 
@@ -128,7 +130,7 @@ def plot_trajectories(
 
     # plot the input node(s)
     # ----------------------
-    for i, input_idx in enumerate(hgf.input_nodes_idx.idx):
+    for i, input_idx in enumerate(hgf.inputs.idx):
         plot_nodes(
             hgf=hgf,
             node_idxs=input_idx,
@@ -141,9 +143,9 @@ def plot_trajectories(
 
     # plot continuous and binary nodes
     # --------------------------------
-    ax_i = n_nodes - len(hgf.input_nodes_idx.idx) - 1
+    ax_i = n_nodes - len(hgf.inputs.idx) - 1
     for node_idx in range(0, n_nodes):
-        if node_idx not in hgf.input_nodes_idx.idx:
+        if node_idx not in hgf.inputs.idx:
             # use different colors for each node
             color = next(palette)
             plot_nodes(
@@ -255,12 +257,12 @@ def plot_network(hgf: "HGF") -> "Source":
     graphviz_structure.attr("node", shape="circle")
 
     # set input nodes
-    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
-        if kind == "continuous":
+    for idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
+        if kind == 0:
             label, shape = f"Co-{idx}", "oval"
-        elif kind == "binary":
+        elif kind == 1:
             label, shape = f"Bi-{idx}", "box"
-        elif kind == "categorical":
+        elif kind == 2:
             label, shape = f"Ca-{idx}", "diamond"
         graphviz_structure.node(
             f"x_{idx}",
@@ -272,7 +274,7 @@ def plot_network(hgf: "HGF") -> "Source":
     # create the rest of nodes
     for i in range(len(hgf.edges)):
         # only if node is not an input node
-        if i not in hgf.input_nodes_idx.idx:
+        if i not in hgf.inputs.idx:
             graphviz_structure.node(f"x_{i}", label=str(i), shape="circle")
 
     # connect value parents
@@ -405,10 +407,8 @@ def plot_nodes(
     for i, node_idx in enumerate(node_idxs):
         # plotting an input node
         # ----------------------
-        if node_idx in hgf.input_nodes_idx.idx:
-            input_type = hgf.input_nodes_idx.kind[
-                hgf.input_nodes_idx.idx.index(node_idx)
-            ]
+        if node_idx in hgf.inputs.idx:
+            input_type = hgf.inputs.kind[hgf.inputs.idx.index(node_idx)]
             if input_type == "continuous":
                 axs[i].scatter(
                     x=trajectories_df.time,
@@ -447,11 +447,11 @@ def plot_nodes(
                     color=color,
                     zorder=2,
                 )
+            input_label = list(input_types.keys())[
+                input_type
+            ].capitalize()  # type: ignore
 
-            axs[i].set_title(
-                f"{input_type.capitalize()} Input Node {node_idx}",
-                loc="left",
-            )
+            axs[i].set_title(f"{input_label} Input Node {node_idx}", loc="left")
             axs[i].legend()
         else:
             # plotting state nodes
@@ -497,8 +497,8 @@ def plot_nodes(
                                     node_idx  # type: ignore
                                 ].value_children  # type: ignore
                             )
-                            and kind == "binary"
-                            for i, kind in enumerate(hgf.input_nodes_idx.kind)
+                            and kind == 1
+                            for i, kind in enumerate(hgf.inputs.kind)
                         ]
                     ):
                         # get parent node
@@ -576,7 +576,7 @@ def plot_nodes(
                     for ii, child_idx in enumerate(
                         hgf.edges[node_idx].value_children  # type: ignore
                     ):
-                        if child_idx not in hgf.input_nodes_idx.idx:
+                        if child_idx not in hgf.inputs.idx:
                             axs[i].scatter(
                                 trajectories_df.time,
                                 trajectories_df[f"x_{child_idx}_mean"],
@@ -595,9 +595,9 @@ def plot_nodes(
                                 color=input_colors[ii],
                             )
                         else:
-                            child_idx = np.where(
-                                np.array(hgf.input_nodes_idx.idx) == child_idx
-                            )[0][0]
+                            child_idx = np.where(np.array(hgf.inputs.idx) == child_idx)[
+                                0
+                            ][0]
                             axs[i].scatter(
                                 trajectories_df.time,
                                 trajectories_df[f"observation_input_{child_idx}"],
@@ -620,7 +620,7 @@ def plot_nodes(
         # plotting surprise
         # -----------------
         if show_surprise:
-            if node_idx in hgf.input_nodes_idx.idx:
+            if node_idx in hgf.inputs.idx:
                 node_surprise = trajectories_df[
                     f"observation_input_{node_idx}_surprise"
                 ].to_numpy()

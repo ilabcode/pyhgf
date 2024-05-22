@@ -17,7 +17,14 @@ from pyhgf.networks import (
 )
 from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
-from pyhgf.typing import Edges, Indexes, InputIndexes, UpdateSequence
+from pyhgf.typing import (
+    AdjacencyLists,
+    Attributes,
+    Edges,
+    Inputs,
+    UpdateSequence,
+    input_types,
+)
 
 
 class HGF(object):
@@ -32,12 +39,11 @@ class HGF(object):
         The attributes of the probabilistic nodes.
     edges :
         The edges of the probabilistic nodes as a tuple of
-        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
-        number. For each node, the index lists the value/volatility parents/children.
-    input_nodes_idx :
-        Indexes of the input nodes with input types
-        :py:class:`pyhgf.typing.InputIndexes`. The default input node is `0` if the
-        network only has one input node.
+        :py:class:`pyhgf.typing.AdjacencyLists`. The tuple has the same length as the
+        node number. For each node, the index lists the value/volatility
+        parents/children.
+    inputs :
+        Information on the input nodes.
     model_type :
         The model implemented (can be `"continuous"`, `"binary"` or `"custom"`).
     n_levels :
@@ -156,10 +162,11 @@ class HGF(object):
         self.verbose = verbose
         self.n_levels = n_levels
         self.edges: Edges = ()
-        self.node_trajectories: Dict
-        self.attributes: Dict = {}
+        self.node_trajectories: Dict = {}
+        self.attributes: Attributes = {}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
+        self.inputs: Inputs
 
         if model_type not in ["continuous", "binary"]:
             if self.verbose:
@@ -266,6 +273,10 @@ class HGF(object):
             `scan_fn` is already defined.
 
         """
+        # create the network structure from edges and inputs
+        self.inputs = Inputs(self.inputs.idx, self.inputs.kind)
+        self.structure = (self.inputs, self.edges)
+
         # create the update sequence if it does not already exist
         if self.update_sequence is None:
             self.set_update_sequence()
@@ -278,8 +289,7 @@ class HGF(object):
             self.scan_fn = Partial(
                 beliefs_propagation,
                 update_sequence=self.update_sequence,
-                edges=self.edges,
-                input_nodes_idx=self.input_nodes_idx.idx,
+                structure=self.structure,
             )
             if self.verbose:
                 print("... Create the belief propagation function.")
@@ -288,8 +298,7 @@ class HGF(object):
                 self.scan_fn = Partial(
                     beliefs_propagation,
                     update_sequence=self.update_sequence,
-                    edges=self.edges,
-                    input_nodes_idx=self.input_nodes_idx.idx,
+                    structure=self.structure,
                 )
                 if self.verbose:
                     print("... Create the belief propagation function (overwrite).")
@@ -316,7 +325,7 @@ class HGF(object):
             self.scan_fn,
             self.attributes,
             (
-                jnp.ones((1, len(self.input_nodes_idx.idx))),
+                jnp.ones((1, len(self.inputs.idx))),
                 jnp.ones((1, 1)),
                 jnp.ones((1, 1)),
             ),
@@ -451,8 +460,7 @@ class HGF(object):
             Partial(
                 beliefs_propagation,
                 update_sequence=seq,
-                edges=self.edges,
-                input_nodes_idx=self.input_nodes_idx.idx,
+                structure=self.structure,
             )
             for seq in update_branches
         ]
@@ -473,7 +481,7 @@ class HGF(object):
 
         # because some of the input nodes might not have been updated, here we manually
         # insert the input data to the input node (without triggering updates)
-        for idx, inp in zip(self.input_nodes_idx.idx, range(input_data.shape[1])):
+        for idx, inp in zip(self.inputs.idx, range(input_data.shape[1])):
             self.node_trajectories[idx]["value"] = input_data[inp]
 
         return self
@@ -782,19 +790,19 @@ class HGF(object):
         node_parameters = default_parameters
 
         if "input" in kind:
-            input_type = kind.split("-")[0]
+            input_type = input_types[kind.split("-")[0]]
         else:
             input_type = None
 
         # convert the structure to a list to modify it
-        edges_as_list: List[Indexes] = list(self.edges)
+        edges_as_list: List[AdjacencyLists] = list(self.edges)
 
         for _ in range(n_nodes):
             node_idx = len(self.attributes)  # the index of the new node
 
             # add a new edge
             edges_as_list.append(
-                Indexes(
+                AdjacencyLists(
                     couplings[1][0], couplings[3][0], couplings[0][0], couplings[2][0]
                 )
             )
@@ -803,18 +811,18 @@ class HGF(object):
                 # this is the first node, create the node structure
                 self.attributes = {node_idx: node_parameters}
                 if input_type is not None:
-                    self.input_nodes_idx = InputIndexes((node_idx,), (input_type,))
+                    self.inputs = Inputs((node_idx,), (input_type,))
             else:
                 # update the node structure
                 self.attributes[node_idx] = node_parameters
 
                 if input_type is not None:
                     # add information about the new input node in the indexes
-                    new_idx = self.input_nodes_idx.idx
+                    new_idx = self.inputs.idx
                     new_idx += (node_idx,)
-                    new_kind = self.input_nodes_idx.kind
+                    new_kind = self.inputs.kind
                     new_kind += (input_type,)
-                    self.input_nodes_idx = InputIndexes(new_idx, new_kind)
+                    self.inputs = Inputs(new_idx, new_kind)
 
             # update the existing edge structure so it links to the new node as well
             for coupling, edge_type in zip(
@@ -886,7 +894,7 @@ class HGF(object):
                                 )
 
                         # save the updated edges back
-                        edges_as_list[idx] = Indexes(
+                        edges_as_list[idx] = AdjacencyLists(
                             value_parents,
                             volatility_parents,
                             value_children,
