@@ -22,6 +22,7 @@ from pyhgf.typing import (
     Attributes,
     Edges,
     Inputs,
+    Network,
     UpdateSequence,
     input_types,
 )
@@ -284,7 +285,7 @@ class HGF(object):
                 print("... Create the update sequence from the network structure.")
 
         # create the belief propagation function
-        # this function is laer used by scan to loop over observations
+        # this function is used by scan to loop over observations
         if self.scan_fn is None:
             self.scan_fn = Partial(
                 beliefs_propagation,
@@ -929,3 +930,12 @@ class HGF(object):
         )
 
         return self
+
+    def get_network(self) -> Network:
+        """Return the attributes, structure and update sequence defining the network."""
+        if self.scan_fn is None:
+            self = self.create_belief_propagation_fn()
+
+        assert self.update_sequence is not None
+
+        return self.attributes, self.structure, self.update_sequence

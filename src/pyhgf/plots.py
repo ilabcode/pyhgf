@@ -409,7 +409,7 @@ def plot_nodes(
         # ----------------------
         if node_idx in hgf.inputs.idx:
             input_type = hgf.inputs.kind[hgf.inputs.idx.index(node_idx)]
-            if input_type == "continuous":
+            if input_type == 0:
                 axs[i].scatter(
                     x=trajectories_df.time,
                     y=trajectories_df[f"observation_input_{node_idx}"],
@@ -419,7 +419,7 @@ def plot_nodes(
                     zorder=10,
                     alpha=0.5,
                 )
-            elif input_type == "binary":
+            elif input_type == 1:
                 axs[i].scatter(
                     x=trajectories_df.time,
                     y=trajectories_df[f"observation_input_{node_idx}"],
@@ -473,7 +473,7 @@ def plot_nodes(
             axs[i].plot(
                 trajectories_df.time,
                 mean,
-                label=r"$\hat{\mu}$",
+                label="Expected mean",
                 color=color,
                 linewidth=1,
                 zorder=2,
@@ -527,7 +527,7 @@ def plot_nodes(
                     zorder=2,
                 )
 
-            axs[i].legend()
+            axs[i].legend(loc="upper left")
 
             # show the current states
             # -----------------------
@@ -540,7 +540,7 @@ def plot_nodes(
                 axs[i].plot(
                     trajectories_df.time,
                     mean,
-                    label=r"$\mu$",
+                    label="Mean",
                     color="gray",
                     linewidth=0.5,
                     zorder=2,
@@ -558,7 +558,7 @@ def plot_nodes(
                         color=color,
                         zorder=2,
                     )
-                axs[i].legend()
+                axs[i].legend(loc="lower left")
 
             # plot the inputs from child nodes
             # --------------------------------
@@ -615,7 +615,7 @@ def plot_nodes(
                                 alpha=0.3,
                                 color=input_colors[ii],
                             )
-                            axs[i].legend()
+                    axs[i].legend(loc="lower right")
 
         # plotting surprise
         # -----------------
@@ -656,5 +656,5 @@ def plot_nodes(
                     label="Surprise",
                 )
                 surprise_ax.set_ylabel("Surprise")
-                surprise_ax.legend()
+                surprise_ax.legend(loc="upper right")
     return axs
