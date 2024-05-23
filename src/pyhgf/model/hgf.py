@@ -23,12 +23,6 @@ class HGF(Network):
     n_levels :
         The number of hierarchies in the model, including the input vector. It cannot be
         less than 2.
-    update_type :
-        The type of update to perform for volatility coupling. Can be `"eHGF"`
-        (defaults) or `"standard"`. The eHGF update step was proposed as an alternative
-        to the original definition in that it starts by updating the mean and then the
-        precision of the parent node, which generally reduces the errors associated with
-        impossible parameter space and improves sampling.
     .. note::
         The parameter structure also incorporates the value and volatility coupling
         strength with children and parents (i.e. `"value_coupling_parents"`,
@@ -45,7 +39,6 @@ class HGF(Network):
         self,
         n_levels: Optional[int] = 2,
         model_type: str = "continuous",
-        update_type: str = "eHGF",
         initial_mean: Dict = {
             "1": 0.0,
             "2": 0.0,
@@ -83,10 +76,6 @@ class HGF(Network):
             Defaults to `2` for a 2-level HGF.
         model_type : str
             The model type to use (can be `"continuous"` or `"binary"`).
-        update_type:
-            The type of volatility update to perform. It can be `"eHGF"` (default) or
-            `"standard"`. The eHGF update step tends to be more robust and produce fewer
-            invalid space errors and is therefore recommended by default.
         initial_mean :
             A dictionary containing the initial values for the initial mean at
             different levels of the hierarchy. Defaults set to `0.0`.
@@ -128,7 +117,6 @@ class HGF(Network):
         self.verbose = verbose
         Network.__init__(self)
         self.model_type = model_type
-        self.update_type = update_type
         self.n_levels = n_levels
 
         if model_type not in ["continuous", "binary"]:
