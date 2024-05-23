@@ -32,7 +32,7 @@ Structure = Tuple[Inputs, Edges]
 UpdateSequence = Tuple[Tuple[int, Callable], ...]
 
 # a fully defined network
-Network = Tuple[Attributes, Structure, UpdateSequence]
+NetworkParameters = Tuple[Attributes, Structure, UpdateSequence]
 
 # encoding input types using intergers
 input_types = {"continuous": 0, "binary": 1, "categorical": 2}

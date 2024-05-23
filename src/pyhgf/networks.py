@@ -33,7 +33,7 @@ from pyhgf.updates.prediction_error.nodes.continuous import (
 )
 
 if TYPE_CHECKING:
-    from pyhgf.model import HGF
+    from pyhgf.model import HGF, Network
 
 
 @partial(jit, static_argnames=("update_sequence", "structure"))
@@ -274,7 +274,7 @@ def fill_categorical_state_node(
     return hgf
 
 
-def get_update_sequence(hgf: "HGF") -> List:
+def get_update_sequence(network: "Network", update_type: str) -> List:
     """Generate an update sequence from the network's structure.
 
     This function return an optimized update sequence considering the edges of the
@@ -288,8 +288,12 @@ def get_update_sequence(hgf: "HGF") -> List:
 
     Parameters
     ----------
-    hgf :
-        An instance of the HGF model.
+    network :
+        A neural network, instance of :py:class:`pyhgf.model.network.Network`.
+    update_type :
+        Only relevant if the neural network is an instance of generalised
+        Hierarchical Gaussian Filter. The default prediction update to use for
+        continuous nodes (`"eHGF"` or `"standard"`). Defaults to `"eHGF"`.
 
     Returns
     -------
@@ -301,21 +305,21 @@ def get_update_sequence(hgf: "HGF") -> List:
     update_sequence: List = []
     prediction_sequence: List = []
 
-    n_nodes = len(hgf.edges)
+    n_nodes = len(network.edges)
 
     # list all nodes that should compute PE and update
     node_without_pe = [i for i in range(n_nodes)]
     node_without_update = [i for i in range(n_nodes)]
 
     # start with the update of all input nodes
-    for input_idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
+    for input_idx, kind in zip(network.inputs.idx, network.inputs.kind):
         if kind == 0:
             update_fn = continuous_input_prediction_error
             update_sequence.append((input_idx, update_fn))
 
         elif kind == 1:
             # add the update steps for the binary state node as well
-            binary_state_idx = hgf.edges[input_idx].value_parents[0]  # type: ignore
+            binary_state_idx = network.edges[input_idx].value_parents[0]  # type: ignore
 
             # TODO: once HGF and Network classes implemented separately, we can add the
             # finite binary HGF back
@@ -354,8 +358,8 @@ def get_update_sequence(hgf: "HGF") -> List:
             all_children = [
                 i
                 for idx in [
-                    hgf.edges[idx].value_children,
-                    hgf.edges[idx].volatility_children,
+                    network.edges[idx].value_children,
+                    network.edges[idx].volatility_children,
                 ]
                 if idx is not None
                 for i in idx
@@ -365,12 +369,12 @@ def get_update_sequence(hgf: "HGF") -> List:
             if all([i not in node_without_pe for i in all_children]):
                 no_update = False
 
-                if hgf.update_type == "eHGF":
-                    if hgf.edges[idx].volatility_children is not None:
+                if update_type == "eHGF":
+                    if network.edges[idx].volatility_children is not None:
                         update_fn = continuous_node_update_ehgf
                     else:
                         update_fn = continuous_node_update
-                elif hgf.update_type == "standard":
+                elif update_type == "standard":
                     update_fn = continuous_node_update
 
                 update_sequence.append((idx, update_fn))
@@ -386,8 +390,8 @@ def get_update_sequence(hgf: "HGF") -> List:
             all_parents = [
                 i
                 for idx in [
-                    hgf.edges[idx].value_parents,
-                    hgf.edges[idx].volatility_parents,
+                    network.edges[idx].value_parents,
+                    network.edges[idx].volatility_parents,
                 ]
                 if idx is not None
                 for i in idx
@@ -414,7 +418,7 @@ def get_update_sequence(hgf: "HGF") -> List:
     prediction_sequence.extend(update_sequence)
 
     # add the categorical update here, if any
-    for kind, idx in zip(hgf.inputs.kind, hgf.inputs.idx):
+    for kind, idx in zip(network.inputs.kind, network.inputs.idx):
         if kind == 2:
             # create a new sequence step and add it to the list
             prediction_sequence.append((idx, categorical_input_update))
@@ -487,9 +491,9 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
             idx
         ]["surprise"]
         if kind != 2:
-            trajectories_df[
-                f"observation_input_{idx}_expected_precision"
-            ] = hgf.node_trajectories[idx]["expected_precision"]
+            trajectories_df[f"observation_input_{idx}_expected_precision"] = (
+                hgf.node_trajectories[idx]["expected_precision"]
+            )
 
     # for value parents of binary inputs nodes
     binary_nodes_idxs = []
