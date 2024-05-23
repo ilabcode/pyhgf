@@ -3,7 +3,6 @@
 from typing import TYPE_CHECKING
 
 import jax.numpy as jnp
-from jax import Array
 from jax.typing import ArrayLike
 
 from pyhgf.math import binary_surprise, gaussian_surprise
@@ -14,7 +13,7 @@ if TYPE_CHECKING:
 
 def first_level_gaussian_surprise(
     hgf: "HGF", response_function_inputs=None, response_function_parameters=None
-) -> Array:
+) -> float:
     """Gaussian surprise at the first level of a probabilistic network.
 
     .. note::
@@ -55,7 +54,7 @@ def first_level_gaussian_surprise(
 
 def total_gaussian_surprise(
     hgf: "HGF", response_function_inputs=None, response_function_parameters=None
-) -> Array:
+) -> float:
     """Sum of the Gaussian surprise across the probabilistic network.
 
     .. note::
@@ -81,7 +80,7 @@ def total_gaussian_surprise(
 
     # first we start with nodes that are value parents to input nodes
     input_parents_list = []
-    for idx in hgf.input_nodes_idx.idx:
+    for idx in hgf.inputs.idx:
         va_pa = hgf.edges[idx].value_parents[0]  # type: ignore
         input_parents_list.append(va_pa)
         surprise += jnp.sum(
@@ -95,7 +94,7 @@ def total_gaussian_surprise(
     # then we do the same for every node that is not an input node
     # and not the parent of an input node
     for i in range(len(hgf.edges)):
-        if (i not in hgf.input_nodes_idx.idx) and (i not in input_parents_list):
+        if (i not in hgf.inputs.idx) and (i not in input_parents_list):
             surprise += jnp.sum(
                 gaussian_surprise(
                     x=hgf.node_trajectories[i]["mean"],
@@ -112,7 +111,7 @@ def total_gaussian_surprise(
 
 def first_level_binary_surprise(
     hgf: "HGF", response_function_inputs=None, response_function_parameters=None
-) -> Array:
+) -> float:
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
@@ -156,7 +155,7 @@ def binary_softmax(
     hgf: "HGF",
     response_function_inputs=ArrayLike,
     response_function_parameters=ArrayLike,
-) -> Array:
+) -> float:
     """Surprise under the binary sofmax model.
 
     Parameters
@@ -193,7 +192,7 @@ def binary_softmax_inverse_temperature(
     hgf: "HGF",
     response_function_inputs=ArrayLike,
     response_function_parameters=ArrayLike,
-) -> Array:
+) -> float:
     r"""Surprise from a binary sofmax parametrized by the inverse temperature.
 
     The probability of chosing A is given by:

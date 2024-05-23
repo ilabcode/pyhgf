@@ -10,7 +10,7 @@ from jax.tree_util import Partial
 from pyhgf import load_data
 from pyhgf.math import binary_surprise, gaussian_density, sigmoid
 from pyhgf.networks import beliefs_propagation
-from pyhgf.typing import Indexes
+from pyhgf.typing import AdjacencyLists, Inputs
 from pyhgf.updates.posterior.binary import binary_node_update_infinite
 from pyhgf.updates.posterior.continuous import continuous_node_update
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
@@ -118,10 +118,10 @@ class Testbinary(TestCase):
         }
 
         edges = (
-            Indexes((1,), None, None, None),
-            Indexes((2,), None, (0,), None),
-            Indexes(None, (3,), (1,), None),
-            Indexes(None, None, None, (2,)),
+            AdjacencyLists((1,), None, None, None),
+            AdjacencyLists((2,), None, (0,), None),
+            AdjacencyLists(None, (3,), (1,), None),
+            AdjacencyLists(None, None, None, (2,)),
         )
         attributes = {
             0: input_node_parameters,
@@ -154,10 +154,11 @@ class Testbinary(TestCase):
         data = jnp.ones(1)
         time_steps = jnp.ones(1)
         observed = jnp.ones(1)
+        inputs = Inputs(0, 1)
 
         # apply sequence
         new_attributes, _ = beliefs_propagation(
-            edges=edges,
+            structure=(inputs, edges),
             attributes=attributes,
             update_sequence=update_sequence,
             input_data=(data, time_steps, observed),
@@ -186,12 +187,13 @@ class Testbinary(TestCase):
         data = jnp.array([u[:5]]).T
         time_steps = jnp.ones((len(u[:5]), 1))
         observed = jnp.ones((len(u[:5]), 1))
+        inputs = Inputs(0, 1)
 
         # create the function that will be scaned
         scan_fn = Partial(
             beliefs_propagation,
             update_sequence=update_sequence,
-            edges=edges,
+            structure=(inputs, edges),
         )
 
         # Run the entire for loop

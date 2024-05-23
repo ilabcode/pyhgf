@@ -10,7 +10,7 @@ from jax.tree_util import Partial
 from pyhgf import load_data
 from pyhgf.math import gaussian_surprise
 from pyhgf.networks import beliefs_propagation
-from pyhgf.typing import Indexes
+from pyhgf.typing import AdjacencyLists, Inputs
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
     continuous_node_update_ehgf,
@@ -91,13 +91,14 @@ def test_continuous_node_update(nodes_attributes):
     # create a node structure with no value parent and no volatility parent
     attributes = nodes_attributes
     edges = (
-        Indexes(None, None, None, None),
-        Indexes(None, None, None, None),
-        Indexes(None, None, None, None),
+        AdjacencyLists(None, None, None, None),
+        AdjacencyLists(None, None, None, None),
+        AdjacencyLists(None, None, None, None),
     )
     data = jnp.array([0.2])
     time_steps = jnp.ones(1)
     observed = jnp.ones(1)
+    inputs = Inputs(0, 0)
 
     ###########################################
     # No value parent - no volatility parents #
@@ -106,7 +107,7 @@ def test_continuous_node_update(nodes_attributes):
     update_sequence = (sequence1,)
     new_attributes, _ = beliefs_propagation(
         attributes=attributes,
-        edges=edges,
+        structure=(inputs, edges),
         update_sequence=update_sequence,
         input_data=(data, time_steps, observed),
     )
@@ -131,9 +132,9 @@ def test_continuous_input_update(nodes_attributes):
     attributes = nodes_attributes
 
     edges = (
-        Indexes((1,), None, None, None),
-        Indexes(None, (2,), (0,), None),
-        Indexes(None, None, None, (1,)),
+        AdjacencyLists((1,), None, None, None),
+        AdjacencyLists(None, (2,), (0,), None),
+        AdjacencyLists(None, None, None, (1,)),
     )
 
     # create update sequence
@@ -154,10 +155,11 @@ def test_continuous_input_update(nodes_attributes):
     data = jnp.array([0.2])
     time_steps = jnp.ones(1)
     observed = jnp.ones(1)
+    inputs = Inputs(0, 0)
 
     # apply beliefs propagation updates
     new_attributes, _ = beliefs_propagation(
-        edges=edges,
+        structure=(inputs, edges),
         attributes=attributes,
         update_sequence=update_sequence,
         input_data=(data, time_steps, observed),
@@ -185,9 +187,9 @@ def test_scan_loop(nodes_attributes):
     ###############################################
     attributes = nodes_attributes
     edges = (
-        Indexes((1,), None, None, None),
-        Indexes(None, (2,), (0,), None),
-        Indexes(None, None, None, (1,)),
+        AdjacencyLists((1,), None, None, None),
+        AdjacencyLists(None, (2,), (0,), None),
+        AdjacencyLists(None, None, None, (1,)),
     )
 
     # create update sequence
@@ -206,11 +208,13 @@ def test_scan_loop(nodes_attributes):
         sequence6,
     )
 
+    inputs = Inputs(0, 1)
+
     # create the function that will be scaned
     scan_fn = Partial(
         beliefs_propagation,
         update_sequence=update_sequence,
-        edges=edges,
+        structure=(inputs, edges),
     )
 
     # Create the data (value and time steps vectors)

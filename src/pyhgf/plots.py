@@ -9,14 +9,16 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.axes import Axes
 
+from pyhgf.typing import input_types
+
 if TYPE_CHECKING:
     from graphviz.sources import Source
 
-    from pyhgf.model import HGF
+    from pyhgf.model import Network
 
 
 def plot_trajectories(
-    hgf: "HGF",
+    network: "Network",
     ci: bool = True,
     show_surprise: bool = True,
     show_current_state: bool = False,
@@ -31,8 +33,8 @@ def plot_trajectories(
 
     Parameters
     ----------
-    hgf :
-        An instance of the HGF model.
+    network :
+        An instance of the main Network class.
     ci :
         Show the uncertainty around the values estimates (standard deviation).
     show_surprise :
@@ -119,8 +121,8 @@ def plot_trajectories(
         three_levels_hgf.plot_trajectories();
 
     """
-    trajectories_df = hgf.to_pandas()
-    n_nodes = len(hgf.edges)
+    trajectories_df = network.to_pandas()
+    n_nodes = len(network.edges)
     palette = itertools.cycle(sns.color_palette())
 
     if axs is None:
@@ -128,9 +130,9 @@ def plot_trajectories(
 
     # plot the input node(s)
     # ----------------------
-    for i, input_idx in enumerate(hgf.input_nodes_idx.idx):
+    for i, input_idx in enumerate(network.inputs.idx):
         plot_nodes(
-            hgf=hgf,
+            network=network,
             node_idxs=input_idx,
             axs=axs[-2 - i],
             show_surprise=show_surprise,
@@ -141,13 +143,13 @@ def plot_trajectories(
 
     # plot continuous and binary nodes
     # --------------------------------
-    ax_i = n_nodes - len(hgf.input_nodes_idx.idx) - 1
+    ax_i = n_nodes - len(network.inputs.idx) - 1
     for node_idx in range(0, n_nodes):
-        if node_idx not in hgf.input_nodes_idx.idx:
+        if node_idx not in network.inputs.idx:
             # use different colors for each node
             color = next(palette)
             plot_nodes(
-                hgf=hgf,
+                network=network,
                 node_idxs=node_idx,
                 axs=axs[ax_i],
                 color=color,
@@ -185,12 +187,12 @@ def plot_trajectories(
     return axs
 
 
-def plot_correlations(hgf: "HGF") -> Axes:
+def plot_correlations(network: "Network") -> Axes:
     """Plot the heatmap correlation of the sufficient statistics trajectories.
 
     Parameters
     ----------
-    hgf :
+    network :
         An instance of the HGF model.
 
     Returns
@@ -200,7 +202,7 @@ def plot_correlations(hgf: "HGF") -> Axes:
         correlation.
 
     """
-    trajectories_df = hgf.to_pandas()
+    trajectories_df = network.to_pandas()
     trajectories_df = pd.concat(
         [
             trajectories_df[
@@ -226,13 +228,13 @@ def plot_correlations(hgf: "HGF") -> Axes:
     return ax
 
 
-def plot_network(hgf: "HGF") -> "Source":
+def plot_network(network: "Network") -> "Source":
     """Visualization of node network using GraphViz.
 
     Parameters
     ----------
-    hgf :
-        An instance of the HGF model containing a node structure.
+    network :
+        An instance of main Network class.
 
     Notes
     -----
@@ -255,12 +257,12 @@ def plot_network(hgf: "HGF") -> "Source":
     graphviz_structure.attr("node", shape="circle")
 
     # set input nodes
-    for idx, kind in zip(hgf.input_nodes_idx.idx, hgf.input_nodes_idx.kind):
-        if kind == "continuous":
+    for idx, kind in zip(network.inputs.idx, network.inputs.kind):
+        if kind == 0:
             label, shape = f"Co-{idx}", "oval"
-        elif kind == "binary":
+        elif kind == 1:
             label, shape = f"Bi-{idx}", "box"
-        elif kind == "categorical":
+        elif kind == 2:
             label, shape = f"Ca-{idx}", "diamond"
         graphviz_structure.node(
             f"x_{idx}",
@@ -270,13 +272,13 @@ def plot_network(hgf: "HGF") -> "Source":
         )
 
     # create the rest of nodes
-    for i in range(len(hgf.edges)):
+    for i in range(len(network.edges)):
         # only if node is not an input node
-        if i not in hgf.input_nodes_idx.idx:
+        if i not in network.inputs.idx:
             graphviz_structure.node(f"x_{i}", label=str(i), shape="circle")
 
     # connect value parents
-    for i, index in enumerate(hgf.edges):
+    for i, index in enumerate(network.edges):
         value_parents = index.value_parents
 
         if value_parents is not None:
@@ -287,7 +289,7 @@ def plot_network(hgf: "HGF") -> "Source":
                 )
 
     # connect volatility parents
-    for i, index in enumerate(hgf.edges):
+    for i, index in enumerate(network.edges):
         volatility_parents = index.volatility_parents
 
         if volatility_parents is not None:
@@ -307,7 +309,7 @@ def plot_network(hgf: "HGF") -> "Source":
 
 
 def plot_nodes(
-    hgf: "HGF",
+    network: "Network",
     node_idxs: Union[int, List[int]],
     ci: bool = True,
     show_surprise: bool = True,
@@ -326,8 +328,8 @@ def plot_nodes(
 
     Parameters
     ----------
-    hgf :
-        An instance of the HGF model class after inference over input data.
+    network :
+        An instance of main Network class.
     node_idxs :
         The index(es) of the probabilistic node(s) that should be plotted. If multiple
         indexes are provided, multiple rows will be appended to the figure, one for
@@ -394,7 +396,7 @@ def plot_nodes(
     """
     if not isinstance(node_idxs, list):
         node_idxs = [node_idxs]
-    trajectories_df = hgf.to_pandas()
+    trajectories_df = network.to_pandas()
 
     if axs is None:
         _, axs = plt.subplots(nrows=len(node_idxs), figsize=figsize, sharex=True)
@@ -405,11 +407,9 @@ def plot_nodes(
     for i, node_idx in enumerate(node_idxs):
         # plotting an input node
         # ----------------------
-        if node_idx in hgf.input_nodes_idx.idx:
-            input_type = hgf.input_nodes_idx.kind[
-                hgf.input_nodes_idx.idx.index(node_idx)
-            ]
-            if input_type == "continuous":
+        if node_idx in network.inputs.idx:
+            input_type = network.inputs.kind[network.inputs.idx.index(node_idx)]
+            if input_type == 0:
                 axs[i].scatter(
                     x=trajectories_df.time,
                     y=trajectories_df[f"observation_input_{node_idx}"],
@@ -419,7 +419,7 @@ def plot_nodes(
                     zorder=10,
                     alpha=0.5,
                 )
-            elif input_type == "binary":
+            elif input_type == 1:
                 axs[i].scatter(
                     x=trajectories_df.time,
                     y=trajectories_df[f"observation_input_{node_idx}"],
@@ -447,11 +447,11 @@ def plot_nodes(
                     color=color,
                     zorder=2,
                 )
+            input_label = list(input_types.keys())[
+                input_type
+            ].capitalize()  # type: ignore
 
-            axs[i].set_title(
-                f"{input_type.capitalize()} Input Node {node_idx}",
-                loc="left",
-            )
+            axs[i].set_title(f"{input_label} Input Node {node_idx}", loc="left")
             axs[i].legend()
         else:
             # plotting state nodes
@@ -473,7 +473,7 @@ def plot_nodes(
             axs[i].plot(
                 trajectories_df.time,
                 mean,
-                label=r"$\hat{\mu}$",
+                label="Expected mean",
                 color=color,
                 linewidth=1,
                 zorder=2,
@@ -488,21 +488,21 @@ def plot_nodes(
 
                 # if this is the value parent of an input node
                 # the CI should be treated diffeently
-                if hgf.edges[node_idx].value_children is not None:
+                if network.edges[node_idx].value_children is not None:
                     if np.any(
                         [
                             (
                                 i  # type : ignore
-                                in hgf.edges[  # type: ignore
+                                in network.edges[  # type: ignore
                                     node_idx  # type: ignore
                                 ].value_children  # type: ignore
                             )
-                            and kind == "binary"
-                            for i, kind in enumerate(hgf.input_nodes_idx.kind)
+                            and kind == 1
+                            for i, kind in enumerate(network.inputs.kind)
                         ]
                     ):
                         # get parent node
-                        parent_idx = hgf.edges[  # type: ignore
+                        parent_idx = network.edges[  # type: ignore
                             node_idx  # type: ignore
                         ].value_parents[
                             0
@@ -527,7 +527,7 @@ def plot_nodes(
                     zorder=2,
                 )
 
-            axs[i].legend()
+            axs[i].legend(loc="upper left")
 
             # show the current states
             # -----------------------
@@ -540,7 +540,7 @@ def plot_nodes(
                 axs[i].plot(
                     trajectories_df.time,
                     mean,
-                    label=r"$\mu$",
+                    label="Mean",
                     color="gray",
                     linewidth=0.5,
                     zorder=2,
@@ -558,25 +558,25 @@ def plot_nodes(
                         color=color,
                         zorder=2,
                     )
-                axs[i].legend()
+                axs[i].legend(loc="lower left")
 
             # plot the inputs from child nodes
             # --------------------------------
             if show_observations:
                 # value coupling
-                if hgf.edges[node_idx].value_children is not None:
+                if network.edges[node_idx].value_children is not None:
                     input_colors = plt.cm.cividis(
                         np.linspace(
                             0,
                             1,
-                            len(hgf.edges[node_idx].value_children),  # type: ignore
+                            len(network.edges[node_idx].value_children),  # type: ignore
                         )
                     )
 
                     for ii, child_idx in enumerate(
-                        hgf.edges[node_idx].value_children  # type: ignore
+                        network.edges[node_idx].value_children  # type: ignore
                     ):
-                        if child_idx not in hgf.input_nodes_idx.idx:
+                        if child_idx not in network.inputs.idx:
                             axs[i].scatter(
                                 trajectories_df.time,
                                 trajectories_df[f"x_{child_idx}_mean"],
@@ -596,7 +596,7 @@ def plot_nodes(
                             )
                         else:
                             child_idx = np.where(
-                                np.array(hgf.input_nodes_idx.idx) == child_idx
+                                np.array(network.inputs.idx) == child_idx
                             )[0][0]
                             axs[i].scatter(
                                 trajectories_df.time,
@@ -615,12 +615,12 @@ def plot_nodes(
                                 alpha=0.3,
                                 color=input_colors[ii],
                             )
-                            axs[i].legend()
+                    axs[i].legend(loc="lower right")
 
         # plotting surprise
         # -----------------
         if show_surprise:
-            if node_idx in hgf.input_nodes_idx.idx:
+            if node_idx in network.inputs.idx:
                 node_surprise = trajectories_df[
                     f"observation_input_{node_idx}_surprise"
                 ].to_numpy()
@@ -639,14 +639,16 @@ def plot_nodes(
                     x=trajectories_df.time,
                     y1=node_surprise,
                     y2=node_surprise.min(),
-                    where=hgf.node_trajectories[node_idx]["observed"],
+                    where=network.node_trajectories[node_idx]["observed"],
                     color="#7f7f7f",
                     alpha=0.1,
                     zorder=-1,
                 )
 
                 # hide surprise if the input was not observed
-                node_surprise[hgf.node_trajectories[node_idx]["observed"] == 0] = np.nan
+                node_surprise[network.node_trajectories[node_idx]["observed"] == 0] = (
+                    np.nan
+                )
                 surprise_ax.plot(
                     trajectories_df.time,
                     node_surprise,
@@ -656,5 +658,5 @@ def plot_nodes(
                     label="Surprise",
                 )
                 surprise_ax.set_ylabel("Surprise")
-                surprise_ax.legend()
+                surprise_ax.legend(loc="upper right")
     return axs

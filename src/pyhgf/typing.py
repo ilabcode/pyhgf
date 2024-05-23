@@ -1,9 +1,9 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, NamedTuple, Optional, Tuple
+from typing import Callable, Dict, NamedTuple, Optional, Tuple
 
 
-class Indexes(NamedTuple):
+class AdjacencyLists(NamedTuple):
     """Indexes to a node's value and volatility parents."""
 
     value_parents: Optional[Tuple]
@@ -12,13 +12,27 @@ class Indexes(NamedTuple):
     volatility_children: Optional[Tuple]
 
 
-class InputIndexes(NamedTuple):
+class Inputs(NamedTuple):
     """Input nodes type and index."""
 
     idx: Tuple[int, ...]
-    kind: Tuple[str, ...]
+    kind: Tuple[int, ...]
 
 
-Edges = Tuple[Indexes, ...]
+# the nodes' attributes
+Attributes = Dict[int, Dict]
 
+# the network edges
+Edges = Tuple[AdjacencyLists, ...]
+
+# the network structure (the edges and the inputs info)
+Structure = Tuple[Inputs, Edges]
+
+# the update sequence
 UpdateSequence = Tuple[Tuple[int, Callable], ...]
+
+# a fully defined network
+NetworkParameters = Tuple[Attributes, Structure, UpdateSequence]
+
+# encoding input types using intergers
+input_types = {"continuous": 0, "binary": 1, "categorical": 2}
