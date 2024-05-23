@@ -679,15 +679,15 @@ class Network:
 
     def plot_trajectories(self, **kwargs):
         """Plot the parameters trajectories."""
-        return plot_trajectories(hgf=self, **kwargs)
+        return plot_trajectories(network=self, **kwargs)
 
     def plot_correlations(self):
         """Plot the heatmap of cross-trajectories correlation."""
-        return plot_correlations(hgf=self)
+        return plot_correlations(network=self)
 
     def plot_network(self):
         """Visualization of node network using GraphViz."""
-        return plot_network(hgf=self)
+        return plot_network(network=self)
 
     def to_pandas(self) -> pd.DataFrame:
         """Export the nodes trajectories and surprise as a Pandas data frame.

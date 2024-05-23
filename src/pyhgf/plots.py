@@ -14,7 +14,7 @@ from pyhgf.typing import input_types
 if TYPE_CHECKING:
     from graphviz.sources import Source
 
-    from pyhgf.model import HGF, Network
+    from pyhgf.model import Network
 
 
 def plot_trajectories(
@@ -187,12 +187,12 @@ def plot_trajectories(
     return axs
 
 
-def plot_correlations(hgf: "HGF") -> Axes:
+def plot_correlations(network: "Network") -> Axes:
     """Plot the heatmap correlation of the sufficient statistics trajectories.
 
     Parameters
     ----------
-    hgf :
+    network :
         An instance of the HGF model.
 
     Returns
@@ -202,7 +202,7 @@ def plot_correlations(hgf: "HGF") -> Axes:
         correlation.
 
     """
-    trajectories_df = hgf.to_pandas()
+    trajectories_df = network.to_pandas()
     trajectories_df = pd.concat(
         [
             trajectories_df[
