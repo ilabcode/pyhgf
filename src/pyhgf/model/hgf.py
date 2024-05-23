@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union, override
 
 import jax.numpy as jnp
 import numpy as np
@@ -11,7 +11,7 @@ from pyhgf.response import first_level_binary_surprise, first_level_gaussian_sur
 
 
 class HGF(Network):
-    r"""The two-level and three-level Hierarchical Gaussian Filters (HGF).
+    """The two-level and three-level Hierarchical Gaussian Filters (HGF).
 
     This class uses pre-made node structures that correspond to the most widely used
     HGF. The inputs can be continuous or binary.
@@ -32,8 +32,6 @@ class HGF(Network):
         Verbosity level.
 
     """
-
-    __doc__ += Network.__doc__  # type: ignore
 
     def __init__(
         self,
@@ -210,6 +208,7 @@ class HGF(Network):
             # initialize the model so it is ready to receive new observations
             self.create_belief_propagation_fn()
 
+    @override
     def surprise(
         self,
         response_function: Optional[Callable] = None,
@@ -217,7 +216,7 @@ class HGF(Network):
         response_function_parameters: Optional[
             Union[np.ndarray, ArrayLike, float]
         ] = None,
-    ):
+    ) -> float:
         """Surprise of the model conditioned by the response function.
 
         The surprise (negative log probability) depends on the input data, the model

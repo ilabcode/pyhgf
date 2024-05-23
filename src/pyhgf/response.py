@@ -3,7 +3,6 @@
 from typing import TYPE_CHECKING
 
 import jax.numpy as jnp
-from jax import Array
 from jax.typing import ArrayLike
 
 from pyhgf.math import binary_surprise, gaussian_surprise
@@ -14,7 +13,7 @@ if TYPE_CHECKING:
 
 def first_level_gaussian_surprise(
     hgf: "HGF", response_function_inputs=None, response_function_parameters=None
-) -> Array:
+) -> float:
     """Gaussian surprise at the first level of a probabilistic network.
 
     .. note::
@@ -55,7 +54,7 @@ def first_level_gaussian_surprise(
 
 def total_gaussian_surprise(
     hgf: "HGF", response_function_inputs=None, response_function_parameters=None
-) -> Array:
+) -> float:
     """Sum of the Gaussian surprise across the probabilistic network.
 
     .. note::
@@ -112,7 +111,7 @@ def total_gaussian_surprise(
 
 def first_level_binary_surprise(
     hgf: "HGF", response_function_inputs=None, response_function_parameters=None
-) -> Array:
+) -> float:
     """Sum of the binary surprise along the time series (binary HGF).
 
     .. note::
@@ -156,7 +155,7 @@ def binary_softmax(
     hgf: "HGF",
     response_function_inputs=ArrayLike,
     response_function_parameters=ArrayLike,
-) -> Array:
+) -> float:
     """Surprise under the binary sofmax model.
 
     Parameters
@@ -193,7 +192,7 @@ def binary_softmax_inverse_temperature(
     hgf: "HGF",
     response_function_inputs=ArrayLike,
     response_function_parameters=ArrayLike,
-) -> Array:
+) -> float:
     r"""Surprise from a binary sofmax parametrized by the inverse temperature.
 
     The probability of chosing A is given by:

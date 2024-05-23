@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from jax.lax import scan, switch
 from jax.tree_util import Partial
+from jax.typing import ArrayLike
 
 from pyhgf.networks import (
     beliefs_propagation,
@@ -145,7 +146,7 @@ class Network:
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
         observed: Optional[np.ndarray] = None,
-    ) -> "Network":
+    ):
         """Add new observations.
 
         Parameters
@@ -702,3 +703,44 @@ class Network:
 
         """
         return to_pandas(self)
+
+    def surprise(
+        self,
+        response_function: Callable,
+        response_function_inputs: Tuple = (),
+        response_function_parameters: Optional[
+            Union[np.ndarray, ArrayLike, float]
+        ] = None,
+    ) -> float:
+        """Surprise of the model conditioned by the response function.
+
+        The surprise (negative log probability) depends on the input data, the model
+        parameters, the response function, its inputs and its additional parameters
+        (optional).
+
+        Parameters
+        ----------
+        response_function :
+            The response function to use to compute the model surprise. If `None`
+            (default), return the sum of Gaussian surprise if `model_type=="continuous"`
+            or the sum of the binary surprise if `model_type=="binary"`.
+        response_function_inputs :
+            A list of tuples with the same length as the number of models. Each tuple
+            contains additional data and parameters that can be accessible to the
+            response functions.
+        response_function_parameters :
+            A list of additional parameters that will be passed to the response
+            function. This can include values over which inferece is performed in a
+            PyMC model (e.g. the inverse temperature of a binary softmax).
+
+        Returns
+        -------
+        surprise :
+            The model's surprise given the input data and the response function.
+
+        """
+        return response_function(
+            hgf=self,
+            response_function_inputs=response_function_inputs,
+            response_function_parameters=response_function_parameters,
+        )
