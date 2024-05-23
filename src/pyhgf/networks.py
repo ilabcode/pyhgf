@@ -33,7 +33,7 @@ from pyhgf.updates.prediction_error.nodes.continuous import (
 )
 
 if TYPE_CHECKING:
-    from pyhgf.model import HGF, Network
+    from pyhgf.model import Network
 
 
 @partial(jit, static_argnames=("update_sequence", "structure"))
@@ -198,14 +198,17 @@ def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List
 
 
 def fill_categorical_state_node(
-    hgf: "HGF", node_idx: int, binary_input_idxs: List[int], binary_parameters: Dict
-) -> "HGF":
+    network: "Network",
+    node_idx: int,
+    binary_input_idxs: List[int],
+    binary_parameters: Dict,
+) -> "Network":
     """Generate a binary network implied by categorical state(-transition) nodes.
 
     Parameters
     ----------
-    hgf :
-        Instance of a HGF model.
+    network :
+        Instance of a Network.
     node_idx :
         Index to the categorical state node.
     binary_input_idxs :
@@ -220,7 +223,7 @@ def fill_categorical_state_node(
 
     """
     # add the binary inputs - one for each category
-    hgf.add_nodes(
+    network.add_nodes(
         kind="binary-input",
         n_nodes=len(binary_input_idxs),
         node_parameters={
@@ -229,16 +232,16 @@ def fill_categorical_state_node(
     )
 
     # add the value dependency between the categorical and binary nodes
-    edges_as_list: List[AdjacencyLists] = list(hgf.edges)
+    edges_as_list: List[AdjacencyLists] = list(network.edges)
     edges_as_list[node_idx] = AdjacencyLists(tuple(binary_input_idxs), None, None, None)
     for binary_idx in binary_input_idxs:
         edges_as_list[binary_idx] = AdjacencyLists(None, None, (node_idx,), None)
-    hgf.edges = tuple(edges_as_list)
+    network.edges = tuple(edges_as_list)
 
     # loop over the number of categories and create as many second-levels binary HGF
     for i in range(binary_parameters["n_categories"]):
         # binary state node
-        hgf.add_nodes(
+        network.add_nodes(
             kind="binary-state",
             value_children=binary_input_idxs[i],
             node_parameters={
@@ -249,7 +252,7 @@ def fill_categorical_state_node(
 
     # add the continuous parent node
     for i in range(binary_parameters["n_categories"]):
-        hgf.add_nodes(
+        network.add_nodes(
             value_children=binary_input_idxs[i] + binary_parameters["n_categories"],
             node_parameters={
                 "mean": binary_parameters["mean_2"],
@@ -260,7 +263,7 @@ def fill_categorical_state_node(
 
     # add the higher level volatility parents
     # as a shared parents between the second level nodes
-    hgf.add_nodes(
+    network.add_nodes(
         volatility_children=[
             idx + 2 * binary_parameters["n_categories"] for idx in binary_input_idxs
         ],
@@ -271,7 +274,7 @@ def fill_categorical_state_node(
         },
     )
 
-    return hgf
+    return network
 
 
 def get_update_sequence(network: "Network", update_type: str) -> List:
@@ -426,7 +429,7 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
     return prediction_sequence
 
 
-def to_pandas(hgf: "HGF") -> pd.DataFrame:
+def to_pandas(network: "Network") -> pd.DataFrame:
     """Export the nodes trajectories and surprise as a Pandas data frame.
 
     Returns
@@ -439,8 +442,10 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     # get time and time steps from the first input node
     trajectories_df = pd.DataFrame(
         {
-            "time_steps": hgf.node_trajectories[hgf.inputs.idx[0]]["time_step"],
-            "time": jnp.cumsum(hgf.node_trajectories[hgf.inputs.idx[0]]["time_step"]),
+            "time_steps": network.node_trajectories[network.inputs.idx[0]]["time_step"],
+            "time": jnp.cumsum(
+                network.node_trajectories[network.inputs.idx[0]]["time_step"]
+            ),
         }
     )
 
@@ -448,33 +453,35 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     # ------------
 
     # add the observations from input nodes
-    for idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
+    for idx, kind in zip(network.inputs.idx, network.inputs.kind):
         if kind == 2:
             df = pd.DataFrame(
                 dict(
                     [
                         (
                             f"observation_input_{idx}_{i}",
-                            hgf.node_trajectories[0]["value"][:, i],
+                            network.node_trajectories[0]["value"][:, i],
                         )
-                        for i in range(hgf.node_trajectories[0]["value"].shape[1])
+                        for i in range(network.node_trajectories[0]["value"].shape[1])
                     ]
                 )
             )
             pd.concat([trajectories_df, df], axis=1)
         else:
-            trajectories_df[f"observation_input_{idx}"] = hgf.node_trajectories[idx][
-                "value"
-            ]
+            trajectories_df[f"observation_input_{idx}"] = network.node_trajectories[
+                idx
+            ]["value"]
 
     # loop over non input nodes and store sufficient statistics with surprise
     indexes = [
-        i for i in range(1, len(hgf.node_trajectories)) if i not in hgf.inputs.idx
+        i
+        for i in range(1, len(network.node_trajectories))
+        if i not in network.inputs.idx
     ]
     df = pd.DataFrame(
         dict(
             [
-                (f"x_{i}_{var}", hgf.node_trajectories[i][var])
+                (f"x_{i}_{var}", network.node_trajectories[i][var])
                 for i in indexes
                 for var in ["mean", "precision", "expected_mean", "expected_precision"]
             ]
@@ -486,39 +493,39 @@ def to_pandas(hgf: "HGF") -> pd.DataFrame:
     # --------------------------
 
     # add the surprise and expected precision computed from the continuous inputs
-    for idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
-        trajectories_df[f"observation_input_{idx}_surprise"] = hgf.node_trajectories[
-            idx
-        ]["surprise"]
+    for idx, kind in zip(network.inputs.idx, network.inputs.kind):
+        trajectories_df[f"observation_input_{idx}_surprise"] = (
+            network.node_trajectories[idx]["surprise"]
+        )
         if kind != 2:
             trajectories_df[f"observation_input_{idx}_expected_precision"] = (
-                hgf.node_trajectories[idx]["expected_precision"]
+                network.node_trajectories[idx]["expected_precision"]
             )
 
     # for value parents of binary inputs nodes
     binary_nodes_idxs = []
-    for idx, kind in zip(hgf.inputs.idx, hgf.inputs.kind):
+    for idx, kind in zip(network.inputs.idx, network.inputs.kind):
         if kind == 1:
-            for par_idx in hgf.edges[idx].value_parents:  # type: ignore
+            for par_idx in network.edges[idx].value_parents:  # type: ignore
                 binary_nodes_idxs.append(par_idx)
 
     for i in indexes:
         if i in binary_nodes_idxs:
-            binary_input = hgf.edges[i].value_children[0]  # type: ignore
+            binary_input = network.edges[i].value_children[0]  # type: ignore
             surprise = binary_surprise(
-                x=hgf.node_trajectories[binary_input]["value"],
-                expected_mean=hgf.node_trajectories[i]["expected_mean"],
+                x=network.node_trajectories[binary_input]["value"],
+                expected_mean=network.node_trajectories[i]["expected_mean"],
             )
         else:
             surprise = gaussian_surprise(
-                x=hgf.node_trajectories[i]["mean"],
-                expected_mean=hgf.node_trajectories[i]["expected_mean"],
-                expected_precision=hgf.node_trajectories[i]["expected_precision"],
+                x=network.node_trajectories[i]["mean"],
+                expected_mean=network.node_trajectories[i]["expected_mean"],
+                expected_precision=network.node_trajectories[i]["expected_precision"],
             )
 
         # fill with nans when the model cannot fit
         surprise = jnp.where(
-            jnp.isnan(hgf.node_trajectories[i]["mean"]), jnp.nan, surprise
+            jnp.isnan(network.node_trajectories[i]["mean"]), jnp.nan, surprise
         )
         trajectories_df[f"x_{i}_surprise"] = surprise
 
