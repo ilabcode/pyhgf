@@ -203,15 +203,15 @@ least the HGF instance as input after observation and returning surprise.
    binary_softmax
    binary_softmax_inverse_temperature
 
-Networks
-********
+Utils
+*****
 
-Utilities for manipulating networks of probabilistic nodes.
+Utilities for manipulating neural networks.
 
-.. currentmodule:: pyhgf.networks
+.. currentmodule:: pyhgf.utils
 
 .. autosummary::
-   :toctree: generated/pyhgf.networks
+   :toctree: generated/pyhgf.utils
 
    beliefs_propagation
    trim_sequence

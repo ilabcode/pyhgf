@@ -9,7 +9,6 @@ from jax.tree_util import Partial
 
 from pyhgf import load_data
 from pyhgf.math import gaussian_surprise
-from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import AdjacencyLists, Inputs
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
@@ -22,6 +21,7 @@ from pyhgf.updates.prediction_error.inputs.continuous import (
 from pyhgf.updates.prediction_error.nodes.continuous import (
     continuous_node_prediction_error,
 )
+from pyhgf.utils import beliefs_propagation
 
 
 @pytest.fixture(scope="module")

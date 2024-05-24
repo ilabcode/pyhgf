@@ -9,12 +9,6 @@ from jax.lax import scan, switch
 from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
-from pyhgf.networks import (
-    beliefs_propagation,
-    fill_categorical_state_node,
-    get_update_sequence,
-    to_pandas,
-)
 from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
 from pyhgf.typing import (
     AdjacencyLists,
@@ -24,6 +18,12 @@ from pyhgf.typing import (
     NetworkParameters,
     UpdateSequence,
     input_types,
+)
+from pyhgf.utils import (
+    beliefs_propagation,
+    fill_categorical_state_node,
+    get_update_sequence,
+    to_pandas,
 )
 
 

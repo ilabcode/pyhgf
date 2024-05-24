@@ -9,7 +9,6 @@ from jax.tree_util import Partial
 
 from pyhgf import load_data
 from pyhgf.math import binary_surprise, gaussian_density, sigmoid
-from pyhgf.networks import beliefs_propagation
 from pyhgf.typing import AdjacencyLists, Inputs
 from pyhgf.updates.posterior.binary import binary_node_update_infinite
 from pyhgf.updates.posterior.continuous import continuous_node_update
@@ -24,6 +23,7 @@ from pyhgf.updates.prediction_error.nodes.binary import (
 from pyhgf.updates.prediction_error.nodes.continuous import (
     continuous_node_prediction_error,
 )
+from pyhgf.utils import beliefs_propagation
 
 
 class Testbinary(TestCase):
