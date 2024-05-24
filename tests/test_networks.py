@@ -5,7 +5,6 @@ from unittest import TestCase
 
 import jax.numpy as jnp
 
-from pyhgf.networks import beliefs_propagation, list_branches
 from pyhgf.typing import AdjacencyLists, Inputs
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
@@ -14,6 +13,7 @@ from pyhgf.updates.posterior.continuous import (
 from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
 )
+from pyhgf.utils import beliefs_propagation, list_branches
 
 
 class TestStructure(TestCase):
