@@ -340,10 +340,15 @@ class Network:
         kind :
             The kind of node to create. If `"continuous-state"` (default), the node will
             be a regular state node that can have value and/or volatility
-            parents/children. The hierarchical dependencies are specified using the
-            corresponding parameters below. If `"binary-state"`, the node should be the
-            value parent of a binary input. To create an input node, three types of
-            inputs are supported:
+            parents/children. If `"binary-state"`, the node should be the
+            value parent of a binary input. State nodes filtering distribution from the
+            exponential family can be created using the `"ef-"` prefix (e.g.
+            `"ef-normal"` for a univariate normal distribution). Note that only a few
+            distributions are implemented at the moment.
+
+            In addition to state nodes, four types of input nodes are supported:
+            - `generic-input`: receive a value or an array and pass it to the parent
+            nodes.
             - `continuous-input`: receive a continuous observation as input.
             - `binary-input` receives a single boolean as observation. The parameters
             provided to the binary input node contain: 1. `binary_precision`, the binary
@@ -460,6 +465,12 @@ class Network:
                     "expected_precision_children": 0.0,
                 },
             }
+        elif kind == "generic-input":
+            default_parameters = {
+                "value": 0.0,
+                "time_step": 0.0,
+                "observed": 0,
+            }
         elif kind == "continuous-input":
             default_parameters = {
                 "volatility_coupling_parents": None,
@@ -523,6 +534,12 @@ class Network:
                 "value": jnp.zeros(n_categories),
                 "binary_parameters": binary_parameters,
             }
+        elif "ef-" in kind:
+            default_parameters = {
+                "nus": 0.0,
+                "xis": 0.0,
+                "size": 1,
+            }
 
         if bool(additional_parameters):
             # ensure that all passed values are valid keys
@@ -554,6 +571,14 @@ class Network:
         else:
             input_type = None
 
+        # define the type of node that is created
+        if "input" in kind:
+            node_type = 0
+        elif "state" in kind:
+            node_type = 1
+        elif "ef-" in kind:
+            node_type = 2
+
         # convert the structure to a list to modify it
         edges_as_list: List[AdjacencyLists] = list(self.edges)
 
@@ -563,7 +588,11 @@ class Network:
             # add a new edge
             edges_as_list.append(
                 AdjacencyLists(
-                    couplings[1][0], couplings[3][0], couplings[0][0], couplings[2][0]
+                    node_type,
+                    couplings[1][0],
+                    couplings[3][0],
+                    couplings[0][0],
+                    couplings[2][0],
                 )
             )
 
@@ -601,6 +630,7 @@ class Network:
                     ):
                         # unpack this node's edges
                         (
+                            this_node_type,
                             value_parents,
                             volatility_parents,
                             value_children,
@@ -655,6 +685,7 @@ class Network:
 
                         # save the updated edges back
                         edges_as_list[idx] = AdjacencyLists(
+                            this_node_type,
                             value_parents,
                             volatility_parents,
                             value_children,
