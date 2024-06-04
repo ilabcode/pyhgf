@@ -8,6 +8,7 @@ from jax.typing import ArrayLike
 
 from pyhgf.model import Network
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
+from tabulate import tabulate
 
 
 class HGF(Network):
@@ -208,6 +209,46 @@ class HGF(Network):
             # initialize the model so it is ready to receive new observations
             self.create_belief_propagation_fn()
 
+
+    def print(self, keys=None):
+        """Prints a table with the attributes for each node. Inputs nodes are shown first
+        If keys is provided as a list, the function displays only the attributes indicated in the list"""
+        attributes = self.attributes
+        edges = self.edges
+
+        if keys is not None:
+            sorted_keys = keys
+        
+        else
+            #finding unique keys
+            all_keys = set()
+            for i in range(len(attributes)):
+                node_dict = attributes[i]
+                all_keys.update(node_dict.keys())
+            #sorting the keys
+            sorted_keys = sorted(all_keys)
+
+        #creating a printable table
+        table_data = []
+        for i, node_dict in enumerate(attributes):
+            node_dict = attributes[i]
+            row = [i]
+            val_children = edges[i][2]
+            vol_children =edges[i][3]
+            no_children = val_children is None and vol_children is None
+            row.append(no_children)
+
+            for key in sorted_keys:
+                value = node_dict.get(key)
+                row.append(f"{value}")
+
+            table_data.append(row)
+
+        table_data.sort(key=lambda row: (not row[1], row))
+
+        headers= ["Node"] + ["Input_node"] + sorted_keys
+        print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
+        
     @override
     def surprise(
         self,
