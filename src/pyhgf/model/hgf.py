@@ -11,6 +11,7 @@ from pyhgf.response import first_level_binary_surprise, first_level_gaussian_sur
 from tabulate import tabulate
 
 
+
 class HGF(Network):
     """The two-level and three-level Hierarchical Gaussian Filters (HGF).
 
