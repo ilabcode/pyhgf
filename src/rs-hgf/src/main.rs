@@ -1,242 +1,220 @@
+use std::collections::HashMap;
 
+#[derive(Debug)]
 struct AdjacencyLists{
     value_parents: Option<usize>,
     value_children: Option<usize>,
 }
-
+#[derive(Debug, Clone)]
 struct GenericInputNode{
     observation: f64,
     time_step: f64,
-    edges: AdjacencyLists,
 }
-
+#[derive(Debug, Clone)]
 struct ExponentialNode {
     observation: f64,
     nus: f64,
-    xis: f64,
-    edges: AdjacencyLists,
+    xis: [f64; 2],
 }
-enum Nodes {
+
+#[derive(Debug, Clone)]
+enum Node {
     Generic(GenericInputNode),
     Exponential(ExponentialNode),
 }
 
+#[derive(Debug)]
 struct Network{
-    nodes: Vec<Nodes>,
-    update_sequence: Vec<fn(Network) -> Network>,
+    nodes: HashMap<usize, Node>,
+    edges: Vec<AdjacencyLists>,
+    inputs: Vec<usize>,
 }
 
-pub trait NodeControls {
-    fn prediction_error(&self, network: Network) -> Network;
-    fn get_observation(&mut self, observation: f64);
+fn sufficient_statistics(x: &f64) -> [f64; 2] {
+    [*x, x.powf(2.0)]
 }
 
-
-impl GenericInputNode {
-
-    fn get_observation(&mut self, observation: f64) {
-        self.observation = observation
-    }
-
-    fn prediction_error(&mut self, observation: f64) {
-        self.observation = observation
-    }
-
-}
-
-impl ExponentialNode {
-
-    fn get_observation(&mut self, observation: f64) {
-        self.observation = observation
-    }
-
-    fn prediction_error(&mut self, network: Network) -> Network {
-        self.observation = observation
-    }
-
-}
-
-
-impl NodeControls for Nodes {
-
-    fn get_observation(&mut self, observation: f64) {
-
-        match self {
-            Nodes::Generic(node) => node.get_observation(observation),
-            Nodes::Exponential(node) => node.get_observation(observation),
+impl Network {
+    // Create a new graph
+    fn new() -> Self {
+        Network {
+            nodes: HashMap::new(),
+            edges: Vec::new(),
+            inputs: Vec::new(),
         }
     }
 
-    fn prediction_error(&self, network: Network) -> Network {
-
-        match self {
-            Nodes::Generic(node) => node.prediction_error(network),
-            Nodes::Exponential(node) => node.prediction_error(network),
+    // Add a node to the graph
+    fn add_node(&mut self, kind: String, value_parents: Option<usize>, value_childrens: Option<usize>) {
+        
+        // the node ID is equal to the number of nodes already in the network
+        let node_id: usize = self.nodes.len();
+        
+        let edges = AdjacencyLists{
+            value_children: value_parents, 
+            value_parents: value_childrens,
+        };
+        
+        // add edges and attributes
+        if kind == "generic-input" {
+            let generic_input = GenericInputNode{observation: 0.0, time_step: 0.0};
+            let node = Node::Generic(generic_input);
+            self.nodes.insert(node_id, node);
+            self.edges.push(edges);
+            self.inputs.push(node_id);
+        } else if kind == "exponential-node" {
+            let exponential_node: ExponentialNode = ExponentialNode{observation: 0.0, nus: 0.0, xis: [0.0, 0.0]};
+            let node = Node::Exponential(exponential_node);
+            self.nodes.insert(node_id, node);
+            self.edges.push(edges);
+        } else {
+            println!("Invalid type of node provided ({}).", kind);
         }
-    }  
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-impl NodeControls for Nodes {
-
-    fn prediction_error(&self, network: Network) -> Network {
-
-        // get value parents
-        let value_parent_idx = self.edges.value_parents;
-
-        if let Some(idx) = value_parent_idx {
-            network.nodes[idx].get_observation(self.observation);
-        }
-        else {
-            println!("No index provided");
-        }
-        network
     }
 
-    fn get_observation(&mut self, observation: f64) {
-        self.observation = observation
-    }   
-}
+    fn posterior_update(&mut self, node_idx: &usize, observation: f64) {
 
-
-impl NodeControls for ExponentialNode {
-
-    fn get_observation(&mut self, observation: f64) {
-        self.observation = observation
-    }   
-
-    fn prediction_error(&self, network: Network) -> Network {
-
-        // get value parents
-        let value_parent_idx = self.edges.value_parents;
-
-        if let Some(idx) = value_parent_idx {
-            network.nodes[idx].get_observation(self.observation);
-        }
-        else {
-            println!("No index provided");
-        }
-        network
-    }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-pub trait PredictionError {
-    fn prediction_error(&self, network: Network) -> Network {
-        network
-    }
-}
-
-impl Nodes {
-    fn prediction_error(&self, network: Network) -> Network {
-
-        match network.nodes[idx] {
-            Nodes::GenericInputNode | Nodes::ExponentialNode(ref mut observation) => {
-                // get value parent
-                let value_parent_idx = self.edges.value_parents;
-                // store the input value in the value parent, if any
-                if let Some(idx) = value_parent_idx {
-                    *observation = self.observation;
-                },
-                _ => {
-                    println!("This node cannot receive observations.")
-                } else {
-                    println!("No index provided");
-                }
+        match self.nodes.get_mut(node_idx) {
+            Some(Node::Generic(ref mut node)) => {
+                node.observation = observation
+            }
+            Some(Node::Exponential(ref mut node)) => {
+                let suf_stats = sufficient_statistics(&node.observation);
+                for i in 0..suf_stats.len() {
+                    node.xis[i] = node.xis[i] + (1.0 / (1.0 + node.nus)) * (suf_stats[i] - node.xis[i]);
                 }
             }
+            None => println!("The value is None")
+        }
+    }
 
-        }    
-        network
-}
+    fn prediction_error(&mut self, node_idx: usize) {
+
+        // get the observation value
+        let observation;
+        match self.nodes[&node_idx] {
+            Node::Generic(ref node) => {
+                observation = node.observation;
+            }
+            Node::Exponential(ref node) => {
+                observation = node.observation;
+            }
+        }
+
+        let value_parent_idx = &self.edges[node_idx].value_parents;
+        match value_parent_idx {
+            Some(idx) => {
+                match self.nodes.get_mut(idx)  {
+                    Some(Node::Generic(ref mut parent)) => {
+                        parent.observation = observation
+                    }
+                    Some(Node::Exponential(ref mut parent)) => {
+                        parent.observation = observation
+                    }
+                    None => println!("The value is None"),
+                }
+            }
+            None => println!("The value is None"),
+        }
+        }
+    
+    fn belief_propagation(&mut self, observations: Vec<f64>) {
+
+        // 1. prediction propagation
+
+        // 2. inject the observations into the input nodes
+        for i in 0..observations.len() {
+
+            let input_node_idx = self.inputs[i];
+            self.posterior_update(&input_node_idx, observations[i]);
+            self.prediction_error(input_node_idx);
+        }
+
+        // 3. posterior update - prediction errors propagation
+    }
+
+    fn input_data(&mut self, input_data: Vec<Vec<f64>>) {
+        for observation in input_data {
+            self.belief_propagation(observation);
+        }
+    }
+
+    fn get_update_order(self) -> Vec<usize> {
+        
+        let mut update_list = Vec::new();
+
+        // list all nodes availables in the network
+        let mut nodes_idxs: Vec<usize> = self.nodes.keys().cloned().collect();
+
+        // remove the input nodes
+        nodes_idxs.retain(|x| !self.inputs.contains(x));
+
+        // start with the value parents of input nodes
+        for input_idx in self.inputs {
+            let value_parent_idxs = self.edges[input_idx].value_parents;
+            match value_parent_idxs {
+                Some(idx) => {
+                    // if this parent is still in the list, update it now
+                    if nodes_idxs.contains(&idx) {
+
+                        // add the node in the update list
+                        update_list.push(idx);
+
+                        // remove the parent from the availables nodes list
+                        nodes_idxs.retain(|&x| x != idx);
+
+                    }
+                }
+                None => println!("The value is None")
+            }
+        }
+        nodes_idxs
+    }
+
+    }
+
 
 fn main() {
 
-    // create input data
-    let values = [1.1, 1.2, 1.0, 4.0, 1.1];
-    let time_steps = [1.0, 1.0, 1.0, 1.0, 1.0];
+    // initialize network
+    let mut network = Network::new();
 
-    // define the update sequence
-    let update_sequence: [fn(); 2] = [generic_input_update, exponential_node_update];
+    // create a network
+    network.add_node(
+        String::from("generic-input"),
+        None,
+        None,
+    );
+    network.add_node(
+        String::from("generic-input"),
+        None,
+        None,
+    );
+    network.add_node(
+        String::from("exponential-node"),
+        None,
+        Some(0),
+    );
+    network.add_node(
+        String::from("exponential-node"),
+        None,
+        Some(1),
+    );
 
-    // define the attributes
-    let mut generic_input: GenericInput = GenericInput{
-        observation: 0.0,
-        time_step: 0.0,
-        edges: AdjacencyLists{
-            value_children: None,
-            value_parents: Some(1),
-        }
-    };
+    println!("Graph before belief propagation: {:?}", network);
 
-    let mut exponential_node: ExponentialNode = ExponentialNode{
-        observation: 0.0,
-        nus: 0.0,
-        xis: 0.0,
-        edges: AdjacencyLists{
-            value_children: Some(0),
-            value_parents: None,
-        }
-    };
-
-    // define edges
-    let edges: (AdjacencyLists, AdjacencyLists) = (edge_1, edge_2);
-
-    // Iterate over the update sequence and call each function with node pointer
-    for func in update_sequence.iter() {
-        func();
-    }
+    // belief propagation
+    let input_data = vec![
+        vec![1.1, 2.2],
+        vec![1.2, 2.1],
+        vec![1.0, 2.0],
+        vec![1.3, 2.2],
+        vec![1.1, 2.5],
+        vec![1.0, 2.6],
+    ];
     
+    network.input_data(input_data);
+    
+    println!("Graph after belief propagation: {:?}", network);
+
 }
