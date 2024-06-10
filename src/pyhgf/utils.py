@@ -493,12 +493,12 @@ def to_pandas(network: "Network") -> pd.DataFrame:
                 idx
             ]["values"]
 
-    # loop over continuous state nodes and store sufficient statistics with surprise
-    # ------------------------------------------------------------------------------
+    # loop over continuous and binary state nodes and store sufficient statistics
+    # ---------------------------------------------------------------------------
     continuous_indexes = [
         i
         for i in range(1, len(network.node_trajectories))
-        if network.edges[i].node_type == 2
+        if network.edges[i].node_type in [1, 2]
     ]
     df = pd.DataFrame(
         dict(
