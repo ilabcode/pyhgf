@@ -55,7 +55,7 @@ class Testbinary(TestCase):
             "eta1": 1.0,
             "surprise": 0.0,
             "time_step": 0.0,
-            "value": 0.0,
+            "values": 0.0,
             "observed": 1,
             "volatility_coupling_parents": None,
             "value_coupling_parents": (1.0,),
@@ -118,10 +118,10 @@ class Testbinary(TestCase):
         }
 
         edges = (
-            AdjacencyLists((1,), None, None, None),
-            AdjacencyLists((2,), None, (0,), None),
-            AdjacencyLists(None, (3,), (1,), None),
-            AdjacencyLists(None, None, None, (2,)),
+            AdjacencyLists(0, (1,), None, None, None),
+            AdjacencyLists(1, (2,), None, (0,), None),
+            AdjacencyLists(2, None, (3,), (1,), None),
+            AdjacencyLists(2, None, None, None, (2,)),
         )
         attributes = {
             0: input_node_parameters,

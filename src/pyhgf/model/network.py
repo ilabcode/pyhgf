@@ -288,7 +288,7 @@ class Network:
         # because some of the input nodes might not have been updated, here we manually
         # insert the input data to the input node (without triggering updates)
         for idx, inp in zip(self.inputs.idx, range(input_data.shape[1])):
-            self.node_trajectories[idx]["value"] = input_data[inp]
+            self.node_trajectories[idx]["values"] = input_data[inp]
 
         return self
 
@@ -467,7 +467,7 @@ class Network:
             }
         elif kind == "generic-input":
             default_parameters = {
-                "value": 0.0,
+                "values": 0.0,
                 "time_step": 0.0,
                 "observed": 0,
             }
@@ -478,7 +478,7 @@ class Network:
                 "input_precision": 1e4,
                 "expected_precision": 1e4,
                 "time_step": 0.0,
-                "value": 0.0,
+                "values": 0.0,
                 "surprise": 0.0,
                 "observed": 0,
                 "temp": {
@@ -493,7 +493,7 @@ class Network:
                 "eta0": 0.0,
                 "eta1": 1.0,
                 "time_step": 0.0,
-                "value": 0.0,
+                "values": 0.0,
                 "observed": 0,
                 "surprise": 0.0,
             }
@@ -531,14 +531,14 @@ class Network:
                 "pe": jnp.zeros(n_categories),
                 "xi": jnp.array([1.0 / n_categories] * n_categories),
                 "mean": jnp.array([1.0 / n_categories] * n_categories),
-                "value": jnp.zeros(n_categories),
+                "values": jnp.zeros(n_categories),
                 "binary_parameters": binary_parameters,
             }
-        elif "ef-" in kind:
+        elif "ef-normal" in kind:
             default_parameters = {
                 "nus": 0.0,
-                "xis": 0.0,
-                "size": 1,
+                "xis": jnp.array([0.0, 0.0]),
+                "values": 0.0,
             }
 
         if bool(additional_parameters):
@@ -567,6 +567,7 @@ class Network:
         node_parameters = default_parameters
 
         if "input" in kind:
+            # "continuous": 0, "binary": 1, "categorical": 2, "generic": 3
             input_type = input_types[kind.split("-")[0]]
         else:
             input_type = None
@@ -574,10 +575,12 @@ class Network:
         # define the type of node that is created
         if "input" in kind:
             node_type = 0
-        elif "state" in kind:
+        elif "binary-state" in kind:
             node_type = 1
-        elif "ef-" in kind:
+        elif "continuous-state" in kind:
             node_type = 2
+        elif "ef-normal" in kind:
+            node_type = 3
 
         # convert the structure to a list to modify it
         edges_as_list: List[AdjacencyLists] = list(self.edges)

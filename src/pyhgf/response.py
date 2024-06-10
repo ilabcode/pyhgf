@@ -40,7 +40,7 @@ def first_level_gaussian_surprise(
     # the input value at time t is compared to the Gaussian prediction at t-1
     surprise = jnp.sum(
         gaussian_surprise(
-            x=hgf.node_trajectories[0]["value"],
+            x=hgf.node_trajectories[0]["values"],
             expected_mean=hgf.node_trajectories[1]["expected_mean"],
             expected_precision=hgf.node_trajectories[1]["expected_precision"],
         )
@@ -85,7 +85,7 @@ def total_gaussian_surprise(
         input_parents_list.append(va_pa)
         surprise += jnp.sum(
             gaussian_surprise(
-                x=hgf.node_trajectories[idx]["value"],
+                x=hgf.node_trajectories[idx]["values"],
                 expected_mean=hgf.node_trajectories[va_pa]["expected_mean"],
                 expected_precision=hgf.node_trajectories[va_pa]["expected_precision"],
             )
@@ -136,7 +136,7 @@ def first_level_binary_surprise(
     """
     surprise = binary_surprise(
         expected_mean=hgf.node_trajectories[1]["expected_mean"],
-        x=hgf.node_trajectories[0]["value"],
+        x=hgf.node_trajectories[0]["values"],
     )
 
     # Return an infinite surprise if the model cannot fit

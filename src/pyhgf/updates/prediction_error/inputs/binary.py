@@ -52,7 +52,7 @@ def binary_input_prediction_error_infinite_precision(
 
     """
     # store value and time step in the node's parameters
-    attributes[node_idx]["value"] = value
+    attributes[node_idx]["values"] = value
     attributes[node_idx]["observed"] = observed
     attributes[node_idx]["time_step"] = time_step
 
@@ -97,7 +97,7 @@ def binary_input_prediction_error_finite_precision(
 
     """
     # store value and time step in the node's parameters
-    attributes[node_idx]["value"] = value
+    attributes[node_idx]["values"] = value
     attributes[node_idx]["time_step"] = time_step
 
     # Read parameters from the binary input

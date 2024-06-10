@@ -7,9 +7,10 @@ import jax.numpy as jnp
 import numpy as np
 import pandas as pd
 from jax import jit
+from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
-from pyhgf.math import binary_surprise, gaussian_surprise
+from pyhgf.math import Normal, binary_surprise, gaussian_surprise
 from pyhgf.typing import AdjacencyLists, Attributes, Structure, UpdateSequence
 from pyhgf.updates.posterior.binary import binary_node_update_infinite
 from pyhgf.updates.posterior.categorical import categorical_input_update
@@ -17,6 +18,7 @@ from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
     continuous_node_update_ehgf,
 )
+from pyhgf.updates.posterior.exponential import posterior_update_exponential_family
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
 from pyhgf.updates.prediction_error.inputs.binary import (
@@ -25,6 +27,7 @@ from pyhgf.updates.prediction_error.inputs.binary import (
 from pyhgf.updates.prediction_error.inputs.continuous import (
     continuous_input_prediction_error,
 )
+from pyhgf.updates.prediction_error.inputs.generic import generic_input_prediction_error
 from pyhgf.updates.prediction_error.nodes.binary import (
     binary_state_node_prediction_error,
 )
@@ -308,17 +311,17 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
         The update sequence generated from the node structure.
 
     """
-    # initialize sequences
+    # initialize the update and prediction sequences
     update_sequence: List = []
     prediction_sequence: List = []
 
     n_nodes = len(network.edges)
 
-    # list all nodes that should compute PE and update
+    # list all nodes that are not triggering prediction errors or posterior updates
     node_without_pe = [i for i in range(n_nodes)]
     node_without_update = [i for i in range(n_nodes)]
 
-    # start with the update of all input nodes
+    # start by injecting the observations in all input nodes
     for input_idx, kind in zip(network.inputs.idx, network.inputs.kind):
         if kind == 0:
             update_fn = continuous_input_prediction_error
@@ -349,6 +352,10 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
                 0, (binary_state_idx, binary_state_node_prediction)
             )
 
+        elif kind == 3:
+            update_fn = generic_input_prediction_error
+            update_sequence.append((input_idx, update_fn))
+
         # add the PE step to the sequence
         node_without_pe.remove(input_idx)
 
@@ -359,7 +366,7 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
     while True:
         no_update = True
 
-        # for all nodes that should be updated -----------------------------------------
+        # for all nodes that should be updated
         # verify that all children have been computed the PE
         for idx in node_without_update:
             all_children = [
@@ -375,20 +382,30 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
             # all the children have computed prediction errors
             if all([i not in node_without_pe for i in all_children]):
                 no_update = False
-
-                if update_type == "eHGF":
-                    if network.edges[idx].volatility_children is not None:
-                        update_fn = continuous_node_update_ehgf
-                    else:
+                if network.edges[idx].node_type == 2:
+                    if update_type == "eHGF":
+                        if network.edges[idx].volatility_children is not None:
+                            update_fn = continuous_node_update_ehgf
+                        else:
+                            update_fn = continuous_node_update
+                    elif update_type == "standard":
                         update_fn = continuous_node_update
-                elif update_type == "standard":
-                    update_fn = continuous_node_update
+
+                    # the prediction sequence is the update sequence in reverse order
+                    prediction_sequence.insert(0, (idx, continuous_node_prediction))
+
+                elif network.edges[idx].node_type == 3:
+
+                    # create the sufficient statistic function
+                    # for the exponential family node
+                    ef_update = Partial(
+                        posterior_update_exponential_family,
+                        sufficient_stats_fn=Normal.sufficient_statistics,
+                    )
+                    update_fn = ef_update
 
                 update_sequence.append((idx, update_fn))
                 node_without_update.remove(idx)
-
-                # the prediction sequence is the update sequence in reverse order
-                prediction_sequence.insert(0, (idx, continuous_node_prediction))
 
         # for all nodes that should compute a PE ---------------------------------------
         # verify that all children have been updated and compute the PE
@@ -464,9 +481,9 @@ def to_pandas(network: "Network") -> pd.DataFrame:
                     [
                         (
                             f"observation_input_{idx}_{i}",
-                            network.node_trajectories[0]["value"][:, i],
+                            network.node_trajectories[0]["values"][:, i],
                         )
-                        for i in range(network.node_trajectories[0]["value"].shape[1])
+                        for i in range(network.node_trajectories[0]["values"].shape[1])
                     ]
                 )
             )
@@ -474,59 +491,102 @@ def to_pandas(network: "Network") -> pd.DataFrame:
         else:
             trajectories_df[f"observation_input_{idx}"] = network.node_trajectories[
                 idx
-            ]["value"]
+            ]["values"]
 
-    # loop over non input nodes and store sufficient statistics with surprise
-    indexes = [
+    # loop over continuous state nodes and store sufficient statistics with surprise
+    # ------------------------------------------------------------------------------
+    continuous_indexes = [
         i
         for i in range(1, len(network.node_trajectories))
-        if i not in network.inputs.idx
+        if network.edges[i].node_type == 2
     ]
     df = pd.DataFrame(
         dict(
             [
                 (f"x_{i}_{var}", network.node_trajectories[i][var])
-                for i in indexes
+                for i in continuous_indexes
                 for var in ["mean", "precision", "expected_mean", "expected_precision"]
             ]
         )
     )
     trajectories_df = pd.concat([trajectories_df, df], axis=1)
 
+    # loop over exponential family state nodes and store sufficient statistics
+    # ------------------------------------------------------------------------
+    ef_indexes = [
+        i
+        for i in range(1, len(network.node_trajectories))
+        if network.edges[i].node_type == 3
+    ]
+    for i in ef_indexes:
+        for var in ["nus", "xis", "values"]:
+            if network.node_trajectories[i][var].ndim == 1:
+                trajectories_df = pd.concat(
+                    [
+                        trajectories_df,
+                        pd.DataFrame(
+                            dict([(f"x_{i}_{var}", network.node_trajectories[i][var])])
+                        ),
+                    ],
+                    axis=1,
+                )
+            else:
+                for ii in range(network.node_trajectories[i][var].shape[1]):
+                    trajectories_df = pd.concat(
+                        [
+                            trajectories_df,
+                            pd.DataFrame(
+                                dict(
+                                    [
+                                        (
+                                            f"x_{i}_{var}_{ii}",
+                                            network.node_trajectories[i][var][:, ii],
+                                        )
+                                    ]
+                                )
+                            ),
+                        ],
+                        axis=1,
+                    )
+
     # Expectations and surprises
     # --------------------------
 
-    # add the surprise and expected precision computed from the continuous inputs
+    # add surprise and expected precision from continuous and binary inputs
     for idx, kind in zip(network.inputs.idx, network.inputs.kind):
-        trajectories_df[f"observation_input_{idx}_surprise"] = (
-            network.node_trajectories[idx]["surprise"]
-        )
-        if kind != 2:
+        if kind in [0, 1]:
+            trajectories_df[f"observation_input_{idx}_surprise"] = (
+                network.node_trajectories[idx]["surprise"]
+            )
             trajectories_df[f"observation_input_{idx}_expected_precision"] = (
                 network.node_trajectories[idx]["expected_precision"]
             )
 
-    # for value parents of binary inputs nodes
-    binary_nodes_idxs = []
-    for idx, kind in zip(network.inputs.idx, network.inputs.kind):
-        if kind == 1:
-            for par_idx in network.edges[idx].value_parents:  # type: ignore
-                binary_nodes_idxs.append(par_idx)
+    # add surprise from binary state nodes
+    binary_indexes = [
+        i
+        for i in range(1, len(network.node_trajectories))
+        if network.edges[i].node_type == 1
+    ]
+    for i in binary_indexes:
+        binary_input = network.edges[i].value_children[0]  # type: ignore
+        surprise = binary_surprise(
+            x=network.node_trajectories[binary_input]["values"],
+            expected_mean=network.node_trajectories[i]["expected_mean"],
+        )
+        # fill with nans when the model cannot fit
+        surprise = jnp.where(
+            jnp.isnan(network.node_trajectories[i]["mean"]), jnp.nan, surprise
+        )
+        trajectories_df[f"x_{i}_surprise"] = surprise
 
-    for i in indexes:
-        if i in binary_nodes_idxs:
-            binary_input = network.edges[i].value_children[0]  # type: ignore
-            surprise = binary_surprise(
-                x=network.node_trajectories[binary_input]["value"],
-                expected_mean=network.node_trajectories[i]["expected_mean"],
-            )
-        else:
-            surprise = gaussian_surprise(
-                x=network.node_trajectories[i]["mean"],
-                expected_mean=network.node_trajectories[i]["expected_mean"],
-                expected_precision=network.node_trajectories[i]["expected_precision"],
-            )
-
+    # add surprise from continuous state nodes
+    for i in continuous_indexes:
+        surprise = gaussian_surprise(
+            x=network.node_trajectories[i]["mean"],
+            expected_mean=network.node_trajectories[i]["expected_mean"],
+            expected_precision=network.node_trajectories[i]["expected_precision"],
+        )
         # fill with nans when the model cannot fit
         surprise = jnp.where(
             jnp.isnan(network.node_trajectories[i]["mean"]), jnp.nan, surprise

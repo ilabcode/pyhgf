@@ -145,7 +145,7 @@ def continuous_input_value_prediction_error(
 
     # the prediction error is computed using the expected mean from the value parent
     value_prediction_error = (
-        attributes[node_idx]["value"] - attributes[value_parent_idx]["expected_mean"]
+        attributes[node_idx]["values"] - attributes[value_parent_idx]["expected_mean"]
     )
 
     # expected precision from the input node
@@ -172,7 +172,7 @@ def continuous_input_value_prediction_error(
 
     # compute the Gaussian surprise for the input node
     attributes[node_idx]["surprise"] = gaussian_surprise(
-        x=attributes[node_idx]["value"],
+        x=attributes[node_idx]["values"],
         expected_mean=attributes[value_parent_idx]["expected_mean"],
         expected_precision=expected_precision,
     )
@@ -230,7 +230,7 @@ def continuous_input_prediction_error(
 
     """
     # store value and time step in the node's parameters
-    attributes[node_idx]["value"] = value
+    attributes[node_idx]["values"] = value
     attributes[node_idx]["observed"] = observed
     attributes[node_idx]["time_step"] = time_step
 

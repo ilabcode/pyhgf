@@ -3,7 +3,6 @@
 from functools import partial
 from typing import Callable, Dict
 
-import jax.numpy as jnp
 from jax import jit
 
 from pyhgf.typing import Attributes, Edges
@@ -11,7 +10,7 @@ from pyhgf.typing import Attributes, Edges
 
 @partial(jit, static_argnames=("edges", "node_idx", "sufficient_stats_fn"))
 def posterior_update_exponential_family(
-    attributes: Dict, edges: Edges, node_idx: int, sufficient_stats_fn: Callable
+    attributes: Dict, edges: Edges, node_idx: int, sufficient_stats_fn: Callable, **args
 ) -> Attributes:
     r"""Update the parameters of an exponential family distribution.
 
@@ -49,17 +48,12 @@ def posterior_update_exponential_family(
     Springer International Publishing. https://doi.org/10.1007/978-3-030-64919-7_7
 
     """
-    # retrieve the observed values in the child nodes
-    attributes[node_idx]["x"] = jnp.array(
-        [
-            attributes[value_children_idx]["value"]
-            for value_children_idx in edges[node_idx].value_children  # type: ignore
-        ]
-    ).sum(axis=0)
-
     # update the hyperparameter vectors
     attributes[node_idx]["xis"] = attributes[node_idx]["xis"] + (
         1 / (1 + attributes[node_idx]["nus"])
-    ) * (sufficient_stats_fn(attributes[node_idx]["x"]) - attributes[node_idx]["xis"])
+    ) * (
+        sufficient_stats_fn(attributes[node_idx]["values"])
+        - attributes[node_idx]["xis"]
+    )
 
     return attributes
