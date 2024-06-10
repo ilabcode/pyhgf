@@ -16,7 +16,7 @@ from pyhgf.updates.prediction_error.inputs.continuous import (
 from pyhgf.utils import beliefs_propagation, list_branches
 
 
-class TestStructure(TestCase):
+class TestNetworks(TestCase):
     def test_beliefs_propagation(self):
         """Test the loop_inputs function"""
 
@@ -28,7 +28,7 @@ class TestStructure(TestCase):
             "expected_precision": jnp.nan,
             "surprise": 0.0,
             "time_step": 0.0,
-            "value": 0.0,
+            "values": 0.0,
             "observed": 1,
             "volatility_coupling_parents": None,
             "value_coupling_parents": (1.0,),
@@ -75,9 +75,9 @@ class TestStructure(TestCase):
             },
         }
         edges = (
-            AdjacencyLists((1,), None, None, None),
-            AdjacencyLists(None, (2,), (0,), None),
-            AdjacencyLists(None, None, None, (1,)),
+            AdjacencyLists(0, (1,), None, None, None),
+            AdjacencyLists(2, None, (2,), (0,), None),
+            AdjacencyLists(2, None, None, None, (1,)),
         )
         attributes = (
             input_node_parameters,
@@ -111,11 +111,11 @@ class TestStructure(TestCase):
     def test_find_branch(self):
         """Test the find_branch function"""
         edges = (
-            AdjacencyLists((1,), None, None, None),
-            AdjacencyLists(None, (2,), (0,), None),
-            AdjacencyLists(None, None, None, (1,)),
-            AdjacencyLists((4,), None, None, None),
-            AdjacencyLists(None, None, (3,), None),
+            AdjacencyLists(0, (1,), None, None, None),
+            AdjacencyLists(2, None, (2,), (0,), None),
+            AdjacencyLists(2, None, None, None, (1,)),
+            AdjacencyLists(2, (4,), None, None, None),
+            AdjacencyLists(2, None, None, (3,), None),
         )
         branch_list = list_branches([0], edges, branch_list=[])
         assert branch_list == [0, 1, 2]

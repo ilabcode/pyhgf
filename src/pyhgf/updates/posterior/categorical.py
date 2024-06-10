@@ -70,15 +70,15 @@ def categorical_input_update(
     alpha = jnp.where(jnp.isnan(alpha), 1.0, alpha)
 
     # now retrieve the values observed at time k
-    attributes[node_idx]["value"] = jnp.array(
+    attributes[node_idx]["values"] = jnp.array(
         [
-            attributes[vapa]["value"]
+            attributes[vapa]["values"]
             for vapa in edges[node_idx].value_parents  # type: ignore
         ]
     )
 
     # compute the prediction error at time K
-    pe = attributes[node_idx]["value"] - new_xi
+    pe = attributes[node_idx]["values"] - new_xi
     attributes[node_idx]["pe"] = pe  # keep PE for later use at k+1
     attributes[node_idx]["xi"] = new_xi  # keep expectation for later use at k+1
 
@@ -90,7 +90,7 @@ def categorical_input_update(
     )
     attributes[node_idx]["surprise"] = jnp.sum(
         binary_surprise(
-            x=attributes[node_idx]["value"], expected_mean=attributes[node_idx]["xi"]
+            x=attributes[node_idx]["values"], expected_mean=attributes[node_idx]["xi"]
         )
     )
 

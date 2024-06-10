@@ -288,7 +288,7 @@ class Network:
         # because some of the input nodes might not have been updated, here we manually
         # insert the input data to the input node (without triggering updates)
         for idx, inp in zip(self.inputs.idx, range(input_data.shape[1])):
-            self.node_trajectories[idx]["value"] = input_data[inp]
+            self.node_trajectories[idx]["values"] = input_data[inp]
 
         return self
 
@@ -340,10 +340,15 @@ class Network:
         kind :
             The kind of node to create. If `"continuous-state"` (default), the node will
             be a regular state node that can have value and/or volatility
-            parents/children. The hierarchical dependencies are specified using the
-            corresponding parameters below. If `"binary-state"`, the node should be the
-            value parent of a binary input. To create an input node, three types of
-            inputs are supported:
+            parents/children. If `"binary-state"`, the node should be the
+            value parent of a binary input. State nodes filtering distribution from the
+            exponential family can be created using the `"ef-"` prefix (e.g.
+            `"ef-normal"` for a univariate normal distribution). Note that only a few
+            distributions are implemented at the moment.
+
+            In addition to state nodes, four types of input nodes are supported:
+            - `generic-input`: receive a value or an array and pass it to the parent
+            nodes.
             - `continuous-input`: receive a continuous observation as input.
             - `binary-input` receives a single boolean as observation. The parameters
             provided to the binary input node contain: 1. `binary_precision`, the binary
@@ -460,6 +465,12 @@ class Network:
                     "expected_precision_children": 0.0,
                 },
             }
+        elif kind == "generic-input":
+            default_parameters = {
+                "values": 0.0,
+                "time_step": 0.0,
+                "observed": 0,
+            }
         elif kind == "continuous-input":
             default_parameters = {
                 "volatility_coupling_parents": None,
@@ -467,7 +478,7 @@ class Network:
                 "input_precision": 1e4,
                 "expected_precision": 1e4,
                 "time_step": 0.0,
-                "value": 0.0,
+                "values": 0.0,
                 "surprise": 0.0,
                 "observed": 0,
                 "temp": {
@@ -482,7 +493,7 @@ class Network:
                 "eta0": 0.0,
                 "eta1": 1.0,
                 "time_step": 0.0,
-                "value": 0.0,
+                "values": 0.0,
                 "observed": 0,
                 "surprise": 0.0,
             }
@@ -520,8 +531,14 @@ class Network:
                 "pe": jnp.zeros(n_categories),
                 "xi": jnp.array([1.0 / n_categories] * n_categories),
                 "mean": jnp.array([1.0 / n_categories] * n_categories),
-                "value": jnp.zeros(n_categories),
+                "values": jnp.zeros(n_categories),
                 "binary_parameters": binary_parameters,
+            }
+        elif "ef-normal" in kind:
+            default_parameters = {
+                "nus": 0.0,
+                "xis": jnp.array([0.0, 0.0]),
+                "values": 0.0,
             }
 
         if bool(additional_parameters):
@@ -550,9 +567,20 @@ class Network:
         node_parameters = default_parameters
 
         if "input" in kind:
+            # "continuous": 0, "binary": 1, "categorical": 2, "generic": 3
             input_type = input_types[kind.split("-")[0]]
         else:
             input_type = None
+
+        # define the type of node that is created
+        if "input" in kind:
+            node_type = 0
+        elif "binary-state" in kind:
+            node_type = 1
+        elif "continuous-state" in kind:
+            node_type = 2
+        elif "ef-normal" in kind:
+            node_type = 3
 
         # convert the structure to a list to modify it
         edges_as_list: List[AdjacencyLists] = list(self.edges)
@@ -563,7 +591,11 @@ class Network:
             # add a new edge
             edges_as_list.append(
                 AdjacencyLists(
-                    couplings[1][0], couplings[3][0], couplings[0][0], couplings[2][0]
+                    node_type,
+                    couplings[1][0],
+                    couplings[3][0],
+                    couplings[0][0],
+                    couplings[2][0],
                 )
             )
 
@@ -601,6 +633,7 @@ class Network:
                     ):
                         # unpack this node's edges
                         (
+                            this_node_type,
                             value_parents,
                             volatility_parents,
                             value_children,
@@ -655,6 +688,7 @@ class Network:
 
                         # save the updated edges back
                         edges_as_list[idx] = AdjacencyLists(
+                            this_node_type,
                             value_parents,
                             volatility_parents,
                             value_children,

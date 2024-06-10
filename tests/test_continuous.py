@@ -31,7 +31,7 @@ def nodes_attributes():
         "expected_precision": 1e4,
         "surprise": 0.0,
         "time_step": 0.0,
-        "value": 0.0,
+        "values": 0.0,
         "observed": 1,
         "volatility_coupling_parents": (1.0,),
         "value_coupling_parents": None,
@@ -91,9 +91,9 @@ def test_continuous_node_update(nodes_attributes):
     # create a node structure with no value parent and no volatility parent
     attributes = nodes_attributes
     edges = (
-        AdjacencyLists(None, None, None, None),
-        AdjacencyLists(None, None, None, None),
-        AdjacencyLists(None, None, None, None),
+        AdjacencyLists(0, None, None, None, None),
+        AdjacencyLists(2, None, None, None, None),
+        AdjacencyLists(2, None, None, None, None),
     )
     data = jnp.array([0.2])
     time_steps = jnp.ones(1)
@@ -132,9 +132,9 @@ def test_continuous_input_update(nodes_attributes):
     attributes = nodes_attributes
 
     edges = (
-        AdjacencyLists((1,), None, None, None),
-        AdjacencyLists(None, (2,), (0,), None),
-        AdjacencyLists(None, None, None, (1,)),
+        AdjacencyLists(0, (1,), None, None, None),
+        AdjacencyLists(2, None, (2,), (0,), None),
+        AdjacencyLists(2, None, None, None, (1,)),
     )
 
     # create update sequence
@@ -165,7 +165,7 @@ def test_continuous_input_update(nodes_attributes):
         input_data=(data, time_steps, observed),
     )
 
-    for idx, val in zip(["time_step", "value"], [1.0, 0.2]):
+    for idx, val in zip(["time_step", "values"], [1.0, 0.2]):
         assert jnp.isclose(new_attributes[0][idx], val)
     for idx, val in zip(
         ["precision", "expected_precision", "mean", "expected_mean"],
@@ -187,9 +187,9 @@ def test_scan_loop(nodes_attributes):
     ###############################################
     attributes = nodes_attributes
     edges = (
-        AdjacencyLists((1,), None, None, None),
-        AdjacencyLists(None, (2,), (0,), None),
-        AdjacencyLists(None, None, None, (1,)),
+        AdjacencyLists(0, (1,), None, None, None),
+        AdjacencyLists(2, None, (2,), (0,), None),
+        AdjacencyLists(2, None, None, None, (1,)),
     )
 
     # create update sequence
@@ -223,7 +223,7 @@ def test_scan_loop(nodes_attributes):
 
     # Run the entire for loop
     last, _ = scan(scan_fn, attributes, (timeserie, time_steps, observed))
-    for idx, val in zip(["time_step", "value"], [1.0, 0.8241]):
+    for idx, val in zip(["time_step", "values"], [1.0, 0.8241]):
         assert jnp.isclose(last[0][idx], val)
     for idx, val in zip(
         ["precision", "expected_precision", "mean", "expected_mean"],

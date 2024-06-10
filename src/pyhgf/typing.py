@@ -4,8 +4,18 @@ from typing import Callable, Dict, NamedTuple, Optional, Tuple
 
 
 class AdjacencyLists(NamedTuple):
-    """Indexes to a node's value and volatility parents."""
+    """Indexes to a node's value and volatility parents.
 
+    The variable `node_type` encode the type of state node:
+    * 0: input node.
+    * 1: binary state node.
+    * 2: continuous state node.
+    * 3: exponential family state node - univariate Gaussian distribution with unknown
+        mean and unknown variance.
+
+    """
+
+    node_type: int
     value_parents: Optional[Tuple]
     volatility_parents: Optional[Tuple]
     value_children: Optional[Tuple]
@@ -35,4 +45,4 @@ UpdateSequence = Tuple[Tuple[int, Callable], ...]
 NetworkParameters = Tuple[Attributes, Structure, UpdateSequence]
 
 # encoding input types using intergers
-input_types = {"continuous": 0, "binary": 1, "categorical": 2}
+input_types = {"continuous": 0, "binary": 1, "categorical": 2, "generic": 3}

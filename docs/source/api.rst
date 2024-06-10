@@ -57,6 +57,16 @@ Continuous nodes
     continuous_node_update
     continuous_node_update_ehgf
 
+Exponential family
+------------------
+
+.. currentmodule:: pyhgf.updates.posterior.exponential
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.posterior.exponential
+
+    posterior_update_exponential_family
+
 Prediction steps
 ================
 
@@ -114,6 +124,16 @@ Continuous inputs
     continuous_input_volatility_prediction_error
     continuous_input_value_prediction_error
     continuous_input_prediction_error
+
+Generic input
+^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.inputs.generic
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.inputs.generic
+
+    generic_input_prediction_error
 
 State nodes
 -----------

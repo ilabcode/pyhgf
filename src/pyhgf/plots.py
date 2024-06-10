@@ -264,6 +264,8 @@ def plot_network(network: "Network") -> "Source":
             label, shape = f"Bi-{idx}", "box"
         elif kind == 2:
             label, shape = f"Ca-{idx}", "diamond"
+        elif kind == 3:
+            label, shape = f"Ge-{idx}", "point"
         graphviz_structure.node(
             f"x_{idx}",
             label=label,

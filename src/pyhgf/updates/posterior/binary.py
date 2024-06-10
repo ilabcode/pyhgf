@@ -42,7 +42,7 @@ def binary_node_update_infinite(
     """
     value_child_idx = edges[node_idx].value_children[0]  # type: ignore
 
-    attributes[node_idx]["mean"] = attributes[value_child_idx]["value"]
+    attributes[node_idx]["mean"] = attributes[value_child_idx]["values"]
     attributes[node_idx]["precision"] = attributes[value_child_idx][
         "expected_precision"
     ]
