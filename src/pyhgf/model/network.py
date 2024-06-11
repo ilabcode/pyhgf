@@ -561,6 +561,7 @@ class Network:
                 "nus": 0.0,
                 "xis": jnp.array([0.0, 0.0]),
                 "values": 0.0,
+                "observed": 1,
             }
         elif kind == "DP-state":
 

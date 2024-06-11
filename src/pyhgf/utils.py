@@ -412,7 +412,7 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
                     # for the exponential family node
                     ef_update = Partial(
                         posterior_update_exponential_family,
-                        sufficient_stats_fn=Normal.sufficient_statistics,
+                        sufficient_stats_fn=Normal().sufficient_statistics,
                     )
                     update_fn = ef_update
 

@@ -8,7 +8,6 @@ from jax import Array, jit, random
 from jax._src.typing import Array as KeyArray
 from jax.scipy.stats.norm import pdf
 from jax.typing import ArrayLike
-from scipy.stats import norm
 
 from pyhgf.typing import Attributes, Edges
 
@@ -298,4 +297,4 @@ def clusters_likelihood(
         The probability of observing the value under each cluster.
 
     """
-    return norm(loc=expected_mean, scale=expected_sigma).ppf(value)
+    return pdf(value, expected_mean, expected_sigma)
