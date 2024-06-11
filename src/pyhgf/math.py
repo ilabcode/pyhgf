@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Union
+from typing import Tuple, Union
 
 import jax.numpy as jnp
 from jax import Array
@@ -17,11 +17,11 @@ class MultivariateNormal:
 
     """
 
-    def sufficient_statistics(x):
+    def sufficient_statistics(self, x: ArrayLike):
         """Compute the sufficient statistics for the multivariate normal."""
         return jnp.hstack([x, jnp.outer(x, x)[jnp.tril_indices(x.shape[0])]])
 
-    def base_measure(k):
+    def base_measure(self, k: int):
         """Compute the base measures for the multivariate normal."""
         return (2 * jnp.pi) ** (-k / 2)
 
@@ -35,13 +35,19 @@ class Normal:
 
     """
 
-    def sufficient_statistics(x):
+    def sufficient_statistics(self, x: float):
         """Compute the sufficient statistics for the univariate normal."""
         return jnp.array([x, x**2])
 
-    def base_measure(k):
+    def base_measure(self):
         """Compute the base measure for the univariate normal."""
         return 1 / (jnp.sqrt(2 * jnp.pi))
+
+    def parameters(self, nus: ArrayLike) -> Tuple[float, float]:
+        """Compute the parameter of the distribution from the natural parameters."""
+        mean = nus[0]
+        variance = nus[1] - (mean**2)
+        return mean, variance
 
 
 def gaussian_predictive_distribution(x, xi, nu):
@@ -178,7 +184,7 @@ def gaussian_surprise(
 
     Examples
     --------
-    >>> from pyhgf.continuous import gaussian_surprise
+    >>> from pyhgf.math import gaussian_surprise
     >>> gaussian_surprise(x=2.0, expected_mean=0.0, expected_precision=1.0)
     `Array(2.9189386, dtype=float32, weak_type=True)`
 

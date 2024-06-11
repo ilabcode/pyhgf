@@ -3,6 +3,7 @@
 from functools import partial
 from typing import Callable, Dict
 
+import jax.numpy as jnp
 from jax import jit
 
 from pyhgf.typing import Attributes, Edges
@@ -49,11 +50,14 @@ def posterior_update_exponential_family(
 
     """
     # update the hyperparameter vectors
-    attributes[node_idx]["xis"] = attributes[node_idx]["xis"] + (
-        1 / (1 + attributes[node_idx]["nus"])
-    ) * (
+    xis = attributes[node_idx]["xis"] + (1 / (1 + attributes[node_idx]["nus"])) * (
         sufficient_stats_fn(attributes[node_idx]["values"])
         - attributes[node_idx]["xis"]
+    )
+
+    # blank update in the case of unobserved value
+    attributes[node_idx]["xis"] = jnp.where(
+        attributes[node_idx]["observed"], xis, attributes[node_idx]["xis"]
     )
 
     return attributes
