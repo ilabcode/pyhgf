@@ -35,7 +35,8 @@ jobs:
           folder: docs/build/html
           BRANCH: gh-pages
           target-folder: stable
-          
+        
+      - name: Deploy 🚀
         if: github.ref != 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
