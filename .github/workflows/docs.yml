@@ -29,7 +29,17 @@ jobs:
           sphinx-build -j 4 -T -b html docs/source docs/build/html
 
       - name: Deploy 🚀
+        if: github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/build/html
           BRANCH: gh-pages
+          target-folder: stable
+        
+      - name: Deploy 🚀
+        if: github.ref != 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/build/html
+          BRANCH: gh-pages
+          target-folder: dev
