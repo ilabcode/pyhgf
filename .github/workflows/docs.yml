@@ -29,7 +29,7 @@ jobs:
           sphinx-build -j 4 -T -b html docs/source docs/build/html
 
       - name: Deploy 🚀
-        if: github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/')  # only publish stable documentation on tag pushes
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/build/html
@@ -37,7 +37,7 @@ jobs:
           target-folder: stable
         
       - name: Deploy 🚀
-        if: github.ref != 'refs/heads/main'
+        if: github.ref != 'refs/heads/master'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/build/html
