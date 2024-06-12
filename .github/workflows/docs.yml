@@ -29,16 +29,16 @@ jobs:
           sphinx-build -j 4 -T -b html docs/source docs/build/html
 
       - name: Deploy Stable 🚀
-        if: startsWith(github.ref, 'refs/tags/')  # only publish stable documentation on tag pushes
+        if: startsWith(github.ref, 'refs/tags/')
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/build/html
-          BRANCH: gh-pages
+          branch: gh-pages
 
       - name: Deploy Dev 🚀
-        if: !startsWith(github.ref, 'refs/tags/')
+        if: ! startsWith(github.ref, 'refs/tags/')
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/build/html
-          BRANCH: gh-pages
+          branch: gh-pages
           target-folder: dev
