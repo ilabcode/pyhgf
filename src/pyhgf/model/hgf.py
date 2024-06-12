@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, Dict, Optional, Tuple, Union, override
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
@@ -208,7 +208,6 @@ class HGF(Network):
             # initialize the model so it is ready to receive new observations
             self.create_belief_propagation_fn()
 
-    @override
     def surprise(
         self,
         response_function: Optional[Callable] = None,
