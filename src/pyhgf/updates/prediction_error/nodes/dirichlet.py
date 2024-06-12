@@ -157,14 +157,11 @@ def get_candidate(
         The standard deviation of the new candidate cluster.
 
     """
-    # initialize weigths
-    weigths = jnp.ones(n_samples)
-
     # sample n likely clusters given the base distribution priors
-    mus, sigmas, weigths = likely_cluster_proposal(
+    mus, sigmas, weights = likely_cluster_proposal(
         mean_mu_G0=0.0,
-        sigma_mu_G0=100.0,
-        sigma_pi_G0=5.0,
+        sigma_mu_G0=10.0,
+        sigma_pi_G0=3.0,
         expected_mean=expected_mean,
         expected_sigma=expected_sigma,
         key=random.key(42),
@@ -174,16 +171,24 @@ def get_candidate(
     # 1 - Likelihood of the new observation under each sampled cluster
     # ----------------------------------------------------------------
     ll_value = pdf(value, mus, sigmas)
-    ll_value /= ll_value.sum()  # normalize the weigths
+    ll_value /= ll_value.sum()  # normalize the weights
 
-    # 2- re-scale the weigths using expected precision
+    # 2- re-scale the weights using expected precision
     # ------------------------------------------------
-    weigths *= ll_value**sensory_precision
+    weights *= ll_value**sensory_precision
+
+    # only use the 1000 best candidates for inference
+    idxs = jnp.argsort(weights)
+    mus, sigmas, weights = (
+        mus[idxs][-1000:],
+        sigmas[idxs][-1000:],
+        weights[idxs][-1000:],
+    )
 
     # 3 - estimate new mean and standard deviation using the weigthed mean
     # --------------------------------------------------------------------
-    mean = ((mus * weigths) / weigths.sum()).sum()
-    sigma = ((sigmas * weigths) / weigths.sum()).sum()
+    mean = jnp.average(mus, weights=weights)
+    sigma = jnp.average(sigmas, weights=weights)
 
     return mean, sigma
 
@@ -223,7 +228,7 @@ def likely_cluster_proposal(
         A vector of means candidates.
     new_sigma :
         A vector of standard deviation candidates.
-    weigths :
+    weights :
         Weigths for each cluster candidate under pre-existing cluster (irrespective of
         new observations).
 
@@ -235,9 +240,6 @@ def likely_cluster_proposal(
     # sample new candidate for cluster standard deviation
     key, use_key = random.split(key)
     new_sigma = jnp.abs(random.normal(use_key, (n_samples,)) * sigma_pi_G0)
-
-    # initialize the weigths
-    weigths = jnp.zeros(n_samples)
 
     # 1 - Cluster specificity
     # -----------------------
@@ -253,9 +255,8 @@ def likely_cluster_proposal(
 
     # standardize the measure of cluster specificity (ratio)
     ratio = new_likelihood / (new_likelihood + pre_existing_likelihood)
-    ratio = jnp.where(ratio <= 0.0, 0.0, ratio)
 
-    weigths += ratio
+    weights = ratio
 
     # 2 - Cluster isolation
     # ---------------------
@@ -267,12 +268,11 @@ def likely_cluster_proposal(
         ratio = pdf(mu_i, mu_i, sigma_i) / (
             pdf(mu_i, mu_i, sigma_i) + pdf(mu_i, new_mu, new_sigma)
         )
-        ratio = jnp.where(ratio <= 0.0, 0.0, ratio)
         cluster_isolation *= ratio
 
-    weigths += cluster_isolation
+    weights *= cluster_isolation
 
-    return new_mu, new_sigma, weigths
+    return new_mu, new_sigma, weights
 
 
 def clusters_likelihood(
