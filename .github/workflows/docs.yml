@@ -41,4 +41,3 @@ jobs:
         with:
           folder: docs/build/html
           branch: gh-pages
-          target-folder: dev
