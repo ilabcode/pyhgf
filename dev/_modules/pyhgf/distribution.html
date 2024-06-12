@@ -1,0 +1,1145 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyhgf.distribution &#8212; pyhgf 0.1.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=87e54e7c" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
+
+    <script src="../../_static/documentation_options.js?v=a58bc63e"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pyhgf/distribution';</script>
+    <link rel="icon" href="../../_static/logo_small.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/logo_small.svg" class="logo__image only-light" alt=""/>
+    <script>document.write(`<img src="../../_static/logo_small.svg" class="logo__image only-dark" alt=""/>`);</script>
+  
+  
+    <p class="title logo__title">pyhgf</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../learn.html">
+    Learn
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../cite.html">
+    Cite
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../references.html">
+    References
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ilabcode/pyhgf" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mastodon.social/@nicolegrand" title="Twitter" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-mastodon fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/pyhgf/" title="Pypi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Pypi</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav class="navbar-nav">
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../learn.html">
+    Learn
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../cite.html">
+    Cite
+  </a>
+</li>
+
+
+<li class="nav-item pst-header-nav-item">
+  <a class="nav-link nav-internal" href="../../references.html">
+    References
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ilabcode/pyhgf" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mastodon.social/@nicolegrand" title="Twitter" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-mastodon fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/pyhgf/" title="Pypi" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Pypi</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pyhgf.distribution</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pyhgf.distribution</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Author: Nicolas Legrand &lt;nicolas.legrand@cas.au.dk&gt;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pytensor.tensor</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">grad</span><span class="p">,</span> <span class="n">jit</span>
+<span class="kn">from</span> <span class="nn">jax.tree_util</span> <span class="kn">import</span> <span class="n">Partial</span>
+<span class="kn">from</span> <span class="nn">jax.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
+<span class="kn">from</span> <span class="nn">pytensor.graph</span> <span class="kn">import</span> <span class="n">Apply</span><span class="p">,</span> <span class="n">Op</span>
+
+<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">HGF</span>
+
+
+<div class="viewcode-block" id="hgf_logp">
+<a class="viewcode-back" href="../../generated/pyhgf.distribution/pyhgf.distribution.hgf_logp.html#pyhgf.distribution.hgf_logp">[docs]</a>
+<span class="k">def</span> <span class="nf">hgf_logp</span><span class="p">(</span>
+    <span class="n">tonic_volatility_1</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">,</span>
+    <span class="n">tonic_volatility_2</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">,</span>
+    <span class="n">tonic_volatility_3</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">,</span>
+    <span class="n">continuous_precision</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e4</span><span class="p">,</span>
+    <span class="n">binary_precision</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+    <span class="n">tonic_drift_1</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">tonic_drift_2</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">tonic_drift_3</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">precision_1</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">precision_2</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">precision_3</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">mean_1</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">mean_2</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">mean_3</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+    <span class="n">input_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span>
+    <span class="n">response_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">model_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;continuous&quot;</span><span class="p">,</span>
+    <span class="n">n_levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">response_function_inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span>
+    <span class="n">time_steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;HGF log-probability given input data, response function and parameters.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">       This function support broadcasting along the first axis, which means that it can</span>
+<span class="sd">       fit multiple HGF when multiple data points are provided:</span>
+<span class="sd">       * If the input data contains many time series, the function will automatically</span>
+<span class="sd">       create the corresponding number of HGF models and fit them separately.</span>
+<span class="sd">       * If a single input data is provided but some parameters have array-like inputs,</span>
+<span class="sd">       the number of HGF models will match the length of the arrays, using the value</span>
+<span class="sd">       *i* for the *i* th model. When floats are provided for some parameters, the same</span>
+<span class="sd">       value will be used for all HGF models.</span>
+<span class="sd">       * If multiple input data are provided with array-like inputs for some parameter,</span>
+<span class="sd">       the function will create and fit the models separately using the value *i* for</span>
+<span class="sd">       the *i* th model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tonic_volatility_1 :</span>
+<span class="sd">        The tonic volatility at the first level of the HGF. This parameter represents</span>
+<span class="sd">        the tonic part of the variance (the part that is not inherited from parents</span>
+<span class="sd">        nodes).</span>
+<span class="sd">    tonic_volatility_2 :</span>
+<span class="sd">        The tonic volatility at the second level of the HGF. This parameter represents</span>
+<span class="sd">        the tonic part of the variance (the part that is not inherited from parents</span>
+<span class="sd">        nodes).</span>
+<span class="sd">    tonic_volatility_3 :</span>
+<span class="sd">        The tonic volatility at the third level of the HGF. This parameter represents</span>
+<span class="sd">        the tonic part of the variance (the part that is not inherited from parents</span>
+<span class="sd">        nodes). The value of this parameter will be ignored when using a two-level HGF</span>
+<span class="sd">        (`n_levels=2`).</span>
+<span class="sd">    continuous_precision :</span>
+<span class="sd">        The expected precision associated with the continuous input.</span>
+<span class="sd">    binary_precision :</span>
+<span class="sd">        The expected precision associated with the binary input.</span>
+<span class="sd">    tonic_drift_1 :</span>
+<span class="sd">        The tonic drift at the first level of the HGF. This parameter represents the</span>
+<span class="sd">        drift of the random walk.</span>
+<span class="sd">    tonic_drift_2 :</span>
+<span class="sd">        The tonic drift at the second level of the HGF. This parameter represents the</span>
+<span class="sd">        drift of the random walk.</span>
+<span class="sd">    tonic_drift_3 :</span>
+<span class="sd">        The tonic drift at the first level of the HGF. This parameter represents the</span>
+<span class="sd">        drift of the random walk. The value of this parameter will be ignored when</span>
+<span class="sd">        using a two-level HGF (`n_levels=2`).</span>
+<span class="sd">    precision_1 :</span>
+<span class="sd">        The precision at the first level of the HGF.</span>
+<span class="sd">    precision_2 :</span>
+<span class="sd">        The precision at the second level of the HGF.</span>
+<span class="sd">    precision_3 :</span>
+<span class="sd">        The precision at the third level of the HGF. The value of this parameter will</span>
+<span class="sd">        be ignored when using a two-level HGF (`n_levels=2`).</span>
+<span class="sd">    mean_1 :</span>
+<span class="sd">        The mean at the first level of the HGF.</span>
+<span class="sd">    mean_2 :</span>
+<span class="sd">        The mean at the second level of the HGF.</span>
+<span class="sd">    mean_3 :</span>
+<span class="sd">        The mean at the third level of the HGF. The value of this parameter will be</span>
+<span class="sd">        ignored when using a two-level HGF (`n_levels=2`).</span>
+<span class="sd">    volatility_coupling_1 :</span>
+<span class="sd">        The volatility coupling between the first and second level of the HGF. This</span>
+<span class="sd">        represents the phasic part of the variance (the part that is affected by the</span>
+<span class="sd">        parent nodes). Defaults to `1.0`.</span>
+<span class="sd">    volatility_coupling_2 :</span>
+<span class="sd">        The volatility coupling between the second and third level of the HGF. This</span>
+<span class="sd">        represents the phasic part of the variance (the part that is affected by the</span>
+<span class="sd">        parent nodes). Defaults to `1.0`. The value of this parameter will be</span>
+<span class="sd">        ignored when using a two-level HGF (`n_levels=2`).</span>
+<span class="sd">    input_data :</span>
+<span class="sd">        List of input data. When `n` models should be fitted, the list contains `n` 1d</span>
+<span class="sd">        Numpy arrays. By default, the associated time vector is the integers vector</span>
+<span class="sd">        starting at `0`. A different time vector can be passed to the `time` argument.</span>
+<span class="sd">    response_function :</span>
+<span class="sd">        The response function to use to compute the model surprise.</span>
+<span class="sd">    model_type :</span>
+<span class="sd">        The model type to use (can be &quot;continuous&quot; or &quot;binary&quot;).</span>
+<span class="sd">    n_levels :</span>
+<span class="sd">        The number of hierarchies in the perceptual model (can be `2` or `3`). If</span>
+<span class="sd">        `None`, the nodes hierarchy is not created and might be provided afterwards</span>
+<span class="sd">        using :py:meth:`pyhgf.model.HGF.add_nodes`.</span>
+<span class="sd">    response_function_inputs :</span>
+<span class="sd">        A list of tuples with the same length as the number of models. Each tuple</span>
+<span class="sd">        contains additional data and parameters that can be accessible to the response</span>
+<span class="sd">        functions.</span>
+<span class="sd">    response_function_parameters :</span>
+<span class="sd">        A list of additional parameters that will be passed to the response function.</span>
+<span class="sd">        This can include values over which inferece is performed in a PyMC model (e.g.</span>
+<span class="sd">        the inverse temperature of a binary softmax).</span>
+<span class="sd">    time_steps :</span>
+<span class="sd">        List of 1d Numpy arrays containing the time vectors for each input time series.</span>
+<span class="sd">        If one of the list items is `None`, or if `None` is provided instead, the time</span>
+<span class="sd">        vector will default to the unit vector.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    log_prob :</span>
+<span class="sd">        The sum of the log probabilities (or negative surprise).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># number of models</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+
+    <span class="c1"># Broadcast inputs to an array with length n&gt;=1</span>
+    <span class="p">(</span>
+        <span class="n">_tonic_volatility_1</span><span class="p">,</span>
+        <span class="n">_tonic_volatility_2</span><span class="p">,</span>
+        <span class="n">_tonic_volatility_3</span><span class="p">,</span>
+        <span class="n">_continuous_precision</span><span class="p">,</span>
+        <span class="n">_binary_precision</span><span class="p">,</span>
+        <span class="n">_tonic_drift_1</span><span class="p">,</span>
+        <span class="n">_tonic_drift_2</span><span class="p">,</span>
+        <span class="n">_tonic_drift_3</span><span class="p">,</span>
+        <span class="n">_precision_1</span><span class="p">,</span>
+        <span class="n">_precision_2</span><span class="p">,</span>
+        <span class="n">_precision_3</span><span class="p">,</span>
+        <span class="n">_mean_1</span><span class="p">,</span>
+        <span class="n">_mean_2</span><span class="p">,</span>
+        <span class="n">_mean_3</span><span class="p">,</span>
+        <span class="n">_volatility_coupling_1</span><span class="p">,</span>
+        <span class="n">_volatility_coupling_2</span><span class="p">,</span>
+        <span class="n">_</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">broadcast_arrays</span><span class="p">(</span>
+        <span class="n">tonic_volatility_1</span><span class="p">,</span>
+        <span class="n">tonic_volatility_2</span><span class="p">,</span>
+        <span class="n">tonic_volatility_3</span><span class="p">,</span>
+        <span class="n">continuous_precision</span><span class="p">,</span>
+        <span class="n">binary_precision</span><span class="p">,</span>
+        <span class="n">tonic_drift_1</span><span class="p">,</span>
+        <span class="n">tonic_drift_2</span><span class="p">,</span>
+        <span class="n">tonic_drift_3</span><span class="p">,</span>
+        <span class="n">precision_1</span><span class="p">,</span>
+        <span class="n">precision_2</span><span class="p">,</span>
+        <span class="n">precision_3</span><span class="p">,</span>
+        <span class="n">mean_1</span><span class="p">,</span>
+        <span class="n">mean_2</span><span class="p">,</span>
+        <span class="n">mean_3</span><span class="p">,</span>
+        <span class="n">volatility_coupling_1</span><span class="p">,</span>
+        <span class="n">volatility_coupling_2</span><span class="p">,</span>
+        <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">response_function_inputs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">response_function_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="k">if</span> <span class="n">response_function_parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">response_function_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+
+    <span class="c1"># if no time vectors provided, set it to None (will defaults to integers vectors)</span>
+    <span class="c1"># otherwise check consistency with the input data</span>
+    <span class="k">if</span> <span class="n">time_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">time_steps</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_steps</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span>
+
+    <span class="n">surprise</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="c1"># Fitting n HGF models to the n datasets</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="c1"># Format HGF parameters</span>
+        <span class="n">initial_mean</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="n">_mean_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="n">_mean_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="n">_mean_3</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+        <span class="p">}</span>
+        <span class="n">initial_precision</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="n">_precision_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="n">_precision_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="n">_precision_3</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+        <span class="p">}</span>
+        <span class="n">tonic_volatility</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="n">_tonic_volatility_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="n">_tonic_volatility_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="n">_tonic_volatility_3</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+        <span class="p">}</span>
+        <span class="n">tonic_drift</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="n">_tonic_drift_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="n">_tonic_drift_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="n">_tonic_drift_3</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+        <span class="p">}</span>
+        <span class="n">volatility_coupling</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="n">_volatility_coupling_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="n">_volatility_coupling_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">surprise</span> <span class="o">=</span> <span class="n">surprise</span> <span class="o">+</span> <span class="p">(</span>
+            <span class="n">HGF</span><span class="p">(</span>
+                <span class="n">initial_mean</span><span class="o">=</span><span class="n">initial_mean</span><span class="p">,</span>
+                <span class="n">initial_precision</span><span class="o">=</span><span class="n">initial_precision</span><span class="p">,</span>
+                <span class="n">tonic_volatility</span><span class="o">=</span><span class="n">tonic_volatility</span><span class="p">,</span>
+                <span class="n">continuous_precision</span><span class="o">=</span><span class="n">_continuous_precision</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">binary_precision</span><span class="o">=</span><span class="n">_binary_precision</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">tonic_drift</span><span class="o">=</span><span class="n">tonic_drift</span><span class="p">,</span>
+                <span class="n">volatility_coupling</span><span class="o">=</span><span class="n">volatility_coupling</span><span class="p">,</span>
+                <span class="n">model_type</span><span class="o">=</span><span class="n">model_type</span><span class="p">,</span>
+                <span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">,</span>
+                <span class="n">eta0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">eta1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">input_data</span><span class="p">(</span><span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">surprise</span><span class="p">(</span>
+                <span class="n">response_function</span><span class="o">=</span><span class="n">response_function</span><span class="p">,</span>
+                <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">response_function_parameters</span><span class="o">=</span><span class="n">response_function_parameters</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Return the sum of the log probabilities (negative surprise)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="n">surprise</span></div>
+
+
+
+<div class="viewcode-block" id="HGFLogpGradOp">
+<a class="viewcode-back" href="../../generated/pyhgf.distribution/pyhgf.distribution.HGFLogpGradOp.html#pyhgf.distribution.HGFLogpGradOp">[docs]</a>
+<span class="k">class</span> <span class="nc">HGFLogpGradOp</span><span class="p">(</span><span class="n">Op</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gradient Op for the HGF distribution.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HGFLogpGradOp.__init__">
+<a class="viewcode-back" href="../../generated/pyhgf.distribution/pyhgf.distribution.HGFLogpGradOp.html#pyhgf.distribution.HGFLogpGradOp.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">time_steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;continous&quot;</span><span class="p">,</span>
+        <span class="n">n_levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">response_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">response_function_inputs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_data :</span>
+<span class="sd">            List of input data. When `n` models should be fitted, the list contains `n`</span>
+<span class="sd">            1d Numpy arrays. By default, the associated time_steps vector is the unit</span>
+<span class="sd">            vector. A different time vector can be passed to the `time_steps` argument.</span>
+<span class="sd">        time_steps :</span>
+<span class="sd">            List of 1d Numpy arrays containing the time_steps vectors for each input</span>
+<span class="sd">            time series. If one of the list items is `None`, or if `None` is provided</span>
+<span class="sd">            instead, the time_steps vector will default to an integers vector starting</span>
+<span class="sd">            at 0.</span>
+<span class="sd">        model_type :</span>
+<span class="sd">            The model type to use (can be &quot;continuous&quot; or &quot;binary&quot;).</span>
+<span class="sd">        n_levels :</span>
+<span class="sd">            The number of hierarchies in the perceptual model (can be `2` or `3`). If</span>
+<span class="sd">            `None`, the nodes hierarchy is not created and might be provided afterward</span>
+<span class="sd">            using `add_nodes()`.</span>
+<span class="sd">        response_function :</span>
+<span class="sd">            The response function to use to compute the model surprise.</span>
+<span class="sd">        response_function_inputs :</span>
+<span class="sd">            A list of tuples with the same length as the number of models. Each tuple</span>
+<span class="sd">            contains additional data and parameters that can be accessible to the</span>
+<span class="sd">            response functions.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grad_logp</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span>
+            <span class="n">grad</span><span class="p">(</span>
+                <span class="n">Partial</span><span class="p">(</span>
+                    <span class="n">hgf_logp</span><span class="p">,</span>
+                    <span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">,</span>
+                    <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">,</span>
+                    <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">,</span>
+                    <span class="n">response_function</span><span class="o">=</span><span class="n">response_function</span><span class="p">,</span>
+                    <span class="n">model_type</span><span class="o">=</span><span class="n">model_type</span><span class="p">,</span>
+                    <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">argnums</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">make_node</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tonic_volatility_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">tonic_volatility_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">tonic_volatility_3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">continuous_precision</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span>
+        <span class="n">binary_precision</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">tonic_drift_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">tonic_drift_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">tonic_drift_3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">precision_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">precision_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">precision_3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">mean_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">mean_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">mean_3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">volatility_coupling_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">volatility_coupling_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">response_function_parameters</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]),</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize node structure.&quot;&quot;&quot;</span>
+        <span class="c1"># Convert our inputs to symbolic variables</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">continuous_precision</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">binary_precision</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">response_function_parameters</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="c1"># This `Op` will return one gradient per input. For simplicity, we assume</span>
+        <span class="c1"># each output is of the same type as the input. In practice, you should use</span>
+        <span class="c1"># the exact dtype to avoid overhead when saving the results of the computation</span>
+        <span class="c1"># in `perform`</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">inp</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform node operations.&quot;&quot;&quot;</span>
+        <span class="p">(</span>
+            <span class="n">grad_tonic_volatility_1</span><span class="p">,</span>
+            <span class="n">grad_tonic_volatility_2</span><span class="p">,</span>
+            <span class="n">grad_tonic_volatility_3</span><span class="p">,</span>
+            <span class="n">grad_continuous_precision</span><span class="p">,</span>
+            <span class="n">grad_binary_precision</span><span class="p">,</span>
+            <span class="n">grad_tonic_drift_1</span><span class="p">,</span>
+            <span class="n">grad_tonic_drift_2</span><span class="p">,</span>
+            <span class="n">grad_tonic_drift_3</span><span class="p">,</span>
+            <span class="n">grad_precision_1</span><span class="p">,</span>
+            <span class="n">grad_precision_2</span><span class="p">,</span>
+            <span class="n">grad_precision_3</span><span class="p">,</span>
+            <span class="n">grad_mean_1</span><span class="p">,</span>
+            <span class="n">grad_mean_2</span><span class="p">,</span>
+            <span class="n">grad_mean_3</span><span class="p">,</span>
+            <span class="n">grad_volatility_coupling_1</span><span class="p">,</span>
+            <span class="n">grad_volatility_coupling_2</span><span class="p">,</span>
+            <span class="n">grad_response_function_parameters</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grad_logp</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
+
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_tonic_volatility_1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_tonic_volatility_2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_tonic_volatility_3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">grad_continuous_precision</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_binary_precision</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_tonic_drift_1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_tonic_drift_2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">7</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_tonic_drift_3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">8</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_precision_1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_precision_2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">10</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_precision_3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">11</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_mean_1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">12</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_mean_2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">13</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_mean_3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">14</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">grad_volatility_coupling_1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">15</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">grad_volatility_coupling_2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">16</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">grad_response_function_parameters</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="HGFDistribution">
+<a class="viewcode-back" href="../../generated/pyhgf.distribution/pyhgf.distribution.HGFDistribution.html#pyhgf.distribution.HGFDistribution">[docs]</a>
+<span class="k">class</span> <span class="nc">HGFDistribution</span><span class="p">(</span><span class="n">Op</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The HGF distribution PyMC &gt;= 5.0 compatible.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    This class should be used in the context of a PyMC probabilistic model to estimate</span>
+<span class="sd">    one or many parameter-s probability density with MCMC sampling.</span>
+
+<span class="sd">    &gt;&gt;&gt; import arviz as az</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import pymc as pm</span>
+<span class="sd">    &gt;&gt;&gt; from math import log</span>
+<span class="sd">    &gt;&gt;&gt; from pyhgf import load_data</span>
+<span class="sd">    &gt;&gt;&gt; from pyhgf.distribution import HGFDistribution</span>
+<span class="sd">    &gt;&gt;&gt; from pyhgf.response import total_gaussian_surprise</span>
+
+<span class="sd">    Create the data (value and time vectors)</span>
+
+<span class="sd">    &gt;&gt;&gt; timeserie = load_data(&quot;continuous&quot;)</span>
+
+<span class="sd">    We create the PyMC distribution here, specifying the type of model and response</span>
+<span class="sd">    function we want to use (i.e. simple Gaussian surprise).</span>
+
+<span class="sd">    &gt;&gt;&gt; hgf_logp_op = HGFDistribution(</span>
+<span class="sd">    &gt;&gt;&gt;     n_levels=2,</span>
+<span class="sd">    &gt;&gt;&gt;     input_data=timeserie,</span>
+<span class="sd">    &gt;&gt;&gt;     response_function=total_gaussian_surprise,</span>
+<span class="sd">    &gt;&gt;&gt; )</span>
+
+<span class="sd">    Create the PyMC model</span>
+<span class="sd">    Here we are fixing all the parameters to arbitrary values and sampling the</span>
+<span class="sd">    posterior probability density of Omega in the second level, using a normal</span>
+<span class="sd">    distribution as prior : ω_2 ~ N(-11, 2).</span>
+
+<span class="sd">    &gt;&gt;&gt; with pm.Model() as model:</span>
+<span class="sd">    &gt;&gt;&gt;     ω_2 = pm.Normal(&quot;ω_2&quot;, -11.0, 2)</span>
+<span class="sd">    &gt;&gt;&gt;     pm.Potential(</span>
+<span class="sd">    &gt;&gt;&gt;         &quot;hhgf_loglike&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;         hgf_logp_op(</span>
+<span class="sd">    &gt;&gt;&gt;             tonic_volatility_2=ω_2,</span>
+<span class="sd">    &gt;&gt;&gt;             precision_1=1e4,</span>
+<span class="sd">    &gt;&gt;&gt;             precision_2=1e1,</span>
+<span class="sd">    &gt;&gt;&gt;             mean_1=timeserie[0],</span>
+<span class="sd">    &gt;&gt;&gt;         ),</span>
+<span class="sd">    &gt;&gt;&gt;     )</span>
+
+<span class="sd">    Sample the model - Using 4 chain, 4 cores and 1000 warmups.</span>
+
+<span class="sd">    &gt;&gt;&gt; with model:</span>
+<span class="sd">    &gt;&gt;&gt;     hgf_samples = pm.sample(chains=2, cores=1, tune=1000)</span>
+
+<span class="sd">    Print a summary of the results using Arviz</span>
+
+<span class="sd">    &gt;&gt;&gt; az.summary(hgf_samples, var_names=&quot;ω_2&quot;)</span>
+<span class="sd">    ===  =======  =====  =======  =======  =====  =====  ====  ====  =</span>
+<span class="sd">    ω_2  -12.846  1.305  -15.466  -10.675  0.038  0.027  1254  1726  1</span>
+<span class="sd">    ===  =======  =====  =======  =======  =====  =====  ====  ====  =</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HGFDistribution.__init__">
+<a class="viewcode-back" href="../../generated/pyhgf.distribution/pyhgf.distribution.HGFDistribution.html#pyhgf.distribution.HGFDistribution.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">time_steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;continuous&quot;</span><span class="p">,</span>
+        <span class="n">n_levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">response_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">response_function_inputs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distribution initialization.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_data :</span>
+<span class="sd">            List of input data. When `n` models should be fitted, the list contains `n`</span>
+<span class="sd">            1d Numpy arrays. By default, the associated time vector is the unit</span>
+<span class="sd">            vector starting at `0`. A different time_steps vector can be passed to</span>
+<span class="sd">            the `time_steps` argument.</span>
+<span class="sd">        time_steps :</span>
+<span class="sd">            List of 1d Numpy arrays containing the time_steps vectors for each input</span>
+<span class="sd">            time series. If one of the list items is `None`, or if `None` is provided</span>
+<span class="sd">            instead, the time vector will default to an integers vector starting at 0.</span>
+<span class="sd">        model_type :</span>
+<span class="sd">            The model type to use (can be &quot;continuous&quot; or &quot;binary&quot;).</span>
+<span class="sd">        n_levels :</span>
+<span class="sd">            The number of hierarchies in the perceptual model (can be `2` or `3`). If</span>
+<span class="sd">            `None`, the nodes hierarchy is not created and might be provided afterwards</span>
+<span class="sd">            using `add_nodes()`.</span>
+<span class="sd">        response_function :</span>
+<span class="sd">            The response function to use to compute the model surprise.</span>
+<span class="sd">        response_function_inputs :</span>
+<span class="sd">            A list of tuples with the same length as the number of models. Each tuple</span>
+<span class="sd">            contains additional data and parameters that can be accessible to the</span>
+<span class="sd">            response functions.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The value function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span>
+            <span class="n">Partial</span><span class="p">(</span>
+                <span class="n">hgf_logp</span><span class="p">,</span>
+                <span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">,</span>
+                <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">,</span>
+                <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">,</span>
+                <span class="n">response_function</span><span class="o">=</span><span class="n">response_function</span><span class="p">,</span>
+                <span class="n">model_type</span><span class="o">=</span><span class="n">model_type</span><span class="p">,</span>
+                <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># The gradient function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp_grad_op</span> <span class="o">=</span> <span class="n">HGFLogpGradOp</span><span class="p">(</span>
+            <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">,</span>
+            <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">,</span>
+            <span class="n">model_type</span><span class="o">=</span><span class="n">model_type</span><span class="p">,</span>
+            <span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">,</span>
+            <span class="n">response_function</span><span class="o">=</span><span class="n">response_function</span><span class="p">,</span>
+            <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">make_node</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tonic_volatility_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">tonic_volatility_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">tonic_volatility_3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">continuous_precision</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span>
+        <span class="n">binary_precision</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">tonic_drift_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">tonic_drift_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">tonic_drift_3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">precision_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">precision_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">precision_3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">mean_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">mean_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">mean_3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">volatility_coupling_1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">volatility_coupling_2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">response_function_parameters</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]),</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert inputs to symbolic variables.&quot;&quot;&quot;</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">continuous_precision</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">binary_precision</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">response_function_parameters</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="c1"># Define the type of output returned by the wrapped JAX function</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">dscalar</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="n">Apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the function forward.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">output_gradients</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gradient of the function.&quot;&quot;&quot;</span>
+        <span class="p">(</span>
+            <span class="n">grad_tonic_volatility_1</span><span class="p">,</span>
+            <span class="n">grad_tonic_volatility_2</span><span class="p">,</span>
+            <span class="n">grad_tonic_volatility_3</span><span class="p">,</span>
+            <span class="n">grad_continuous_precision</span><span class="p">,</span>
+            <span class="n">grad_binary_precision</span><span class="p">,</span>
+            <span class="n">grad_tonic_drift_1</span><span class="p">,</span>
+            <span class="n">grad_tonic_drift_2</span><span class="p">,</span>
+            <span class="n">grad_tonic_drift_3</span><span class="p">,</span>
+            <span class="n">grad_precision_1</span><span class="p">,</span>
+            <span class="n">grad_precision_2</span><span class="p">,</span>
+            <span class="n">grad_precision_3</span><span class="p">,</span>
+            <span class="n">grad_mean_1</span><span class="p">,</span>
+            <span class="n">grad_mean_2</span><span class="p">,</span>
+            <span class="n">grad_mean_3</span><span class="p">,</span>
+            <span class="n">grad_volatility_coupling_1</span><span class="p">,</span>
+            <span class="n">grad_volatility_coupling_2</span><span class="p">,</span>
+            <span class="n">grad_response_function_parameters</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp_grad_op</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="c1"># If there are inputs for which the gradients will never be needed or cannot</span>
+        <span class="c1"># be computed, `pytensor.gradient.grad_not_implemented` should  be used as the</span>
+        <span class="c1"># output gradient for that input.</span>
+        <span class="n">output_gradient</span> <span class="o">=</span> <span class="n">output_gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_tonic_volatility_1</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_tonic_volatility_2</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_tonic_volatility_3</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_continuous_precision</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_binary_precision</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_tonic_drift_1</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_tonic_drift_2</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_tonic_drift_3</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_precision_1</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_precision_2</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_precision_3</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_mean_1</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_mean_2</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_mean_3</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_volatility_coupling_1</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_volatility_coupling_2</span><span class="p">,</span>
+            <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_response_function_parameters</span><span class="p">,</span>
+        <span class="p">]</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2022-2024, Nicolas Legrand.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
