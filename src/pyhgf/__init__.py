@@ -7,7 +7,7 @@ from typing import Tuple, Union
 import numpy as np
 import pandas as pd
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 def load_data(dataset: str) -> Union[Tuple[np.ndarray, ...], np.ndarray]:
