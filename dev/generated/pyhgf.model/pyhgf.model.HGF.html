@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>pyhgf.model.HGF &#8212; pyhgf 0.1.1 documentation</title>
+    <title>pyhgf.model.HGF &#8212; pyhgf 0.1.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
 
-    <script src="../../_static/documentation_options.js?v=a58bc63e"></script>
+    <script src="../../_static/documentation_options.js?v=92734c54"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -424,9 +424,6 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction.continuous/pyhgf.updates.prediction.continuous.continuous_node_prediction.html">pyhgf.updates.prediction.continuous.continuous_node_prediction</a></li>
 </ul>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction.dirichlet/pyhgf.updates.prediction.dirichlet.dirichlet_node_prediction.html">pyhgf.updates.prediction.dirichlet.dirichlet_node_prediction</a></li>
-</ul>
-<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.inputs.binary/pyhgf.updates.prediction_error.inputs.binary.binary_input_prediction_error_infinite_precision.html">pyhgf.updates.prediction_error.inputs.binary.binary_input_prediction_error_infinite_precision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.inputs.binary/pyhgf.updates.prediction_error.inputs.binary.binary_input_prediction_error_finite_precision.html">pyhgf.updates.prediction_error.inputs.binary.binary_input_prediction_error_finite_precision</a></li>
 </ul>
@@ -445,12 +442,6 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.nodes.continuous/pyhgf.updates.prediction_error.nodes.continuous.continuous_node_value_prediction_error.html">pyhgf.updates.prediction_error.nodes.continuous.continuous_node_value_prediction_error</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.nodes.continuous/pyhgf.updates.prediction_error.nodes.continuous.continuous_node_volatility_prediction_error.html">pyhgf.updates.prediction_error.nodes.continuous.continuous_node_volatility_prediction_error</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.nodes.continuous/pyhgf.updates.prediction_error.nodes.continuous.continuous_node_prediction_error.html">pyhgf.updates.prediction_error.nodes.continuous.continuous_node_prediction_error</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.nodes.dirichlet/pyhgf.updates.prediction_error.nodes.dirichlet.dirichlet_node_prediction_error.html">pyhgf.updates.prediction_error.nodes.dirichlet.dirichlet_node_prediction_error</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.nodes.dirichlet/pyhgf.updates.prediction_error.nodes.dirichlet.get_candidate.html">pyhgf.updates.prediction_error.nodes.dirichlet.get_candidate</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.nodes.dirichlet/pyhgf.updates.prediction_error.nodes.dirichlet.likely_cluster_proposal.html">pyhgf.updates.prediction_error.nodes.dirichlet.likely_cluster_proposal</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pyhgf.updates.prediction_error.nodes.dirichlet/pyhgf.updates.prediction_error.nodes.dirichlet.clusters_likelihood.html">pyhgf.updates.prediction_error.nodes.dirichlet.clusters_likelihood</a></li>
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.distribution/pyhgf.distribution.hgf_logp.html">pyhgf.distribution.hgf_logp</a></li>
@@ -479,8 +470,6 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.utils/pyhgf.utils.list_branches.html">pyhgf.utils.list_branches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.utils/pyhgf.utils.fill_categorical_state_node.html">pyhgf.utils.fill_categorical_state_node</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.utils/pyhgf.utils.get_update_sequence.html">pyhgf.utils.get_update_sequence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pyhgf.utils/pyhgf.utils.concatenate_networks.html">pyhgf.utils.concatenate_networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pyhgf.utils/pyhgf.utils.add_edges.html">pyhgf.utils.add_edges</a></li>
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.math/pyhgf.math.MultivariateNormal.html">pyhgf.math.MultivariateNormal</a></li>
@@ -635,46 +624,43 @@ random walk. Defaults set all entries to <cite>0.0</cite> (no drift).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pyhgf.model.HGF.__init__" title="pyhgf.model.HGF.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([n_levels, model_type, ...])</p></td>
 <td><p>Parameterization of the HGF model.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_edges</span></code>([kind, parent_idxs, ...])</p></td>
-<td><p>Add a value or volatility coupling link between a set of nodes.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_nodes</span></code>([kind, n_nodes, node_parameters, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_nodes</span></code>([kind, n_nodes, node_parameters, ...])</p></td>
 <td><p>Add new input/state node(s) to the neural network.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_belief_propagation_fn</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_belief_propagation_fn</span></code>()</p></td>
 <td><p>Blank call to the belief propagation function.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_belief_propagation_fn</span></code>([overwrite])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_belief_propagation_fn</span></code>([overwrite])</p></td>
 <td><p>Create the belief propagation function.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_network</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_network</span></code>()</p></td>
 <td><p>Return the attributes, structure and update sequence defining the network.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_custom_sequence</span></code>(update_branches, ...)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_custom_sequence</span></code>(update_branches, ...)</p></td>
 <td><p>Add new observations with custom update sequences.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_data</span></code>(input_data[, time_steps, observed])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_data</span></code>(input_data[, time_steps, observed])</p></td>
 <td><p>Add new observations.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_correlations</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_correlations</span></code>()</p></td>
 <td><p>Plot the heatmap of cross-trajectories correlation.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_network</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_network</span></code>()</p></td>
 <td><p>Visualization of node network using GraphViz.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_nodes</span></code>(node_idxs, **kwargs)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_nodes</span></code>(node_idxs, **kwargs)</p></td>
 <td><p>Plot the node(s) beliefs trajectories.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_trajectories</span></code>(**kwargs)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_trajectories</span></code>(**kwargs)</p></td>
 <td><p>Plot the parameters trajectories.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_update_sequence</span></code>([update_type])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_update_sequence</span></code>([update_type])</p></td>
 <td><p>Generate an update sequence from the network's structure.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">surprise</span></code>([response_function, ...])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">surprise</span></code>([response_function, ...])</p></td>
 <td><p>Surprise of the model conditioned by the response function.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_pandas</span></code>()</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_pandas</span></code>()</p></td>
 <td><p>Export the nodes trajectories and surprise as a Pandas data frame.</p></td>
 </tr>
 </tbody>
