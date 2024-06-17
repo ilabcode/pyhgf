@@ -191,12 +191,13 @@ class Network:
         # this is where the model loops over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
-        _, node_trajectories = scan(
+        last_attributes, node_trajectories = scan(
             self.scan_fn, self.attributes, (input_data, time_steps, observed)
         )
 
         # trajectories of the network attributes a each time point
         self.node_trajectories = node_trajectories
+        self.last_attributes = last_attributes
 
         return self
 
