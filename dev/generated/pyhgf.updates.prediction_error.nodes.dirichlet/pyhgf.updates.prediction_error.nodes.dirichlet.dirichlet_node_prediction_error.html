@@ -553,7 +553,7 @@ document.write(`
 <h1>pyhgf.updates.prediction_error.nodes.dirichlet.dirichlet_node_prediction_error<a class="headerlink" href="#pyhgf-updates-prediction-error-nodes-dirichlet-dirichlet-node-prediction-error" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pyhgf.updates.prediction_error.nodes.dirichlet.dirichlet_node_prediction_error">
-<span class="sig-prename descclassname"><span class="pre">pyhgf.updates.prediction_error.nodes.dirichlet.</span></span><span class="sig-name descname"><span class="pre">dirichlet_node_prediction_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">AdjacencyLists</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/pyhgf/updates/prediction_error/nodes/dirichlet.html#dirichlet_node_prediction_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyhgf.updates.prediction_error.nodes.dirichlet.dirichlet_node_prediction_error" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pyhgf.updates.prediction_error.nodes.dirichlet.</span></span><span class="sig-name descname"><span class="pre">dirichlet_node_prediction_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">AdjacencyLists</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/pyhgf/updates/prediction_error/nodes/dirichlet.html#dirichlet_node_prediction_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyhgf.updates.prediction_error.nodes.dirichlet.dirichlet_node_prediction_error" title="Link to this definition">#</a></dt>
 <dd><p>Prediction error and update the child networks of a Dirichlet process node.</p>
 <p>When receiving a new input, this node chose to either:
 1. Allocate the value to a pre-existing cluster.
@@ -570,9 +570,6 @@ For each node, the index lists the value/volatility parents/children.</p>
 </dd>
 <dt><strong>attributes</strong></dt><dd><p>The attributes of the probabilistic nodes.</p>
 </dd>
-<dt><strong>value</strong></dt><dd><p>The new observed value(s). The input shape should match the input shape
-at the child level.</p>
-</dd>
 <dt><strong>node_idx</strong></dt><dd><p>Pointer to the Dirichlet process input node.</p>
 </dd>
 </dl>
@@ -580,12 +577,6 @@ at the child level.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>attributes</dt><dd><p>The attributes of the probabilistic nodes.</p>
-</dd>
-<dt>edges</dt><dd><p>The edges of the neural network.</p>
-</dd>
-<dt>input_nodes_idx</dt><dd><p>Static input nodes’ parameters for the neural network.</p>
-</dd>
-<dt>dirichlet_node</dt><dd><p>Static parameters of the Dirichlet process node.</p>
 </dd>
 </dl>
 </dd>

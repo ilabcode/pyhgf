@@ -15,6 +15,7 @@
    
       ~Normal.__init__
       ~Normal.base_measure
+      ~Normal.expected_sufficient_statistics
       ~Normal.parameters
       ~Normal.sufficient_statistics
    
