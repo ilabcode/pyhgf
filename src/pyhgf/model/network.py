@@ -1,5 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
+from copy import deepcopy
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
@@ -29,7 +30,7 @@ from pyhgf.utils import (
 
 
 class Network:
-    """A generalised HGF neural network for predictive coding applications.
+    """A predictive coding neural network.
 
     This is the core class to define and manipulate neural networks, that consists in
     1. attributes, 2. structure and 3. update sequences.
@@ -558,24 +559,32 @@ class Network:
             }
         elif "ef-normal" in kind:
             default_parameters = {
-                "nus": 0.0,
-                "xis": jnp.array([0.0, 0.0]),
+                "nus": 3.0,
+                "xis": jnp.array([0.0, 1.0]),
                 "values": 0.0,
-                "observed": 1,
+                "observed": 1.0,
             }
         elif kind == "DP-state":
 
+            if "batch_size" in additional_parameters.keys():
+                batch_size = additional_parameters["batch_size"]
+            elif "batch_size" in node_parameters.keys():
+                batch_size = node_parameters["batch_size"]
+            else:
+                batch_size = 10
+
             default_parameters = {
-                "batch_size": 10,  # number of branches available in the network
-                "n": jnp.zeros(10),  # number of observation in each cluster
+                "batch_size": batch_size,  # number of branches available in the network
+                "n": jnp.zeros(batch_size),  # number of observation in each cluster
                 "n_total": 0,  # the total number of observations in the node
                 "alpha": 1.0,  # concentration parameter for the implied Dirichlet dist.
-                "expected_means": jnp.zeros(10),
-                "expected_precisions": jnp.ones(10),
+                "expected_means": jnp.zeros(batch_size),
+                "expected_sigmas": jnp.ones(batch_size),
                 "sensory_precision": 1.0,
-                "activated": jnp.zeros(10),
+                "activated": jnp.zeros(batch_size),
                 "value_coupling_children": (1.0,),
-                "values": jnp.zeros(1),
+                "values": 0.0,
+                "n_active_cluster": 0,
             }
 
         # Update the default node parameters using keywords args and dictonary
@@ -644,12 +653,12 @@ class Network:
 
             if node_idx == 0:
                 # this is the first node, create the node structure
-                self.attributes = {node_idx: node_parameters}
+                self.attributes = {node_idx: deepcopy(node_parameters)}
                 if input_type is not None:
                     self.inputs = Inputs((node_idx,), (input_type,))
             else:
                 # update the node structure
-                self.attributes[node_idx] = node_parameters
+                self.attributes[node_idx] = deepcopy(node_parameters)
 
                 if input_type is not None:
                     # add information about the new input node in the indexes

@@ -44,12 +44,12 @@ def dirichlet_node_prediction(
     if value_parent_idxs is not None:
         parameters = jnp.array(
             [
-                Normal().parameters(nus=attributes[parent_idx]["nus"])
+                Normal().parameters(xis=attributes[parent_idx]["xis"])
                 for parent_idx in value_parent_idxs
             ]
         )
 
-        attributes[node_idx]["expected_mean"] = parameters[:, 0]
-        attributes[node_idx]["expected_sigma"] = parameters[:, 1]
+        attributes[node_idx]["expected_means"] = parameters[:, 0]
+        attributes[node_idx]["expected_sigmas"] = jnp.sqrt(parameters[:, 1])
 
     return attributes

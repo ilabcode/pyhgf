@@ -36,17 +36,21 @@ class Normal:
     """
 
     def sufficient_statistics(self, x: float):
-        """Compute the sufficient statistics for the univariate normal."""
+        """Sufficient statistics for the univariate normal."""
         return jnp.array([x, x**2])
 
+    def expected_sufficient_statistics(self, mu: float, sigma) -> Array:
+        """Compute expected sufficient statistics from the mean and std."""
+        return jnp.array([mu, mu**2 + sigma**2])
+
     def base_measure(self):
-        """Compute the base measure for the univariate normal."""
+        """Compute the base measure of the univariate normal."""
         return 1 / (jnp.sqrt(2 * jnp.pi))
 
-    def parameters(self, nus: ArrayLike) -> Tuple[float, float]:
-        """Compute the parameter of the distribution from the natural parameters."""
-        mean = nus[0]
-        variance = nus[1] - (mean**2)
+    def parameters(self, xis: ArrayLike) -> Tuple[float, float]:
+        """Get parameters from the expected sufficient statistics."""
+        mean = xis[0]
+        variance = xis[1] - (mean**2)
         return mean, variance
 
 

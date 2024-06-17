@@ -6,12 +6,16 @@ from typing import Dict, Tuple
 import jax.numpy as jnp
 from jax import Array, jit, random
 from jax._src.typing import Array as KeyArray
+from jax.lax import cond
 from jax.scipy.stats.norm import pdf
+from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
+from pyhgf.math import Normal
 from pyhgf.typing import Attributes, Edges
 
 
+@partial(jit, static_argnames=("edges", "node_idx"))
 def dirichlet_node_prediction_error(
     edges: Edges,
     attributes: Dict,
@@ -47,12 +51,6 @@ def dirichlet_node_prediction_error(
     -------
     attributes :
         The attributes of the probabilistic nodes.
-    edges :
-        The edges of the neural network.
-    input_nodes_idx :
-        Static input nodes' parameters for the neural network.
-    dirichlet_node :
-        Static parameters of the Dirichlet process node.
 
     """
     values = attributes[node_idx]["values"]  # the input value
@@ -67,8 +65,8 @@ def dirichlet_node_prediction_error(
     # -------------------------------------------------------------
     cluster_ll = clusters_likelihood(
         value=values,
-        expected_mean=attributes[node_idx]["expected_mean"],
-        expected_sigma=attributes[node_idx]["expected_sigma"],
+        expected_mean=attributes[node_idx]["expected_means"],
+        expected_sigma=attributes[node_idx]["expected_sigmas"],
     )
 
     # set the likelihood to 0 for inactive clusters
@@ -81,8 +79,8 @@ def dirichlet_node_prediction_error(
     candidate_mean, candidate_sigma = get_candidate(
         value=value,
         sensory_precision=sensory_precision,
-        expected_mean=attributes[node_idx]["expected_mean"],
-        expected_sigma=attributes[node_idx]["expected_sigma"],
+        expected_mean=attributes[node_idx]["expected_means"],
+        expected_sigma=attributes[node_idx]["expected_sigmas"],
     )
 
     # get the likelihood under this candidate
@@ -101,27 +99,128 @@ def dirichlet_node_prediction_error(
     # probability to draw a new cluster
     candidate_ll *= alpha / (alpha + n_total)
 
-    best_idx, best_val = jnp.argmax(cluster_ll), jnp.max(cluster_ll)
+    best_val = jnp.max(cluster_ll)
 
     # set all cluster to non-observed by default
     for parent_idx in edges[node_idx].value_parents:  # type:ignore
-        attributes[parent_idx]["observed"] = 0.0
+        attributes[parent_idx]["observed"] = 0
 
-    if best_val >= candidate_ll:
+    # get the index of the cluster (!= the node index)
+    # depending on whether a new cluster is created or updated
+    cluster_idx = jnp.where(
+        best_val >= candidate_ll,
+        jnp.argmax(cluster_ll),
+        attributes[node_idx]["n_active_cluster"],
+    )
 
-        # activate the corresponding branch and pass the value
-        active_idx = edges[node_idx].value_parents[best_idx]  # type:ignore
-        attributes[active_idx]["observed"] = 1.0
-        attributes[active_idx]["values"] = value
+    update_fn = Partial(
+        update_cluster,
+        edges=edges,
+        node_idx=node_idx,
+    )
 
-    else:
+    create_fn = Partial(
+        create_cluster,
+        edges=edges,
+        node_idx=node_idx,
+    )
 
-        # activate a new cluster
-        attributes[node_idx]["n_active_cluster"] += 1
-        active_idx = attributes[node_idx]["n_active_cluster"]
-        attributes[node_idx]["activated"].at[active_idx].set(1.0)
-        attributes[active_idx]["observed"] = 1.0
-        attributes[active_idx]["values"] = value
+    # apply either cluster update or cluster creation
+    operands = attributes, cluster_idx, value, (candidate_mean, candidate_sigma)
+
+    attributes = cond(best_val >= candidate_ll, update_fn, create_fn, operands)
+
+    attributes[node_idx]["n_total"] += 1
+
+    return attributes
+
+
+@partial(jit, static_argnames=("edges", "node_idx"))
+def update_cluster(operands: Tuple, edges: Edges, node_idx: int):
+    """Update an existing cluster.
+
+    Parameters
+    ----------
+    operands :
+        Non-static parameters.
+    edges :
+        The edges of the neural network as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index lists the value/volatility parents/children.
+    node_idx :
+        Pointer to the Dirichlet process input node.
+
+    Returns
+    -------
+    attributes :
+        The attributes of the probabilistic nodes.
+
+    """
+    attributes, cluster_idx, value, _ = operands
+
+    # activate the corresponding branch and pass the value
+    for i, value_parent_idx in enumerate(edges[node_idx].value_parents):  # type: ignore
+
+        attributes[value_parent_idx]["observed"] = jnp.where(cluster_idx == i, 1.0, 0.0)
+        attributes[value_parent_idx]["values"] = value * jnp.where(
+            cluster_idx == i, 1.0, 0.0
+        )
+
+    attributes[node_idx]["n"] = (
+        attributes[node_idx]["n"]
+        .at[cluster_idx]
+        .set(attributes[node_idx]["n"][cluster_idx] + 1.0)
+    )
+
+    return attributes
+
+
+@partial(jit, static_argnames=("edges", "node_idx"))
+def create_cluster(operands: Tuple, edges: Edges, node_idx: int):
+    """Create a new cluster.
+
+    Parameters
+    ----------
+    operands :
+        Non-static parameters.
+    edges :
+        The edges of the neural network as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
+        For each node, the index lists the value/volatility parents/children.
+    node_idx :
+        Pointer to the Dirichlet process input node.
+
+    Returns
+    -------
+    attributes :
+        The attributes of the probabilistic nodes.
+
+    """
+    attributes, cluster_idx, value, (candidate_mean, candidate_sigma) = operands
+
+    # creating a new cluster
+    attributes[node_idx]["activated"] = (
+        attributes[node_idx]["activated"].at[cluster_idx].set(1)
+    )
+
+    for i, value_parent_idx in enumerate(edges[node_idx].value_parents):  # type: ignore
+
+        attributes[value_parent_idx]["observed"] = jnp.where(cluster_idx == i, 1.0, 0.0)
+        attributes[value_parent_idx]["values"] = value * jnp.where(
+            cluster_idx == i, 1.0, 0.0
+        )
+
+        # initialize the new cluster using candidate values
+        attributes[value_parent_idx]["xis"] = jnp.where(
+            cluster_idx == i,
+            Normal().expected_sufficient_statistics(
+                mu=candidate_mean, sigma=candidate_sigma
+            ),
+            attributes[value_parent_idx]["xis"],
+        )
+
+    attributes[node_idx]["n"] = attributes[node_idx]["n"].at[cluster_idx].set(1.0)
+    attributes[node_idx]["n_active_cluster"] += 1
 
     return attributes
 
@@ -212,7 +311,7 @@ def likely_cluster_proposal(
     sigma_mu_G0 :
         The standard deviation of mean of the base distribution.
     sigma_pi_G0 :
-        The standard deviation of the precision of the base distribution.
+        The standard deviation of the standard deviation of the base distribution.
     expected_mean :
         Pre-existing clusters means.
     expected_sigma :
@@ -255,7 +354,8 @@ def likely_cluster_proposal(
 
     # standardize the measure of cluster specificity (ratio)
     ratio = new_likelihood / (new_likelihood + pre_existing_likelihood)
-
+    ratio -= ratio.min()
+    ratio /= ratio.max()
     weights = ratio
 
     # 2 - Cluster isolation
@@ -269,8 +369,18 @@ def likely_cluster_proposal(
             pdf(mu_i, mu_i, sigma_i) + pdf(mu_i, new_mu, new_sigma)
         )
         cluster_isolation *= ratio
+    cluster_isolation -= cluster_isolation.min()
+    cluster_isolation /= cluster_isolation.max()
 
     weights *= cluster_isolation
+
+    # 3 - Spread of the cluster
+    # -------------------------
+    # large clusters should be favored over small clusters
+    cluster_spread = pdf(1 / (new_sigma**2), 0.0, 5.0)
+    cluster_spread -= cluster_spread.min()
+    cluster_spread /= cluster_spread.max()
+    weights *= cluster_spread
 
     return new_mu, new_sigma, weights
 
