@@ -19,7 +19,6 @@ from pyhgf.typing import Attributes, Edges
 def dirichlet_node_prediction_error(
     edges: Edges,
     attributes: Dict,
-    value: float,
     node_idx: int,
     **args,
 ) -> Attributes:
@@ -41,9 +40,6 @@ def dirichlet_node_prediction_error(
         For each node, the index lists the value/volatility parents/children.
     attributes :
         The attributes of the probabilistic nodes.
-    value :
-        The new observed value(s). The input shape should match the input shape
-        at the child level.
     node_idx :
         Pointer to the Dirichlet process input node.
 
@@ -77,7 +73,7 @@ def dirichlet_node_prediction_error(
 
     # find the best cluster candidate given the new observation
     candidate_mean, candidate_sigma = get_candidate(
-        value=value,
+        value=values,
         sensory_precision=sensory_precision,
         expected_mean=attributes[node_idx]["expected_means"],
         expected_sigma=attributes[node_idx]["expected_sigmas"],
@@ -85,7 +81,7 @@ def dirichlet_node_prediction_error(
 
     # get the likelihood under this candidate
     candidate_ll = clusters_likelihood(
-        value=value,
+        value=values,
         expected_mean=candidate_mean,
         expected_sigma=candidate_sigma,
     )
@@ -126,7 +122,7 @@ def dirichlet_node_prediction_error(
     )
 
     # apply either cluster update or cluster creation
-    operands = attributes, cluster_idx, value, (candidate_mean, candidate_sigma)
+    operands = attributes, cluster_idx, values, (candidate_mean, candidate_sigma)
 
     attributes = cond(best_val >= candidate_ll, update_fn, create_fn, operands)
 
@@ -136,7 +132,7 @@ def dirichlet_node_prediction_error(
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def update_cluster(operands: Tuple, edges: Edges, node_idx: int):
+def update_cluster(operands: Tuple, edges: Edges, node_idx: int) -> Attributes:
     """Update an existing cluster.
 
     Parameters
@@ -162,9 +158,7 @@ def update_cluster(operands: Tuple, edges: Edges, node_idx: int):
     for i, value_parent_idx in enumerate(edges[node_idx].value_parents):  # type: ignore
 
         attributes[value_parent_idx]["observed"] = jnp.where(cluster_idx == i, 1.0, 0.0)
-        attributes[value_parent_idx]["values"] = value * jnp.where(
-            cluster_idx == i, 1.0, 0.0
-        )
+        attributes[value_parent_idx]["values"] = value
 
     attributes[node_idx]["n"] = (
         attributes[node_idx]["n"]
@@ -176,7 +170,7 @@ def update_cluster(operands: Tuple, edges: Edges, node_idx: int):
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def create_cluster(operands: Tuple, edges: Edges, node_idx: int):
+def create_cluster(operands: Tuple, edges: Edges, node_idx: int) -> Attributes:
     """Create a new cluster.
 
     Parameters
@@ -205,10 +199,8 @@ def create_cluster(operands: Tuple, edges: Edges, node_idx: int):
 
     for i, value_parent_idx in enumerate(edges[node_idx].value_parents):  # type: ignore
 
-        attributes[value_parent_idx]["observed"] = jnp.where(cluster_idx == i, 1.0, 0.0)
-        attributes[value_parent_idx]["values"] = value * jnp.where(
-            cluster_idx == i, 1.0, 0.0
-        )
+        attributes[value_parent_idx]["observed"] = 0.0
+        attributes[value_parent_idx]["values"] = value
 
         # initialize the new cluster using candidate values
         attributes[value_parent_idx]["xis"] = jnp.where(
