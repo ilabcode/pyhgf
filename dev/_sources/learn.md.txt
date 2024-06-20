@@ -178,17 +178,6 @@ A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit
 
 ::::
 
-### Non-parametric predictive coding
-
-::::{grid} 1 1 2 3
-
-:::{grid-item-card} Self-organizing neural network using Dirichlet Process nodes
-:link: example_3
-:link-type: ref
-
-:::
-::::
-
 ## Exercises
 
 Hand-on exercises to build intuition around the main components of the HGF and use an agent that optimizes its action under noisy observations.

@@ -572,7 +572,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
     <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xs</span><span class="p">):</span>
-    <span class="n">xi</span> <span class="o">=</span> <span class="n">xi</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">nu</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">Normal</span><span class="p">()</span><span class="o">.</span><span class="n">sufficient_statistics</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x_i</span><span class="p">)</span> <span class="o">-</span> <span class="n">xi</span><span class="p">)</span>
+    <span class="n">xi</span> <span class="o">=</span> <span class="n">xi</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">nu</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">Normal</span><span class="o">.</span><span class="n">sufficient_statistics</span><span class="p">(</span><span class="n">x_i</span><span class="p">)</span> <span class="o">-</span> <span class="n">xi</span><span class="p">)</span>
     <span class="n">nu</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">999</span><span class="p">]:</span>
@@ -657,7 +657,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/c03fa329bdbcb9332b8335107d61c97b81e77ffcbb450089b294a4555857bce6.svg" src="../_images/c03fa329bdbcb9332b8335107d61c97b81e77ffcbb450089b294a4555857bce6.svg" /></div>
+<img alt="../_images/b4b35bb1fc9fda6ac103cc2d2303c4c42b34b99aa31991f3ed8bf7323c747ca2.svg" src="../_images/b4b35bb1fc9fda6ac103cc2d2303c4c42b34b99aa31991f3ed8bf7323c747ca2.svg" /></div>
 </div>
 <p>We then create a time series to filter and pass it to the network using different values for the parameter <span class="math notranslate nohighlight">\(\nu\)</span>, representing how much past values should influence the Bayesian update.</p>
 <div class="cell docutils container">
@@ -680,7 +680,9 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
     <span class="c1"># set the learning rate</span>
     <span class="n">generalised_filter</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;nus&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nu</span>
 
-    <span class="n">means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">generalised_filter</span><span class="o">.</span><span class="n">input_data</span><span class="p">(</span><span class="n">input_data</span><span class="o">=</span><span class="n">xs</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span><span class="o">.</span><span class="n">x_1_xis_0</span><span class="p">)</span>
+    <span class="n">means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">generalised_filter</span><span class="o">.</span><span class="n">input_data</span><span class="p">(</span><span class="n">input_data</span><span class="o">=</span><span class="n">xs</span><span class="p">)</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span><span class="o">.</span><span class="n">x_1_xis_0</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -793,7 +795,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># get the sufficient statistics from the first observation to parametrize the model</span>
 <span class="n">sufficient_statistics</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span>
-    <span class="n">MultivariateNormal</span><span class="p">()</span><span class="o">.</span><span class="n">sufficient_statistics</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">input_data</span>
+    <span class="n">MultivariateNormal</span><span class="o">.</span><span class="n">sufficient_statistics</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">input_data</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -968,10 +970,10 @@ pyhgf : 0.1.2
 jax   : 0.4.30
 jaxlib: 0.4.30
 
+matplotlib: 3.9.0
+seaborn   : 0.13.2
 jax       : 0.4.30
 numpy     : 1.26.0
-seaborn   : 0.13.2
-matplotlib: 3.9.0
 
 Watermark: 2.4.3
 </pre></div>

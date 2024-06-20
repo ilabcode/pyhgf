@@ -447,7 +447,6 @@ document.write(`
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span>
 
-<span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 <span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">jit</span>
 
 <span class="kn">from</span> <span class="nn">pyhgf.typing</span> <span class="kn">import</span> <span class="n">Attributes</span><span class="p">,</span> <span class="n">Edges</span>
@@ -496,14 +495,11 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># update the hyperparameter vectors</span>
-    <span class="n">xis</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xis&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;nus&quot;</span><span class="p">]))</span> <span class="o">*</span> <span class="p">(</span>
-        <span class="n">sufficient_stats_fn</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xis&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span>
+        <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;nus&quot;</span><span class="p">])</span>
+    <span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+        <span class="n">sufficient_stats_fn</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
         <span class="o">-</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xis&quot;</span><span class="p">]</span>
-    <span class="p">)</span>
-
-    <span class="c1"># blank update in the case of unobserved value</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-        <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;observed&quot;</span><span class="p">],</span> <span class="n">xis</span><span class="p">,</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xis&quot;</span><span class="p">]</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">attributes</span></div>
