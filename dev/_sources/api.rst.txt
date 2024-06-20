@@ -94,6 +94,16 @@ Continuous nodes
     predict_precision
     continuous_node_prediction
 
+Dirichlet processes
+-------------------
+
+.. currentmodule:: pyhgf.updates.prediction.dirichlet
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction.dirichlet
+
+    dirichlet_node_prediction
+
 Prediction error steps
 ======================
 
@@ -160,6 +170,19 @@ Continuous state nodes
     continuous_node_value_prediction_error
     continuous_node_volatility_prediction_error
     continuous_node_prediction_error
+
+Dirichlet processes
+^^^^^^^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.nodes.dirichlet
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.nodes.dirichlet
+
+    dirichlet_node_prediction_error
+    get_candidate
+    likely_cluster_proposal
+    clusters_likelihood
 
 Distribution
 ************
@@ -238,6 +261,8 @@ Utilities for manipulating neural networks.
    list_branches
    fill_categorical_state_node
    get_update_sequence
+   concatenate_networks
+   add_edges
 
 Math
 ****

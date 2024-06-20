@@ -445,7 +445,7 @@ document.write(`
 <span></span><span class="c1"># Author: Nicolas Legrand &lt;nicolas.legrand@cas.au.dk&gt;</span>
 
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -455,7 +455,7 @@ document.write(`
 <span class="kn">from</span> <span class="nn">jax.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
 
 <span class="kn">from</span> <span class="nn">pyhgf.math</span> <span class="kn">import</span> <span class="n">Normal</span><span class="p">,</span> <span class="n">binary_surprise</span><span class="p">,</span> <span class="n">gaussian_surprise</span>
-<span class="kn">from</span> <span class="nn">pyhgf.typing</span> <span class="kn">import</span> <span class="n">AdjacencyLists</span><span class="p">,</span> <span class="n">Attributes</span><span class="p">,</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">UpdateSequence</span>
+<span class="kn">from</span> <span class="nn">pyhgf.typing</span> <span class="kn">import</span> <span class="n">AdjacencyLists</span><span class="p">,</span> <span class="n">Attributes</span><span class="p">,</span> <span class="n">Edges</span><span class="p">,</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">UpdateSequence</span>
 <span class="kn">from</span> <span class="nn">pyhgf.updates.posterior.binary</span> <span class="kn">import</span> <span class="n">binary_node_update_infinite</span>
 <span class="kn">from</span> <span class="nn">pyhgf.updates.posterior.categorical</span> <span class="kn">import</span> <span class="n">categorical_input_update</span>
 <span class="kn">from</span> <span class="nn">pyhgf.updates.posterior.continuous</span> <span class="kn">import</span> <span class="p">(</span>
@@ -465,6 +465,7 @@ document.write(`
 <span class="kn">from</span> <span class="nn">pyhgf.updates.posterior.exponential</span> <span class="kn">import</span> <span class="n">posterior_update_exponential_family</span>
 <span class="kn">from</span> <span class="nn">pyhgf.updates.prediction.binary</span> <span class="kn">import</span> <span class="n">binary_state_node_prediction</span>
 <span class="kn">from</span> <span class="nn">pyhgf.updates.prediction.continuous</span> <span class="kn">import</span> <span class="n">continuous_node_prediction</span>
+<span class="kn">from</span> <span class="nn">pyhgf.updates.prediction.dirichlet</span> <span class="kn">import</span> <span class="n">dirichlet_node_prediction</span>
 <span class="kn">from</span> <span class="nn">pyhgf.updates.prediction_error.inputs.binary</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">binary_input_prediction_error_infinite_precision</span><span class="p">,</span>
 <span class="p">)</span>
@@ -477,6 +478,9 @@ document.write(`
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyhgf.updates.prediction_error.nodes.continuous</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">continuous_node_prediction_error</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pyhgf.updates.prediction_error.nodes.dirichlet</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">dirichlet_node_prediction_error</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -780,12 +784,14 @@ document.write(`
     <span class="n">node_without_update</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_nodes</span><span class="p">)]</span>
 
     <span class="c1"># start by injecting the observations in all input nodes</span>
+    <span class="c1"># ------------------------------------------------------</span>
     <span class="k">for</span> <span class="n">input_idx</span><span class="p">,</span> <span class="n">kind</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">idx</span><span class="p">,</span> <span class="n">network</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">kind</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">update_fn</span> <span class="o">=</span> <span class="n">continuous_input_prediction_error</span>
             <span class="n">update_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">input_idx</span><span class="p">,</span> <span class="n">update_fn</span><span class="p">))</span>
 
         <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+
             <span class="c1"># add the update steps for the binary state node as well</span>
             <span class="n">binary_state_idx</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">input_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
 
@@ -814,13 +820,19 @@ document.write(`
             <span class="n">update_fn</span> <span class="o">=</span> <span class="n">generic_input_prediction_error</span>
             <span class="n">update_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">input_idx</span><span class="p">,</span> <span class="n">update_fn</span><span class="p">))</span>
 
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">update_fn</span> <span class="o">=</span> <span class="n">dirichlet_node_prediction_error</span>
+            <span class="n">update_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">input_idx</span><span class="p">,</span> <span class="n">update_fn</span><span class="p">))</span>
+
         <span class="c1"># add the PE step to the sequence</span>
         <span class="n">node_without_pe</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">input_idx</span><span class="p">)</span>
 
         <span class="c1"># input node does not need to update the posterior</span>
         <span class="n">node_without_update</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">input_idx</span><span class="p">)</span>
 
+    <span class="c1"># prediction errors and posterior updates</span>
     <span class="c1"># will fail if the structure of the network does not allow a consistent update order</span>
+    <span class="c1"># ----------------------------------------------------------------------------------</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">no_update</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -858,9 +870,15 @@ document.write(`
                     <span class="c1"># for the exponential family node</span>
                     <span class="n">ef_update</span> <span class="o">=</span> <span class="n">Partial</span><span class="p">(</span>
                         <span class="n">posterior_update_exponential_family</span><span class="p">,</span>
-                        <span class="n">sufficient_stats_fn</span><span class="o">=</span><span class="n">Normal</span><span class="o">.</span><span class="n">sufficient_statistics</span><span class="p">,</span>
+                        <span class="n">sufficient_stats_fn</span><span class="o">=</span><span class="n">Normal</span><span class="p">()</span><span class="o">.</span><span class="n">sufficient_statistics</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="n">update_fn</span> <span class="o">=</span> <span class="n">ef_update</span>
+
+                <span class="k">elif</span> <span class="n">network</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">node_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+
+                    <span class="n">update_fn</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="c1"># the prediction sequence is the update sequence in reverse order</span>
+                    <span class="n">prediction_sequence</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">dirichlet_node_prediction</span><span class="p">))</span>
 
                 <span class="n">update_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">idx</span><span class="p">,</span> <span class="n">update_fn</span><span class="p">))</span>
                 <span class="n">node_without_update</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
@@ -883,15 +901,20 @@ document.write(`
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># if this node has been updated</span>
                 <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">node_without_update</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="n">network</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">node_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">update_fn</span> <span class="o">=</span> <span class="n">continuous_node_prediction_error</span>
+                    <span class="k">elif</span> <span class="n">network</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">node_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                        <span class="n">update_fn</span> <span class="o">=</span> <span class="n">dirichlet_node_prediction_error</span>
+
                     <span class="n">no_update</span> <span class="o">=</span> <span class="kc">False</span>
-                    <span class="n">update_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">idx</span><span class="p">,</span> <span class="n">continuous_node_prediction_error</span><span class="p">))</span>
+                    <span class="n">update_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">idx</span><span class="p">,</span> <span class="n">update_fn</span><span class="p">))</span>
                     <span class="n">node_without_pe</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">node_without_pe</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">node_without_update</span><span class="p">):</span>
             <span class="k">break</span>
 
         <span class="k">if</span> <span class="n">no_update</span><span class="p">:</span>
-            <span class="k">break</span>
             <span class="k">raise</span> <span class="ne">Warning</span><span class="p">(</span>
                 <span class="s2">&quot;The structure of the network cannot be updated consistently.&quot;</span>
             <span class="p">)</span>
@@ -905,7 +928,10 @@ document.write(`
             <span class="c1"># create a new sequence step and add it to the list</span>
             <span class="n">prediction_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">idx</span><span class="p">,</span> <span class="n">categorical_input_update</span><span class="p">))</span>
 
-    <span class="k">return</span> <span class="n">prediction_sequence</span></div>
+    <span class="c1"># remove None steps and return the update sequence</span>
+    <span class="n">sequence</span> <span class="o">=</span> <span class="p">[</span><span class="n">update</span> <span class="k">for</span> <span class="n">update</span> <span class="ow">in</span> <span class="n">prediction_sequence</span> <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">sequence</span></div>
 
 
 
@@ -1058,6 +1084,213 @@ document.write(`
     <span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">trajectories_df</span>
+
+
+<div class="viewcode-block" id="concatenate_networks">
+<a class="viewcode-back" href="../../generated/pyhgf.utils/pyhgf.utils.concatenate_networks.html#pyhgf.utils.concatenate_networks">[docs]</a>
+<span class="k">def</span> <span class="nf">concatenate_networks</span><span class="p">(</span><span class="n">attributes_1</span><span class="p">,</span> <span class="n">attributes_2</span><span class="p">,</span> <span class="n">edges_1</span><span class="p">,</span> <span class="n">edges_2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concatenate two networks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    attributes_1 :</span>
+<span class="sd">        The attributes of the first network.</span>
+<span class="sd">    attributes_2 :</span>
+<span class="sd">        The attributes of the second network.</span>
+<span class="sd">    edges_1 :</span>
+<span class="sd">        The edges of the first network.</span>
+<span class="sd">    edges_2 :</span>
+<span class="sd">        The edges of the second network.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    attributes :</span>
+<span class="sd">        The attribute of the concatenated networks.</span>
+<span class="sd">    edges :</span>
+<span class="sd">        The edges of the concatenated networks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_nodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">attributes_2</span><span class="p">)</span>
+    <span class="n">edges_1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges_1</span><span class="p">)</span>
+    <span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">attributes_1</span><span class="p">)):</span>
+        <span class="c1"># update the attributes</span>
+        <span class="n">attributes</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_nodes</span><span class="p">]</span> <span class="o">=</span> <span class="n">attributes_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># update the edges</span>
+        <span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">AdjacencyLists</span><span class="p">(</span>
+            <span class="n">value_parents</span><span class="o">=</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">([</span><span class="n">e</span> <span class="o">+</span> <span class="n">n_nodes</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span><span class="p">)])</span>
+                <span class="k">if</span> <span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+            <span class="n">volatility_parents</span><span class="o">=</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">([</span><span class="n">e</span> <span class="o">+</span> <span class="n">n_nodes</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">volatility_parents</span><span class="p">)])</span>
+                <span class="k">if</span> <span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">volatility_parents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+            <span class="n">value_children</span><span class="o">=</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">([</span><span class="n">e</span> <span class="o">+</span> <span class="n">n_nodes</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value_children</span><span class="p">)])</span>
+                <span class="k">if</span> <span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value_children</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+            <span class="n">volatility_children</span><span class="o">=</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">([</span><span class="n">e</span> <span class="o">+</span> <span class="n">n_nodes</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">volatility_children</span><span class="p">)])</span>
+                <span class="k">if</span> <span class="n">edges_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">volatility_children</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="n">edges_1</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">edges_1</span><span class="p">)</span>
+
+    <span class="n">attributes</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">attributes_2</span><span class="p">,</span> <span class="o">**</span><span class="n">attributes</span><span class="p">}</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">edges_2</span> <span class="o">+</span> <span class="n">edges_1</span>
+
+    <span class="k">return</span> <span class="n">attributes</span><span class="p">,</span> <span class="n">edges</span></div>
+
+
+
+<div class="viewcode-block" id="add_edges">
+<a class="viewcode-back" href="../../generated/pyhgf.utils/pyhgf.utils.add_edges.html#pyhgf.utils.add_edges">[docs]</a>
+<span class="k">def</span> <span class="nf">add_edges</span><span class="p">(</span>
+    <span class="n">attributes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+    <span class="n">edges</span><span class="p">:</span> <span class="n">Edges</span><span class="p">,</span>
+    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+    <span class="n">parent_idxs</span><span class="o">=</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+    <span class="n">children_idxs</span><span class="o">=</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+    <span class="n">coupling_strengths</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a value or volatility coupling link between a set of nodes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    attributes :</span>
+<span class="sd">        Attributes of the neural network.</span>
+<span class="sd">    edges :</span>
+<span class="sd">        Edges of the neural network.</span>
+<span class="sd">    kind :</span>
+<span class="sd">        The kind of coupling can be `&quot;value&quot;` or `&quot;volatility&quot;`.</span>
+<span class="sd">    parent_idxs :</span>
+<span class="sd">        The index(es) of the parent node(s).</span>
+<span class="sd">    children_idxs :</span>
+<span class="sd">        The index(es) of the children node(s).</span>
+<span class="sd">    coupling_strengths :</span>
+<span class="sd">        The coupling strength between the parents and children.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;volatility&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The kind of coupling should be value or volatility, got </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">children_idxs</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">children_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">children_idxs</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">children_idxs</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent_idxs</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">parent_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">parent_idxs</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent_idxs</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coupling_strengths</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">coupling_strengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">coupling_strengths</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coupling_strengths</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">coupling_strengths</span> <span class="o">=</span> <span class="p">[</span><span class="n">coupling_strengths</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coupling_strengths</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+
+    <span class="n">edges_as_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+    <span class="c1"># update the parent nodes</span>
+    <span class="c1"># -----------------------</span>
+    <span class="k">for</span> <span class="n">parent_idx</span> <span class="ow">in</span> <span class="n">parent_idxs</span><span class="p">:</span>
+        <span class="c1"># unpack the parent&#39;s edges</span>
+        <span class="p">(</span>
+            <span class="n">node_type</span><span class="p">,</span>
+            <span class="n">value_parents</span><span class="p">,</span>
+            <span class="n">volatility_parents</span><span class="p">,</span>
+            <span class="n">value_children</span><span class="p">,</span>
+            <span class="n">volatility_children</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">edges_as_list</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value_children</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">value_children</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">children_idxs</span><span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">][</span><span class="s2">&quot;value_coupling_children&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">coupling_strengths</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value_children</span> <span class="o">=</span> <span class="n">value_children</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">children_idxs</span><span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">][</span><span class="s2">&quot;value_coupling_children&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">coupling_strengths</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;volatility&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">volatility_children</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">volatility_children</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">children_idxs</span><span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_children&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">coupling_strengths</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">volatility_children</span> <span class="o">=</span> <span class="n">volatility_children</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">children_idxs</span><span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_children&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">coupling_strengths</span>
+                <span class="p">)</span>
+
+        <span class="c1"># save the updated edges back</span>
+        <span class="n">edges_as_list</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">AdjacencyLists</span><span class="p">(</span>
+            <span class="n">node_type</span><span class="p">,</span>
+            <span class="n">value_parents</span><span class="p">,</span>
+            <span class="n">volatility_parents</span><span class="p">,</span>
+            <span class="n">value_children</span><span class="p">,</span>
+            <span class="n">volatility_children</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># update the children nodes</span>
+    <span class="c1"># -------------------------</span>
+    <span class="k">for</span> <span class="n">children_idx</span> <span class="ow">in</span> <span class="n">children_idxs</span><span class="p">:</span>
+        <span class="c1"># unpack this node&#39;s edges</span>
+        <span class="p">(</span>
+            <span class="n">node_type</span><span class="p">,</span>
+            <span class="n">value_parents</span><span class="p">,</span>
+            <span class="n">volatility_parents</span><span class="p">,</span>
+            <span class="n">value_children</span><span class="p">,</span>
+            <span class="n">volatility_children</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">edges_as_list</span><span class="p">[</span><span class="n">children_idx</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value_parents</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">value_parents</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parent_idxs</span><span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">children_idx</span><span class="p">][</span><span class="s2">&quot;value_coupling_parents&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">coupling_strengths</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value_parents</span> <span class="o">=</span> <span class="n">value_parents</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parent_idxs</span><span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">children_idx</span><span class="p">][</span><span class="s2">&quot;value_coupling_parents&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">coupling_strengths</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;volatility&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">volatility_parents</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">volatility_parents</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parent_idxs</span><span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">children_idx</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_parents&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">coupling_strengths</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">volatility_parents</span> <span class="o">=</span> <span class="n">volatility_parents</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parent_idxs</span><span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">children_idx</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_parents&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">coupling_strengths</span>
+                <span class="p">)</span>
+
+        <span class="c1"># save the updated edges back</span>
+        <span class="n">edges_as_list</span><span class="p">[</span><span class="n">children_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">AdjacencyLists</span><span class="p">(</span>
+            <span class="n">node_type</span><span class="p">,</span>
+            <span class="n">value_parents</span><span class="p">,</span>
+            <span class="n">volatility_parents</span><span class="p">,</span>
+            <span class="n">value_children</span><span class="p">,</span>
+            <span class="n">volatility_children</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># convert the list back to a tuple</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">edges_as_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">attributes</span><span class="p">,</span> <span class="n">edges</span></div>
+
 </pre></div>
 
                 </article>
