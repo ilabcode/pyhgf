@@ -17,11 +17,13 @@ class MultivariateNormal:
 
     """
 
-    def sufficient_statistics(self, x: ArrayLike):
+    @staticmethod
+    def sufficient_statistics(x: ArrayLike) -> Array:
         """Compute the sufficient statistics for the multivariate normal."""
         return jnp.hstack([x, jnp.outer(x, x)[jnp.tril_indices(x.shape[0])]])
 
-    def base_measure(self, k: int):
+    @staticmethod
+    def base_measure(k: int) -> float:
         """Compute the base measures for the multivariate normal."""
         return (2 * jnp.pi) ** (-k / 2)
 
@@ -35,26 +37,30 @@ class Normal:
 
     """
 
-    def sufficient_statistics(self, x: float):
+    @staticmethod
+    def sufficient_statistics(x: float) -> Array:
         """Sufficient statistics for the univariate normal."""
         return jnp.array([x, x**2])
 
-    def expected_sufficient_statistics(self, mu: float, sigma) -> Array:
+    @staticmethod
+    def expected_sufficient_statistics(mu: float, sigma) -> Array:
         """Compute expected sufficient statistics from the mean and std."""
         return jnp.array([mu, mu**2 + sigma**2])
 
-    def base_measure(self):
+    @staticmethod
+    def base_measure() -> float:
         """Compute the base measure of the univariate normal."""
         return 1 / (jnp.sqrt(2 * jnp.pi))
 
-    def parameters(self, xis: ArrayLike) -> Tuple[float, float]:
+    @staticmethod
+    def parameters(xis: ArrayLike) -> Tuple[float, float]:
         """Get parameters from the expected sufficient statistics."""
         mean = xis[0]
         variance = xis[1] - (mean**2)
         return mean, variance
 
 
-def gaussian_predictive_distribution(x, xi, nu):
+def gaussian_predictive_distribution(x: float, xi: ArrayLike, nu: float) -> float:
     r"""Density of the Gaussian-predictive distribution.
 
     This distribution is parametrized by hyperparameters from the exponential family as:
@@ -247,7 +253,7 @@ def binary_surprise_finite_precision(
     expected_mean: Union[ArrayLike, float],
     expected_precision: Union[ArrayLike, float],
     eta0: Union[ArrayLike, float] = 0.0,
-    eta1: Union[ArrayLike, float] = 0.0,
+    eta1: Union[ArrayLike, float] = 1.0,
 ) -> Array:
     r"""Compute the binary surprise with finite precision.
 
