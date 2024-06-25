@@ -114,39 +114,6 @@ def beliefs_propagation(
     )  # ("carryover", "accumulated")
 
 
-def trim_sequence(
-    exclude_node_idxs: List, update_sequence: UpdateSequence, edges: Tuple
-) -> UpdateSequence:
-    """Remove steps from an update sequence that depends on a set of nodes.
-
-    Parameters
-    ----------
-    exclude_node_idxs :
-        A list of node indexes. The nodes can be input nodes or any other node in the
-        network.
-    update_sequence :
-        The sequence of updates that will be applied to the node structure.
-    edges :
-        The nodes structure.
-
-    Returns
-    -------
-    trimmed_update_sequence :
-        The update sequence without the update steps for nodes depending on the root
-        list.
-
-    """
-    # list the nodes that depend on the root indexes
-    branch_list = list_branches(node_idxs=exclude_node_idxs, edges=edges)
-
-    # remove the update steps that are targetting the excluded nodes
-    trimmed_update_sequence = tuple(
-        [seq for seq in update_sequence if seq[0] not in branch_list]
-    )
-
-    return trimmed_update_sequence
-
-
 def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List:
     """Return the branch of a network from a given set of root nodes.
 

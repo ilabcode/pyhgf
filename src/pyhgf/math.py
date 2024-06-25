@@ -280,3 +280,8 @@ def binary_surprise_finite_precision(
         expected_mean * gaussian_density(value, eta1, expected_precision)
         + (1 - expected_mean) * gaussian_density(value, eta0, expected_precision)
     )
+
+
+def sigmoid_inverse_temperature(x, temperature):
+    """Compute the sigmoid response function with inverse temperature parameter."""
+    return (x**temperature) / (x**temperature + (1 - x) ** temperature)
