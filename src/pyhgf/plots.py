@@ -274,10 +274,31 @@ def plot_network(network: "Network") -> "Source":
         )
 
     # create the rest of nodes
-    for i in range(len(network.edges)):
-        # only if node is not an input node
-        if i not in network.inputs.idx:
-            graphviz_structure.node(f"x_{i}", label=str(i), shape="circle")
+    for idx in range(len(network.edges)):
+
+        if network.edges[idx].node_type == 2:
+            # Continuous state nore
+            graphviz_structure.node(f"x_{idx}", label=str(idx), shape="circle")
+
+        elif network.edges[idx].node_type == 3:
+            # Exponential family state nore
+            graphviz_structure.node(
+                f"x_{idx}",
+                label=f"EF-{idx}",
+                style="filled",
+                shape="circle",
+                fillcolor="#ced6e4",
+            )
+
+        elif network.edges[idx].node_type == 4:
+            # Dirichlet PRocess state node
+            graphviz_structure.node(
+                f"x_{idx}",
+                label=f"DP-{idx}",
+                style="filled",
+                shape="doublecircle",
+                fillcolor="#e2d8c1",
+            )
 
     # connect value parents
     for i, index in enumerate(network.edges):

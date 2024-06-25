@@ -5,6 +5,7 @@ from unittest import TestCase
 
 import jax.numpy as jnp
 
+from pyhgf.model import Network
 from pyhgf.typing import AdjacencyLists, Inputs
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
@@ -16,7 +17,7 @@ from pyhgf.updates.prediction_error.inputs.continuous import (
 from pyhgf.utils import beliefs_propagation, list_branches
 
 
-class TestNetworks(TestCase):
+class TestUtils(TestCase):
     def test_beliefs_propagation(self):
         """Test the loop_inputs function"""
 
@@ -109,7 +110,7 @@ class TestNetworks(TestCase):
         assert new_attributes[2]["precision"] == 1.5
 
     def test_find_branch(self):
-        """Test the find_branch function"""
+        """Test the find_branch function."""
         edges = (
             AdjacencyLists(0, (1,), None, None, None),
             AdjacencyLists(2, None, (2,), (0,), None),
@@ -120,31 +121,37 @@ class TestNetworks(TestCase):
         branch_list = list_branches([0], edges, branch_list=[])
         assert branch_list == [0, 1, 2]
 
-    def test_trim_sequence(self):
-        """Test the trim_sequence function"""
-        # TODO: need to rewrite the trim sequence method
-        # edges = (
-        #     Indexes((1,), None, None, None),
-        #     Indexes(None, (2,), (0,), None),
-        #     Indexes(None, None, None, (1,)),
-        #     Indexes((4,), None, None, None),
-        #     Indexes(None, None, (3,), None),
-        # )
-        # update_sequence = (
-        #     (0, continuous_input_prediction_error),
-        #     (1, continuous_node_prediction_error),
-        #     (2, continuous_node_prediction_error),
-        #     (3, continuous_node_prediction_error),
-        #     (4, continuous_node_prediction_error),
-        # )
-        # new_sequence = trim_sequence(
-        #     exclude_node_idxs=[0],
-        #     update_sequence=update_sequence,
-        #     edges=edges,
-        # )
-        # assert len(new_sequence) == 2
-        # assert new_sequence[0][0] == 3
-        # assert new_sequence[1][0] == 4
+    def test_set_update_sequence(self):
+        """Test the set_update_sequence function."""
+
+        # a standard binary HGF
+        network1 = (
+            Network()
+            .add_nodes(kind="binary-input")
+            .add_nodes(kind="binary-state", value_children=0)
+            .add_nodes(value_children=1)
+            .set_update_sequence()
+        )
+        assert len(network1.update_sequence) == 6
+
+        # a standard continuous HGF
+        network2 = (
+            Network()
+            .add_nodes(kind="continuous-input")
+            .add_nodes(value_children=0)
+            .add_nodes(volatility_children=1)
+            .set_update_sequence(update_type="standard")
+        )
+        assert len(network2.update_sequence) == 6
+
+        # a generic input with a normal-EF node
+        network3 = (
+            Network()
+            .add_nodes(kind="generic-input")
+            .add_nodes(kind="ef-normal")
+            .set_update_sequence()
+        )
+        assert len(network3.update_sequence) == 2
 
 
 if __name__ == "__main__":

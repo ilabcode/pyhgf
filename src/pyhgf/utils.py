@@ -1,7 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
@@ -11,7 +11,7 @@ from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
 from pyhgf.math import Normal, binary_surprise, gaussian_surprise
-from pyhgf.typing import AdjacencyLists, Attributes, Structure, UpdateSequence
+from pyhgf.typing import AdjacencyLists, Attributes, Edges, Structure, UpdateSequence
 from pyhgf.updates.posterior.binary import binary_node_update_infinite
 from pyhgf.updates.posterior.categorical import categorical_input_update
 from pyhgf.updates.posterior.continuous import (
@@ -21,6 +21,7 @@ from pyhgf.updates.posterior.continuous import (
 from pyhgf.updates.posterior.exponential import posterior_update_exponential_family
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
+from pyhgf.updates.prediction.dirichlet import dirichlet_node_prediction
 from pyhgf.updates.prediction_error.inputs.binary import (
     binary_input_prediction_error_infinite_precision,
 )
@@ -33,6 +34,9 @@ from pyhgf.updates.prediction_error.nodes.binary import (
 )
 from pyhgf.updates.prediction_error.nodes.continuous import (
     continuous_node_prediction_error,
+)
+from pyhgf.updates.prediction_error.nodes.dirichlet import (
+    dirichlet_node_prediction_error,
 )
 
 if TYPE_CHECKING:
@@ -108,39 +112,6 @@ def beliefs_propagation(
         attributes,
         attributes,
     )  # ("carryover", "accumulated")
-
-
-def trim_sequence(
-    exclude_node_idxs: List, update_sequence: UpdateSequence, edges: Tuple
-) -> UpdateSequence:
-    """Remove steps from an update sequence that depends on a set of nodes.
-
-    Parameters
-    ----------
-    exclude_node_idxs :
-        A list of node indexes. The nodes can be input nodes or any other node in the
-        network.
-    update_sequence :
-        The sequence of updates that will be applied to the node structure.
-    edges :
-        The nodes structure.
-
-    Returns
-    -------
-    trimmed_update_sequence :
-        The update sequence without the update steps for nodes depending on the root
-        list.
-
-    """
-    # list the nodes that depend on the root indexes
-    branch_list = list_branches(node_idxs=exclude_node_idxs, edges=edges)
-
-    # remove the update steps that are targetting the excluded nodes
-    trimmed_update_sequence = tuple(
-        [seq for seq in update_sequence if seq[0] not in branch_list]
-    )
-
-    return trimmed_update_sequence
 
 
 def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List:
@@ -322,12 +293,14 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
     node_without_update = [i for i in range(n_nodes)]
 
     # start by injecting the observations in all input nodes
+    # ------------------------------------------------------
     for input_idx, kind in zip(network.inputs.idx, network.inputs.kind):
         if kind == 0:
             update_fn = continuous_input_prediction_error
             update_sequence.append((input_idx, update_fn))
 
         elif kind == 1:
+
             # add the update steps for the binary state node as well
             binary_state_idx = network.edges[input_idx].value_parents[0]  # type: ignore
 
@@ -356,13 +329,19 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
             update_fn = generic_input_prediction_error
             update_sequence.append((input_idx, update_fn))
 
+        elif kind == 4:
+            update_fn = dirichlet_node_prediction_error
+            update_sequence.append((input_idx, update_fn))
+
         # add the PE step to the sequence
         node_without_pe.remove(input_idx)
 
         # input node does not need to update the posterior
         node_without_update.remove(input_idx)
 
+    # prediction errors and posterior updates
     # will fail if the structure of the network does not allow a consistent update order
+    # ----------------------------------------------------------------------------------
     while True:
         no_update = True
 
@@ -400,9 +379,15 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
                     # for the exponential family node
                     ef_update = Partial(
                         posterior_update_exponential_family,
-                        sufficient_stats_fn=Normal.sufficient_statistics,
+                        sufficient_stats_fn=Normal().sufficient_statistics,
                     )
                     update_fn = ef_update
+
+                elif network.edges[idx].node_type == 4:
+
+                    update_fn = None
+                    # the prediction sequence is the update sequence in reverse order
+                    prediction_sequence.insert(0, (idx, dirichlet_node_prediction))
 
                 update_sequence.append((idx, update_fn))
                 node_without_update.remove(idx)
@@ -425,15 +410,20 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
             else:
                 # if this node has been updated
                 if idx not in node_without_update:
+
+                    if network.edges[idx].node_type == 2:
+                        update_fn = continuous_node_prediction_error
+                    elif network.edges[idx].node_type == 4:
+                        update_fn = dirichlet_node_prediction_error
+
                     no_update = False
-                    update_sequence.append((idx, continuous_node_prediction_error))
+                    update_sequence.append((idx, update_fn))
                     node_without_pe.remove(idx)
 
         if (not node_without_pe) and (not node_without_update):
             break
 
         if no_update:
-            break
             raise Warning(
                 "The structure of the network cannot be updated consistently."
             )
@@ -447,7 +437,10 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
             # create a new sequence step and add it to the list
             prediction_sequence.append((idx, categorical_input_update))
 
-    return prediction_sequence
+    # remove None steps and return the update sequence
+    sequence = [update for update in prediction_sequence if update[1] is not None]
+
+    return sequence
 
 
 def to_pandas(network: "Network") -> pd.DataFrame:
@@ -599,3 +592,204 @@ def to_pandas(network: "Network") -> pd.DataFrame:
     ].sum(axis=1, min_count=1)
 
     return trajectories_df
+
+
+def concatenate_networks(attributes_1, attributes_2, edges_1, edges_2):
+    """Concatenate two networks.
+
+    Parameters
+    ----------
+    attributes_1 :
+        The attributes of the first network.
+    attributes_2 :
+        The attributes of the second network.
+    edges_1 :
+        The edges of the first network.
+    edges_2 :
+        The edges of the second network.
+
+    Returns
+    -------
+    attributes :
+        The attribute of the concatenated networks.
+    edges :
+        The edges of the concatenated networks.
+
+    """
+    n_nodes = len(attributes_2)
+    edges_1 = list(edges_1)
+    attributes = {}
+    for i in range(len(attributes_1)):
+        # update the attributes
+        attributes[i + n_nodes] = attributes_1[i]
+
+        # update the edges
+        edges_1[i] = AdjacencyLists(
+            value_parents=(
+                tuple([e + n_nodes for e in list(edges_1[i].value_parents)])
+                if edges_1[i].value_parents is not None
+                else None
+            ),
+            volatility_parents=(
+                tuple([e + n_nodes for e in list(edges_1[i].volatility_parents)])
+                if edges_1[i].volatility_parents is not None
+                else None
+            ),
+            value_children=(
+                tuple([e + n_nodes for e in list(edges_1[i].value_children)])
+                if edges_1[i].value_children is not None
+                else None
+            ),
+            volatility_children=(
+                tuple([e + n_nodes for e in list(edges_1[i].volatility_children)])
+                if edges_1[i].volatility_children is not None
+                else None
+            ),
+        )
+
+    edges_1 = tuple(edges_1)
+
+    attributes = {**attributes_2, **attributes}
+    edges = edges_2 + edges_1
+
+    return attributes, edges
+
+
+def add_edges(
+    attributes: Dict,
+    edges: Edges,
+    kind="value",
+    parent_idxs=Union[int, List[int]],
+    children_idxs=Union[int, List[int]],
+    coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
+) -> Tuple:
+    """Add a value or volatility coupling link between a set of nodes.
+
+    Parameters
+    ----------
+    attributes :
+        Attributes of the neural network.
+    edges :
+        Edges of the neural network.
+    kind :
+        The kind of coupling can be `"value"` or `"volatility"`.
+    parent_idxs :
+        The index(es) of the parent node(s).
+    children_idxs :
+        The index(es) of the children node(s).
+    coupling_strengths :
+        The coupling strength between the parents and children.
+
+    """
+    if kind not in ["value", "volatility"]:
+        raise ValueError(
+            f"The kind of coupling should be value or volatility, got {kind}"
+        )
+    if isinstance(children_idxs, int):
+        children_idxs = [children_idxs]
+    assert isinstance(children_idxs, (list, tuple))
+
+    if isinstance(parent_idxs, int):
+        parent_idxs = [parent_idxs]
+    assert isinstance(parent_idxs, (list, tuple))
+
+    if isinstance(coupling_strengths, int):
+        coupling_strengths = [float(coupling_strengths)]
+    if isinstance(coupling_strengths, float):
+        coupling_strengths = [coupling_strengths]
+
+    assert isinstance(coupling_strengths, (list, tuple))
+
+    edges_as_list = list(edges)
+    # update the parent nodes
+    # -----------------------
+    for parent_idx in parent_idxs:
+        # unpack the parent's edges
+        (
+            node_type,
+            value_parents,
+            volatility_parents,
+            value_children,
+            volatility_children,
+        ) = edges_as_list[parent_idx]
+
+        if kind == "value":
+            if value_children is None:
+                value_children = tuple(children_idxs)
+                attributes[parent_idx]["value_coupling_children"] = tuple(
+                    coupling_strengths
+                )
+            else:
+                value_children = value_children + tuple(children_idxs)
+                attributes[parent_idx]["value_coupling_children"] += tuple(
+                    coupling_strengths
+                )
+        elif kind == "volatility":
+            if volatility_children is None:
+                volatility_children = tuple(children_idxs)
+                attributes[parent_idx]["volatility_coupling_children"] = tuple(
+                    coupling_strengths
+                )
+            else:
+                volatility_children = volatility_children + tuple(children_idxs)
+                attributes[parent_idx]["volatility_coupling_children"] += tuple(
+                    coupling_strengths
+                )
+
+        # save the updated edges back
+        edges_as_list[parent_idx] = AdjacencyLists(
+            node_type,
+            value_parents,
+            volatility_parents,
+            value_children,
+            volatility_children,
+        )
+
+    # update the children nodes
+    # -------------------------
+    for children_idx in children_idxs:
+        # unpack this node's edges
+        (
+            node_type,
+            value_parents,
+            volatility_parents,
+            value_children,
+            volatility_children,
+        ) = edges_as_list[children_idx]
+
+        if kind == "value":
+            if value_parents is None:
+                value_parents = tuple(parent_idxs)
+                attributes[children_idx]["value_coupling_parents"] = tuple(
+                    coupling_strengths
+                )
+            else:
+                value_parents = value_parents + tuple(parent_idxs)
+                attributes[children_idx]["value_coupling_parents"] += tuple(
+                    coupling_strengths
+                )
+        elif kind == "volatility":
+            if volatility_parents is None:
+                volatility_parents = tuple(parent_idxs)
+                attributes[children_idx]["volatility_coupling_parents"] = tuple(
+                    coupling_strengths
+                )
+            else:
+                volatility_parents = volatility_parents + tuple(parent_idxs)
+                attributes[children_idx]["volatility_coupling_parents"] += tuple(
+                    coupling_strengths
+                )
+
+        # save the updated edges back
+        edges_as_list[children_idx] = AdjacencyLists(
+            node_type,
+            value_parents,
+            volatility_parents,
+            value_children,
+            volatility_children,
+        )
+
+    # convert the list back to a tuple
+    edges = tuple(edges_as_list)
+
+    return attributes, edges

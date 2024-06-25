@@ -12,6 +12,7 @@ class AdjacencyLists(NamedTuple):
     * 2: continuous state node.
     * 3: exponential family state node - univariate Gaussian distribution with unknown
         mean and unknown variance.
+    * 4: Dirichlet Process state node.
 
     """
 

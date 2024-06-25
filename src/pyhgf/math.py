@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Union
+from typing import Tuple, Union
 
 import jax.numpy as jnp
 from jax import Array
@@ -17,11 +17,13 @@ class MultivariateNormal:
 
     """
 
-    def sufficient_statistics(x):
+    @staticmethod
+    def sufficient_statistics(x: ArrayLike) -> Array:
         """Compute the sufficient statistics for the multivariate normal."""
         return jnp.hstack([x, jnp.outer(x, x)[jnp.tril_indices(x.shape[0])]])
 
-    def base_measure(k):
+    @staticmethod
+    def base_measure(k: int) -> float:
         """Compute the base measures for the multivariate normal."""
         return (2 * jnp.pi) ** (-k / 2)
 
@@ -35,16 +37,30 @@ class Normal:
 
     """
 
-    def sufficient_statistics(x):
-        """Compute the sufficient statistics for the univariate normal."""
+    @staticmethod
+    def sufficient_statistics(x: float) -> Array:
+        """Sufficient statistics for the univariate normal."""
         return jnp.array([x, x**2])
 
-    def base_measure(k):
-        """Compute the base measure for the univariate normal."""
+    @staticmethod
+    def expected_sufficient_statistics(mu: float, sigma) -> Array:
+        """Compute expected sufficient statistics from the mean and std."""
+        return jnp.array([mu, mu**2 + sigma**2])
+
+    @staticmethod
+    def base_measure() -> float:
+        """Compute the base measure of the univariate normal."""
         return 1 / (jnp.sqrt(2 * jnp.pi))
 
+    @staticmethod
+    def parameters(xis: ArrayLike) -> Tuple[float, float]:
+        """Get parameters from the expected sufficient statistics."""
+        mean = xis[0]
+        variance = xis[1] - (mean**2)
+        return mean, variance
 
-def gaussian_predictive_distribution(x, xi, nu):
+
+def gaussian_predictive_distribution(x: float, xi: ArrayLike, nu: float) -> float:
     r"""Density of the Gaussian-predictive distribution.
 
     This distribution is parametrized by hyperparameters from the exponential family as:
@@ -178,7 +194,7 @@ def gaussian_surprise(
 
     Examples
     --------
-    >>> from pyhgf.continuous import gaussian_surprise
+    >>> from pyhgf.math import gaussian_surprise
     >>> gaussian_surprise(x=2.0, expected_mean=0.0, expected_precision=1.0)
     `Array(2.9189386, dtype=float32, weak_type=True)`
 
@@ -237,7 +253,7 @@ def binary_surprise_finite_precision(
     expected_mean: Union[ArrayLike, float],
     expected_precision: Union[ArrayLike, float],
     eta0: Union[ArrayLike, float] = 0.0,
-    eta1: Union[ArrayLike, float] = 0.0,
+    eta1: Union[ArrayLike, float] = 1.0,
 ) -> Array:
     r"""Compute the binary surprise with finite precision.
 
@@ -264,3 +280,8 @@ def binary_surprise_finite_precision(
         expected_mean * gaussian_density(value, eta1, expected_precision)
         + (1 - expected_mean) * gaussian_density(value, eta0, expected_precision)
     )
+
+
+def sigmoid_inverse_temperature(x, temperature):
+    """Compute the sigmoid response function with inverse temperature parameter."""
+    return (x**temperature) / (x**temperature + (1 - x) ** temperature)
