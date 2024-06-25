@@ -180,6 +180,8 @@ Dirichlet processes
    :toctree: generated/pyhgf.updates.prediction_error.nodes.dirichlet
 
     dirichlet_node_prediction_error
+    update_cluster
+    create_cluster
     get_candidate
     likely_cluster_proposal
     clusters_likelihood

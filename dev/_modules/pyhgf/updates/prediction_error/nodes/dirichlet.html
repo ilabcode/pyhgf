@@ -578,6 +578,8 @@ document.write(`
 
 
 
+<div class="viewcode-block" id="update_cluster">
+<a class="viewcode-back" href="../../../../../generated/pyhgf.updates.prediction_error.nodes.dirichlet/pyhgf.updates.prediction_error.nodes.dirichlet.update_cluster.html#pyhgf.updates.prediction_error.nodes.dirichlet.update_cluster">[docs]</a>
 <span class="nd">@partial</span><span class="p">(</span><span class="n">jit</span><span class="p">,</span> <span class="n">static_argnames</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;node_idx&quot;</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">update_cluster</span><span class="p">(</span><span class="n">operands</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="n">Edges</span><span class="p">,</span> <span class="n">node_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Attributes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Update an existing cluster.</span>
@@ -613,9 +615,12 @@ document.write(`
         <span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;n&quot;</span><span class="p">][</span><span class="n">cluster_idx</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">attributes</span>
+    <span class="k">return</span> <span class="n">attributes</span></div>
 
 
+
+<div class="viewcode-block" id="create_cluster">
+<a class="viewcode-back" href="../../../../../generated/pyhgf.updates.prediction_error.nodes.dirichlet/pyhgf.updates.prediction_error.nodes.dirichlet.create_cluster.html#pyhgf.updates.prediction_error.nodes.dirichlet.create_cluster">[docs]</a>
 <span class="nd">@partial</span><span class="p">(</span><span class="n">jit</span><span class="p">,</span> <span class="n">static_argnames</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;node_idx&quot;</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">create_cluster</span><span class="p">(</span><span class="n">operands</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="n">Edges</span><span class="p">,</span> <span class="n">node_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Attributes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new cluster.</span>
@@ -661,7 +666,8 @@ document.write(`
     <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;n&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;n&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">cluster_idx</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
     <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;n_active_cluster&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="k">return</span> <span class="n">attributes</span>
+    <span class="k">return</span> <span class="n">attributes</span></div>
+
 
 
 <div class="viewcode-block" id="get_candidate">
