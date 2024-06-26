@@ -54,7 +54,19 @@ class Normal:
 
     @staticmethod
     def parameters(xis: ArrayLike) -> Tuple[float, float]:
-        """Get parameters from the expected sufficient statistics."""
+        """Get parameters from the expected sufficient statistics.
+
+        Parameters
+        ----------
+        xis :
+            The expected sufficient statistics.
+
+        Returns
+        -------
+        mean, variance :
+            The parameters of the distribution (mean and variance).
+
+        """
         mean = xis[0]
         variance = xis[1] - (mean**2)
         return mean, variance
@@ -282,6 +294,6 @@ def binary_surprise_finite_precision(
     )
 
 
-def sigmoid_inverse_temperature(x, temperature):
+def sigmoid_inverse_temperature(x: float, temperature: float) -> float:
     """Compute the sigmoid response function with inverse temperature parameter."""
     return (x**temperature) / (x**temperature + (1 - x) ** temperature)

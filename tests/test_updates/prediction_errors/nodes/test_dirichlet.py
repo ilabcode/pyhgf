@@ -4,6 +4,7 @@ import unittest
 from unittest import TestCase
 
 import jax.numpy as jnp
+import numpy as np
 
 from pyhgf.model import Network
 from pyhgf.updates.prediction_error.nodes.dirichlet import (
@@ -29,7 +30,7 @@ class TestDirichletNode(TestCase):
         network = (
             Network()
             .add_nodes(kind="generic-input")
-            .add_nodes(kind="DP-state", value_children=0)
+            .add_nodes(kind="DP-state", value_children=0, batch_size=2)
             .add_nodes(
                 kind="ef-normal",
                 n_nodes=2,
@@ -45,6 +46,15 @@ class TestDirichletNode(TestCase):
             attributes=attributes,
             node_idx=1,
         )
+
+        # test the plotting function
+        network.plot_network()
+
+        # add observations
+        network.input_data(input_data=np.random.normal(0, 1, 5))
+
+        # export to pandas
+        network.to_pandas()
 
 
 if __name__ == "__main__":

@@ -594,67 +594,6 @@ def to_pandas(network: "Network") -> pd.DataFrame:
     return trajectories_df
 
 
-def concatenate_networks(attributes_1, attributes_2, edges_1, edges_2):
-    """Concatenate two networks.
-
-    Parameters
-    ----------
-    attributes_1 :
-        The attributes of the first network.
-    attributes_2 :
-        The attributes of the second network.
-    edges_1 :
-        The edges of the first network.
-    edges_2 :
-        The edges of the second network.
-
-    Returns
-    -------
-    attributes :
-        The attribute of the concatenated networks.
-    edges :
-        The edges of the concatenated networks.
-
-    """
-    n_nodes = len(attributes_2)
-    edges_1 = list(edges_1)
-    attributes = {}
-    for i in range(len(attributes_1)):
-        # update the attributes
-        attributes[i + n_nodes] = attributes_1[i]
-
-        # update the edges
-        edges_1[i] = AdjacencyLists(
-            value_parents=(
-                tuple([e + n_nodes for e in list(edges_1[i].value_parents)])
-                if edges_1[i].value_parents is not None
-                else None
-            ),
-            volatility_parents=(
-                tuple([e + n_nodes for e in list(edges_1[i].volatility_parents)])
-                if edges_1[i].volatility_parents is not None
-                else None
-            ),
-            value_children=(
-                tuple([e + n_nodes for e in list(edges_1[i].value_children)])
-                if edges_1[i].value_children is not None
-                else None
-            ),
-            volatility_children=(
-                tuple([e + n_nodes for e in list(edges_1[i].volatility_children)])
-                if edges_1[i].volatility_children is not None
-                else None
-            ),
-        )
-
-    edges_1 = tuple(edges_1)
-
-    attributes = {**attributes_2, **attributes}
-    edges = edges_2 + edges_1
-
-    return attributes, edges
-
-
 def add_edges(
     attributes: Dict,
     edges: Edges,
