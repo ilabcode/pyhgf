@@ -28,6 +28,9 @@ class Testbinary(TestCase):
         # fitting the model forwards
         categorical_hgf.input_data(input_data=input_data.T)
 
+        # export to pandas data frame
+        categorical_hgf.to_pandas()
+
 
 if __name__ == "__main__":
     unittest.main(argv=["first-arg-is-ignored"], exit=False)
