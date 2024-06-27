@@ -1,7 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Callable, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import jax.numpy as jnp
 import numpy as np
@@ -16,29 +16,32 @@ from pyhgf.model import HGF
 
 @partial(jit, static_argnames=("hgf", "response_function"))
 def logp(
-    mean_1,
-    mean_2,
-    mean_3,
-    precision_1,
-    precision_2,
-    precision_3,
-    tonic_volatility_1,
-    tonic_volatility_2,
-    tonic_volatility_3,
-    tonic_drift_1,
-    tonic_drift_2,
-    tonic_drift_3,
-    volatility_coupling_1,
-    volatility_coupling_2,
-    input_precision,
-    response_function_parameters,
-    input_data,
-    time_steps,
-    response_function_inputs,
-    response_function,
+    mean_1: float,
+    mean_2: float,
+    mean_3: float,
+    precision_1: float,
+    precision_2: float,
+    precision_3: float,
+    tonic_volatility_1: float,
+    tonic_volatility_2: float,
+    tonic_volatility_3: float,
+    tonic_drift_1: float,
+    tonic_drift_2: float,
+    tonic_drift_3: float,
+    volatility_coupling_1: float,
+    volatility_coupling_2: float,
+    input_precision: float,
+    response_function_parameters: ArrayLike,
+    input_data: ArrayLike,
+    time_steps: ArrayLike,
+    response_function_inputs: Optional[ArrayLike],
+    response_function: Optional[Callable],
     hgf: HGF,
 ) -> float:
-    """Compute the log-probability of a single HGF.
+    """Compute the log-probability of a decision model under belief trajectories.
+
+    This function returns the evidence of a single Hierarchical Gaussian Filter given
+    network parameters, input data and behaviours under a decision model.
 
     Parameters
     ----------
@@ -58,15 +61,15 @@ def logp(
         be ignored when using a two-level HGF (`n_levels=2`).
     tonic_volatility_1 :
         The tonic volatility at the first level of the HGF. This parameter represents
-        the tonic part of the variance (the part that is not inherited from parents
+        the tonic part of the variance (the part that is not inherited from parent
         nodes).
     tonic_volatility_2 :
         The tonic volatility at the second level of the HGF. This parameter represents
-        the tonic part of the variance (the part that is not inherited from parents
+        the tonic part of the variance (the part that is not inherited from parent
         nodes).
     tonic_volatility_3 :
         The tonic volatility at the third level of the HGF. This parameter represents
-        the tonic part of the variance (the part that is not inherited from parents
+        the tonic part of the variance (the part that is not inherited from parent
         nodes). The value of this parameter will be ignored when using a two-level HGF
         (`n_levels=2`).
     tonic_drift_1 :
@@ -76,38 +79,38 @@ def logp(
         The tonic drift at the second level of the HGF. This parameter represents the
         drift of the random walk.
     tonic_drift_3 :
-        The tonic drift at the first level of the HGF. This parameter represents the
+        The tonic drift at the third level of the HGF. This parameter represents the
         drift of the random walk. The value of this parameter will be ignored when
         using a two-level HGF (`n_levels=2`).
     volatility_coupling_1 :
-        The volatility coupling between the first and second level of the HGF. This
-        represents the phasic part of the variance (the part that is affected by the
-        parent nodes). Defaults to `1.0`.
+        The volatility coupling between the first and second levels of the HGF. This
+        represents the phasic part of the variance (the part affected by the
+        parent nodes). Defaults to `1.0` (full connectivity).
     volatility_coupling_2 :
-        The volatility coupling between the second and third level of the HGF. This
-        represents the phasic part of the variance (the part that is affected by the
-        parent nodes). Defaults to `1.0`. The value of this parameter will be
-        ignored when using a two-level HGF (`n_levels=2`).
+        The volatility coupling between the second and third levels of the HGF. This
+        represents the phasic part of the variance (the part affected by the
+        parent nodes). Defaults to `1.0`  (full connectivity). The value of this
+        parameter will be ignored when using a two-level HGF (`n_levels=2`).
     input_precision :
         The expected precision associated with the continuous or binary input, depending
         on the model type.
     response_function_parameters :
-        An array list of additional parameters that will be passed to the response
-        function. This can include values over which inferece is performed in a PyMC
-        model (e.g. the inverse temperature of a binary softmax).
+        An array of additional parameters that will be passed to the response function
+        to compute the surprise. This can include values over which inference is
+        performed in a PyMC model (e.g. the inverse temperature of a binary softmax).
     input_data :
-        An array of input time series where the first dimension is the number of model
+        An array of input time series where the first dimension is the number of models
         to fit in parallel.
     time_steps :
-        An array of input time steps where the first dimension is the number of model
+        An array of input time steps where the first dimension is the number of models
         to fit in parallel.
     response_function_inputs :
-        An array of behavioural input passed to the response function where the first
-        dimension is the number of model to fit in parallel.
+        An array of behavioural inputs passed to the response function where the first
+        dimension is the number of models to fit in parallel.
     response_function :
-        The response function used for the decision model.
+        The response function that is used by the decision model.
     hgf :
-        An instance of two or three level HGF.
+        An instance of a two or three-level Hierarchical Gaussian Filter.
 
     Returns
     -------
@@ -148,63 +151,66 @@ def logp(
 
 
 def hgf_logp(
-    mean_1: Union[np.ndarray, ArrayLike, float] = 0.0,
-    mean_2: Union[np.ndarray, ArrayLike, float] = 0.0,
-    mean_3: Union[np.ndarray, ArrayLike, float] = 0.0,
-    precision_1: Union[np.ndarray, ArrayLike, float] = 1.0,
-    precision_2: Union[np.ndarray, ArrayLike, float] = 1.0,
-    precision_3: Union[np.ndarray, ArrayLike, float] = 1.0,
-    tonic_volatility_1: Union[np.ndarray, ArrayLike, float] = -3.0,
-    tonic_volatility_2: Union[np.ndarray, ArrayLike, float] = -3.0,
-    tonic_volatility_3: Union[np.ndarray, ArrayLike, float] = -3.0,
-    tonic_drift_1: Union[np.ndarray, ArrayLike, float] = 0.0,
-    tonic_drift_2: Union[np.ndarray, ArrayLike, float] = 0.0,
-    tonic_drift_3: Union[np.ndarray, ArrayLike, float] = 0.0,
-    volatility_coupling_1: Union[np.ndarray, ArrayLike, float] = 1.0,
-    volatility_coupling_2: Union[np.ndarray, ArrayLike, float] = 1.0,
-    input_precision: Union[np.ndarray, ArrayLike, float] = np.inf,
-    response_function_parameters: Union[np.ndarray, ArrayLike, float] = 1.0,
+    mean_1: ArrayLike = 0.0,
+    mean_2: ArrayLike = 0.0,
+    mean_3: ArrayLike = 0.0,
+    precision_1: ArrayLike = 1.0,
+    precision_2: ArrayLike = 1.0,
+    precision_3: ArrayLike = 1.0,
+    tonic_volatility_1: ArrayLike = -3.0,
+    tonic_volatility_2: ArrayLike = -3.0,
+    tonic_volatility_3: ArrayLike = -3.0,
+    tonic_drift_1: ArrayLike = 0.0,
+    tonic_drift_2: ArrayLike = 0.0,
+    tonic_drift_3: ArrayLike = 0.0,
+    volatility_coupling_1: ArrayLike = 1.0,
+    volatility_coupling_2: ArrayLike = 1.0,
+    input_precision: ArrayLike = np.inf,
+    response_function_parameters: ArrayLike = 1.0,
     vectorized_logp: Callable = logp,
-    input_data: np.ndarray = np.nan,
-    response_function_inputs: np.ndarray = np.nan,
-    time_steps: Union[np.ndarray, ArrayLike] = np.nan,
+    input_data: ArrayLike = np.nan,
+    response_function_inputs: ArrayLike = np.nan,
+    time_steps: ArrayLike = np.nan,
 ) -> Array:
-    """Compute log-probabilities of a batch of HGFs.
+    """Compute log-probabilities of a batch of Hierarchical Gaussian Filters.
 
-    .. note::
+    .. hint::
 
-       This function support broadcasting along the first axis, which means that it can
-       fit multiple HGF when multiple data points are provided:
-       * If the input data contains many time series, the function will automatically
-       create the corresponding number of HGF models and fit them separately.
-       * If a single input data is provided but some parameters have array-like inputs,
-       the number of HGF models will match the length of the arrays, using the value
-       *i* for the *i* th model. When floats are provided for some parameters, the same
-       value will be used for all HGF models.
-       * If multiple input data are provided with array-like inputs for some parameter,
-       the function will create and fit the models separately using the value *i* for
-       the *i* th model.
+       This function supports broadcasting along the first axis, which means that it can
+       fit multiple models when input data are provided. When a network parameter is a
+       float, this value will be used on all models. When a network parameter is an
+       array, the size should match the number of input data, and different values will
+       be used accordingly.
 
     Parameters
     ----------
-    vectorized_logp :
-        A vectorized log-probability function for a two or three layered HGF.
+    mean_1 :
+        The mean at the first level of the HGF.
+    mean_2 :
+        The mean at the second level of the HGF.
+    mean_3 :
+        The mean at the third level of the HGF. The value of this parameter will be
+        ignored when using a two-level HGF (`n_levels=2`).
+    precision_1 :
+        The precision at the first level of the HGF.
+    precision_2 :
+        The precision at the second level of the HGF.
+    precision_3 :
+        The precision at the third level of the HGF. The value of this parameter will
+        be ignored when using a two-level HGF (`n_levels=2`).
     tonic_volatility_1 :
         The tonic volatility at the first level of the HGF. This parameter represents
-        the tonic part of the variance (the part that is not inherited from parents
+        the tonic part of the variance (the part that is not inherited from parent
         nodes).
     tonic_volatility_2 :
         The tonic volatility at the second level of the HGF. This parameter represents
-        the tonic part of the variance (the part that is not inherited from parents
+        the tonic part of the variance (the part that is not inherited from parent
         nodes).
     tonic_volatility_3 :
         The tonic volatility at the third level of the HGF. This parameter represents
-        the tonic part of the variance (the part that is not inherited from parents
+        the tonic part of the variance (the part that is not inherited from parent
         nodes). The value of this parameter will be ignored when using a two-level HGF
         (`n_levels=2`).
-    input_precision :
-        The expected precision associated with the continuous or binary input, depending
-        on the model type. The default is `np.inf`.
     tonic_drift_1 :
         The tonic drift at the first level of the HGF. This parameter represents the
         drift of the random walk.
@@ -215,41 +221,32 @@ def hgf_logp(
         The tonic drift at the first level of the HGF. This parameter represents the
         drift of the random walk. The value of this parameter will be ignored when
         using a two-level HGF (`n_levels=2`).
-    precision_1 :
-        The precision at the first level of the HGF.
-    precision_2 :
-        The precision at the second level of the HGF.
-    precision_3 :
-        The precision at the third level of the HGF. The value of this parameter will
-        be ignored when using a two-level HGF (`n_levels=2`).
-    mean_1 :
-        The mean at the first level of the HGF.
-    mean_2 :
-        The mean at the second level of the HGF.
-    mean_3 :
-        The mean at the third level of the HGF. The value of this parameter will be
-        ignored when using a two-level HGF (`n_levels=2`).
     volatility_coupling_1 :
-        The volatility coupling between the first and second level of the HGF. This
-        represents the phasic part of the variance (the part that is affected by the
+        The volatility coupling between the first and second levels of the HGF. This
+        represents the phasic part of the variance (the part affected by the
         parent nodes). Defaults to `1.0`.
     volatility_coupling_2 :
-        The volatility coupling between the second and third level of the HGF. This
-        represents the phasic part of the variance (the part that is affected by the
+        The volatility coupling between the second and third levels of the HGF. This
+        represents the phasic part of the variance (the part affected by the
         parent nodes). Defaults to `1.0`. The value of this parameter will be
         ignored when using a two-level HGF (`n_levels=2`).
+    input_precision :
+        The expected precision associated with the continuous or binary input, depending
+        on the model type. The default is `np.inf`.
     response_function_parameters :
         An array list of additional parameters that will be passed to the response
-        function. This can include values over which inferece is performed in a PyMC
+        function. This can include values over which inference is performed in a PyMC
         model (e.g. the inverse temperature of a binary softmax).
+    vectorized_logp :
+        A vectorized log probability function for a two or three-layered HGF.
     input_data :
-        An array of input time series where the first dimension is the number of model
+        An array of input time series where the first dimension is the number of models
         to fit in parallel.
     response_function_inputs :
         An array of behavioural input passed to the response function where the first
-        dimension is the number of model to fit in parallel.
+        dimension is the number of models to fit in parallel.
     time_steps :
-        An array of input time steps where the first dimension is the number of model
+        An array of input time steps where the first dimension is the number of models
         to fit in parallel.
 
     Returns
@@ -341,18 +338,19 @@ class HGFLogpGradOp(Op):
         Parameters
         ----------
         input_data :
-            Array of input time series where the first dimension is the number of model
-            to fit in parallel. By default, the associated time_steps vector is the unit
-            vector. A different time vector can be passed to the `time_steps` argument.
+            An array of input time series where the first dimension is the number of
+            models to fit in parallel. By default, the associated time_steps vector is
+            the unit vector. A different time vector can be passed to the `time_steps`
+            argument.
         time_steps :
             An array with shapes equal to input_data containing the time_steps vectors.
             If one of the list items is `None`, or if `None` is provided instead, the
-            time_steps vector will default to an integers vector starting at 0.
+            time_steps vector will default to an integer vector starting at 0.
         model_type :
             The model type to use (can be "continuous" or "binary").
         n_levels :
             The number of hierarchies in the perceptual model (can be `2` or `3`). If
-            `None`, the nodes hierarchy is not created and might be provided afterward
+            `None`, the nodes hierarchy is not created and might be provided afterwards
             using `add_nodes()`.
         response_function :
             The response function to use to compute the model surprise.
@@ -393,22 +391,22 @@ class HGFLogpGradOp(Op):
 
     def make_node(
         self,
-        mean_1=np.array(0.0),
-        mean_2=np.array(0.0),
-        mean_3=np.array(0.0),
-        precision_1=np.array(1.0),
-        precision_2=np.array(1.0),
-        precision_3=np.array(0.0),
-        tonic_volatility_1=np.array(-3.0),
-        tonic_volatility_2=np.array(-3.0),
-        tonic_volatility_3=np.array(-3.0),
-        tonic_drift_1=np.array(0.0),
-        tonic_drift_2=np.array(0.0),
-        tonic_drift_3=np.array(0.0),
-        volatility_coupling_1=np.array(1.0),
-        volatility_coupling_2=np.array(1.0),
-        input_precision=np.inf,
-        response_function_parameters=np.array([1.0]),
+        mean_1: ArrayLike = np.array(0.0),
+        mean_2: ArrayLike = np.array(0.0),
+        mean_3: ArrayLike = np.array(0.0),
+        precision_1: ArrayLike = np.array(1.0),
+        precision_2: ArrayLike = np.array(1.0),
+        precision_3: ArrayLike = np.array(0.0),
+        tonic_volatility_1: ArrayLike = np.array(-3.0),
+        tonic_volatility_2: ArrayLike = np.array(-3.0),
+        tonic_volatility_3: ArrayLike = np.array(-3.0),
+        tonic_drift_1: ArrayLike = np.array(0.0),
+        tonic_drift_2: ArrayLike = np.array(0.0),
+        tonic_drift_3: ArrayLike = np.array(0.0),
+        volatility_coupling_1: ArrayLike = np.array(1.0),
+        volatility_coupling_2: ArrayLike = np.array(1.0),
+        input_precision: ArrayLike = np.inf,
+        response_function_parameters: ArrayLike = np.array([1.0]),
     ):
         """Initialize node structure."""
         # Convert our inputs to symbolic variables
@@ -437,7 +435,7 @@ class HGFLogpGradOp(Op):
         outputs = [inp.type() for inp in inputs]
         return Apply(self, inputs, outputs)
 
-    def perform(self, node, inputs, outputs):
+    def perform(self, node, inputs: List, outputs: List):
         """Perform node operations."""
         (
             grad_mean_1,
@@ -483,62 +481,80 @@ class HGFLogpGradOp(Op):
 
 
 class HGFDistribution(Op):
-    """The HGF distribution PyMC >= 5.0 compatible.
+    r"""The HGF distribution PyMC >= 5.0 compatible.
 
     Examples
     --------
     This class should be used in the context of a PyMC probabilistic model to estimate
     one or many parameter-s probability density with MCMC sampling.
 
-    >>> import arviz as az
-    >>> import numpy as np
-    >>> import pymc as pm
-    >>> from math import log
-    >>> from pyhgf import load_data
-    >>> from pyhgf.distribution import HGFDistribution
-    >>> from pyhgf.response import total_gaussian_surprise
+    .. code-block:: python
+
+        import arviz as az
+        import numpy as np
+        import pymc as pm
+        from math import log
+        from pyhgf import load_data
+        from pyhgf.distribution import HGFDistribution
+        from pyhgf.response import total_gaussian_surprise
 
     Create the data (value and time vectors)
 
-    >>> timeserie = load_data("continuous")
+    .. code-block:: python
+
+        timeserie = load_data("continuous")
 
     We create the PyMC distribution here, specifying the type of model and response
     function we want to use (i.e. simple Gaussian surprise).
 
-    >>> hgf_logp_op = HGFDistribution(
-    >>>     n_levels=2,
-    >>>     input_data=timeserie,
-    >>>     response_function=total_gaussian_surprise,
-    >>> )
+    .. code-block:: python
 
-    Create the PyMC model
-    Here we are fixing all the parameters to arbitrary values and sampling the
-    posterior probability density of Omega in the second level, using a normal
-    distribution as prior : ω_2 ~ N(-11, 2).
+        hgf_logp_op = HGFDistribution(
+            n_levels=2,
+            input_data=timeserie[np.newaxis],
+            response_function=total_gaussian_surprise,
+        )
 
-    >>> with pm.Model() as model:
-    >>>     ω_2 = pm.Normal("ω_2", -11.0, 2)
-    >>>     pm.Potential(
-    >>>         "hhgf_loglike",
-    >>>         hgf_logp_op(
-    >>>             tonic_volatility_2=ω_2,
-    >>>             precision_1=1e4,
-    >>>             precision_2=1e1,
-    >>>             mean_1=timeserie[0],
-    >>>         ),
-    >>>     )
+    Create the PyMC model. Here we are fixing all the parameters to arbitrary values and
+    sampling the posterior probability density of the tonic volatility at the second
+    level, using a normal distribution as prior:
 
-    Sample the model - Using 2 chain, 1 cores and 1000 warmups.
+    .. math::
 
-    >>> with model:
-    >>>     idata = pm.sample(chains=2, cores=1, tune=1000)
+        \omega_2 \sim \mathcal{N}(-11.0, 2.0)
+
+    .. code-block:: python
+
+        with pm.Model() as model:
+
+            # prior over tonic volatility
+            ω_2 = pm.Normal("ω_2", -11.0, 2)
+
+            pm.Potential(
+                "hhgf_loglike",
+                hgf_logp_op(
+                    tonic_volatility_2=ω_2,
+                    precision_1=1.0,
+                    precision_2=1.0,
+                    mean_1=1.0,
+                ),
+            )
+
+    Sample the model - Using 2 chains, 1 cores and 1000 warmups.
+
+    .. code-block:: python
+
+        with model:
+            idata = pm.sample(chains=2, cores=1, tune=1000)
 
     Print a summary of the results using Arviz
 
     >>> az.summary(idata, var_names="ω_2")
-    ===  =======  =====  =======  =======  =====  =====  ====  ====  =
-    ω_2  -12.846  1.305  -15.466  -10.675  0.038  0.027  1254  1726  1
-    ===  =======  =====  =======  =======  =====  =====  ====  ====  =
+    ===  =======  =====  =======  =======  =========  =======  ========  ========  =====
+    ..      mean     sd   hdi_3%  hdi_97%  mcse_mean  mcse_sd  ess_bulk  ess_tail  r_hat
+    ===  =======  =====  =======  =======  =========  =======  ========  ========  =====
+    ω_2  -14.776  1.065  -16.766  -12.944      0.038    0.027       806       938      1
+    ===  =======  =====  =======  =======  =========  =======  ========  ========  =====
 
     """
 
@@ -616,22 +632,22 @@ class HGFDistribution(Op):
 
     def make_node(
         self,
-        mean_1=np.array(0.0),
-        mean_2=np.array(0.0),
-        mean_3=np.array(0.0),
-        precision_1=np.array(1.0),
-        precision_2=np.array(1.0),
-        precision_3=np.array(1.0),
-        tonic_volatility_1=np.array(-3.0),
-        tonic_volatility_2=np.array(-3.0),
-        tonic_volatility_3=np.array(-3.0),
-        tonic_drift_1=np.array(0.0),
-        tonic_drift_2=np.array(0.0),
-        tonic_drift_3=np.array(0.0),
-        volatility_coupling_1=np.array(1.0),
-        volatility_coupling_2=np.array(1.0),
-        input_precision=np.inf,
-        response_function_parameters=np.array([1.0]),
+        mean_1: ArrayLike = np.array(0.0),
+        mean_2: ArrayLike = np.array(0.0),
+        mean_3: ArrayLike = np.array(0.0),
+        precision_1: ArrayLike = np.array(1.0),
+        precision_2: ArrayLike = np.array(1.0),
+        precision_3: ArrayLike = np.array(1.0),
+        tonic_volatility_1: ArrayLike = np.array(-3.0),
+        tonic_volatility_2: ArrayLike = np.array(-3.0),
+        tonic_volatility_3: ArrayLike = np.array(-3.0),
+        tonic_drift_1: ArrayLike = np.array(0.0),
+        tonic_drift_2: ArrayLike = np.array(0.0),
+        tonic_drift_3: ArrayLike = np.array(0.0),
+        volatility_coupling_1: ArrayLike = np.array(1.0),
+        volatility_coupling_2: ArrayLike = np.array(1.0),
+        input_precision: ArrayLike = np.inf,
+        response_function_parameters: ArrayLike = np.array([1.0]),
     ):
         """Convert inputs to symbolic variables."""
         inputs = [
