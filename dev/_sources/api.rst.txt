@@ -197,6 +197,7 @@ embedded in models using PyMC>=5.0.0.
 .. autosummary::
    :toctree: generated/pyhgf.distribution
 
+   logp
    hgf_logp
    HGFLogpGradOp
    HGFDistribution
