@@ -7,11 +7,12 @@ import arviz as az
 import jax.numpy as jnp
 import numpy as np
 import pymc as pm
-from jax import grad, jit
+from jax import grad, jit, vmap
 from jax.tree_util import Partial
 
 from pyhgf import load_data
-from pyhgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp
+from pyhgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp, logp
+from pyhgf.model import HGF
 from pyhgf.response import (
     binary_softmax_inverse_temperature,
     first_level_gaussian_surprise,
@@ -19,205 +20,301 @@ from pyhgf.response import (
 
 
 class TestDistribution(TestCase):
-    def test_hgf_logp(self):
-        ##################
-        # Continuous HGF #
-        ##################
 
-        # Create the data (value and time vectors)
-        timeserie = load_data("continuous")
-        jax_logp = jit(
-            Partial(
-                hgf_logp,
-                n_levels=2,
-                input_data=[timeserie],
-                response_function=first_level_gaussian_surprise,
-                model_type="continuous",
-                response_function_inputs=None,
-                time_steps=None,
-            )
-        )
+    def test_logp(self):
+        """Test the log-probability function for single model fit."""
+        timeseries = load_data("continuous")
+        hgf = HGF(n_levels=2, model_type="continuous")
 
-        logp = jax_logp(
+        log_likelihood = logp(
             tonic_volatility_1=-3.0,
             tonic_volatility_2=-3.0,
             tonic_volatility_3=jnp.nan,
-            continuous_precision=np.array(1e4),
-            binary_precision=np.inf,
+            input_precision=np.array(1e4),
             tonic_drift_1=0.0,
             tonic_drift_2=0.0,
             tonic_drift_3=jnp.nan,
             precision_1=1e4,
             precision_2=1e1,
             precision_3=jnp.nan,
-            mean_1=timeserie[0],
+            mean_1=1.0,
             mean_2=0.0,
             mean_3=jnp.nan,
             volatility_coupling_1=1.0,
             volatility_coupling_2=jnp.nan,
             response_function_parameters=[jnp.nan],
+            input_data=timeseries,
+            time_steps=np.ones(shape=timeseries.shape),
+            response_function_inputs=jnp.nan,
+            response_function=first_level_gaussian_surprise,
+            hgf=hgf,
         )
-        assert jnp.isclose(logp, 1141.0911)
 
-        ##############
-        # Binary HGF #
-        ##############
+        assert jnp.isclose(log_likelihood, 1141.0585)
 
-        # Create the data (value and time vectors)
-        u, y = load_data("binary")
-        jax_logp = jit(
+    def test_vectorized_logp(self):
+        """Test the vectorized version of the log-probability function."""
+
+        timeseries = load_data("continuous")
+        hgf = HGF(n_levels=2, model_type="continuous")
+
+        # generate data with 2 parameters set
+        input_data = np.array([timeseries] * 2)
+        time_steps = np.ones(shape=input_data.shape)
+
+        tonic_volatility_1 = -3.0
+        tonic_volatility_2 = -3.0
+        tonic_volatility_3 = jnp.nan
+        input_precision = np.array(1e4)
+        tonic_drift_1 = 0.0
+        tonic_drift_2 = 0.0
+        tonic_drift_3 = jnp.nan
+        precision_1 = 1e4
+        precision_2 = 1e1
+        precision_3 = jnp.nan
+        mean_1 = 1.0
+        mean_2 = 0.0
+        mean_3 = jnp.nan
+        volatility_coupling_1 = 1.0
+        volatility_coupling_2 = jnp.nan
+        response_function_parameters = jnp.ones(2)
+
+        # Broadcast inputs to an array with length n>=1
+        (
+            _tonic_volatility_1,
+            _tonic_volatility_2,
+            _tonic_volatility_3,
+            _input_precision,
+            _tonic_drift_1,
+            _tonic_drift_2,
+            _tonic_drift_3,
+            _precision_1,
+            _precision_2,
+            _precision_3,
+            _mean_1,
+            _mean_2,
+            _mean_3,
+            _volatility_coupling_1,
+            _volatility_coupling_2,
+            _,
+        ) = jnp.broadcast_arrays(
+            tonic_volatility_1,
+            tonic_volatility_2,
+            tonic_volatility_3,
+            input_precision,
+            tonic_drift_1,
+            tonic_drift_2,
+            tonic_drift_3,
+            precision_1,
+            precision_2,
+            precision_3,
+            mean_1,
+            mean_2,
+            mean_3,
+            volatility_coupling_1,
+            volatility_coupling_2,
+            jnp.zeros(2),
+        )
+
+        # create the vectorized version of the function
+        vectorized_logp_two_levels = vmap(
             Partial(
-                hgf_logp,
-                n_levels=2,
-                input_data=[u],
-                response_function=binary_softmax_inverse_temperature,
-                model_type="binary",
-                response_function_inputs=[y],
+                logp,
+                hgf=hgf,
+                response_function=first_level_gaussian_surprise,
             )
         )
 
-        logp = jax_logp(
-            tonic_volatility_1=jnp.inf,
-            tonic_volatility_2=jnp.array(-6.0),
-            tonic_volatility_3=jnp.nan,
-            continuous_precision=jnp.nan,
-            binary_precision=jnp.inf,
-            tonic_drift_1=jnp.array(0.0),
-            tonic_drift_2=jnp.array(0.0),
-            tonic_drift_3=jnp.nan,
-            precision_1=jnp.array(0.0),
-            precision_2=jnp.array(1e4),
-            precision_3=jnp.nan,
-            mean_1=jnp.inf,
-            mean_2=jnp.array(0.5),
-            mean_3=jnp.nan,
-            volatility_coupling_1=jnp.array(1.0),
-            volatility_coupling_2=jnp.nan,
-            response_function_parameters=[1.0],
+        # model fit
+        log_likelihoods = vectorized_logp_two_levels(
+            input_data=input_data,
+            response_function_inputs=jnp.ones(2),
+            response_function_parameters=response_function_parameters,
+            time_steps=time_steps,
+            mean_1=_mean_1,
+            mean_2=_mean_2,
+            mean_3=_mean_3,
+            precision_1=_precision_1,
+            precision_2=_precision_2,
+            precision_3=_precision_3,
+            tonic_volatility_1=_tonic_volatility_1,
+            tonic_volatility_2=_tonic_volatility_2,
+            tonic_volatility_3=_tonic_volatility_3,
+            tonic_drift_1=_tonic_drift_1,
+            tonic_drift_2=_tonic_drift_2,
+            tonic_drift_3=_tonic_drift_3,
+            volatility_coupling_1=_volatility_coupling_1,
+            volatility_coupling_2=_volatility_coupling_2,
+            input_precision=_input_precision,
         )
-        assert jnp.isclose(logp, -200.24422)
 
-    def test_grad_logp(self):
-        ##################
-        # Continuous HGF #
-        ##################
+        assert jnp.isclose(log_likelihoods, 1141.0582).all()
 
-        # Create the data (value and time vectors)
-        timeserie = load_data("continuous")
+    def test_hgf_logp(self):
+        """Test the hgf_logp function used by Distribution Ops on three level models"""
+
+        ##############################
+        # Three-level continuous HGF #
+        ##############################
+        timeseries = load_data("continuous")
+        continuous_hgf = HGF(n_levels=3, model_type="continuous")
+
+        # generate data with 2 parameters set
+        input_data = np.array([timeseries] * 2)
+        time_steps = np.ones(shape=input_data.shape)
+
+        # create the vectorized version of the function
+        vectorized_logp_three_levels = vmap(
+            Partial(
+                logp,
+                hgf=continuous_hgf,
+                response_function=first_level_gaussian_surprise,
+            )
+        )
+
+        log_likelihoods = hgf_logp(
+            tonic_volatility_1=-3.0,
+            tonic_volatility_2=-3.0,
+            tonic_volatility_3=-3.0,
+            input_precision=1e4,
+            tonic_drift_1=0.0,
+            tonic_drift_2=0.0,
+            tonic_drift_3=0.0,
+            precision_1=1e4,
+            precision_2=1e1,
+            precision_3=1.0,
+            mean_1=1.0,
+            mean_2=0.0,
+            mean_3=0.0,
+            volatility_coupling_1=1.0,
+            volatility_coupling_2=1.0,
+            response_function_parameters=np.ones(2),
+            response_function_inputs=np.ones(2),
+            vectorized_logp=vectorized_logp_three_levels,
+            input_data=input_data,
+            time_steps=time_steps,
+        )
+
+        assert jnp.isclose(log_likelihoods, 2269.6929).all()
+
+        # test the gradient
         grad_logp = jit(
             grad(
                 Partial(
                     hgf_logp,
-                    n_levels=2,
-                    input_data=[timeserie],
-                    response_function=first_level_gaussian_surprise,
-                    model_type="continuous",
-                    response_function_inputs=None,
+                    vectorized_logp=vectorized_logp_three_levels,
+                    input_data=input_data,
+                    time_steps=time_steps,
+                    response_function_inputs=np.ones(2),
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
             ),
         )
 
-        (
-            tonic_volatility_1,
-            tonic_volatility_2,
-            tonic_volatility_3,
-            continuous_precision,
-            binary_precision,
-            tonic_drift_1,
-            tonic_drift_2,
-            tonic_drift_3,
-            precision_1,
-            precision_2,
-            precision_3,
-            mean_1,
-            mean_2,
-            mean_3,
-            volatility_coupling_1,
-            volatility_coupling_2,
-            response_function_parameters,
-        ) = grad_logp(
-            np.array(-3.0),
-            np.array(-3.0),
-            np.array(0.0),
-            np.array(1e4),
-            np.nan,
-            np.array(0.0),
-            np.array(0.0),
-            np.array(0.0),
-            np.array(1e4),
-            np.array(1e1),
-            np.array(0.0),
-            np.array(timeserie[0]),
-            np.array(0.0),
-            np.array(0.0),
-            np.array(1.0),
-            np.array(0.0),
-            np.array([np.nan]),
+        gradients = grad_logp(
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            -3.0,
+            -3.0,
+            -3.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1e4,
+            np.ones(2),
         )
+        assert jnp.isclose(gradients[0], 0.09576362)
+        assert jnp.isclose(gradients[1], -8.531818)
+        assert jnp.isclose(gradients[2], -189.85936)
 
-        assert jnp.isclose(tonic_volatility_1, -7.864815)
-
-        ##############
-        # Binary HGF #
-        ##############
+        ##########################
+        # Three-level binary HGF #
+        ##########################
 
         # Create the data (value and time vectors)
         u, y = load_data("binary")
+        binary_hgf = HGF(n_levels=3, model_type="binary")
 
+        # generate data with 2 parameters set
+        input_data = np.array([u] * 2)
+        response_function_inputs = np.array([y] * 2)
+        time_steps = np.ones(shape=input_data.shape)
+
+        # create the vectorized version of the function
+        vectorized_logp_three_levels = vmap(
+            Partial(
+                logp,
+                hgf=binary_hgf,
+                response_function=binary_softmax_inverse_temperature,
+            )
+        )
+
+        log_likelihoods = hgf_logp(
+            vectorized_logp=vectorized_logp_three_levels,
+            tonic_volatility_1=np.nan,
+            tonic_volatility_2=-2.0,
+            tonic_volatility_3=-6.0,
+            input_precision=np.inf,
+            tonic_drift_1=0.0,
+            tonic_drift_2=0.0,
+            tonic_drift_3=0.0,
+            precision_1=np.nan,
+            precision_2=1.0,
+            precision_3=1.0,
+            mean_1=0.0,
+            mean_2=0.0,
+            mean_3=0.0,
+            volatility_coupling_1=1.0,
+            volatility_coupling_2=1.0,
+            response_function_parameters=np.array([1.0, 1.0]),
+            input_data=input_data,
+            response_function_inputs=response_function_inputs,
+            time_steps=time_steps,
+        )
+
+        assert jnp.isclose(log_likelihoods, -248.07889)
+
+        # test the gradient
         grad_logp = jit(
             grad(
                 Partial(
                     hgf_logp,
-                    n_levels=2,
-                    input_data=[u],
-                    response_function=binary_softmax_inverse_temperature,
-                    model_type="binary",
-                    response_function_inputs=[y],
+                    vectorized_logp=vectorized_logp_three_levels,
+                    input_data=input_data,
+                    time_steps=time_steps,
+                    response_function_inputs=response_function_inputs,
                 ),
-                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+                argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
             ),
         )
 
-        (
-            tonic_volatility_1,
-            tonic_volatility_2,
-            tonic_volatility_3,
-            continuous_precision,
-            binary_precision,
-            tonic_drift_1,
-            tonic_drift_2,
-            tonic_drift_3,
-            precision_1,
-            precision_2,
-            precision_3,
-            mean_1,
-            mean_2,
-            mean_3,
-            volatility_coupling_1,
-            volatility_coupling_2,
-            response_function_parameters,
-        ) = grad_logp(
-            np.array(0.0),
-            np.array(-2.0),
-            np.array(0.0),
-            np.array(1e4),
+        gradients = grad_logp(
+            0.5,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            -3.0,
+            -2.0,
+            -6.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
             np.inf,
-            np.array(0.0),
-            np.array(0.0),
-            np.array(0.0),
-            np.array(0.0),
-            np.array(1e4),
-            np.array(0.0),
-            np.array(0.0),
-            np.array(0.5),
-            np.array(0.0),
-            np.array(1.0),
-            np.array(1.0),
-            np.array([1.0]),
+            np.ones(2),
         )
-
-        assert jnp.isclose(tonic_volatility_2, 15.896532)
+        assert jnp.isclose(gradients[0], 0.0)
+        assert jnp.isclose(gradients[1], 1.9314771)
+        assert jnp.isclose(gradients[2], 30.185408)
 
     def test_aesara_logp(self):
         """Test the aesara hgf_logp op."""
@@ -227,10 +324,10 @@ class TestDistribution(TestCase):
         ##################
 
         # Create the data (value and time vectors)
-        timeserie = load_data("continuous")
+        timeseries = load_data("continuous")
 
         hgf_logp_op = HGFDistribution(
-            input_data=[timeserie],
+            input_data=timeseries[np.newaxis, :],
             model_type="continuous",
             n_levels=2,
             response_function=first_level_gaussian_surprise,
@@ -238,26 +335,25 @@ class TestDistribution(TestCase):
         )
 
         logp = hgf_logp_op(
-            tonic_volatility_1=np.array(-3.0),
-            tonic_volatility_2=np.array(-3.0),
-            tonic_volatility_3=np.array(0.0),
-            continuous_precision=np.array(1e4),
-            binary_precision=np.inf,
-            tonic_drift_1=np.array(0.0),
-            tonic_drift_2=np.array(0.0),
-            tonic_drift_3=np.array(0.0),
+            mean_1=np.array(1.0),
+            mean_2=np.array(0.0),
+            mean_3=np.array(0.0),
             precision_1=np.array(1e4),
             precision_2=np.array(1e1),
             precision_3=np.array(0.0),
-            mean_1=np.array(timeserie[0]),
-            mean_2=np.array(0.0),
-            mean_3=np.array(0.0),
+            tonic_volatility_1=np.array(-3.0),
+            tonic_volatility_2=np.array(-3.0),
+            tonic_volatility_3=np.array(0.0),
+            tonic_drift_1=np.array(0.0),
+            tonic_drift_2=np.array(0.0),
+            tonic_drift_3=np.array(0.0),
             volatility_coupling_1=np.array(1.0),
             volatility_coupling_2=np.array(0.0),
-            response_function_parameters=np.array([np.nan]),
+            input_precision=np.array(1e4),
+            response_function_parameters=np.ones(1),
         ).eval()
 
-        assert jnp.isclose(logp, 1141.09106445)
+        assert jnp.isclose(logp, 1141.05847168)
 
         ##############
         # Binary HGF #
@@ -267,19 +363,18 @@ class TestDistribution(TestCase):
         u, y = load_data("binary")
 
         hgf_logp_op = HGFDistribution(
-            input_data=[u],
+            input_data=u[np.newaxis, :],
             model_type="binary",
             n_levels=2,
             response_function=binary_softmax_inverse_temperature,
-            response_function_inputs=[y],
+            response_function_inputs=y[np.newaxis, :],
         )
 
         logp = hgf_logp_op(
             tonic_volatility_1=np.inf,
             tonic_volatility_2=-6.0,
             tonic_volatility_3=np.inf,
-            continuous_precision=np.array(1e4),
-            binary_precision=np.inf,
+            input_precision=np.inf,
             tonic_drift_1=0.0,
             tonic_drift_2=0.0,
             tonic_drift_3=np.inf,
@@ -304,11 +399,11 @@ class TestDistribution(TestCase):
         ##################
 
         # Create the data (value and time vectors)
-        timeserie = load_data("continuous")
+        timeseries = load_data("continuous")
 
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="continuous",
-            input_data=[timeserie],
+            input_data=timeseries[np.newaxis, :],
             n_levels=2,
             response_function=first_level_gaussian_surprise,
             response_function_inputs=None,
@@ -317,18 +412,17 @@ class TestDistribution(TestCase):
         tonic_volatility_1 = hgf_logp_grad_op(
             tonic_volatility_1=-3.0,
             tonic_volatility_2=-3.0,
-            continuous_precision=np.array(1e4),
-            binary_precision=np.nan,
+            input_precision=1e4,
             tonic_drift_1=0.0,
             tonic_drift_2=0.0,
-            precision_1=1e4,
-            precision_2=1e1,
-            mean_1=timeserie[0],
+            precision_1=1.0,
+            precision_2=1.0,
+            mean_1=1.0,
             mean_2=0.0,
             volatility_coupling_1=1.0,
-        )[0].eval()
+        )[6].eval()
 
-        assert jnp.isclose(tonic_volatility_1, -7.864815)
+        assert jnp.isclose(tonic_volatility_1, -3.3479857)
 
         ##############
         # Binary HGF #
@@ -339,17 +433,16 @@ class TestDistribution(TestCase):
 
         hgf_logp_grad_op = HGFLogpGradOp(
             model_type="binary",
-            input_data=[u],
+            input_data=u[np.newaxis, :],
             n_levels=2,
             response_function=binary_softmax_inverse_temperature,
-            response_function_inputs=[y],
+            response_function_inputs=y[np.newaxis, :],
         )
 
         tonic_volatility_2 = hgf_logp_grad_op(
             tonic_volatility_1=jnp.inf,
             tonic_volatility_2=-6.0,
-            continuous_precision=jnp.nan,
-            binary_precision=jnp.inf,
+            input_precision=jnp.inf,
             tonic_drift_1=0.0,
             tonic_drift_2=0.0,
             precision_1=0.0,
@@ -357,9 +450,9 @@ class TestDistribution(TestCase):
             mean_1=jnp.inf,
             mean_2=0.5,
             volatility_coupling_1=1.0,
-        )[1].eval()
+        )[7].eval()
 
-        assert jnp.isclose(tonic_volatility_2, 10.8664665)
+        assert jnp.isclose(tonic_volatility_2, 10.866466)
 
     def test_pymc_sampling(self):
         """Test the aesara hgf_logp op."""
@@ -369,11 +462,11 @@ class TestDistribution(TestCase):
         ##############
 
         # Create the data (value and time vectors)
-        timeserie = load_data("continuous")
+        timeseries = load_data("continuous")
 
         hgf_logp_op = HGFDistribution(
             n_levels=2,
-            input_data=[timeserie],
+            input_data=timeseries[np.newaxis, :],
             response_function=first_level_gaussian_surprise,
         )
 
@@ -384,7 +477,7 @@ class TestDistribution(TestCase):
                 "hhgf_loglike",
                 hgf_logp_op(
                     tonic_volatility_2=tonic_volatility_2,
-                    continuous_precision=np.array(1e4),
+                    input_precision=np.array(1e4),
                 ),
             )
 
@@ -410,9 +503,9 @@ class TestDistribution(TestCase):
         hgf_logp_op = HGFDistribution(
             n_levels=2,
             model_type="binary",
-            input_data=[u],
+            input_data=u[np.newaxis, :],
             response_function=binary_softmax_inverse_temperature,
-            response_function_inputs=[y],
+            response_function_inputs=y[np.newaxis, :],
         )
 
         with pm.Model() as model:
