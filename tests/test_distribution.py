@@ -50,7 +50,7 @@ class TestDistribution(TestCase):
             hgf=hgf,
         )
 
-        assert jnp.isclose(log_likelihood, 1141.0585)
+        assert jnp.isclose(log_likelihood.sum(), 1141.0585)
 
     def test_vectorized_logp(self):
         """Test the vectorized version of the log-probability function."""
@@ -148,7 +148,7 @@ class TestDistribution(TestCase):
             input_precision=_input_precision,
         )
 
-        assert jnp.isclose(log_likelihoods, 1141.0582).all()
+        assert jnp.isclose(log_likelihoods.sum(), 2282.1165).all()
 
     def test_hgf_logp(self):
         """Test the hgf_logp function used by Distribution Ops on three level models"""
@@ -172,7 +172,7 @@ class TestDistribution(TestCase):
             )
         )
 
-        log_likelihoods = hgf_logp(
+        sum_log_likelihoods, log_likelihoods = hgf_logp(
             tonic_volatility_1=-3.0,
             tonic_volatility_2=-3.0,
             tonic_volatility_3=-3.0,
@@ -194,8 +194,8 @@ class TestDistribution(TestCase):
             input_data=input_data,
             time_steps=time_steps,
         )
-
-        assert jnp.isclose(log_likelihoods, 2269.6929).all()
+        assert sum_log_likelihoods == log_likelihoods.sum()
+        assert jnp.isclose(sum_log_likelihoods, 2269.6929).all()
 
         # test the gradient
         grad_logp = jit(
@@ -208,10 +208,11 @@ class TestDistribution(TestCase):
                     response_function_inputs=np.ones(2),
                 ),
                 argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                has_aux=True,
             ),
         )
 
-        gradients = grad_logp(
+        gradients, _ = grad_logp(
             1.0,
             0.0,
             0.0,
@@ -255,7 +256,7 @@ class TestDistribution(TestCase):
             )
         )
 
-        log_likelihoods = hgf_logp(
+        sum_log_likelihoods, log_likelihoods = hgf_logp(
             vectorized_logp=vectorized_logp_three_levels,
             tonic_volatility_1=np.nan,
             tonic_volatility_2=-2.0,
@@ -278,7 +279,8 @@ class TestDistribution(TestCase):
             time_steps=time_steps,
         )
 
-        assert jnp.isclose(log_likelihoods, -248.07889)
+        assert sum_log_likelihoods == log_likelihoods.sum()
+        assert jnp.isclose(sum_log_likelihoods, -248.07889)
 
         # test the gradient
         grad_logp = jit(
@@ -291,10 +293,11 @@ class TestDistribution(TestCase):
                     response_function_inputs=response_function_inputs,
                 ),
                 argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                has_aux=True,
             ),
         )
 
-        gradients = grad_logp(
+        gradients, _ = grad_logp(
             0.5,
             0.0,
             0.0,
@@ -353,7 +356,7 @@ class TestDistribution(TestCase):
             response_function_parameters=np.ones(1),
         ).eval()
 
-        assert jnp.isclose(logp, 1141.05847168)
+        assert jnp.isclose(logp.sum(), 1141.05847168)
 
         ##############
         # Binary HGF #
@@ -389,7 +392,7 @@ class TestDistribution(TestCase):
             response_function_parameters=np.array([1.0]),
         ).eval()
 
-        assert jnp.isclose(logp, -200.24421692)
+        assert jnp.isclose(logp.sum(), -200.2442167699337)
 
     def test_aesara_grad_logp(self):
         """Test the aesara gradient hgf_logp op."""
@@ -508,22 +511,19 @@ class TestDistribution(TestCase):
             response_function_inputs=y[np.newaxis, :],
         )
 
-        with pm.Model() as model:
-            tonic_volatility_2 = pm.Normal("tonic_volatility_2", -11.0, 2)
+        def logp(value, tonic_volatility_2):
+            return hgf_logp_op(tonic_volatility_2=tonic_volatility_2)
 
-            pm.Potential(
-                "hhgf_loglike",
-                hgf_logp_op(
-                    tonic_volatility_2=tonic_volatility_2,
-                    response_function_parameters=[1.0],
-                ),
-            )
+        with pm.Model() as model:
+            y_data = pm.Data("y_data", y)
+            tonic_volatility_2 = pm.Normal("tonic_volatility_2", -11.0, 2)
+            pm.CustomDist("likelihood", tonic_volatility_2, logp=logp, observed=y_data)
 
         initial_point = model.initial_point()
 
         pointslogs = model.point_logps(initial_point)
         assert pointslogs["tonic_volatility_2"] == -1.61
-        assert pointslogs["hhgf_loglike"] == -212.59
+        assert pointslogs["likelihood"] == -212.59
 
         with model:
             idata = pm.sample(chains=2, cores=1, tune=1000)

@@ -38,12 +38,10 @@ def first_level_gaussian_surprise(
     """
     # compute the sum of Gaussian surprise at the first level
     # the input value at time t is compared to the Gaussian prediction at t-1
-    surprise = jnp.sum(
-        gaussian_surprise(
-            x=hgf.node_trajectories[0]["values"],
-            expected_mean=hgf.node_trajectories[1]["expected_mean"],
-            expected_precision=hgf.node_trajectories[1]["expected_precision"],
-        )
+    surprise = gaussian_surprise(
+        x=hgf.node_trajectories[0]["values"],
+        expected_mean=hgf.node_trajectories[1]["expected_mean"],
+        expected_precision=hgf.node_trajectories[1]["expected_precision"],
     )
 
     # Return an infinite surprise if the model could not fit at any point
@@ -177,10 +175,8 @@ def binary_softmax(
     # the expected values at the first level of the HGF
     beliefs = hgf.node_trajectories[1]["expected_mean"]
 
-    # the sum of the binary surprises
-    surprise = jnp.sum(
-        binary_surprise(x=response_function_inputs, expected_mean=beliefs)
-    )
+    # the binary surprises
+    surprise = binary_surprise(x=response_function_inputs, expected_mean=beliefs)
 
     # ensure that inf is returned if the model cannot fit
     surprise = jnp.where(jnp.isnan(surprise), jnp.inf, surprise)
@@ -230,10 +226,8 @@ def binary_softmax_inverse_temperature(
         ** response_function_parameters
     )
 
-    # the sum of the binary surprises
-    surprise = jnp.sum(
-        binary_surprise(x=response_function_inputs, expected_mean=beliefs)
-    )
+    # the binary surprises
+    surprise = binary_surprise(x=response_function_inputs, expected_mean=beliefs)
 
     # ensure that inf is returned if the model cannot fit
     surprise = jnp.where(jnp.isnan(surprise), jnp.inf, surprise)

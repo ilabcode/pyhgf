@@ -147,6 +147,7 @@ def logp(
         response_function_inputs=response_function_inputs,
         response_function_parameters=response_function_parameters,
     )
+
     return -surprise
 
 
@@ -317,8 +318,8 @@ def hgf_logp(
         input_precision=_input_precision,
     )
 
-    # Return the sum of log probabilities (negative surprise)
-    return logp.sum()
+    # Return the log probabilities (negative surprise)
+    return logp.sum(), logp
 
 
 class HGFLogpGradOp(Op):
@@ -386,6 +387,7 @@ class HGFLogpGradOp(Op):
                     response_function_inputs=response_function_inputs,
                 ),
                 argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                has_aux=True,
             )
         )
 
@@ -454,7 +456,7 @@ class HGFLogpGradOp(Op):
             grad_volatility_coupling_2,
             grad_input_precision,
             grad_response_function_parameters,
-        ) = self.grad_logp(*inputs)
+        ), _ = self.grad_logp(*inputs)
 
         outputs[0][0] = np.asarray(grad_mean_1, dtype=node.outputs[0].dtype)
         outputs[1][0] = np.asarray(grad_mean_2, dtype=node.outputs[1].dtype)
@@ -669,12 +671,12 @@ class HGFDistribution(Op):
             pt.as_tensor_variable(response_function_parameters),
         ]
         # Define the type of output returned by the wrapped JAX function
-        outputs = [pt.dscalar()]
+        outputs = [pt.matrix(dtype=float)]
         return Apply(self, inputs, outputs)
 
     def perform(self, node, inputs, outputs):
         """Run the function forward."""
-        result = self.hgf_logp(*inputs)
+        _, result = self.hgf_logp(*inputs)
         outputs[0][0] = np.asarray(result, dtype=node.outputs[0].dtype)
 
     def grad(self, inputs, output_gradients):
