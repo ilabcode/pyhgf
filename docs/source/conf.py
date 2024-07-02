@@ -46,7 +46,8 @@ extensions = [
     "myst_nb",
     "sphinxcontrib.bibtex",
     "sphinx_togglebutton",
-    "sphinx_design"
+    "sphinx_design",
+    "sphinx_exercise",
 ]
 
 panels_add_bootstrap_css = False

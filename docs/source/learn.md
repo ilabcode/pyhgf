@@ -208,6 +208,7 @@ Theoretical introduction to the generative model of the generalised Hierarchical
 :::{grid-item-card} Applying the Hierarchical Gaussian Filter to reinforcement learning
 :link: hgf_exercises_2
 :link-type: ref
+:img-top: ./images/model_comparison.png
 
 Practical application of the generalised Hierarchical Gaussian Filter to reinforcement learning problems and estimation of parameters through MCMC sampling (i.e. the second inversion of the model). 
 :::
