@@ -276,7 +276,11 @@ def plot_network(network: "Network") -> "Source":
     # create the rest of nodes
     for idx in range(len(network.edges)):
 
-        if network.edges[idx].node_type == 2:
+        if network.edges[idx].node_type == 1:
+            # binary state node
+            graphviz_structure.node(f"x_{idx}", label=str(idx), shape="square")
+
+        elif network.edges[idx].node_type == 2:
             # Continuous state nore
             graphviz_structure.node(f"x_{idx}", label=str(idx), shape="circle")
 
