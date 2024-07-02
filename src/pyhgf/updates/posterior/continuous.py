@@ -1,38 +1,46 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import Dict
+from typing import Dict, Callable
 
 import jax.numpy as jnp
-from jax import jit
+from jax import jit, grad
 
 from pyhgf.typing import Edges
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def posterior_update_mean_continuous_node(
-    attributes: Dict, edges: Edges, node_idx: int, node_precision: float
+    attributes: Dict, edges: Edges, node_idx: int, node_precision: float,  
+    mode: str = "linear", g: Callable = None
 ) -> float:
     r"""Update the mean of a state node using the value prediction errors.
 
     1. Mean update from value coupling.
-
+    
     The new mean of a state node :math:`b` value coupled with other input and/or state
     nodes :math:`j` at time :math:`k` is given by:
 
+    If mode = "linear"
     .. math::
         \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
             \frac{\kappa_j \hat{\pi}_j^{(k)}}{\pi_b} \delta_j^{(k)}
+            
+    If mode = "non-linear"
+    .. math::
+        \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
+            \frac{\kappa_j g'_{b,a} \hat{\pi}_j^{(k)}}{\pi_b} \delta_j^{(k)}
 
     Where :math:`\kappa_j` is the volatility coupling strength between the child node
-    and the state node and :math:`\delta_j^{(k)}` is the value prediction error that
+    and the state node, :math:`g'_{b,a}` is the first derivative of the non-linear function linking
+    the parent and child node, and :math:`\delta_j^{(k)}` is the value prediction error that
     was computed beforehand. If the child node is an input node, this value was
     computed by
     :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
     If the child node is a state node, this value was computed by
     :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
-    2. Mean update from volatility coupling.
+    2. Mean update from volatility coupling (just for linear functions).
 
     The new mean of a state node :math:`b` volatility coupled with other input and/or
     state nodes :math:`j` at time :math:`k` is given by:
@@ -106,79 +114,132 @@ def posterior_update_mean_continuous_node(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    # sum the prediction errors from both value and volatility coupling
-    (
-        value_precision_weigthed_prediction_error,
-        volatility_precision_weigthed_prediction_error,
-    ) = (0.0, 0.0)
+    if mode == "linear":
+        # sum the prediction errors from both value and volatility coupling
+        (
+            value_precision_weigthed_prediction_error,
+            volatility_precision_weigthed_prediction_error,
+        ) = (0.0, 0.0)
 
-    # Value coupling updates - update the mean of a value parent
-    # ----------------------------------------------------------
-    if edges[node_idx].value_children is not None:
-        for value_child_idx, value_coupling in zip(
-            edges[node_idx].value_children,  # type: ignore
-            attributes[node_idx]["value_coupling_children"],
-        ):
-            # get the value prediction error (VAPE)
-            # if this is jnp.nan (no observation) set the VAPE to 0.0
-            value_prediction_error = attributes[value_child_idx]["temp"][
-                "value_prediction_error"
-            ]
+        # Value coupling updates - update the mean of a value parent
+        # ----------------------------------------------------------
+        if edges[node_idx].value_children is not None:
+            for value_child_idx, value_coupling in zip(
+                edges[node_idx].value_children,  # type: ignore
+                attributes[node_idx]["value_coupling_children"],
+            ):
+                # get the value prediction error (VAPE)
+                # if this is jnp.nan (no observation) set the VAPE to 0.0
+                value_prediction_error = attributes[value_child_idx]["temp"][
+                    "value_prediction_error"
+                ]
 
-            # cancel the prediction error if the child value was not observed
-            value_prediction_error *= attributes[value_child_idx]["observed"]
+                # cancel the prediction error if the child value was not observed
+                value_prediction_error *= attributes[value_child_idx]["observed"]
 
-            # expected precisions from the value children
-            # sum the precision weigthed prediction errors over all children
-            value_precision_weigthed_prediction_error += (
-                (
-                    (value_coupling * attributes[value_child_idx]["expected_precision"])
-                    / node_precision
+                # expected precisions from the value children
+                # sum the precision weigthed prediction errors over all children
+                value_precision_weigthed_prediction_error += (
+                    (
+                        (value_coupling * attributes[value_child_idx]["expected_precision"])
+                        / node_precision
+                    )
+                ) * value_prediction_error
+
+        # Volatility coupling updates - update the mean of a volatility parent
+        # --------------------------------------------------------------------
+        if edges[node_idx].volatility_children is not None:
+            for volatility_child_idx, volatility_coupling in zip(
+                edges[node_idx].volatility_children,  # type: ignore
+                attributes[node_idx]["volatility_coupling_children"],
+            ):
+                # get the volatility prediction error (VOPE)
+                volatility_prediction_error = attributes[volatility_child_idx]["temp"][
+                    "volatility_prediction_error"
+                ]
+
+                # retrieve the effective precision (γ) computed during the prediction step
+                effective_precision = attributes[volatility_child_idx]["temp"][
+                    "effective_precision"
+                ]
+
+                # the precision weigthed prediction error
+                precision_weigthed_prediction_error = (
+                    volatility_coupling * effective_precision * volatility_prediction_error
                 )
-            ) * value_prediction_error
 
-    # Volatility coupling updates - update the mean of a volatility parent
-    # --------------------------------------------------------------------
-    if edges[node_idx].volatility_children is not None:
-        for volatility_child_idx, volatility_coupling in zip(
-            edges[node_idx].volatility_children,  # type: ignore
-            attributes[node_idx]["volatility_coupling_children"],
-        ):
-            # get the volatility prediction error (VOPE)
-            volatility_prediction_error = attributes[volatility_child_idx]["temp"][
-                "volatility_prediction_error"
-            ]
+                # weight using the node's precision
+                precision_weigthed_prediction_error *= 1 / (2 * node_precision)
 
-            # retrieve the effective precision (γ) computed during the prediction step
-            effective_precision = attributes[volatility_child_idx]["temp"][
-                "effective_precision"
-            ]
+                # cancel the prediction error if the child value was not observed
+                precision_weigthed_prediction_error *= attributes[volatility_child_idx][
+                    "observed"
+                ]
 
-            # the precision weigthed prediction error
-            precision_weigthed_prediction_error = (
-                volatility_coupling * effective_precision * volatility_prediction_error
-            )
+                # aggregate over volatility children
+                volatility_precision_weigthed_prediction_error += (
+                    precision_weigthed_prediction_error
+                )
 
-            # weight using the node's precision
-            precision_weigthed_prediction_error *= 1 / (2 * node_precision)
+        # Compute the new posterior mean
+        # using value prediction errors from both value and volatility coupling
+        posterior_mean = (
+            attributes[node_idx]["expected_mean"]
+            + value_precision_weigthed_prediction_error
+            + volatility_precision_weigthed_prediction_error
+        )
 
-            # cancel the prediction error if the child value was not observed
-            precision_weigthed_prediction_error *= attributes[volatility_child_idx][
-                "observed"
-            ]
+        return posterior_mean
+    
+    elif mode == "non-linear":
+        
+        # sum the prediction errors from both value and volatility coupling
+        (
+            value_precision_weigthed_prediction_error,
+            volatility_precision_weigthed_prediction_error,
+        ) = (0.0, 0.0)
 
-            # aggregate over volatility children
-            volatility_precision_weigthed_prediction_error += (
-                precision_weigthed_prediction_error
-            )
+        # g is the non-linear function
+        if g is None:
+            raise ValueError("Function g must be provided for non-linear mode.")
+        
+        # Compute the derivative of g (needed for the mean)
+        g_prime = grad(g)
+        
+        # Value coupling updates - update the mean of a value parent
+        # ----------------------------------------------------------
+        if edges[node_idx].value_children is not None:
+            for value_child_idx, value_coupling in zip(
+                edges[node_idx].value_children,  # type: ignore
+                attributes[node_idx]["value_coupling_children"],
+            ):
+                # get the value prediction error (VAPE)
+                # if this is jnp.nan (no observation) set the VAPE to 0.0
+                value_prediction_error = attributes[value_child_idx]["temp"][
+                    "value_prediction_error"
+                ]
 
-    # Compute the new posterior mean
-    # using value prediction errors from both value and volatility coupling
-    posterior_mean = (
-        attributes[node_idx]["expected_mean"]
-        + value_precision_weigthed_prediction_error
-        + volatility_precision_weigthed_prediction_error
-    )
+                # cancel the prediction error if the child value was not observed
+                value_prediction_error *= attributes[value_child_idx]["observed"]
+
+                # expected precisions from the value children
+                # sum the precision weigthed prediction errors over all children
+                value_precision_weigthed_prediction_error += (
+                    (
+                        (value_coupling * attributes[value_child_idx]["expected_precision"]* g_prime)
+                        / node_precision
+                    )
+                ) * value_prediction_error
+                # Compute the new posterior mean
+
+        # using prediction errors from value coupling to compute posterior mean
+        posterior_mean = (
+            attributes[node_idx]["expected_mean"]
+            + value_precision_weigthed_prediction_error
+        )
+    
+    else:
+        raise ValueError("Invalid mode. Choose either 'linear' or 'non-linear'.")
 
     return posterior_mean
 
