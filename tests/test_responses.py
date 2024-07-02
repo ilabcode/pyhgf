@@ -29,7 +29,7 @@ class TestResponses(TestCase):
         surprise = two_level_binary_hgf.surprise(
             response_function=binary_softmax, response_function_inputs=y
         )
-        assert np.isclose(surprise, 195.81573)
+        assert np.isclose(surprise.sum(), 195.81573)
 
         # binary sofmax with inverse temperature
         # --------------------------------------
@@ -38,7 +38,7 @@ class TestResponses(TestCase):
             response_function_inputs=y,
             response_function_parameters=2.0,
         )
-        assert np.isclose(surprise, 188.77818)
+        assert np.isclose(surprise.sum(), 188.77818)
 
 
 if __name__ == "__main__":

@@ -11,7 +11,13 @@ from jax import grad, jit, vmap
 from jax.tree_util import Partial
 
 from pyhgf import load_data
-from pyhgf.distribution import HGFDistribution, HGFLogpGradOp, hgf_logp, logp
+from pyhgf.distribution import (
+    HGFDistribution,
+    HGFLogpGradOp,
+    HGFPointwise,
+    hgf_logp,
+    logp,
+)
 from pyhgf.model import HGF
 from pyhgf.response import (
     binary_softmax_inverse_temperature,
@@ -319,8 +325,47 @@ class TestDistribution(TestCase):
         assert jnp.isclose(gradients[1], 1.9314771)
         assert jnp.isclose(gradients[2], 30.185408)
 
-    def test_aesara_logp(self):
-        """Test the aesara hgf_logp op."""
+    def test_pytensor_pointwise_logp(self):
+        """Test the pytensor HGFPointwise op."""
+
+        ##############
+        # Binary HGF #
+        ##############
+
+        # Create the data (value and time vectors)
+        u, y = load_data("binary")
+
+        hgf_logp_op = HGFPointwise(
+            input_data=u[np.newaxis, :],
+            model_type="binary",
+            n_levels=2,
+            response_function=binary_softmax_inverse_temperature,
+            response_function_inputs=y[np.newaxis, :],
+        )
+
+        logp = hgf_logp_op(
+            tonic_volatility_1=np.inf,
+            tonic_volatility_2=-6.0,
+            tonic_volatility_3=np.inf,
+            input_precision=np.inf,
+            tonic_drift_1=0.0,
+            tonic_drift_2=0.0,
+            tonic_drift_3=np.inf,
+            precision_1=0.0,
+            precision_2=1e4,
+            precision_3=np.inf,
+            mean_1=np.inf,
+            mean_2=0.5,
+            mean_3=np.inf,
+            volatility_coupling_1=1.0,
+            volatility_coupling_2=np.inf,
+            response_function_parameters=np.array([1.0]),
+        ).eval()
+
+        assert jnp.isclose(logp.sum(), -200.2442167699337)
+
+    def test_pytensor_logp(self):
+        """Test the pytensor hgf_logp op."""
 
         ##################
         # Continuous HGF #
@@ -356,7 +401,7 @@ class TestDistribution(TestCase):
             response_function_parameters=np.ones(1),
         ).eval()
 
-        assert jnp.isclose(logp.sum(), 1141.05847168)
+        assert jnp.isclose(logp, 1141.05847168)
 
         ##############
         # Binary HGF #
@@ -392,10 +437,10 @@ class TestDistribution(TestCase):
             response_function_parameters=np.array([1.0]),
         ).eval()
 
-        assert jnp.isclose(logp.sum(), -200.2442167699337)
+        assert jnp.isclose(logp, -200.2442167699337)
 
-    def test_aesara_grad_logp(self):
-        """Test the aesara gradient hgf_logp op."""
+    def test_pytensor_grad_logp(self):
+        """Test the pytensor gradient hgf_logp op."""
 
         ##################
         # Continuous HGF #
@@ -458,7 +503,7 @@ class TestDistribution(TestCase):
         assert jnp.isclose(tonic_volatility_2, 10.866466)
 
     def test_pymc_sampling(self):
-        """Test the aesara hgf_logp op."""
+        """Test the pytensor hgf_logp op."""
 
         ##############
         # Continuous #

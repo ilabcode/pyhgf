@@ -74,31 +74,27 @@ def total_gaussian_surprise(
 
     """
     # compute the sum of Gaussian surprise across every node
-    surprise = 0.0
+    surprise = jnp.zeros(len(hgf.node_trajectories[0]["values"]))
 
     # first we start with nodes that are value parents to input nodes
     input_parents_list = []
     for idx in hgf.inputs.idx:
         va_pa = hgf.edges[idx].value_parents[0]  # type: ignore
         input_parents_list.append(va_pa)
-        surprise += jnp.sum(
-            gaussian_surprise(
-                x=hgf.node_trajectories[idx]["values"],
-                expected_mean=hgf.node_trajectories[va_pa]["expected_mean"],
-                expected_precision=hgf.node_trajectories[va_pa]["expected_precision"],
-            )
+        surprise += gaussian_surprise(
+            x=hgf.node_trajectories[idx]["values"],
+            expected_mean=hgf.node_trajectories[va_pa]["expected_mean"],
+            expected_precision=hgf.node_trajectories[va_pa]["expected_precision"],
         )
 
     # then we do the same for every node that is not an input node
     # and not the parent of an input node
     for i in range(len(hgf.edges)):
         if (i not in hgf.inputs.idx) and (i not in input_parents_list):
-            surprise += jnp.sum(
-                gaussian_surprise(
-                    x=hgf.node_trajectories[i]["mean"],
-                    expected_mean=hgf.node_trajectories[i]["expected_mean"],
-                    expected_precision=hgf.node_trajectories[i]["expected_precision"],
-                )
+            surprise += gaussian_surprise(
+                x=hgf.node_trajectories[i]["mean"],
+                expected_mean=hgf.node_trajectories[i]["expected_mean"],
+                expected_precision=hgf.node_trajectories[i]["expected_precision"],
             )
 
     # Return an infinite surprise if the model could not fit at any point
@@ -138,12 +134,10 @@ def first_level_binary_surprise(
     )
 
     # Return an infinite surprise if the model cannot fit
-    surprise = jnp.sum(
-        jnp.where(
-            jnp.isnan(surprise),
-            jnp.inf,
-            surprise,
-        )
+    surprise = jnp.where(
+        jnp.isnan(surprise),
+        jnp.inf,
+        surprise,
     )
 
     return surprise
