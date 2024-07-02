@@ -31,6 +31,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/exercise.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=87e54e7c" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -456,6 +457,7 @@ document.write(`
 <span class="kn">from</span> <span class="nn">jax.tree_util</span> <span class="kn">import</span> <span class="n">Partial</span>
 <span class="kn">from</span> <span class="nn">jax.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
 <span class="kn">from</span> <span class="nn">pytensor.graph</span> <span class="kn">import</span> <span class="n">Apply</span><span class="p">,</span> <span class="n">Op</span>
+<span class="kn">from</span> <span class="nn">pytensor.tensor.variable</span> <span class="kn">import</span> <span class="n">TensorVariable</span>
 
 <span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">HGF</span>
 
@@ -595,6 +597,7 @@ document.write(`
         <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span>
         <span class="n">response_function_parameters</span><span class="o">=</span><span class="n">response_function_parameters</span><span class="p">,</span>
     <span class="p">)</span>
+
     <span class="k">return</span> <span class="o">-</span><span class="n">surprise</span></div>
 
 
@@ -768,8 +771,8 @@ document.write(`
         <span class="n">input_precision</span><span class="o">=</span><span class="n">_input_precision</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="c1"># Return the sum of log probabilities (negative surprise)</span>
-    <span class="k">return</span> <span class="n">logp</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+    <span class="c1"># Return the log probabilities (negative surprise)</span>
+    <span class="k">return</span> <span class="n">logp</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">logp</span></div>
 
 
 
@@ -842,6 +845,7 @@ document.write(`
                     <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">argnums</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span>
+                <span class="n">has_aux</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span></div>
 
@@ -892,7 +896,9 @@ document.write(`
         <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">inp</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">Apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">outputs</span><span class="p">:</span> <span class="n">List</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">],</span> <span class="n">outputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">]</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform node operations.&quot;&quot;&quot;</span>
         <span class="p">(</span>
             <span class="n">grad_mean_1</span><span class="p">,</span>
@@ -911,7 +917,7 @@ document.write(`
             <span class="n">grad_volatility_coupling_2</span><span class="p">,</span>
             <span class="n">grad_input_precision</span><span class="p">,</span>
             <span class="n">grad_response_function_parameters</span><span class="p">,</span>
-        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grad_logp</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="p">),</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grad_logp</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
 
         <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_mean_1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="n">outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grad_mean_2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
@@ -1132,15 +1138,19 @@ document.write(`
             <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">response_function_parameters</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="c1"># Define the type of output returned by the wrapped JAX function</span>
-        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">dscalar</span><span class="p">()]</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)]</span>
         <span class="k">return</span> <span class="n">Apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">],</span> <span class="n">outputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">]</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the function forward.&quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
-        <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">log_likelihood</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">log_likelihood</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">output_gradients</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">],</span> <span class="n">output_gradients</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gradient of the function.&quot;&quot;&quot;</span>
         <span class="p">(</span>
             <span class="n">grad_mean_1</span><span class="p">,</span>
@@ -1160,6 +1170,7 @@ document.write(`
             <span class="n">grad_input_precision</span><span class="p">,</span>
             <span class="n">grad_response_function_parameters</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp_grad_op</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
+
         <span class="c1"># If there are inputs for which the gradients will never be needed or cannot</span>
         <span class="c1"># be computed, `pytensor.gradient.grad_not_implemented` should  be used as the</span>
         <span class="c1"># output gradient for that input.</span>
@@ -1183,6 +1194,126 @@ document.write(`
             <span class="n">output_gradient</span> <span class="o">*</span> <span class="n">grad_response_function_parameters</span><span class="p">,</span>
         <span class="p">]</span></div>
 
+
+
+<span class="k">class</span> <span class="nc">HGFPointwise</span><span class="p">(</span><span class="n">Op</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The HGF distribution returning pointwise log probability.</span>
+
+<span class="sd">    This class should be used in the context of model comparison where the pointwise log</span>
+<span class="sd">    probabilities are required for cross-validation.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+        <span class="n">time_steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;continuous&quot;</span><span class="p">,</span>
+        <span class="n">n_levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">response_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">response_function_inputs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distribution initialization.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_data :</span>
+<span class="sd">            List of input data. When `n` models should be fitted, the list contains `n`</span>
+<span class="sd">            1d Numpy arrays. By default, the associated time vector is the unit</span>
+<span class="sd">            vector starting at `0`. A different time_steps vector can be passed to</span>
+<span class="sd">            the `time_steps` argument.</span>
+<span class="sd">        time_steps :</span>
+<span class="sd">            List of 1d Numpy arrays containing the time_steps vectors for each input</span>
+<span class="sd">            time series. If one of the list items is `None`, or if `None` is provided</span>
+<span class="sd">            instead, the time vector will default to an integers vector starting at 0.</span>
+<span class="sd">        model_type :</span>
+<span class="sd">            The model type to use (can be &quot;continuous&quot; or &quot;binary&quot;).</span>
+<span class="sd">        n_levels :</span>
+<span class="sd">            The number of hierarchies in the perceptual model (can be `2` or `3`). If</span>
+<span class="sd">            `None`, the nodes hierarchy is not created and might be provided afterwards</span>
+<span class="sd">            using `add_nodes()`.</span>
+<span class="sd">        response_function :</span>
+<span class="sd">            The response function to use to compute the model surprise.</span>
+<span class="sd">        response_function_inputs :</span>
+<span class="sd">            A list of tuples with the same length as the number of models. Each tuple</span>
+<span class="sd">            contains additional data and parameters that can be accessible to the</span>
+<span class="sd">            response functions.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">time_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">input_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># create the default HGF template to be use by the logp function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hgf</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="n">model_type</span><span class="p">)</span>
+
+        <span class="c1"># create a vectorized version of the logp function</span>
+        <span class="n">vectorized_logp</span> <span class="o">=</span> <span class="n">vmap</span><span class="p">(</span>
+            <span class="n">Partial</span><span class="p">(</span>
+                <span class="n">logp</span><span class="p">,</span>
+                <span class="n">hgf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hgf</span><span class="p">,</span>
+                <span class="n">response_function</span><span class="o">=</span><span class="n">response_function</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># The value function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span>
+            <span class="n">Partial</span><span class="p">(</span>
+                <span class="n">hgf_logp</span><span class="p">,</span>
+                <span class="n">vectorized_logp</span><span class="o">=</span><span class="n">vectorized_logp</span><span class="p">,</span>
+                <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">,</span>
+                <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">,</span>
+                <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_node</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mean_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">mean_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">mean_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">precision_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">precision_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">precision_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">tonic_volatility_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">tonic_volatility_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">tonic_volatility_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">tonic_drift_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">tonic_drift_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">tonic_drift_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]),</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert inputs to symbolic variables.&quot;&quot;&quot;</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_3</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">input_precision</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">response_function_parameters</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="c1"># Define the type of output returned by the wrapped JAX function</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">Apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">],</span> <span class="n">outputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TensorVariable</span><span class="p">]</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the function forward.&quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">pointwise_log_likelihood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pointwise_log_likelihood</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 </pre></div>
 
                 </article>

@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -437,7 +438,10 @@ document.write(`
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Exercises</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="Exercise_1_Using_the_HGF.html">An introduction to Hierarchical Gaussian Filters through practical exercises</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Introduction to the generalised Hierarchical Gaussian Filter</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="Exercise_2_Bayesian_reinforcement_learning.html">Application to reinforcement learning</a></li>
+
 
 </ul>
 </div>
@@ -581,7 +585,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/2203f658c48cbed1396b11d07f0dcc1f47297106659d47337be2da6917395e41.png" src="../_images/2203f658c48cbed1396b11d07f0dcc1f47297106659d47337be2da6917395e41.png" />
+<img alt="../_images/ff236cd66f039c24d152ca4b06760d7e677da6f26c9008b1322c791541b82138.png" src="../_images/ff236cd66f039c24d152ca4b06760d7e677da6f26c9008b1322c791541b82138.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -623,7 +627,7 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/3fdd9b85b7acdb8a231911e10c376a946bb94aad91f69d3f4209f5d7dcaf5d1e.svg" src="../_images/3fdd9b85b7acdb8a231911e10c376a946bb94aad91f69d3f4209f5d7dcaf5d1e.svg" /></div>
+<img alt="../_images/a4dd8317ddda6109ed1305b490929f3536b67082b39127146c3af7ef152683c1.svg" src="../_images/a4dd8317ddda6109ed1305b490929f3536b67082b39127146c3af7ef152683c1.svg" /></div>
 </div>
 </section>
 <section id="fitting-the-model-forwards">
@@ -695,7 +699,7 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/fd626e6d7fd5f9d3eab1ee135ea67b2e8dc19218a00de46479e4b18c3330150d.png" src="../_images/fd626e6d7fd5f9d3eab1ee135ea67b2e8dc19218a00de46479e4b18c3330150d.png" />
+<img alt="../_images/0f8ce77db61b7f0773da26dcd11c622b5a32b8fe0064d496a4d50db0f1fe43fc.png" src="../_images/0f8ce77db61b7f0773da26dcd11c622b5a32b8fe0064d496a4d50db0f1fe43fc.png" />
 </div>
 </div>
 </section>
@@ -843,24 +847,24 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Thu Jun 27 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Jul 02 2024
 
 Python implementation: CPython
 Python version       : 3.12.4
-IPython version      : 8.25.0
+IPython version      : 8.26.0
 
 pyhgf : 0.1.2
 jax   : 0.4.30
 jaxlib: 0.4.30
 
-pytensor  : 2.23.0
-sys       : 3.12.4 (main, Jun 20 2024, 16:57:58) [GCC 11.4.0]
-numpy     : 1.26.0
-seaborn   : 0.13.2
 pymc      : 5.16.1
+numpy     : 1.26.0
 arviz     : 0.18.0
-jax       : 0.4.30
+sys       : 3.12.4 (main, Jun 20 2024, 16:57:58) [GCC 11.4.0]
+pytensor  : 2.23.0
 matplotlib: 3.9.0
+jax       : 0.4.30
+seaborn   : 0.13.2
 
 Watermark: 2.4.3
 </pre></div>

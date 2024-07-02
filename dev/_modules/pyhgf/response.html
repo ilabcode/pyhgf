@@ -31,6 +31,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/exercise.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=87e54e7c" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -486,12 +487,10 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># compute the sum of Gaussian surprise at the first level</span>
     <span class="c1"># the input value at time t is compared to the Gaussian prediction at t-1</span>
-    <span class="n">surprise</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">gaussian_surprise</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">],</span>
-            <span class="n">expected_mean</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">],</span>
-            <span class="n">expected_precision</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">],</span>
-        <span class="p">)</span>
+    <span class="n">surprise</span> <span class="o">=</span> <span class="n">gaussian_surprise</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">],</span>
+        <span class="n">expected_mean</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">],</span>
+        <span class="n">expected_precision</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">],</span>
     <span class="p">)</span>
 
     <span class="c1"># Return an infinite surprise if the model could not fit at any point</span>
@@ -527,31 +526,27 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># compute the sum of Gaussian surprise across every node</span>
-    <span class="n">surprise</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">surprise</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">]))</span>
 
     <span class="c1"># first we start with nodes that are value parents to input nodes</span>
     <span class="n">input_parents_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">hgf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">idx</span><span class="p">:</span>
         <span class="n">va_pa</span> <span class="o">=</span> <span class="n">hgf</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
         <span class="n">input_parents_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">va_pa</span><span class="p">)</span>
-        <span class="n">surprise</span> <span class="o">+=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-            <span class="n">gaussian_surprise</span><span class="p">(</span>
-                <span class="n">x</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">],</span>
-                <span class="n">expected_mean</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">va_pa</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">],</span>
-                <span class="n">expected_precision</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">va_pa</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">],</span>
-            <span class="p">)</span>
+        <span class="n">surprise</span> <span class="o">+=</span> <span class="n">gaussian_surprise</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">],</span>
+            <span class="n">expected_mean</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">va_pa</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">],</span>
+            <span class="n">expected_precision</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">va_pa</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">],</span>
         <span class="p">)</span>
 
     <span class="c1"># then we do the same for every node that is not an input node</span>
     <span class="c1"># and not the parent of an input node</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hgf</span><span class="o">.</span><span class="n">edges</span><span class="p">)):</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">hgf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">idx</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input_parents_list</span><span class="p">):</span>
-            <span class="n">surprise</span> <span class="o">+=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-                <span class="n">gaussian_surprise</span><span class="p">(</span>
-                    <span class="n">x</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span>
-                    <span class="n">expected_mean</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">],</span>
-                    <span class="n">expected_precision</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">],</span>
-                <span class="p">)</span>
+            <span class="n">surprise</span> <span class="o">+=</span> <span class="n">gaussian_surprise</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span>
+                <span class="n">expected_mean</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">],</span>
+                <span class="n">expected_precision</span><span class="o">=</span><span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">],</span>
             <span class="p">)</span>
 
     <span class="c1"># Return an infinite surprise if the model could not fit at any point</span>
@@ -594,12 +589,10 @@ document.write(`
     <span class="p">)</span>
 
     <span class="c1"># Return an infinite surprise if the model cannot fit</span>
-    <span class="n">surprise</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-            <span class="n">jnp</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">surprise</span><span class="p">),</span>
-            <span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-            <span class="n">surprise</span><span class="p">,</span>
-        <span class="p">)</span>
+    <span class="n">surprise</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">jnp</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">surprise</span><span class="p">),</span>
+        <span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">surprise</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">surprise</span></div>
@@ -634,10 +627,8 @@ document.write(`
     <span class="c1"># the expected values at the first level of the HGF</span>
     <span class="n">beliefs</span> <span class="o">=</span> <span class="n">hgf</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">]</span>
 
-    <span class="c1"># the sum of the binary surprises</span>
-    <span class="n">surprise</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">binary_surprise</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span> <span class="n">expected_mean</span><span class="o">=</span><span class="n">beliefs</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="c1"># the binary surprises</span>
+    <span class="n">surprise</span> <span class="o">=</span> <span class="n">binary_surprise</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span> <span class="n">expected_mean</span><span class="o">=</span><span class="n">beliefs</span><span class="p">)</span>
 
     <span class="c1"># ensure that inf is returned if the model cannot fit</span>
     <span class="n">surprise</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">surprise</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">surprise</span><span class="p">)</span>
@@ -690,10 +681,8 @@ document.write(`
         <span class="o">**</span> <span class="n">response_function_parameters</span>
     <span class="p">)</span>
 
-    <span class="c1"># the sum of the binary surprises</span>
-    <span class="n">surprise</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">binary_surprise</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span> <span class="n">expected_mean</span><span class="o">=</span><span class="n">beliefs</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="c1"># the binary surprises</span>
+    <span class="n">surprise</span> <span class="o">=</span> <span class="n">binary_surprise</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span> <span class="n">expected_mean</span><span class="o">=</span><span class="n">beliefs</span><span class="p">)</span>
 
     <span class="c1"># ensure that inf is returned if the model cannot fit</span>
     <span class="n">surprise</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">surprise</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">surprise</span><span class="p">)</span>

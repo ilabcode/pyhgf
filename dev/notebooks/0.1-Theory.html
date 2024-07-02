@@ -32,6 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -437,7 +438,10 @@ document.write(`
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Exercises</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="Exercise_1_Using_the_HGF.html">An introduction to Hierarchical Gaussian Filters through practical exercises</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Introduction to the generalised Hierarchical Gaussian Filter</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="Exercise_2_Bayesian_reinforcement_learning.html">Application to reinforcement learning</a></li>
+
 
 </ul>
 </div>
@@ -823,7 +827,7 @@ x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 <figure class="align-default" id="hgf-fig">
 <img alt="../_images/hgf.png" src="../_images/hgf.png" />
 <figcaption>
-<p><span class="caption-text">The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs.</span><a class="headerlink" href="#hgf-fig" title="Link to this image">#</a></p>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs.</span><a class="headerlink" href="#hgf-fig" title="Link to this image">#</a></p>
 <div class="legend">
 <p>These models were described in <span id="id5">[<a class="reference internal" href="../references.html#id3" title="Christoph D. Mathys, Ekaterina I. Lomakina, Jean Daunizeau, Sandra Iglesias, Kay H. Brodersen, Karl J. Friston, and Klaas E. Stephan. Uncertainty in perception and the hierarchical gaussian filter. Frontiers in Human Neuroscience, 2014. URL: https://www.frontiersin.org/articles/10.3389/fnhum.2014.00825, doi:10.3389/fnhum.2014.00825.">Mathys <em>et al.</em>, 2014</a>, <a class="reference internal" href="../references.html#id2" title="Christoph D. Mathys. A Bayesian foundation for individual learning under uncertainty. Frontiers in Human Neuroscience, 5(May):1–20, 2011. URL: http://journal.frontiersin.org/article/10.3389/fnhum.2011.00039/abstract, doi:10.3389/fnhum.2011.00039.">Mathys, 2011</a>]</span>. The binary HGF has the particularity that it uses a sigmoid transform in the input node to convert continuous values into binary probabilities. For both models, volatility coupling is depicted with dashed lines, and value coupling with straight lines. The three-level HGF has one volatility layer more than the two-level HGF, which is used to estimate higher-order uncertainty.</p>
 </div>
@@ -909,20 +913,20 @@ Given the expectation from the prediction step</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Thu Jun 27 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Jul 02 2024
 
 Python implementation: CPython
 Python version       : 3.12.4
-IPython version      : 8.25.0
+IPython version      : 8.26.0
 
 pyhgf : 0.1.2
 jax   : 0.4.30
 jaxlib: 0.4.30
 
 matplotlib: 3.9.0
-numpy     : 1.26.0
-sys       : 3.12.4 (main, Jun 20 2024, 16:57:58) [GCC 11.4.0]
 seaborn   : 0.13.2
+sys       : 3.12.4 (main, Jun 20 2024, 16:57:58) [GCC 11.4.0]
+numpy     : 1.26.0
 
 Watermark: 2.4.3
 </pre></div>
