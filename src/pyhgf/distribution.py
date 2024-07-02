@@ -10,6 +10,7 @@ from jax import Array, grad, jit, vmap
 from jax.tree_util import Partial
 from jax.typing import ArrayLike
 from pytensor.graph import Apply, Op
+from pytensor.tensor.variable import TensorVariable
 
 from pyhgf.model import HGF
 
@@ -147,6 +148,7 @@ def logp(
         response_function_inputs=response_function_inputs,
         response_function_parameters=response_function_parameters,
     )
+
     return -surprise
 
 
@@ -317,8 +319,8 @@ def hgf_logp(
         input_precision=_input_precision,
     )
 
-    # Return the sum of log probabilities (negative surprise)
-    return logp.sum()
+    # Return the log probabilities (negative surprise)
+    return logp.sum(), logp
 
 
 class HGFLogpGradOp(Op):
@@ -386,6 +388,7 @@ class HGFLogpGradOp(Op):
                     response_function_inputs=response_function_inputs,
                 ),
                 argnums=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                has_aux=True,
             )
         )
 
@@ -435,7 +438,9 @@ class HGFLogpGradOp(Op):
         outputs = [inp.type() for inp in inputs]
         return Apply(self, inputs, outputs)
 
-    def perform(self, node, inputs: List, outputs: List):
+    def perform(
+        self, node, inputs: List[TensorVariable], outputs: List[TensorVariable]
+    ):
         """Perform node operations."""
         (
             grad_mean_1,
@@ -454,7 +459,7 @@ class HGFLogpGradOp(Op):
             grad_volatility_coupling_2,
             grad_input_precision,
             grad_response_function_parameters,
-        ) = self.grad_logp(*inputs)
+        ), _ = self.grad_logp(*inputs)
 
         outputs[0][0] = np.asarray(grad_mean_1, dtype=node.outputs[0].dtype)
         outputs[1][0] = np.asarray(grad_mean_2, dtype=node.outputs[1].dtype)
@@ -669,15 +674,19 @@ class HGFDistribution(Op):
             pt.as_tensor_variable(response_function_parameters),
         ]
         # Define the type of output returned by the wrapped JAX function
-        outputs = [pt.dscalar()]
+        outputs = [pt.scalar(dtype=float)]
         return Apply(self, inputs, outputs)
 
-    def perform(self, node, inputs, outputs):
+    def perform(
+        self, node, inputs: List[TensorVariable], outputs: List[TensorVariable]
+    ):
         """Run the function forward."""
-        result = self.hgf_logp(*inputs)
-        outputs[0][0] = np.asarray(result, dtype=node.outputs[0].dtype)
+        log_likelihood, _ = self.hgf_logp(*inputs)
+        outputs[0][0] = np.asarray(log_likelihood, dtype=float)
 
-    def grad(self, inputs, output_gradients):
+    def grad(
+        self, inputs: List[TensorVariable], output_gradients: List[TensorVariable]
+    ) -> List[TensorVariable]:
         """Gradient of the function."""
         (
             grad_mean_1,
@@ -697,6 +706,7 @@ class HGFDistribution(Op):
             grad_input_precision,
             grad_response_function_parameters,
         ) = self.hgf_logp_grad_op(*inputs)
+
         # If there are inputs for which the gradients will never be needed or cannot
         # be computed, `pytensor.gradient.grad_not_implemented` should  be used as the
         # output gradient for that input.
@@ -719,3 +729,123 @@ class HGFDistribution(Op):
             output_gradient * grad_input_precision,
             output_gradient * grad_response_function_parameters,
         ]
+
+
+class HGFPointwise(Op):
+    """The HGF distribution returning pointwise log probability.
+
+    This class should be used in the context of model comparison where the pointwise log
+    probabilities are required for cross-validation.
+
+    """
+
+    def __init__(
+        self,
+        input_data: ArrayLike = jnp.nan,
+        time_steps: Optional[ArrayLike] = None,
+        model_type: str = "continuous",
+        n_levels: int = 2,
+        response_function: Optional[Callable] = None,
+        response_function_inputs: Optional[ArrayLike] = None,
+    ):
+        """Distribution initialization.
+
+        Parameters
+        ----------
+        input_data :
+            List of input data. When `n` models should be fitted, the list contains `n`
+            1d Numpy arrays. By default, the associated time vector is the unit
+            vector starting at `0`. A different time_steps vector can be passed to
+            the `time_steps` argument.
+        time_steps :
+            List of 1d Numpy arrays containing the time_steps vectors for each input
+            time series. If one of the list items is `None`, or if `None` is provided
+            instead, the time vector will default to an integers vector starting at 0.
+        model_type :
+            The model type to use (can be "continuous" or "binary").
+        n_levels :
+            The number of hierarchies in the perceptual model (can be `2` or `3`). If
+            `None`, the nodes hierarchy is not created and might be provided afterwards
+            using `add_nodes()`.
+        response_function :
+            The response function to use to compute the model surprise.
+        response_function_inputs :
+            A list of tuples with the same length as the number of models. Each tuple
+            contains additional data and parameters that can be accessible to the
+            response functions.
+
+        """
+        if time_steps is None:
+            time_steps = np.ones(shape=input_data.shape)
+
+        # create the default HGF template to be use by the logp function
+        self.hgf = HGF(n_levels=n_levels, model_type=model_type)
+
+        # create a vectorized version of the logp function
+        vectorized_logp = vmap(
+            Partial(
+                logp,
+                hgf=self.hgf,
+                response_function=response_function,
+            )
+        )
+
+        # The value function
+        self.hgf_logp = jit(
+            Partial(
+                hgf_logp,
+                vectorized_logp=vectorized_logp,
+                input_data=input_data,
+                time_steps=time_steps,
+                response_function_inputs=response_function_inputs,
+            ),
+        )
+
+    def make_node(
+        self,
+        mean_1: ArrayLike = np.array(0.0),
+        mean_2: ArrayLike = np.array(0.0),
+        mean_3: ArrayLike = np.array(0.0),
+        precision_1: ArrayLike = np.array(1.0),
+        precision_2: ArrayLike = np.array(1.0),
+        precision_3: ArrayLike = np.array(1.0),
+        tonic_volatility_1: ArrayLike = np.array(-3.0),
+        tonic_volatility_2: ArrayLike = np.array(-3.0),
+        tonic_volatility_3: ArrayLike = np.array(-3.0),
+        tonic_drift_1: ArrayLike = np.array(0.0),
+        tonic_drift_2: ArrayLike = np.array(0.0),
+        tonic_drift_3: ArrayLike = np.array(0.0),
+        volatility_coupling_1: ArrayLike = np.array(1.0),
+        volatility_coupling_2: ArrayLike = np.array(1.0),
+        input_precision: ArrayLike = np.inf,
+        response_function_parameters: ArrayLike = np.array([1.0]),
+    ):
+        """Convert inputs to symbolic variables."""
+        inputs = [
+            pt.as_tensor_variable(mean_1),
+            pt.as_tensor_variable(mean_2),
+            pt.as_tensor_variable(mean_3),
+            pt.as_tensor_variable(precision_1),
+            pt.as_tensor_variable(precision_2),
+            pt.as_tensor_variable(precision_3),
+            pt.as_tensor_variable(tonic_volatility_1),
+            pt.as_tensor_variable(tonic_volatility_2),
+            pt.as_tensor_variable(tonic_volatility_3),
+            pt.as_tensor_variable(tonic_drift_1),
+            pt.as_tensor_variable(tonic_drift_2),
+            pt.as_tensor_variable(tonic_drift_3),
+            pt.as_tensor_variable(volatility_coupling_1),
+            pt.as_tensor_variable(volatility_coupling_2),
+            pt.as_tensor_variable(input_precision),
+            pt.as_tensor_variable(response_function_parameters),
+        ]
+        # Define the type of output returned by the wrapped JAX function
+        outputs = [pt.matrix(dtype=float)]
+        return Apply(self, inputs, outputs)
+
+    def perform(
+        self, node, inputs: List[TensorVariable], outputs: List[TensorVariable]
+    ):
+        """Run the function forward."""
+        _, pointwise_log_likelihood = self.hgf_logp(*inputs)
+        outputs[0][0] = np.asarray(pointwise_log_likelihood, dtype=float)
