@@ -13,7 +13,7 @@ class MultivariateNormal:
 
     References
     ----------
-    .. [1]https://en.wikipedia.org/wiki/Exponential_family
+    .. [1] https://en.wikipedia.org/wiki/Exponential_family
 
     """
 
@@ -33,7 +33,7 @@ class Normal:
 
     References
     ----------
-    .. [1]https://en.wikipedia.org/wiki/Exponential_family
+    .. [1] https://en.wikipedia.org/wiki/Exponential_family
 
     """
 
