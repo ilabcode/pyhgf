@@ -1,12 +1,11 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [published]
   pull_request:
-    branches:
-      - "*"
+    types:
+      - opened
 permissions:
   contents: write
 
@@ -29,14 +28,14 @@ jobs:
           sphinx-build -j 4 -T -b html docs/source docs/build/html
 
       - name: Deploy Stable 🚀
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'release'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/build/html
           branch: gh-pages
 
       - name: Deploy Dev 🚀
-        if: ${{ ! startsWith(github.ref, 'refs/tags/') }}
+        if: github.event_name == 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/build/html
