@@ -51,7 +51,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
+   "execution_count": null,
    "id": "81a63672",
    "metadata": {
     "editable": true,
@@ -66,7 +66,9 @@
     "import numpy as np\n",
     "import seaborn as sns\n",
     "from pyhgf.model import Network, HGF\n",
-    "from pyhgf.typing import AdjacencyLists"
+    "from pyhgf.typing import AdjacencyLists\n",
+    "\n",
+    "plt.rcParams[\"figure.constrained_layout.use\"] = True"
    ]
   },
   {
@@ -881,7 +883,6 @@
     "many_value_children_hgf.input_data(input_data=input_data)\n",
     "\n",
     "many_value_children_hgf.plot_nodes([3, 2], figsize=(12, 5), show_observations=True)\n",
-    "plt.tight_layout()\n",
     "sns.despine()"
    ]
   },
@@ -1089,7 +1090,6 @@
     "    figsize=(12, 8),\n",
     "    show_observations=False,\n",
     ")\n",
-    "plt.tight_layout()\n",
     "sns.despine()"
    ]
   },
@@ -1317,7 +1317,6 @@
     "axs[-2].legend()\n",
     "axs[-3].plot(u_1_prob, label=\"Contingencies - Input Node 1\", linestyle=\":\")\n",
     "axs[-3].legend()\n",
-    "plt.tight_layout()\n",
     "sns.despine()"
    ]
   },

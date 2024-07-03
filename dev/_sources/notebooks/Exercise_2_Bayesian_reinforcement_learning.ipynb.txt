@@ -82,7 +82,7 @@
     "import seaborn as sns\n",
     "from pyhgf import load_data\n",
     "from pyhgf.distribution import HGFDistribution, HGFPointwise\n",
-    "from pyhgf.model import HGF, Network\n",
+    "from pyhgf.model import HGF\n",
     "from pyhgf.response import binary_softmax\n",
     "from pytensor import scan\n",
     "\n",

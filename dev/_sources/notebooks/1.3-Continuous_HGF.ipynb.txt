@@ -77,12 +77,13 @@
     "import jax.numpy as jnp\n",
     "import matplotlib.pyplot as plt\n",
     "import pymc as pm\n",
-    "import seaborn as sns\n",
     "\n",
     "from pyhgf import load_data\n",
     "from pyhgf.distribution import HGFDistribution\n",
     "from pyhgf.model import HGF\n",
-    "from pyhgf.response import first_level_gaussian_surprise"
+    "from pyhgf.response import first_level_gaussian_surprise\n",
+    "\n",
+    "plt.rcParams[\"figure.constrained_layout.use\"] = True"
    ]
   },
   {
@@ -1373,8 +1374,7 @@
     }
    ],
    "source": [
-    "az.plot_trace(three_level_hgf_idata);\n",
-    "plt.tight_layout()"
+    "az.plot_trace(three_level_hgf_idata);"
    ]
   },
   {

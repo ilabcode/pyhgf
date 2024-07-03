@@ -506,7 +506,6 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
-<span class="kn">import</span> <span class="nn">matplotlib.animation</span> <span class="k">as</span> <span class="nn">animation</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
@@ -514,10 +513,10 @@ document.write(`
 <span class="kn">from</span> <span class="nn">pyhgf.math</span> <span class="kn">import</span> <span class="n">MultivariateNormal</span><span class="p">,</span> <span class="n">Normal</span><span class="p">,</span> <span class="n">gaussian_predictive_distribution</span>
 <span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">HGF</span><span class="p">,</span> <span class="n">Network</span>
 <span class="kn">from</span> <span class="nn">pyhgf.utils</span> <span class="kn">import</span> <span class="n">beliefs_propagation</span>
-<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">gammaln</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span><span class="p">,</span> <span class="n">t</span>
 
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.constrained_layout.use&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
 </div>
 </div>
@@ -599,7 +598,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/0a8605f8f9a11b5fd9a08279b0b09e92657ec38df5a4b65bf70469e5db7510ec.png" src="../_images/0a8605f8f9a11b5fd9a08279b0b09e92657ec38df5a4b65bf70469e5db7510ec.png" />
+<img alt="../_images/6b19bb4cd71c44cf22d39a080a302bd17c2ddc764f564cffcac3dc1827cc4ccb.png" src="../_images/6b19bb4cd71c44cf22d39a080a302bd17c2ddc764f564cffcac3dc1827cc4ccb.png" />
 </div>
 </div>
 <p>The vizualisation of the predictive distribution over new observations require integrating the joint probability of the prior <span class="math notranslate nohighlight">\(g_{\xi, \nu}(\vartheta)\)</span> and the posterior <span class="math notranslate nohighlight">\(f_x(\vartheta)\)</span>. In the case of a univariate normal, the <em>Gaussian-predictive</em> distribution is given by:</p>
@@ -635,7 +634,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/b346641ea3ba7b23d2b0025372e12368486a74716cf0592b69aaf370c9282b5d.png" src="../_images/b346641ea3ba7b23d2b0025372e12368486a74716cf0592b69aaf370c9282b5d.png" />
+<img alt="../_images/36d27622e9873697a051f21828002ab70df5a7f401c893387c63b4446c56045f.png" src="../_images/36d27622e9873697a051f21828002ab70df5a7f401c893387c63b4446c56045f.png" />
 </div>
 </div>
 </section>
@@ -712,7 +711,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/56373773f4f455de07943cdee81a0a0eb02d594dae149961b93c47d1d92ba53b.png" src="../_images/56373773f4f455de07943cdee81a0a0eb02d594dae149961b93c47d1d92ba53b.png" />
+<img alt="../_images/6c4c8103059fa03a072eaf712d9595f55fb42f3c4f5c1a8da09d55d6a5192dd5.png" src="../_images/6c4c8103059fa03a072eaf712d9595f55fb42f3c4f5c1a8da09d55d6a5192dd5.png" />
 </div>
 </div>
 <p>We can see that larger values for <span class="math notranslate nohighlight">\(\nu\)</span> correspond to a lower learning rate, and therefore smoother transition between states.</p>
@@ -777,7 +776,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/abe0229a707a8f0efc2e05169e368284c4337b695b2333646017b8c81a3b39b1.png" src="../_images/abe0229a707a8f0efc2e05169e368284c4337b695b2333646017b8c81a3b39b1.png" />
+<img alt="../_images/64904561da573b5feb3f89c3576a2d46027e1cd29f2e59de54483883f560bb2b.png" src="../_images/64904561da573b5feb3f89c3576a2d46027e1cd29f2e59de54483883f560bb2b.png" />
 </div>
 </div>
 </section>
@@ -874,14 +873,13 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
     <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">rf</span><span class="s2">&quot;$\nu_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">)</span>
     <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Observations&quot;</span><span class="p">)</span>
     <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/7de67c8132aeabcce97afafd7016c6372a457f497e14a3335b5aa842b4164a75.png" src="../_images/7de67c8132aeabcce97afafd7016c6372a457f497e14a3335b5aa842b4164a75.png" />
+<img alt="../_images/1f3f792c4a2e24971c90c5be1b5e645d8cbcf30ce6c82bc1ac31ba959300d0b7.png" src="../_images/1f3f792c4a2e24971c90c5be1b5e645d8cbcf30ce6c82bc1ac31ba959300d0b7.png" />
 </div>
 </div>
 <div class="cell tag_hide-cell docutils container">
@@ -974,8 +972,8 @@ pyhgf : 0.1.3
 jax   : 0.4.30
 jaxlib: 0.4.30
 
-seaborn   : 0.13.2
 jax       : 0.4.30
+seaborn   : 0.13.2
 numpy     : 1.26.0
 matplotlib: 3.9.0
 

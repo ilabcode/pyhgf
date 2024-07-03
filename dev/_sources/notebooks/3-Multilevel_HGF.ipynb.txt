@@ -85,13 +85,13 @@
     "import matplotlib.pyplot as plt\n",
     "import numpy as np\n",
     "import pymc as pm\n",
-    "import pytensor.tensor as tt\n",
     "import seaborn as sns\n",
-    "from numpy import loadtxt\n",
     "from pyhgf import load_data\n",
-    "from pyhgf.distribution import HGFDistribution, hgf_logp\n",
+    "from pyhgf.distribution import HGFDistribution\n",
     "from pyhgf.model import HGF\n",
-    "from pyhgf.response import binary_softmax_inverse_temperature"
+    "from pyhgf.response import binary_softmax_inverse_temperature\n",
+    "\n",
+    "plt.rcParams[\"figure.constrained_layout.use\"] = True"
    ]
   },
   {
@@ -625,8 +625,7 @@
     "    two_level_hgf_idata,\n",
     "    var_names=[\"mu_temperature\", \"mu_volatility\"],\n",
     "    ref_val=[0.5, -4.0],\n",
-    ")\n",
-    "plt.tight_layout()"
+    ")"
    ]
   },
   {

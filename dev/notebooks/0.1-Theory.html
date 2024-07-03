@@ -520,6 +520,8 @@ document.write(`
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.constrained_layout.use&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
 </div>
 </div>
@@ -563,7 +565,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \sigma^2)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/244ed1bf666f63d0a94406ea0f00ebf88f3ec90139edd1d0509e4dfe4fae019b.png" src="../_images/244ed1bf666f63d0a94406ea0f00ebf88f3ec90139edd1d0509e4dfe4fae019b.png" />
+<img alt="../_images/1ef977e17b097ca2127b3676af4177f06f42775f2f4ecfe3dfde8f07dafc1573.png" src="../_images/1ef977e17b097ca2127b3676af4177f06f42775f2f4ecfe3dfde8f07dafc1573.png" />
 </div>
 </div>
 <p>This simple process will be our first building block. Importantly here, the variability of the sensory input is constant across time: even if we don’t know exactly in which direction the time series is going to move in the future, we know that it is unlikely to make certain kinds of big jumps because it is controlled by a fixed parameter, the variance <span class="math notranslate nohighlight">\(\sigma^2\)</span>.</p>
@@ -594,7 +596,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + \rho, \sigma^2)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/85e5418ddcab228f07eb28062d98f6814b12f3734afae9496e25f3e2bdca649e.png" src="../_images/85e5418ddcab228f07eb28062d98f6814b12f3734afae9496e25f3e2bdca649e.png" />
+<img alt="../_images/e96ead5022e77ef3a5521f00cd9ba3ad276cb00143637eec8b7c7c97edf082fc.png" src="../_images/e96ead5022e77ef3a5521f00cd9ba3ad276cb00143637eec8b7c7c97edf082fc.png" />
 </div>
 </div>
 </section>
@@ -645,7 +647,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + \phi(m - x_1^{(k-1)}), \sigma^2)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/4a65521ce57970544b7b3e2d82efc95fc9e2affd00b97b69eee1490621f03d70.png" src="../_images/4a65521ce57970544b7b3e2d82efc95fc9e2affd00b97b69eee1490621f03d70.png" />
+<img alt="../_images/91f0cf5704d2b413b35b0f211b731afa9783692baa1fcd3ba4b6664ecf6a30f5.png" src="../_images/91f0cf5704d2b413b35b0f211b731afa9783692baa1fcd3ba4b6664ecf6a30f5.png" />
 </div>
 </div>
 <p>With the two examples above, we have seen that a <a class="reference internal" href="#term-Gaussian-Random-Walk"><span class="xref std std-term">Gaussian Random Walk</span></a> - the simple iterative sampling from a given Gaussian distribution at each time step - can be further influenced by two kinds of parameterizations:</p>
@@ -739,15 +741,13 @@ $<span class="math notranslate nohighlight">\(
 
 <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_1_3</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#55a868&quot;</span><span class="p">)</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;Time steps&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$x_1$&quot;</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/e7da2685087ed93ab4057f2a826896457f334ba6bcac63b477e0b4060c3ddf05.png" src="../_images/e7da2685087ed93ab4057f2a826896457f334ba6bcac63b477e0b4060c3ddf05.png" />
+<img alt="../_images/b89ee2492b7db058a2a60083655f07fbf6eebd422fdc0a437fc5a7bfab65c84b.png" src="../_images/b89ee2492b7db058a2a60083655f07fbf6eebd422fdc0a437fc5a7bfab65c84b.png" />
 </div>
 </div>
 </section>
@@ -813,7 +813,7 @@ x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/862d69a524f4a472a50fc3c2a5f39a2614224e406afbf71fe507fa683bf39aaa.png" src="../_images/862d69a524f4a472a50fc3c2a5f39a2614224e406afbf71fe507fa683bf39aaa.png" />
+<img alt="../_images/af2e0a136701b975825fe6f968c83abf86f27cd4ccf8e1cf4f40d72e768bad83.png" src="../_images/af2e0a136701b975825fe6f968c83abf86f27cd4ccf8e1cf4f40d72e768bad83.png" />
 </div>
 </div>
 <p>In this example, it becomes apparent that the volatility of the observation is not constant in time anymore, but depends on the values observed at the level above.</p>
@@ -923,10 +923,10 @@ pyhgf : 0.1.3
 jax   : 0.4.30
 jaxlib: 0.4.30
 
-matplotlib: 3.9.0
 sys       : 3.12.4 (main, Jun 20 2024, 16:57:58) [GCC 11.4.0]
-numpy     : 1.26.0
+matplotlib: 3.9.0
 seaborn   : 0.13.2
+numpy     : 1.26.0
 
 Watermark: 2.4.3
 </pre></div>

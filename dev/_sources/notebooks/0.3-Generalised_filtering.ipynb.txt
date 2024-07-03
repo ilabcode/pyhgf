@@ -39,7 +39,6 @@
    ],
    "source": [
     "import jax.numpy as jnp\n",
-    "import matplotlib.animation as animation\n",
     "import matplotlib.pyplot as plt\n",
     "import numpy as np\n",
     "import seaborn as sns\n",
@@ -47,10 +46,10 @@
     "from pyhgf.math import MultivariateNormal, Normal, gaussian_predictive_distribution\n",
     "from pyhgf.model import HGF, Network\n",
     "from pyhgf.utils import beliefs_propagation\n",
-    "from scipy.special import gammaln\n",
     "from scipy.stats import norm, t\n",
     "\n",
-    "np.random.seed(123)"
+    "np.random.seed(123)\n",
+    "plt.rcParams[\"figure.constrained_layout.use\"] = True"
    ]
   },
   {
@@ -903,7 +902,6 @@
     "    ax[i].set_ylabel(rf\"$\\nu_{i}$\")\n",
     "    ax[i].set_xlabel(\"Observations\")\n",
     "    ax[i].legend()\n",
-    "plt.tight_layout()\n",
     "sns.despine()"
    ]
   },

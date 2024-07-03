@@ -195,7 +195,7 @@ A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit
 Hand-on exercises for theComputational Psychiatry Course (Zurich) to build intuition around the generalised Hierarchical Gaussian Filter, how to create and manipulate probabilistic networks, design an agent to perform a reinforcement learning task and use MCMC sampling for parameter inference and model comparison—about 4 hours.
 
 
-::::{grid} 1 1 2 3
+::::{grid} 1 1 2 2
 :gutter: 1
 
 :::{grid-item-card} Introduction to the Generalised Hierarchical Gaussian Filter
