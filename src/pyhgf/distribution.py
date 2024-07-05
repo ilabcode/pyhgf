@@ -168,7 +168,7 @@ def hgf_logp(
     volatility_coupling_1: ArrayLike = 1.0,
     volatility_coupling_2: ArrayLike = 1.0,
     input_precision: ArrayLike = np.inf,
-    response_function_parameters: ArrayLike = 1.0,
+    response_function_parameters: ArrayLike = np.ones(1),
     vectorized_logp: Callable = logp,
     input_data: ArrayLike = np.nan,
     response_function_inputs: ArrayLike = np.nan,
@@ -259,6 +259,11 @@ def hgf_logp(
     """
     # number of models
     n = input_data.shape[0]
+
+    # ensure that the response parameters have n_model as first dimension
+    response_function_parameters = jnp.broadcast_to(
+        response_function_parameters, (n,) + response_function_parameters.shape[1:]
+    )
 
     # Broadcast inputs to an array with length n>=1
     (
@@ -409,26 +414,26 @@ class HGFLogpGradOp(Op):
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
         input_precision: ArrayLike = np.inf,
-        response_function_parameters: ArrayLike = np.array([1.0]),
+        response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Initialize node structure."""
         # Convert our inputs to symbolic variables
         inputs = [
-            pt.as_tensor_variable(mean_1),
-            pt.as_tensor_variable(mean_2),
-            pt.as_tensor_variable(mean_3),
-            pt.as_tensor_variable(precision_1),
-            pt.as_tensor_variable(precision_2),
-            pt.as_tensor_variable(precision_3),
-            pt.as_tensor_variable(tonic_volatility_1),
-            pt.as_tensor_variable(tonic_volatility_2),
-            pt.as_tensor_variable(tonic_volatility_3),
-            pt.as_tensor_variable(tonic_drift_1),
-            pt.as_tensor_variable(tonic_drift_2),
-            pt.as_tensor_variable(tonic_drift_3),
-            pt.as_tensor_variable(volatility_coupling_1),
-            pt.as_tensor_variable(volatility_coupling_2),
-            pt.as_tensor_variable(input_precision),
+            pt.as_tensor_variable(mean_1, ndim=1),
+            pt.as_tensor_variable(mean_2, ndim=1),
+            pt.as_tensor_variable(mean_3, ndim=1),
+            pt.as_tensor_variable(precision_1, ndim=1),
+            pt.as_tensor_variable(precision_2, ndim=1),
+            pt.as_tensor_variable(precision_3, ndim=1),
+            pt.as_tensor_variable(tonic_volatility_1, ndim=1),
+            pt.as_tensor_variable(tonic_volatility_2, ndim=1),
+            pt.as_tensor_variable(tonic_volatility_3, ndim=1),
+            pt.as_tensor_variable(tonic_drift_1, ndim=1),
+            pt.as_tensor_variable(tonic_drift_2, ndim=1),
+            pt.as_tensor_variable(tonic_drift_3, ndim=1),
+            pt.as_tensor_variable(volatility_coupling_1, ndim=1),
+            pt.as_tensor_variable(volatility_coupling_2, ndim=1),
+            pt.as_tensor_variable(input_precision, ndim=1),
             pt.as_tensor_variable(response_function_parameters),
         ]
         # This `Op` will return one gradient per input. For simplicity, we assume
@@ -602,6 +607,8 @@ class HGFDistribution(Op):
         if time_steps is None:
             time_steps = np.ones(shape=input_data.shape)
 
+        assert time_steps.shape == input_data.shape
+
         # create the default HGF template to be use by the logp function
         self.hgf = HGF(n_levels=n_levels, model_type=model_type)
 
@@ -652,25 +659,25 @@ class HGFDistribution(Op):
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
         input_precision: ArrayLike = np.inf,
-        response_function_parameters: ArrayLike = np.array([1.0]),
+        response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Convert inputs to symbolic variables."""
         inputs = [
-            pt.as_tensor_variable(mean_1),
-            pt.as_tensor_variable(mean_2),
-            pt.as_tensor_variable(mean_3),
-            pt.as_tensor_variable(precision_1),
-            pt.as_tensor_variable(precision_2),
-            pt.as_tensor_variable(precision_3),
-            pt.as_tensor_variable(tonic_volatility_1),
-            pt.as_tensor_variable(tonic_volatility_2),
-            pt.as_tensor_variable(tonic_volatility_3),
-            pt.as_tensor_variable(tonic_drift_1),
-            pt.as_tensor_variable(tonic_drift_2),
-            pt.as_tensor_variable(tonic_drift_3),
-            pt.as_tensor_variable(volatility_coupling_1),
-            pt.as_tensor_variable(volatility_coupling_2),
-            pt.as_tensor_variable(input_precision),
+            pt.as_tensor_variable(mean_1, ndim=1),
+            pt.as_tensor_variable(mean_2, ndim=1),
+            pt.as_tensor_variable(mean_3, ndim=1),
+            pt.as_tensor_variable(precision_1, ndim=1),
+            pt.as_tensor_variable(precision_2, ndim=1),
+            pt.as_tensor_variable(precision_3, ndim=1),
+            pt.as_tensor_variable(tonic_volatility_1, ndim=1),
+            pt.as_tensor_variable(tonic_volatility_2, ndim=1),
+            pt.as_tensor_variable(tonic_volatility_3, ndim=1),
+            pt.as_tensor_variable(tonic_drift_1, ndim=1),
+            pt.as_tensor_variable(tonic_drift_2, ndim=1),
+            pt.as_tensor_variable(tonic_drift_3, ndim=1),
+            pt.as_tensor_variable(volatility_coupling_1, ndim=1),
+            pt.as_tensor_variable(volatility_coupling_2, ndim=1),
+            pt.as_tensor_variable(input_precision, ndim=1),
             pt.as_tensor_variable(response_function_parameters),
         ]
         # Define the type of output returned by the wrapped JAX function
@@ -818,7 +825,7 @@ class HGFPointwise(Op):
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
         input_precision: ArrayLike = np.inf,
-        response_function_parameters: ArrayLike = np.array([1.0]),
+        response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Convert inputs to symbolic variables."""
         inputs = [
