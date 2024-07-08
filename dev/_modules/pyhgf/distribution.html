@@ -1203,6 +1203,8 @@ document.write(`
 
 
 
+<div class="viewcode-block" id="HGFPointwise">
+<a class="viewcode-back" href="../../generated/pyhgf.distribution/pyhgf.distribution.HGFPointwise.html#pyhgf.distribution.HGFPointwise">[docs]</a>
 <span class="k">class</span> <span class="nc">HGFPointwise</span><span class="p">(</span><span class="n">Op</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The HGF distribution returning pointwise log probability.</span>
 
@@ -1211,6 +1213,8 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="HGFPointwise.__init__">
+<a class="viewcode-back" href="../../generated/pyhgf.distribution/pyhgf.distribution.HGFPointwise.html#pyhgf.distribution.HGFPointwise.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_data</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
@@ -1271,7 +1275,8 @@ document.write(`
                 <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">,</span>
                 <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">response_function_inputs</span><span class="p">,</span>
             <span class="p">),</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">make_node</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1320,7 +1325,8 @@ document.write(`
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the function forward.&quot;&quot;&quot;</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">pointwise_log_likelihood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hgf_logp</span><span class="p">(</span><span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
-        <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pointwise_log_likelihood</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pointwise_log_likelihood</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+
 </pre></div>
 
                 </article>

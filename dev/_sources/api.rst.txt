@@ -201,6 +201,7 @@ embedded in models using PyMC>=5.0.0.
    hgf_logp
    HGFLogpGradOp
    HGFDistribution
+   HGFPointwise
 
 Model
 *****
