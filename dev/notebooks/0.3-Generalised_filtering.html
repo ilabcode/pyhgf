@@ -424,7 +424,7 @@ document.write(`
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="2-Using_custom_response_functions.html">Using custom response models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-Multilevel_HGF.html">Embeding Hierarchical Gaussian Filters in a multilevel Bayesian model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-Multilevel_HGF.html">Hierarchical Bayesian modelling with probabilistic neural networks</a></li>
 
 <li class="toctree-l1"><a class="reference internal" href="4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
@@ -598,7 +598,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/6b19bb4cd71c44cf22d39a080a302bd17c2ddc764f564cffcac3dc1827cc4ccb.png" src="../_images/6b19bb4cd71c44cf22d39a080a302bd17c2ddc764f564cffcac3dc1827cc4ccb.png" />
+<img alt="../_images/1bb3fcdaa28eea72d38a7d837206886f801ff959a781e8ddd7f18b8ac1eb285e.png" src="../_images/1bb3fcdaa28eea72d38a7d837206886f801ff959a781e8ddd7f18b8ac1eb285e.png" />
 </div>
 </div>
 <p>The vizualisation of the predictive distribution over new observations require integrating the joint probability of the prior <span class="math notranslate nohighlight">\(g_{\xi, \nu}(\vartheta)\)</span> and the posterior <span class="math notranslate nohighlight">\(f_x(\vartheta)\)</span>. In the case of a univariate normal, the <em>Gaussian-predictive</em> distribution is given by:</p>
@@ -634,7 +634,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/36d27622e9873697a051f21828002ab70df5a7f401c893387c63b4446c56045f.png" src="../_images/36d27622e9873697a051f21828002ab70df5a7f401c893387c63b4446c56045f.png" />
+<img alt="../_images/82df4991b326ebe5a39c2b9c6fa36bc6f6fdb515e9b5de27542e2252c7df493e.png" src="../_images/82df4991b326ebe5a39c2b9c6fa36bc6f6fdb515e9b5de27542e2252c7df493e.png" />
 </div>
 </div>
 </section>
@@ -711,7 +711,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/6c4c8103059fa03a072eaf712d9595f55fb42f3c4f5c1a8da09d55d6a5192dd5.png" src="../_images/6c4c8103059fa03a072eaf712d9595f55fb42f3c4f5c1a8da09d55d6a5192dd5.png" />
+<img alt="../_images/3cc8da0a93d83bba4fb166c3128abc2b093ac8b97b4d69f5061c068ee40deadd.png" src="../_images/3cc8da0a93d83bba4fb166c3128abc2b093ac8b97b4d69f5061c068ee40deadd.png" />
 </div>
 </div>
 <p>We can see that larger values for <span class="math notranslate nohighlight">\(\nu\)</span> correspond to a lower learning rate, and therefore smoother transition between states.</p>
@@ -776,7 +776,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/64904561da573b5feb3f89c3576a2d46027e1cd29f2e59de54483883f560bb2b.png" src="../_images/64904561da573b5feb3f89c3576a2d46027e1cd29f2e59de54483883f560bb2b.png" />
+<img alt="../_images/21e568d99250e40a38f238ed0b4004e1a1f3ab8f1f5ad7566ab08acca9ec6b82.png" src="../_images/21e568d99250e40a38f238ed0b4004e1a1f3ab8f1f5ad7566ab08acca9ec6b82.png" />
 </div>
 </div>
 </section>
@@ -879,7 +879,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/1f3f792c4a2e24971c90c5be1b5e645d8cbcf30ce6c82bc1ac31ba959300d0b7.png" src="../_images/1f3f792c4a2e24971c90c5be1b5e645d8cbcf30ce6c82bc1ac31ba959300d0b7.png" />
+<img alt="../_images/cfde842a4b889bf39b0c6a4a631ae336f79eb3a5c0754931c357a6969607998c.png" src="../_images/cfde842a4b889bf39b0c6a4a631ae336f79eb3a5c0754931c357a6969607998c.png" />
 </div>
 </div>
 <div class="cell tag_hide-cell docutils container">
@@ -962,7 +962,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Wed Jul 03 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Mon Jul 08 2024
 
 Python implementation: CPython
 Python version       : 3.12.4
@@ -973,9 +973,9 @@ jax   : 0.4.30
 jaxlib: 0.4.30
 
 jax       : 0.4.30
-seaborn   : 0.13.2
+matplotlib: 3.9.1
 numpy     : 1.26.0
-matplotlib: 3.9.0
+seaborn   : 0.13.2
 
 Watermark: 2.4.3
 </pre></div>

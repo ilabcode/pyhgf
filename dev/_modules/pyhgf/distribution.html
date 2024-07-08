@@ -620,7 +620,7 @@ document.write(`
     <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
     <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
     <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-    <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
     <span class="n">vectorized_logp</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">logp</span><span class="p">,</span>
     <span class="n">input_data</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
     <span class="n">response_function_inputs</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
@@ -711,6 +711,11 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># number of models</span>
     <span class="n">n</span> <span class="o">=</span> <span class="n">input_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># ensure that the response parameters have n_model as first dimension</span>
+    <span class="n">response_function_parameters</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+        <span class="n">response_function_parameters</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,)</span> <span class="o">+</span> <span class="n">response_function_parameters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="p">)</span>
 
     <span class="c1"># Broadcast inputs to an array with length n&gt;=1</span>
     <span class="p">(</span>
@@ -867,26 +872,26 @@ document.write(`
         <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-        <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]),</span>
+        <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize node structure.&quot;&quot;&quot;</span>
         <span class="c1"># Convert our inputs to symbolic variables</span>
         <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_3</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_3</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_3</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_3</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">input_precision</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_3</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_3</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_3</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_3</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">input_precision</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">response_function_parameters</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="c1"># This `Op` will return one gradient per input. For simplicity, we assume</span>
@@ -1065,6 +1070,8 @@ document.write(`
         <span class="k">if</span> <span class="n">time_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">input_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
+        <span class="k">assert</span> <span class="n">time_steps</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">input_data</span><span class="o">.</span><span class="n">shape</span>
+
         <span class="c1"># create the default HGF template to be use by the logp function</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hgf</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="n">model_type</span><span class="p">)</span>
 
@@ -1116,25 +1123,25 @@ document.write(`
         <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-        <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]),</span>
+        <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert inputs to symbolic variables.&quot;&quot;&quot;</span>
         <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_3</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_3</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_3</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_3</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">),</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">input_precision</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">mean_3</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">precision_3</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_volatility_3</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">tonic_drift_3</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">input_precision</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">as_tensor_variable</span><span class="p">(</span><span class="n">response_function_parameters</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="c1"># Define the type of output returned by the wrapped JAX function</span>
@@ -1283,7 +1290,7 @@ document.write(`
         <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-        <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]),</span>
+        <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert inputs to symbolic variables.&quot;&quot;&quot;</span>
         <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span>
