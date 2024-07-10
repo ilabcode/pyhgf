@@ -36,6 +36,7 @@ notebooks/4-Parameter_recovery.ipynb
 notebooks/Example_1_Heart_rate_variability.ipynb
 notebooks/Example_2_Input_node_volatility_coupling.ipynb
 notebooks/Example_3_Multi_armed_bandit.ipynb
+notebooks/Example_4_Iowa_Gambling_Task.ipynb
 ```
 
 ```{toctree}
@@ -161,7 +162,7 @@ Examples of possible applications and extensions of the standards Hierarchical G
 ::::{grid} 1 1 2 3
 :gutter: 1
 
-:::{grid-item-card}  Inferring cardiac beliefs using Bayesian filtering
+:::{grid-item-card} Inferring cardiac beliefs using Bayesian filtering
 :link: example_1
 :link-type: ref
 
@@ -169,7 +170,7 @@ Application of continuous Bayesian filtering to cardiac physiological recordings
 
 :::
 
-:::{grid-item-card}  Value and volatility coupling with an input node
+:::{grid-item-card} Value and volatility coupling with an input node
 :link: example_2
 :link-type: ref
 :img-top: ./images/input_mean_precision.png
@@ -177,12 +178,19 @@ Application of continuous Bayesian filtering to cardiac physiological recordings
 Dynamic inference over both the mean and variance of a normal distribution.
 :::
 
-:::{grid-item-card}  Multi-armed bandit task with independent reward and punishments
+:::{grid-item-card} Multi-armed bandit task with independent reward and punishments
 :link: example_3
 :link-type: ref
 :img-top: ./images/multiarmedbandittask.png
 
 A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit where the probabilities of the outcomes are evolving independently.
+:::
+
+:::{grid-item-card} Modeling optimism bias in the Iowa Gambling task
+:link: example_4
+:link-type: ref
+
+Modeling optimism bias in the Iowa Gambling task by varying the autocorrelation strength in a continuous Hierarchical Gaussian Filter.
 :::
 
 ::::
