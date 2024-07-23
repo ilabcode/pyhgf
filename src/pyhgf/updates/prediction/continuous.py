@@ -4,7 +4,7 @@ from functools import partial
 from typing import Dict
 
 import jax.numpy as jnp
-from jax import Array, jit
+from jax import Array, jit, grad
 
 from pyhgf.typing import Edges
 
@@ -70,25 +70,53 @@ def predict_mean(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    # List the node's value parents
-    value_parents_idxs = edges[node_idx].value_parents
+    g = edges[node_idx].non_linear_funct
+    print(g)
 
-    # Get the drift rate from the node
-    driftrate = attributes[node_idx]["tonic_drift"]
+    if g is None:
+        print("g is None")
+        # List the node's value parents
+        value_parents_idxs = edges[node_idx].value_parents
 
-    # Look at the (optional) value parents for this node
-    # and update the drift rate accordingly
-    if value_parents_idxs is not None:
-        for value_parent_idx, psi in zip(
-            value_parents_idxs,
-            attributes[node_idx]["value_coupling_parents"],
-        ):
-            driftrate += psi * attributes[value_parent_idx]["mean"]
+        # Get the drift rate from the node
+        driftrate = attributes[node_idx]["tonic_drift"]
 
-    # The new expected mean from the previous value
-    expected_mean = (
-        attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
-    ) + (time_step * driftrate)
+        # Look at the (optional) value parents for this node
+        # and update the drift rate accordingly
+        if value_parents_idxs is not None:
+            for value_parent_idx, psi in zip(
+                value_parents_idxs,
+                attributes[node_idx]["value_coupling_parents"],
+            ):
+                driftrate += psi * attributes[value_parent_idx]["mean"]
+
+        # The new expected mean from the previous value
+        expected_mean = (
+            attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
+        ) + (time_step * driftrate)
+    
+    elif g is not None:
+        print("a non-linear function is being deployed for the PE")
+        g_prime = grad(g)
+                # List the node's value parents
+        value_parents_idxs = edges[node_idx].value_parents
+
+        # Get the drift rate from the node
+        driftrate = attributes[node_idx]["tonic_drift"]
+
+        # Look at the (optional) value parents for this node
+        # and update the drift rate accordingly
+        if value_parents_idxs is not None:
+            for value_parent_idx, psi in zip(
+                value_parents_idxs,
+                attributes[node_idx]["value_coupling_parents"],
+            ):
+                driftrate += psi * g_prime(attributes[value_parent_idx]["mean"])
+
+        # The new expected mean from the previous value
+        expected_mean = (
+            attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
+        ) + (time_step * driftrate)
 
     return expected_mean
 

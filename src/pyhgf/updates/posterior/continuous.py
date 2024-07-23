@@ -9,9 +9,9 @@ from jax import jit, grad
 from pyhgf.typing import Edges
 
 
-@partial(jit, static_argnames=("edges", "node_idx", "mode"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def posterior_update_mean_continuous_node(
-    attributes: Dict, edges: Edges, node_idx: int, node_precision: float, mode: str = 'linear', g: Callable = None
+    attributes: Dict, edges: Edges, node_idx: int, node_precision: float,
 ) -> float:
     r"""Update the mean of a state node using the value prediction errors.
 
@@ -20,7 +20,7 @@ def posterior_update_mean_continuous_node(
     The new mean of a state node :math:`b` value coupled with other input and/or state
     nodes :math:`j` at time :math:`k` is given by:
 
-    If mode = "linear
+    For linear value coupling:
 
     .. math::
         \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
@@ -34,8 +34,7 @@ def posterior_update_mean_continuous_node(
     If the child node is a state node, this value was computed by
     :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
-    If mode = "non-linear" the equation accepts a non-linear function g, and the new mean of the state node 
-    :math:`b` is given by:
+    For non-linear value coupling:
 
     .. math::
         \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
@@ -87,11 +86,6 @@ def posterior_update_mean_continuous_node(
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the node
         number. For each node, the index lists the value and volatility parents and
         children.
-    g :
-        The non-linear coupling function, to be specified when mode = "non-linear".
-    mode :
-        The modality of the coupling function. It can be "linear" (default) for linear coupling functions
-        or "not-linear": in the letter case, a function g has to be specified.
     node_idx :
         Pointer to the value parent node that will be updated.
     node_precision :
@@ -123,7 +117,9 @@ def posterior_update_mean_continuous_node(
 
     """
 
-    if mode == "linear":
+    g = edges[node_idx].non_linear_funct
+
+    if g is None:
         
         # sum the prediction errors from both value and volatility coupling
         (
@@ -200,14 +196,12 @@ def posterior_update_mean_continuous_node(
             + volatility_precision_weigthed_prediction_error
         )
     
-    elif mode == "non-linear":
-         # sum the prediction errors from both value and volatility coupling
+    elif g is not None:
+        print("a non-linear function is being deployed for the belief update step")
+
+        # sum the prediction errors from both value and volatility coupling
         value_precision_weigthed_prediction_error = 0.0
 
-        # g is the non-linear function
-        if g is None:
-            raise ValueError("Function g must be provided for non-linear mode.")
-        
         # Compute the derivative of g (needed for the mean)
         g_prime = grad(g)
         
@@ -243,21 +237,16 @@ def posterior_update_mean_continuous_node(
             + value_precision_weigthed_prediction_error
         )
     
-    else:
-        raise ValueError("Invalid mode. Choose either 'linear' or 'non-linear'.")
-
 
     return posterior_mean
 
 
-@partial(jit, static_argnames=("edges", "node_idx", "mode"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def posterior_update_precision_continuous_node(
     attributes: Dict,
     edges: Edges,
     node_idx: int,
     time_step: float,
-    mode: str = "linear",
-    g: Callable = None,
 ) -> float:
     r"""Update the precision of a state node using the volatility prediction errors.
 
@@ -266,7 +255,7 @@ def posterior_update_precision_continuous_node(
     The new precision of a state node :math:`b` value coupled with other input and/or
     state nodes :math:`j` at time :math:`k` is given by:
 
-    if mode = "linear"
+    For linear coupling (default)
 
     .. math::
 
@@ -281,8 +270,7 @@ def posterior_update_precision_continuous_node(
     If the child node is a state node, this value was computed by
     :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
-    If mode = "non-linear" the equation accepts a non-linear function g, and the new mean of the state node 
-    :math:`b` is given by:
+    For non-linear value coupling:
 
     .. math::
 
@@ -329,11 +317,6 @@ def posterior_update_precision_continuous_node(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    g : 
-        The non-linear coupling function, to be specified when mode = "non-linear".
-    mode :
-        The modality of the coupling function. It can be "linear" (default) for linear coupling functions
-        or "not-linear": in the letter case, a function g has to be specified.
     node_idx :
         Pointer to the value parent node that will be updated.
     time_step :
@@ -361,8 +344,9 @@ def posterior_update_precision_continuous_node(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
+    g = edges[node_idx].non_linear_funct
 
-    if mode == "linear":
+    if g is None:
         # sum the prediction errors from both value and volatility coupling
         precision_weigthed_prediction_error = 0.0
 
@@ -466,12 +450,8 @@ def posterior_update_precision_continuous_node(
             + observed_posterior_precision * observations
         )
     
-    elif mode == "non-linear":
+    elif g is not None:
 
-        # g is the non-linear function
-        if g is None:
-            raise ValueError("Function g must be provided for non-linear mode.")
-        
         # Compute the derivatives of g 
         g_prime = grad(g)
         g_prime_double =  grad(g_prime)
@@ -521,14 +501,14 @@ def posterior_update_precision_continuous_node(
 
 
     else:
-        raise ValueError("Invalid mode. Choose either 'linear' or 'non-linear'.")
+        raise ValueError("Invalid function")
 
     return posterior_precision
 
 
-@partial(jit, static_argnames=("edges", "node_idx", "mode"))
+@partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_node_update(
-    attributes: Dict, node_idx: int, edges: Edges, time_step: float, mode:str = "linear", g: Callable = None, **args
+    attributes: Dict, node_idx: int, edges: Edges, time_step: float, **args
 ) -> Dict:
     """Update the posterior of a continuous node using the standard HGF update.
 
@@ -569,12 +549,12 @@ def continuous_node_update(
     """
     # update the posterior mean and precision
     posterior_precision = posterior_update_precision_continuous_node(
-        attributes, edges, node_idx, time_step, mode, g
+        attributes, edges, node_idx, time_step
     )
     attributes[node_idx]["precision"] = posterior_precision
 
     posterior_mean = posterior_update_mean_continuous_node(
-        attributes, edges, node_idx, node_precision=attributes[node_idx]["precision"], mode=mode, g=g
+        attributes, edges, node_idx, node_precision=attributes[node_idx]["precision"]
     )
     attributes[node_idx]["mean"] = posterior_mean
 
@@ -644,7 +624,7 @@ def continuous_node_update_ehgf(
     attributes[node_idx]["mean"] = posterior_mean
 
     posterior_precision = posterior_update_precision_continuous_node(
-        attributes, edges, node_idx, time_step
+        attributes, edges, node_idx, time_step,
     )
     attributes[node_idx]["precision"] = posterior_precision
 
