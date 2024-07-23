@@ -21,6 +21,7 @@ class AdjacencyLists(NamedTuple):
     volatility_parents: Optional[Tuple]
     value_children: Optional[Tuple]
     volatility_children: Optional[Tuple]
+    non_linear_funct: Optional[Callable] = None
 
 
 class Inputs(NamedTuple):
