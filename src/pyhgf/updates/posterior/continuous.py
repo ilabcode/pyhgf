@@ -117,7 +117,7 @@ def posterior_update_mean_continuous_node(
 
     """
 
-    g = edges[node_idx].non_linear_funct
+    g = edges[node_idx].coupling_funct
 
     if g is None:
         
@@ -197,21 +197,17 @@ def posterior_update_mean_continuous_node(
         )
     
     elif g is not None:
-        print("a non-linear function is being deployed for the belief update step")
 
         # sum the prediction errors from both value and volatility coupling
         value_precision_weigthed_prediction_error = 0.0
 
-        # Compute the derivative of g (needed for the mean)
-        g_prime = grad(g)
-        
         # Value coupling updates - update the mean of a value parent
         # ----------------------------------------------------------
         if edges[node_idx].value_children is not None:
-            for value_child_idx, value_coupling in zip(
+            for i, (value_child_idx, value_coupling) in enumerate(zip(
                 edges[node_idx].value_children,  # type: ignore
                 attributes[node_idx]["value_coupling_children"],
-            ):
+            )):
                 # get the value prediction error (VAPE)
                 # if this is jnp.nan (no observation) set the VAPE to 0.0
                 value_prediction_error = attributes[value_child_idx]["temp"][
@@ -222,6 +218,9 @@ def posterior_update_mean_continuous_node(
                 value_prediction_error *= attributes[value_child_idx]["observed"]
 
                 # expected precisions from the value children
+                # Compute the derivative of g (needed for the mean)
+                singular_g = edges[node_idx].coupling_funct[i] 
+                g_prime = grad(singular_g)
                 # sum the precision weigthed prediction errors over all children
                 value_precision_weigthed_prediction_error += (
                     (
@@ -344,8 +343,7 @@ def posterior_update_precision_continuous_node(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    g = edges[node_idx].non_linear_funct
-
+    g = edges[node_idx].coupling_funct
     if g is None:
         # sum the prediction errors from both value and volatility coupling
         precision_weigthed_prediction_error = 0.0
@@ -452,9 +450,6 @@ def posterior_update_precision_continuous_node(
     
     elif g is not None:
 
-        # Compute the derivatives of g 
-        g_prime = grad(g)
-        g_prime_double =  grad(g_prime)
 
         # sum the prediction errors from both value and volatility coupling
         precision_weigthed_prediction_error = 0.0
@@ -462,10 +457,10 @@ def posterior_update_precision_continuous_node(
         # Value coupling updates - update the precision of a value parent
         # ---------------------------------------------------------------
         if edges[node_idx].value_children is not None:
-            for value_child_idx, value_coupling in zip(
+            for i, (value_child_idx, value_coupling) in enumerate(zip(
                 edges[node_idx].value_children,  # type: ignore
                 attributes[node_idx]["value_coupling_children"],
-            ):
+            )):
                 
                 # get the value prediction error (VAPE)
                 # if this is jnp.nan (no observation) set the VAPE to 0.0
@@ -476,6 +471,10 @@ def posterior_update_precision_continuous_node(
                 # cancel the prediction error if the child value was not observed
                 value_prediction_error *= attributes[value_child_idx]["observed"]
 
+                #calculate g and its derivative for each child
+                singular_g = edges[node_idx].coupling_funct[i]
+                g_prime = grad(singular_g)
+                g_prime_double =  grad(g_prime)
                 # expected precisions from the value children
                 precision_weigthed_prediction_error += (
                     attributes[value_child_idx]["expected_precision"]*
