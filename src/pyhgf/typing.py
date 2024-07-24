@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, Dict, NamedTuple, Optional, Tuple
+from typing import Callable, Dict, NamedTuple, Optional, Tuple, List
 
 
 class AdjacencyLists(NamedTuple):
@@ -21,7 +21,7 @@ class AdjacencyLists(NamedTuple):
     volatility_parents: Optional[Tuple]
     value_children: Optional[Tuple]
     volatility_children: Optional[Tuple]
-    non_linear_funct: Optional[Callable] = None
+    coupling_funct: Optional[Tuple[Callable,...]] = None
 
 
 class Inputs(NamedTuple):

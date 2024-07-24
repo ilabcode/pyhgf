@@ -334,7 +334,7 @@ class Network:
         value_parents: Optional[Union[List, Tuple, int]] = None,
         volatility_children: Optional[Union[List, Tuple, int]] = None,
         volatility_parents: Optional[Union[List, Tuple, int]] = None,
-        non_linear_funct: Optional[Callable] = None,
+        coupling_funct: Optional[Tuple[Callable,...]] = None,
         **additional_parameters,
     ):
         """Add new input/state node(s) to the neural network.
@@ -398,8 +398,13 @@ class Network:
             integer or a list of integers, in case of multiple children. The coupling
             strength can be controlled by passing a tuple, where the first item is the
             list of indexes, and the second item is the list of coupling strengths.
-        non_linear_function :
-            Coupling function between the current node and its volatility children.
+        coupling_funct :
+            Coupling function between the current node and its value children. 
+            It has to be provided as a tuple. If multiple value children are specified, 
+            the coupling functions must be stated in the same order of the children.
+            Note: if a node has multiple parents nodes with different coupling functions,
+            a coupling function should be indicated for all the parent nodes. If no coupling 
+            function is stated, the relationship between nodes is assumed linear.
         **kwargs :
             Additional keyword parameters will be passed and overwrite the node
             attributes.
@@ -649,7 +654,7 @@ class Network:
                     None,
                     None,
                     None,
-                    non_linear_funct=non_linear_funct
+                    coupling_funct= coupling_funct
                 )
             )
 

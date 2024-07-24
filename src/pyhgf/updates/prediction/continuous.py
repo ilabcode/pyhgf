@@ -70,11 +70,17 @@ def predict_mean(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    g = edges[node_idx].non_linear_funct
-    print(g)
+    bool_var = False
 
-    if g is None:
-        print("g is None")
+    value_parents_idxs = edges[node_idx].value_parents
+    if value_parents_idxs is not None:
+        for value_parents_idx in value_parents_idxs:
+            if edges[value_parents_idx].coupling_funct is not None:
+                bool_var = True
+                break 
+
+    if bool_var == False:
+
         # List the node's value parents
         value_parents_idxs = edges[node_idx].value_parents
 
@@ -95,10 +101,9 @@ def predict_mean(
             attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
         ) + (time_step * driftrate)
     
-    elif g is not None:
-        print("a non-linear function is being deployed for the PE")
-        g_prime = grad(g)
-                # List the node's value parents
+    elif bool_var == True:
+
+        # List the node's value parents
         value_parents_idxs = edges[node_idx].value_parents
 
         # Get the drift rate from the node
@@ -111,8 +116,10 @@ def predict_mean(
                 value_parents_idxs,
                 attributes[node_idx]["value_coupling_parents"],
             ):
+                child_position = edges[value_parent_idx].value_children.index(node_idx)
+                singular_g = edges[value_parent_idx].coupling_funct[child_position]
+                g_prime = grad(singular_g)
                 driftrate += psi * g_prime(attributes[value_parent_idx]["mean"])
-
         # The new expected mean from the previous value
         expected_mean = (
             attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
