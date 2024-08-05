@@ -198,7 +198,7 @@ def posterior_update_mean_continuous_node(
     
     elif g is not None:
 
-        # sum the prediction errors from both value and volatility coupling
+        # sum the prediction errors from value coupling
         value_precision_weigthed_prediction_error = 0.0
 
         # Value coupling updates - update the mean of a value parent
@@ -218,9 +218,11 @@ def posterior_update_mean_continuous_node(
                 value_prediction_error *= attributes[value_child_idx]["observed"]
 
                 # expected precisions from the value children
+
                 # Compute the derivative of g (needed for the mean)
                 singular_g = edges[node_idx].coupling_funct[i] 
                 g_prime = grad(singular_g)
+
                 # sum the precision weigthed prediction errors over all children
                 value_precision_weigthed_prediction_error += (
                     (
@@ -475,11 +477,12 @@ def posterior_update_precision_continuous_node(
                 singular_g = edges[node_idx].coupling_funct[i]
                 g_prime = grad(singular_g)
                 g_prime_double =  grad(g_prime)
+
                 # expected precisions from the value children
                 precision_weigthed_prediction_error += (
                     attributes[value_child_idx]["expected_precision"]*
-                    (value_coupling**2 * g_prime(attributes[node_idx]["mean"])**2 - 
-                    g_prime_double(attributes[node_idx]["mean"])*value_prediction_error)
+                    (value_coupling**2 * g_prime(attributes[node_idx]["mean"]) - 
+                    value_coupling*g_prime_double(attributes[node_idx]["mean"])*value_prediction_error)
                 )
 
                 # cancel the prediction error if the child value was not observed
