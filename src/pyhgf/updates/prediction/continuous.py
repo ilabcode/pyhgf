@@ -71,7 +71,6 @@ def predict_mean(
 
     """
     bool_var = False
-
     value_parents_idxs = edges[node_idx].value_parents
     if value_parents_idxs is not None:
         for value_parents_idx in value_parents_idxs:
@@ -100,6 +99,7 @@ def predict_mean(
         expected_mean = (
             attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
         ) + (time_step * driftrate)
+        
     
     elif bool_var == True:
 
@@ -111,15 +111,16 @@ def predict_mean(
 
         # Look at the (optional) value parents for this node
         # and update the drift rate accordingly
-        if value_parents_idxs is not None:
+
+        if value_parents_idxs is not None:            
             for value_parent_idx, psi in zip(
                 value_parents_idxs,
                 attributes[node_idx]["value_coupling_parents"],
-            ):
+            ): 
                 child_position = edges[value_parent_idx].value_children.index(node_idx)
                 singular_g = edges[value_parent_idx].coupling_funct[child_position]
-                g_prime = grad(singular_g)
-                driftrate += psi * g_prime(attributes[value_parent_idx]["mean"])
+
+                driftrate += psi * singular_g(attributes[value_parent_idx]["mean"])
         # The new expected mean from the previous value
         expected_mean = (
             attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
