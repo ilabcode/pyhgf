@@ -208,10 +208,12 @@ def fill_categorical_state_node(
     # add the value dependency between the categorical and binary nodes
     edges_as_list: List[AdjacencyLists] = list(network.edges)
     edges_as_list[node_idx] = AdjacencyLists(
-        0, tuple(binary_input_idxs), None, None, None
+        0, tuple(binary_input_idxs), None, None, None, (None,)
     )
     for binary_idx in binary_input_idxs:
-        edges_as_list[binary_idx] = AdjacencyLists(0, None, None, (node_idx,), None)
+        edges_as_list[binary_idx] = AdjacencyLists(
+            0, None, None, (node_idx,), None, (None,)
+        )
     network.edges = tuple(edges_as_list)
 
     # loop over the number of categories and create as many second-levels binary HGF

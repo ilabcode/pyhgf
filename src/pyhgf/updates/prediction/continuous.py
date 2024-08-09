@@ -71,62 +71,34 @@ def predict_mean(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
-    bool_var = False
+    # List the node's value parents
     value_parents_idxs = edges[node_idx].value_parents
+
+    # Get the drift rate from the node
+    driftrate = attributes[node_idx]["tonic_drift"]
+
+    # Look at the (optional) value parents for this node
+    # and update the drift rate accordingly
     if value_parents_idxs is not None:
-        for value_parents_idx in value_parents_idxs:
-            if edges[value_parents_idx].coupling_funct is not None:
-                bool_var = True
-                break
+        for value_parent_idx, psi in zip(
+            value_parents_idxs,
+            attributes[node_idx]["value_coupling_parents"],
+        ):
+            # look at each value parent
+            # and get the coupling function to compute the drift
+            child_position = edges[value_parent_idx].value_children.index(node_idx)
+            coupling_fn = edges[value_parent_idx].coupling_funct[child_position]
+            if coupling_fn is None:
+                parent_value = attributes[value_parent_idx]["mean"]
+            else:
+                parent_value = coupling_fn(attributes[value_parent_idx]["mean"])
 
-    if not bool_var:
+            driftrate += psi * parent_value
 
-        # List the node's value parents
-        value_parents_idxs = edges[node_idx].value_parents
-
-        # Get the drift rate from the node
-        driftrate = attributes[node_idx]["tonic_drift"]
-
-        # Look at the (optional) value parents for this node
-        # and update the drift rate accordingly
-        if value_parents_idxs is not None:
-            for value_parent_idx, psi in zip(
-                value_parents_idxs,
-                attributes[node_idx]["value_coupling_parents"],
-            ):
-                driftrate += psi * attributes[value_parent_idx]["mean"]
-
-        # The new expected mean from the previous value
-        expected_mean = (
-            attributes[node_idx]["autoconnection_strength"]
-            * attributes[node_idx]["mean"]
-        ) + (time_step * driftrate)
-
-    elif bool_var:
-
-        # List the node's value parents
-        value_parents_idxs = edges[node_idx].value_parents
-
-        # Get the drift rate from the node
-        driftrate = attributes[node_idx]["tonic_drift"]
-
-        # Look at the (optional) value parents for this node
-        # and update the drift rate accordingly
-
-        if value_parents_idxs is not None:
-            for value_parent_idx, psi in zip(
-                value_parents_idxs,
-                attributes[node_idx]["value_coupling_parents"],
-            ):
-                child_position = edges[value_parent_idx].value_children.index(node_idx)
-                singular_g = edges[value_parent_idx].coupling_funct[child_position]
-
-                driftrate += psi * singular_g(attributes[value_parent_idx]["mean"])
-        # The new expected mean from the previous value
-        expected_mean = (
-            attributes[node_idx]["autoconnection_strength"]
-            * attributes[node_idx]["mean"]
-        ) + (time_step * driftrate)
+    # The new expected mean from the previous value
+    expected_mean = (
+        attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
+    ) + (time_step * driftrate)
 
     return expected_mean
 

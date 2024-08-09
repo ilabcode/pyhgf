@@ -334,7 +334,7 @@ class Network:
         value_parents: Optional[Union[List, Tuple, int]] = None,
         volatility_children: Optional[Union[List, Tuple, int]] = None,
         volatility_parents: Optional[Union[List, Tuple, int]] = None,
-        coupling_funct: Optional[Tuple[Callable, ...]] = None,
+        coupling_fn: Tuple[Optional[Callable], ...] = (None,),
         **additional_parameters,
     ):
         """Add new input/state node(s) to the neural network.
@@ -398,8 +398,8 @@ class Network:
             integer or a list of integers, in case of multiple children. The coupling
             strength can be controlled by passing a tuple, where the first item is the
             list of indexes, and the second item is the list of coupling strengths.
-        coupling_funct :
-            Coupling function between the current node and its value children.
+        coupling_fn :
+            Coupling function(s) between the current node and its value children.
             It has to be provided as a tuple. If multiple value children are specified,
             the coupling functions must be stated in the same order of the children.
             Note: if a node has multiple parents nodes with different coupling
@@ -650,7 +650,7 @@ class Network:
             # add a new edge
             edges_as_list.append(
                 AdjacencyLists(
-                    node_type, None, None, None, None, coupling_funct=coupling_funct
+                    node_type, None, None, None, None, coupling_fn=coupling_fn
                 )
             )
 
