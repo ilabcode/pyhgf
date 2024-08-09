@@ -14,6 +14,9 @@ class AdjacencyLists(NamedTuple):
         mean and unknown variance.
     * 4: Dirichlet Process state node.
 
+    The variable `coupling_fn` list the coupling functions between this nodes and the
+    children nodes. If `None` is provided, a linear coupling is assumed.
+
     """
 
     node_type: int
@@ -21,7 +24,7 @@ class AdjacencyLists(NamedTuple):
     volatility_parents: Optional[Tuple]
     value_children: Optional[Tuple]
     volatility_children: Optional[Tuple]
-    coupling_funct: Optional[Tuple[Callable, ...]] = None
+    coupling_fn: Tuple[Optional[Callable], ...]
 
 
 class Inputs(NamedTuple):
