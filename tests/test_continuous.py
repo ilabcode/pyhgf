@@ -91,9 +91,9 @@ def test_continuous_node_update(nodes_attributes):
     # create a node structure with no value parent and no volatility parent
     attributes = nodes_attributes
     edges = (
-        AdjacencyLists(0, None, None, None, None),
-        AdjacencyLists(2, None, None, None, None),
-        AdjacencyLists(2, None, None, None, None),
+        AdjacencyLists(0, None, None, None, None, (None,)),
+        AdjacencyLists(2, None, None, None, None, (None,)),
+        AdjacencyLists(2, None, None, None, None, (None,)),
     )
     data = jnp.array([0.2])
     time_steps = jnp.ones(1)
@@ -132,9 +132,9 @@ def test_continuous_input_update(nodes_attributes):
     attributes = nodes_attributes
 
     edges = (
-        AdjacencyLists(0, (1,), None, None, None),
-        AdjacencyLists(2, None, (2,), (0,), None),
-        AdjacencyLists(2, None, None, None, (1,)),
+        AdjacencyLists(0, (1,), None, None, None, (None,)),
+        AdjacencyLists(2, None, (2,), (0,), None, (None,)),
+        AdjacencyLists(2, None, None, None, (1,), (None,)),
     )
 
     # create update sequence
@@ -187,9 +187,9 @@ def test_scan_loop(nodes_attributes):
     ###############################################
     attributes = nodes_attributes
     edges = (
-        AdjacencyLists(0, (1,), None, None, None),
-        AdjacencyLists(2, None, (2,), (0,), None),
-        AdjacencyLists(2, None, None, None, (1,)),
+        AdjacencyLists(0, (1,), None, None, None, (None,)),
+        AdjacencyLists(2, None, (2,), (0,), None, (None,)),
+        AdjacencyLists(2, None, None, None, (1,), (None,)),
     )
 
     # create update sequence

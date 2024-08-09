@@ -87,7 +87,7 @@ def predict_mean(
             # look at each value parent
             # and get the coupling function to compute the drift
             child_position = edges[value_parent_idx].value_children.index(node_idx)
-            coupling_fn = edges[value_parent_idx].coupling_funct[child_position]
+            coupling_fn = edges[value_parent_idx].coupling_fn[child_position]
             if coupling_fn is None:
                 parent_value = attributes[value_parent_idx]["mean"]
             else:
