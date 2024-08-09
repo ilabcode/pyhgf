@@ -6,7 +6,6 @@ import jax.numpy as jnp
 import numpy as np
 from jax.typing import ArrayLike
 
-
 from pyhgf.model import Network
 from pyhgf.response import first_level_binary_surprise, first_level_gaussian_surprise
 

@@ -4,7 +4,7 @@ from functools import partial
 from typing import Dict
 
 import jax.numpy as jnp
-from jax import Array, jit, grad
+from jax import Array, jit
 
 from pyhgf.typing import Edges
 
@@ -25,12 +25,13 @@ def predict_mean(
 
         \hat{\mu}_a^{(k)} = \lambda_a \mu_a^{(k-1)} + P_a^{(k)}
 
-    where P_a^{(k)} is the drift rate (the total predicted drift of the mean, which sums
-    the tonic and - optionally - phasic drifts). The variable :math:`lambda_a`
-    represents the state's autoconnection strength, with :math:`\lambda_a \in [0, 1]`.
-    When :math:`lambda_a = 1`, the node is performing a Gaussian Random Walk using the
-    value :math:` P_a^{(k)}` as total drift rate. When :math:`\lambda_a < 1`, the state
-    will revert back to the total mean :math:`M_a`, which is given by:
+    where :math:`P_a^{(k)}` is the drift rate (the total predicted drift of the mean,
+    which sums the tonic and - optionally - phasic drifts). The variable
+    :math:`lambda_a` represents the state's autoconnection strength, with
+    :math:`\lambda_a \in [0, 1]`. When :math:`lambda_a = 1`, the node is performing a
+    Gaussian Random Walk using the value :math:` P_a^{(k)}` as total drift rate. When
+    :math:`\lambda_a < 1`, the state will revert back to the total mean :math:`M_a`,
+    which is given by:
 
     .. math::
             M_a = \frac{\rho_a + f\left(x_b^{(k)}\right)} {1-\lambda_a},
@@ -76,9 +77,9 @@ def predict_mean(
         for value_parents_idx in value_parents_idxs:
             if edges[value_parents_idx].coupling_funct is not None:
                 bool_var = True
-                break 
+                break
 
-    if bool_var == False:
+    if not bool_var:
 
         # List the node's value parents
         value_parents_idxs = edges[node_idx].value_parents
@@ -97,11 +98,11 @@ def predict_mean(
 
         # The new expected mean from the previous value
         expected_mean = (
-            attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
+            attributes[node_idx]["autoconnection_strength"]
+            * attributes[node_idx]["mean"]
         ) + (time_step * driftrate)
-        
-    
-    elif bool_var == True:
+
+    elif bool_var:
 
         # List the node's value parents
         value_parents_idxs = edges[node_idx].value_parents
@@ -112,18 +113,19 @@ def predict_mean(
         # Look at the (optional) value parents for this node
         # and update the drift rate accordingly
 
-        if value_parents_idxs is not None:            
+        if value_parents_idxs is not None:
             for value_parent_idx, psi in zip(
                 value_parents_idxs,
                 attributes[node_idx]["value_coupling_parents"],
-            ): 
+            ):
                 child_position = edges[value_parent_idx].value_children.index(node_idx)
                 singular_g = edges[value_parent_idx].coupling_funct[child_position]
 
                 driftrate += psi * singular_g(attributes[value_parent_idx]["mean"])
         # The new expected mean from the previous value
         expected_mean = (
-            attributes[node_idx]["autoconnection_strength"] * attributes[node_idx]["mean"]
+            attributes[node_idx]["autoconnection_strength"]
+            * attributes[node_idx]["mean"]
         ) + (time_step * driftrate)
 
     return expected_mean
