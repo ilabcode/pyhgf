@@ -87,9 +87,9 @@ class TestUtils(TestCase):
             },
         }
         edges = (
-            AdjacencyLists(0, (1,), None, None, None),
-            AdjacencyLists(2, None, (2,), (0,), None),
-            AdjacencyLists(2, None, None, None, (1,)),
+            AdjacencyLists(0, (1,), None, None, None, (None,)),
+            AdjacencyLists(2, None, (2,), (0,), None, (None,)),
+            AdjacencyLists(2, None, None, None, (1,), (None,)),
         )
         attributes = (
             input_node_parameters,
@@ -134,11 +134,11 @@ class TestUtils(TestCase):
     def test_find_branch(self):
         """Test the find_branch function."""
         edges = (
-            AdjacencyLists(0, (1,), None, None, None),
-            AdjacencyLists(2, None, (2,), (0,), None),
-            AdjacencyLists(2, None, None, None, (1,)),
-            AdjacencyLists(2, (4,), None, None, None),
-            AdjacencyLists(2, None, None, (3,), None),
+            AdjacencyLists(0, (1,), None, None, None, (None,)),
+            AdjacencyLists(2, None, (2,), (0,), None, (None,)),
+            AdjacencyLists(2, None, None, None, (1,), (None,)),
+            AdjacencyLists(2, (4,), None, None, None, (None,)),
+            AdjacencyLists(2, None, None, (3,), None, (None,)),
         )
         branch_list = list_branches([0], edges, branch_list=[])
         assert branch_list == [0, 1, 2]
