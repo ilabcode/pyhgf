@@ -650,6 +650,7 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
+            coupling_fn,
         ) = edges_as_list[parent_idx]
 
         if kind == "value":
@@ -682,6 +683,7 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
+            coupling_fn,
         )
 
     # update the children nodes
@@ -694,6 +696,7 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
+            coupling_fn,
         ) = edges_as_list[children_idx]
 
         if kind == "value":
@@ -726,6 +729,7 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
+            coupling_fn,
         )
 
     # convert the list back to a tuple
