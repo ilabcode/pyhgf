@@ -1,6 +1,0 @@
-﻿pyhgf.utils.trim\_sequence
-==========================
-
-.. currentmodule:: pyhgf.utils
-
-.. autofunction:: trim_sequence

@@ -43,7 +43,8 @@ notebooks/Example_3_Multi_armed_bandit.ipynb
 :hidden:
 :caption: Exercises
 
-notebooks/Exercise_1_Using_the_HGF.ipynb
+notebooks/Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.ipynb
+notebooks/Exercise_2_Bayesian_reinforcement_learning.ipynb
 ```
 
 # Learn
@@ -178,19 +179,38 @@ A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit
 
 ::::
 
-## Exercises
-
-Hand-on exercises to build intuition around the main components of the HGF and use an agent that optimizes its action under noisy observations.
-
+### Non-parametric predictive coding
 
 ::::{grid} 1 1 2 3
-:gutter: 1
 
-:::{grid-item-card}  Applying the Hierarchical Gaussian Filter through practical exercises
-:link: hgf_exercises
+:::{grid-item-card} Self-organizing neural network using Dirichlet Process nodes
+:link: example_3
 :link-type: ref
 
-In-depth introduction to the Hierarchical Gaussian Filter for computational psychiatry (Computational Psychiatry Course, Zurich). About 4 hours. 
+:::
+::::
+
+## Exercises
+
+Hand-on exercises for theComputational Psychiatry Course (Zurich) to build intuition around the generalised Hierarchical Gaussian Filter, how to create and manipulate probabilistic networks, design an agent to perform a reinforcement learning task and use MCMC sampling for parameter inference and model comparison—about 4 hours.
+
+
+::::{grid} 1 1 2 2
+:gutter: 1
+
+:::{grid-item-card} Introduction to the Generalised Hierarchical Gaussian Filter
+:link: hgf_exercises_1
+:link-type: ref
+
+Theoretical introduction to the generative model of the generalised Hierarchical Gaussian Filter and presentation of the update functions (i.e. the first inversion of the model). 
+:::
+
+:::{grid-item-card} Applying the Hierarchical Gaussian Filter to reinforcement learning
+:link: hgf_exercises_2
+:link-type: ref
+:img-top: ./images/model_comparison.png
+
+Practical application of the generalised Hierarchical Gaussian Filter to reinforcement learning problems and estimation of parameters through MCMC sampling (i.e. the second inversion of the model). 
 :::
 
 ::::

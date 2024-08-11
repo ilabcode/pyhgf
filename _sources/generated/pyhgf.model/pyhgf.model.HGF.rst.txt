@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~HGF.__init__
+      ~HGF.add_edges
       ~HGF.add_nodes
       ~HGF.cache_belief_propagation_fn
       ~HGF.create_belief_propagation_fn
