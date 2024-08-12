@@ -646,8 +646,16 @@ class Network:
             edges_as_list: List = list(self.edges)
 
             node_idx = len(self.attributes)  # the index of the new node
-
+            
             # add a new edge
+            # the number of coupling fn must mach the number of children
+            if coupling_fn == (None,):
+                coupling_fn = len(value_children)*coupling_fn 
+            else:
+                if len(coupling_fn) != len(value_children):
+                    raise ValueError("""The lengths of 'coupling_fn' 
+                                     and 'value_children' must be the same.""")  
+                  
             edges_as_list.append(
                 AdjacencyLists(
                     node_type, None, None, None, None, coupling_fn=coupling_fn
