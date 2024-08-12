@@ -121,7 +121,7 @@ Advanced customisation of predictive coding neural networks and Bayesian modelli
 ::::{grid} 1 1 2 3
 :gutter: 1
 
-:::{grid-item-card}  Using custom response functions
+:::{grid-item-card} Using custom response functions
 :link: custom_response_functions
 :link-type: ref
 :img-top: ./images/response_models.png
@@ -129,7 +129,7 @@ Advanced customisation of predictive coding neural networks and Bayesian modelli
 How to adapt any model to specific behaviours and experimental design by using custom response functions.
 :::
 
-:::{grid-item-card}  Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
+:::{grid-item-card} Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference
 :link: multilevel_hgf
 :link-type: ref
 :img-top: ./images/multilevel-hgf.png
@@ -137,8 +137,16 @@ How to adapt any model to specific behaviours and experimental design by using c
 How to use any model as a distribution to perform hierarchical inference at the group level.
 :::
 
-:::{grid-item-card}  Parameter recovery, prior and posterior predictive sampling
+:::{grid-item-card} Parameter recovery, prior and posterior predictive sampling
 :link: parameters_recovery
+:link-type: ref
+:img-top: ./images/parameter_recovery.png
+
+Recovering parameters from the generative model and using the sampling functionalities to estimate prior and posterior uncertainties.
+:::
+
+:::{grid-item-card} Non-linear value coupling
+:link: nonlinear_coupling
 :link-type: ref
 :img-top: ./images/parameter_recovery.png
 
