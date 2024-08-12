@@ -1,7 +1,7 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
 from functools import partial
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
 import numpy as np
@@ -603,6 +603,7 @@ def add_edges(
     parent_idxs=Union[int, List[int]],
     children_idxs=Union[int, List[int]],
     coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
+    coupling_fn: Tuple[Optional[Callable], ...] = (None,),
 ) -> Tuple:
     """Add a value or volatility coupling link between a set of nodes.
 
@@ -620,6 +621,14 @@ def add_edges(
         The index(es) of the children node(s).
     coupling_strengths :
         The coupling strength between the parents and children.
+    coupling_fn :
+        Coupling function(s) between the current node and its value children.
+        It has to be provided as a tuple. If multiple value children are specified,
+        the coupling functions must be stated in the same order of the children.
+        Note: if a node has multiple parents nodes with different coupling
+        functions, a coupling function should be indicated for all the parent nodes.
+        If no coupling function is stated, the relationship between nodes is assumed
+        linear.
 
     """
     if kind not in ["value", "volatility"]:
@@ -652,7 +661,7 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
-            coupling_fn,
+            this_coupling_fn,
         ) = edges_as_list[parent_idx]
 
         if kind == "value":
@@ -666,6 +675,7 @@ def add_edges(
                 attributes[parent_idx]["value_coupling_children"] += tuple(
                     coupling_strengths
                 )
+                this_coupling_fn = this_coupling_fn + coupling_fn
         elif kind == "volatility":
             if volatility_children is None:
                 volatility_children = tuple(children_idxs)
@@ -685,7 +695,7 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
-            coupling_fn,
+            this_coupling_fn,
         )
 
     # update the children nodes
