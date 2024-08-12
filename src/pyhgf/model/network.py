@@ -647,11 +647,11 @@ class Network:
 
             node_idx = len(self.attributes)  # the index of the new node
 
-            # add a new edge
             # for mutiple value children, set a default tuple with corresponding length
-            if isinstance(value_children, tuple):
-                coupling_fn = len(value_children) * (None,)
+            if len(value_children) != len(coupling_fn):
+                coupling_fn = len(value_children) * coupling_fn
 
+            # add a new edge
             edges_as_list.append(
                 AdjacencyLists(
                     node_type, None, None, None, None, coupling_fn=coupling_fn
@@ -693,6 +693,7 @@ class Network:
                     parent_idxs=node_idx,
                     children_idxs=value_children[0],
                     coupling_strengths=value_children[1],  # type: ignore
+                    coupling_fn=coupling_fn,
                 )
             if volatility_children[0] is not None:
                 self.add_edges(
@@ -797,6 +798,7 @@ class Network:
         parent_idxs=Union[int, List[int]],
         children_idxs=Union[int, List[int]],
         coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
+        coupling_fn: Tuple[Optional[Callable], ...] = (None,),
     ) -> "Network":
         """Add a value or volatility coupling link between a set of nodes.
 
@@ -810,6 +812,14 @@ class Network:
             The index(es) of the children node(s).
         coupling_strengths :
             The coupling strength betwen the parents and children.
+        coupling_fn :
+            Coupling function(s) between the current node and its value children.
+            It has to be provided as a tuple. If multiple value children are specified,
+            the coupling functions must be stated in the same order of the children.
+            Note: if a node has multiple parents nodes with different coupling
+            functions, a coupling function should be indicated for all the parent nodes.
+            If no coupling function is stated, the relationship between nodes is assumed
+            linear.
 
         """
         attributes, edges = add_edges(
@@ -819,6 +829,7 @@ class Network:
             parent_idxs=parent_idxs,
             children_idxs=children_idxs,
             coupling_strengths=coupling_strengths,
+            coupling_fn=coupling_fn,
         )
 
         self.attributes = attributes
