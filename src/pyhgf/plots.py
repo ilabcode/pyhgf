@@ -310,9 +310,14 @@ def plot_network(network: "Network") -> "Source":
 
         if value_parents is not None:
             for value_parents_idx in value_parents:
+
+                # get the coupling function from the value parent
+                child_idx = network.edges[value_parents_idx].value_children.index(i)
+                coupling_fn = network.edges[value_parents_idx].coupling_fn[child_idx]
                 graphviz_structure.edge(
                     f"x_{value_parents_idx}",
                     f"x_{i}",
+                    color="black" if coupling_fn is None else "black:invis:black",
                 )
 
     # connect volatility parents
