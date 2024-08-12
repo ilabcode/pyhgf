@@ -130,11 +130,20 @@ def test_continuous_input_update(nodes_attributes):
     # one value parent with one volatility parent #
     ###############################################
     attributes = nodes_attributes
-
+    def identity(x):
+        return(x)
+    
     edges = (
         AdjacencyLists(0, (1,), None, None, None, (None,)),
         AdjacencyLists(2, None, (2,), (0,), None, (None,)),
         AdjacencyLists(2, None, None, None, (1,), (None,)),
+    )
+
+    # define a non linear network behaving like the linear one
+    edges_nonlinear = (
+        AdjacencyLists(0, (1,), None, None, None, (None,)),
+        AdjacencyLists(2, None, (2,), (0,), None, (None,)),
+        AdjacencyLists(2, None, None, None, (1,), (identity,)),
     )
 
     # create update sequence
@@ -165,6 +174,14 @@ def test_continuous_input_update(nodes_attributes):
         input_data=(data, time_steps, observed),
     )
 
+    #repeat for non-linear network
+    new_attributes_nonlinear, _ = beliefs_propagation(
+        structure=(inputs, edges_nonlinear),
+        attributes=attributes,
+        update_sequence=update_sequence,
+        input_data=(data, time_steps, observed),
+    )
+
     for idx, val in zip(["time_step", "values"], [1.0, 0.2]):
         assert jnp.isclose(new_attributes[0][idx], val)
     for idx, val in zip(
@@ -178,6 +195,19 @@ def test_continuous_input_update(nodes_attributes):
     ):
         assert jnp.isclose(new_attributes[2][idx], val)
 
+    for idx, val in zip(["time_step", "values"], [1.0, 0.2]):
+        assert jnp.isclose(new_attributes_nonlinear[0][idx], val)
+    for idx, val in zip(
+        ["precision", "expected_precision", "mean", "expected_mean"],
+        [10000.881, 0.880797, 0.20007047, 1.0],
+    ):
+        assert jnp.isclose(new_attributes_nonlinear[1][idx], val)
+    for idx, val in zip(
+        ["precision", "expected_precision", "mean", "expected_mean"],
+        [0.9794834, 0.95257413, 0.97345114, 1.0],
+    ):
+        assert jnp.isclose(new_attributes_nonlinear[2][idx], val)
+
 
 def test_scan_loop(nodes_attributes):
     timeserie = load_data("continuous")
@@ -190,6 +220,16 @@ def test_scan_loop(nodes_attributes):
         AdjacencyLists(0, (1,), None, None, None, (None,)),
         AdjacencyLists(2, None, (2,), (0,), None, (None,)),
         AdjacencyLists(2, None, None, None, (1,), (None,)),
+    )
+    
+    #testing it with a non-linear coupling
+    def identity(x):
+        return(x)
+    
+    edges_nonlinear = (
+        AdjacencyLists(0, (1,), None, None, None, (None,)),
+        AdjacencyLists(2, None, (2,), (0,), None, (None,)),
+        AdjacencyLists(2, None, None, None, (1,), (identity,)),
     )
 
     # create update sequence
@@ -217,6 +257,12 @@ def test_scan_loop(nodes_attributes):
         structure=(inputs, edges),
     )
 
+    scan_fn_nonlinear = Partial(
+        beliefs_propagation,
+        update_sequence=update_sequence,
+        structure=(inputs, edges),
+    )
+
     # Create the data (value and time steps vectors)
     time_steps = jnp.ones((len(timeserie), 1))
     observed = jnp.ones((len(timeserie), 1))
@@ -235,6 +281,23 @@ def test_scan_loop(nodes_attributes):
         [1.3334407, 1.3493799, -7.1686087, -7.509615],
     ):
         assert jnp.isclose(last[2][idx], val)
+
+    # non linear coupling
+        # Run the entire for loop
+    last_nonlinear, _ = scan(scan_fn_nonlinear, attributes, 
+                   (timeserie, time_steps, observed))
+    for idx, val in zip(["time_step", "values"], [1.0, 0.8241]):
+        assert jnp.isclose(last_nonlinear[0][idx], val)
+    for idx, val in zip(
+        ["precision", "expected_precision", "mean", "expected_mean"],
+        [24557.84, 14557.839, 0.8041823, 0.79050046],
+    ):
+        assert jnp.isclose(last_nonlinear[1][idx], val)
+    for idx, val in zip(
+        ["precision", "expected_precision", "mean", "expected_mean"],
+        [1.3334407, 1.3493799, -7.1686087, -7.509615],
+    ):
+        assert jnp.isclose(last_nonlinear[2][idx], val)
 
 
 if __name__ == "__main__":

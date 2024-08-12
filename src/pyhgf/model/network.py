@@ -430,6 +430,7 @@ class Network:
             )
         
         # assess children number
+        children_number = 1
         if value_children == None:
             children_number = 0
         elif isinstance(value_children, int):
