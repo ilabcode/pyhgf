@@ -1,0 +1,6 @@
+﻿pyhgf.updates.prediction\_error.inputs.continuous.continuous\_input\_prediction\_error
+======================================================================================
+
+.. currentmodule:: pyhgf.updates.prediction_error.inputs.continuous
+
+.. autofunction:: continuous_input_prediction_error

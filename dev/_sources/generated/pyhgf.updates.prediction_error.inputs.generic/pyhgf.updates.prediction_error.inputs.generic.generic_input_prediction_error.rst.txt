@@ -1,0 +1,6 @@
+﻿pyhgf.updates.prediction\_error.inputs.generic.generic\_input\_prediction\_error
+================================================================================
+
+.. currentmodule:: pyhgf.updates.prediction_error.inputs.generic
+
+.. autofunction:: generic_input_prediction_error
