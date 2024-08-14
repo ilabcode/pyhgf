@@ -165,9 +165,6 @@ def test_continuous_input_update(nodes_attributes):
     ###############################################
     attributes = nodes_attributes
 
-    def identity(x):
-        return x
-
     edges = (
         AdjacencyLists(0, (1,), None, None, None, (None,)),
         AdjacencyLists(2, None, (2,), (0,), None, (None,)),
@@ -217,9 +214,6 @@ def test_continuous_input_update(nodes_attributes):
 
 
 def test_continuous_input_update_nonlinear(nodes_attributes):
-    ###############################################
-    # one value parent with one volatility parent #
-    ###############################################
     attributes = nodes_attributes
 
     def identity(x):
@@ -422,6 +416,33 @@ def test_coupling_fn_multiple_children():
         children_number.append(len(test_HGF.edges[node_idx].value_children))
 
     assert children_number == coupling_fn_length
+
+
+def test_nonlinear_coupling_fn():
+    """Tests if the coupling function is passed correctly
+    into the network"""
+
+    # creating a simple coupling function
+    def coupling_fn(x):
+        return jnp.sin(x)
+
+    # I create a network with a node with 2 value children
+    test_HGF = (
+        Network()
+        .add_nodes(kind="continuous-input")
+        .add_nodes(value_children=0, n_nodes=1)
+        .add_nodes(value_children=[1], n_nodes=1, coupling_fn=(coupling_fn,))
+    )
+
+    # input_data
+    data = jnp.array([0.2])
+    test_HGF = test_HGF.input_data(data)
+
+    for idx, val in zip(
+        ["precision", "expected_precision", "mean", "expected_mean"],
+        [10000.982, 0.98201376, 0.19998036, 0.0],
+    ):
+        assert jnp.isclose(test_HGF.node_trajectories[1][idx], val)
 
 
 if __name__ == "__main__":
