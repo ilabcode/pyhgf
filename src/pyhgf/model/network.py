@@ -428,10 +428,10 @@ class Network:
                     "'DP-state', 'continuous-state', 'binary-state', 'ef-normal'."
                 )
             )
-        
+
         # assess children number
         children_number = 1
-        if value_children == None:
+        if value_children is None:
             children_number = 0
         elif isinstance(value_children, int):
             children_number = 1
@@ -660,10 +660,10 @@ class Network:
             if children_number != len(coupling_fn):
                 if coupling_fn == (None,):
                     coupling_fn = children_number * coupling_fn
-                else: 
-                    raise ValueError("""The number of coupling functions 
-                                     and value children do not match""")
-                
+                else:
+                    raise ValueError(
+                        "The number of coupling fn and value children do not match"
+                    )
 
             # add a new edge
             edges_as_list.append(
