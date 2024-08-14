@@ -1,7 +1,5 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-import unittest
-
 import jax.numpy as jnp
 import pytest
 from jax.lax import scan
@@ -290,7 +288,3 @@ def test_nonlinear_coupling_fn():
         [10000.982, 0.98201376, 0.19998036, 0.0],
     ):
         assert jnp.isclose(test_HGF.node_trajectories[1][idx], val)
-
-
-if __name__ == "__main__":
-    unittest.main(argv=["first-arg-is-ignored"], exit=False)
