@@ -125,6 +125,47 @@ def test_gaussian_surprise():
     )
     assert jnp.all(jnp.isclose(surprise, 1.4189385))
 
+def test_continuous_node_update_nonlinear(nodes_attributes):
+    # create a node structure with no value parent and no volatility parent
+    attributes = nodes_attributes
+
+    def identity(x):
+        return x
+    
+    edges_nonlinear = (
+        AdjacencyLists(0, None, None, None, None, (None,)),
+        AdjacencyLists(2, None, None, None, None, (None,)),
+        AdjacencyLists(2, None, None, None, None, (identity,)),
+    )
+    data = jnp.array([0.2])
+    time_steps = jnp.ones(1)
+    observed = jnp.ones(1)
+    inputs = Inputs(0, 0)
+
+    ###########################################
+    # No value parent - no volatility parents #
+    ###########################################
+    sequence1 = 0, continuous_input_prediction_error
+    update_sequence = (sequence1,)
+    new_attributes, _ = beliefs_propagation(
+        attributes=attributes,
+        structure=(inputs, edges_nonlinear),
+        update_sequence=update_sequence,
+        input_data=(data, time_steps, observed),
+    )
+
+    assert attributes[1] == new_attributes[1]
+    assert attributes[2] == new_attributes[2]
+
+
+def test_gaussian_surprise():
+    surprise = gaussian_surprise(
+        x=jnp.array([1.0, 1.0]),
+        expected_mean=jnp.array([0.0, 0.0]),
+        expected_precision=jnp.array([1.0, 1.0]),
+    )
+    assert jnp.all(jnp.isclose(surprise, 1.4189385))
+
 
 def test_continuous_input_update(nodes_attributes):
     ###############################################
