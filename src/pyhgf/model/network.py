@@ -334,6 +334,7 @@ class Network:
         value_parents: Optional[Union[List, Tuple, int]] = None,
         volatility_children: Optional[Union[List, Tuple, int]] = None,
         volatility_parents: Optional[Union[List, Tuple, int]] = None,
+        coupling_fn: Tuple[Optional[Callable], ...] = (None,),
         **additional_parameters,
     ):
         """Add new input/state node(s) to the neural network.
@@ -397,6 +398,14 @@ class Network:
             integer or a list of integers, in case of multiple children. The coupling
             strength can be controlled by passing a tuple, where the first item is the
             list of indexes, and the second item is the list of coupling strengths.
+        coupling_fn :
+            Coupling function(s) between the current node and its value children.
+            It has to be provided as a tuple. If multiple value children are specified,
+            the coupling functions must be stated in the same order of the children.
+            Note: if a node has multiple parents nodes with different coupling
+            functions, a coupling function should be indicated for all the parent nodes.
+            If no coupling function is stated, the relationship between nodes is assumed
+            linear.
         **kwargs :
             Additional keyword parameters will be passed and overwrite the node
             attributes.
@@ -419,6 +428,16 @@ class Network:
                     "'DP-state', 'continuous-state', 'binary-state', 'ef-normal'."
                 )
             )
+
+        # assess children number
+        # this is required to ensure the coupling functions match
+        children_number = 1
+        if value_children is None:
+            children_number = 0
+        elif isinstance(value_children, int):
+            children_number = 1
+        elif isinstance(value_children, list):
+            children_number = len(value_children)
 
         # transform coupling parameter into tuple of indexes and strenghts
         couplings = []
@@ -638,14 +657,19 @@ class Network:
 
             node_idx = len(self.attributes)  # the index of the new node
 
+            # for mutiple value children, set a default tuple with corresponding length
+            if children_number != len(coupling_fn):
+                if coupling_fn == (None,):
+                    coupling_fn = children_number * coupling_fn
+                else:
+                    raise ValueError(
+                        "The number of coupling fn and value children do not match"
+                    )
+
             # add a new edge
             edges_as_list.append(
                 AdjacencyLists(
-                    node_type,
-                    None,
-                    None,
-                    None,
-                    None,
+                    node_type, None, None, None, None, coupling_fn=coupling_fn
                 )
             )
 
@@ -684,6 +708,7 @@ class Network:
                     parent_idxs=node_idx,
                     children_idxs=value_children[0],
                     coupling_strengths=value_children[1],  # type: ignore
+                    coupling_fn=coupling_fn,
                 )
             if volatility_children[0] is not None:
                 self.add_edges(
@@ -788,6 +813,7 @@ class Network:
         parent_idxs=Union[int, List[int]],
         children_idxs=Union[int, List[int]],
         coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
+        coupling_fn: Tuple[Optional[Callable], ...] = (None,),
     ) -> "Network":
         """Add a value or volatility coupling link between a set of nodes.
 
@@ -801,6 +827,14 @@ class Network:
             The index(es) of the children node(s).
         coupling_strengths :
             The coupling strength betwen the parents and children.
+        coupling_fn :
+            Coupling function(s) between the current node and its value children.
+            It has to be provided as a tuple. If multiple value children are specified,
+            the coupling functions must be stated in the same order of the children.
+            Note: if a node has multiple parents nodes with different coupling
+            functions, a coupling function should be indicated for all the parent nodes.
+            If no coupling function is stated, the relationship between nodes is assumed
+            linear.
 
         """
         attributes, edges = add_edges(
@@ -810,6 +844,7 @@ class Network:
             parent_idxs=parent_idxs,
             children_idxs=children_idxs,
             coupling_strengths=coupling_strengths,
+            coupling_fn=coupling_fn,
         )
 
         self.attributes = attributes

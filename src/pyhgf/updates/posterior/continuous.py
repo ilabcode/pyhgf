@@ -4,14 +4,17 @@ from functools import partial
 from typing import Dict
 
 import jax.numpy as jnp
-from jax import jit
+from jax import grad, jit
 
 from pyhgf.typing import Edges
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def posterior_update_mean_continuous_node(
-    attributes: Dict, edges: Edges, node_idx: int, node_precision: float
+    attributes: Dict,
+    edges: Edges,
+    node_idx: int,
+    node_precision: float,
 ) -> float:
     r"""Update the mean of a state node using the value prediction errors.
 
@@ -19,6 +22,8 @@ def posterior_update_mean_continuous_node(
 
     The new mean of a state node :math:`b` value coupled with other input and/or state
     nodes :math:`j` at time :math:`k` is given by:
+
+    For linear value coupling:
 
     .. math::
         \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
@@ -31,6 +36,14 @@ def posterior_update_mean_continuous_node(
     :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
     If the child node is a state node, this value was computed by
     :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
+
+    For non-linear value coupling:
+
+    .. math::
+        \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
+            \frac{\kappa_j g'_{j,b}({\mu}_b^{(k-1)}) \hat{\pi}_j^{(k)}}{\pi_b}
+            \delta_j^{(k)}
+
 
     2. Mean update from volatility coupling.
 
@@ -115,9 +128,10 @@ def posterior_update_mean_continuous_node(
     # Value coupling updates - update the mean of a value parent
     # ----------------------------------------------------------
     if edges[node_idx].value_children is not None:
-        for value_child_idx, value_coupling in zip(
+        for value_child_idx, value_coupling, coupling_fn in zip(
             edges[node_idx].value_children,  # type: ignore
             attributes[node_idx]["value_coupling_children"],
+            edges[node_idx].coupling_fn,
         ):
             # get the value prediction error (VAPE)
             # if this is jnp.nan (no observation) set the VAPE to 0.0
@@ -128,11 +142,22 @@ def posterior_update_mean_continuous_node(
             # cancel the prediction error if the child value was not observed
             value_prediction_error *= attributes[value_child_idx]["observed"]
 
+            # get differential of coupling function with value children
+            if coupling_fn is None:  # linear coupling
+                coupling_fn_prime = 1
+            else:  # non-linear coupling
+                # Compute the derivative of the coupling function
+                coupling_fn_prime = grad(coupling_fn)(attributes[node_idx]["mean"])
+
             # expected precisions from the value children
             # sum the precision weigthed prediction errors over all children
             value_precision_weigthed_prediction_error += (
                 (
-                    (value_coupling * attributes[value_child_idx]["expected_precision"])
+                    (
+                        value_coupling
+                        * attributes[value_child_idx]["expected_precision"]
+                        * coupling_fn_prime
+                    )
                     / node_precision
                 )
             ) * value_prediction_error
@@ -149,7 +174,8 @@ def posterior_update_mean_continuous_node(
                 "volatility_prediction_error"
             ]
 
-            # retrieve the effective precision (γ) computed during the prediction step
+            # retrieve the effective precision (γ)
+            # computed during the prediction step
             effective_precision = attributes[volatility_child_idx]["temp"][
                 "effective_precision"
             ]
@@ -197,6 +223,8 @@ def posterior_update_precision_continuous_node(
     The new precision of a state node :math:`b` value coupled with other input and/or
     state nodes :math:`j` at time :math:`k` is given by:
 
+    For linear coupling (default)
+
     .. math::
 
             \pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
@@ -210,6 +238,13 @@ def posterior_update_precision_continuous_node(
     If the child node is a state node, this value was computed by
     :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
 
+    For non-linear value coupling:
+
+    .. math::
+
+            \pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
+            \hat{\pi}_j^{(k)} * (\kappa_j^2 * g'_{j,b}(\mu_b^(k-1))^2 -
+            g''_{j,b}(\mu_b^(k-1))*\delta_j)
 
     #. Precision update from volatility coupling.
 
@@ -284,13 +319,30 @@ def posterior_update_precision_continuous_node(
     # Value coupling updates - update the precision of a value parent
     # ---------------------------------------------------------------
     if edges[node_idx].value_children is not None:
-        for value_child_idx, value_coupling in zip(
+        for value_child_idx, value_coupling, coupling_fn in zip(
             edges[node_idx].value_children,  # type: ignore
             attributes[node_idx]["value_coupling_children"],
+            edges[node_idx].coupling_fn,
         ):
+            if coupling_fn is None:  # linear coupling
+                coupling_fn_prime = 1
+                coupling_fn_second = 0
+            else:  # non-linear coupling
+                coupling_fn_prime = grad(coupling_fn)(attributes[node_idx]["mean"]) ** 2
+                value_prediction_error = attributes[value_child_idx]["temp"][
+                    "value_prediction_error"
+                ]
+                coupling_fn_second = (
+                    grad(grad(coupling_fn))(attributes[node_idx]["mean"])
+                    * value_prediction_error
+                )
+
             # cancel the prediction error if the child value was not observed
             precision_weigthed_prediction_error += (
-                value_coupling**2 * attributes[value_child_idx]["expected_precision"]
+                value_coupling**2
+                * attributes[value_child_idx]["expected_precision"]
+                * coupling_fn_prime
+                - coupling_fn_second
             ) * attributes[value_child_idx]["observed"]
 
     # Volatility coupling updates - update the precision of a volatility parent
@@ -334,7 +386,7 @@ def posterior_update_precision_continuous_node(
     )
 
     # additionnal steps for unobserved values
-    # ----------------------------------------------------------------------------------
+    # ---------------------------------------
 
     # List the node's volatility parents
     volatility_parents_idxs = edges[node_idx].volatility_parents
@@ -493,7 +545,10 @@ def continuous_node_update_ehgf(
     attributes[node_idx]["mean"] = posterior_mean
 
     posterior_precision = posterior_update_precision_continuous_node(
-        attributes, edges, node_idx, time_step
+        attributes,
+        edges,
+        node_idx,
+        time_step,
     )
     attributes[node_idx]["precision"] = posterior_precision
 

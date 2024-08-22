@@ -9,6 +9,7 @@ from jax.tree_util import Partial
 
 from pyhgf import load_data
 from pyhgf.math import gaussian_surprise
+from pyhgf.model import Network
 from pyhgf.typing import AdjacencyLists, Inputs
 from pyhgf.updates.posterior.continuous import (
     continuous_node_update,
@@ -91,9 +92,9 @@ def test_continuous_node_update(nodes_attributes):
     # create a node structure with no value parent and no volatility parent
     attributes = nodes_attributes
     edges = (
-        AdjacencyLists(0, None, None, None, None),
-        AdjacencyLists(2, None, None, None, None),
-        AdjacencyLists(2, None, None, None, None),
+        AdjacencyLists(0, None, None, None, None, (None,)),
+        AdjacencyLists(2, None, None, None, None, (None,)),
+        AdjacencyLists(2, None, None, None, None, (None,)),
     )
     data = jnp.array([0.2])
     time_steps = jnp.ones(1)
@@ -132,9 +133,9 @@ def test_continuous_input_update(nodes_attributes):
     attributes = nodes_attributes
 
     edges = (
-        AdjacencyLists(0, (1,), None, None, None),
-        AdjacencyLists(2, None, (2,), (0,), None),
-        AdjacencyLists(2, None, None, None, (1,)),
+        AdjacencyLists(0, (1,), None, None, None, (None,)),
+        AdjacencyLists(2, None, (2,), (0,), None, (None,)),
+        AdjacencyLists(2, None, None, None, (1,), (None,)),
     )
 
     # create update sequence
@@ -187,9 +188,9 @@ def test_scan_loop(nodes_attributes):
     ###############################################
     attributes = nodes_attributes
     edges = (
-        AdjacencyLists(0, (1,), None, None, None),
-        AdjacencyLists(2, None, (2,), (0,), None),
-        AdjacencyLists(2, None, None, None, (1,)),
+        AdjacencyLists(0, (1,), None, None, None, (None,)),
+        AdjacencyLists(2, None, (2,), (0,), None, (None,)),
+        AdjacencyLists(2, None, None, None, (1,), (None,)),
     )
 
     # create update sequence
@@ -235,6 +236,60 @@ def test_scan_loop(nodes_attributes):
         [1.3334407, 1.3493799, -7.1686087, -7.509615],
     ):
         assert jnp.isclose(last[2][idx], val)
+
+
+def test_coupling_fn_multiple_children():
+    """Tests if the coupling function is passed correctly
+    into the network"""
+
+    # creating a simple coupling function
+    def identity(x):
+        return x
+
+    # I create a network with a node with 2 value children
+    test_HGF = (
+        Network()
+        .add_nodes(kind="continuous-input")
+        .add_nodes(kind="continuous-input")
+        .add_nodes(value_children=0, n_nodes=1)
+        .add_nodes(value_children=[1, 2], n_nodes=1, coupling_fn=(None, identity))
+    )
+
+    # check if the number of coupling fn matches the number of children
+    coupling_fn_length = []
+    children_number = []
+    for node_idx in range(2, len(test_HGF.edges)):
+        coupling_fn_length.append(len(test_HGF.edges[node_idx].coupling_fn))
+        children_number.append(len(test_HGF.edges[node_idx].value_children))
+
+    assert children_number == coupling_fn_length
+
+
+def test_nonlinear_coupling_fn():
+    """Tests if the coupling function is passed correctly
+    into the network"""
+
+    # creating a simple coupling function
+    def coupling_fn(x):
+        return jnp.sin(x)
+
+    # I create a network with a node with 2 value children
+    test_HGF = (
+        Network()
+        .add_nodes(kind="continuous-input")
+        .add_nodes(value_children=0, n_nodes=1)
+        .add_nodes(value_children=[1], n_nodes=1, coupling_fn=(coupling_fn,))
+    )
+
+    # input_data
+    data = jnp.array([0.2])
+    test_HGF = test_HGF.input_data(data)
+
+    for idx, val in zip(
+        ["precision", "expected_precision", "mean", "expected_mean"],
+        [10000.982, 0.98201376, 0.19998036, 0.0],
+    ):
+        assert jnp.isclose(test_HGF.node_trajectories[1][idx], val)
 
 
 if __name__ == "__main__":
