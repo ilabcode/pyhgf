@@ -31,6 +31,7 @@ def test_gaussian_density():
     )
     assert jnp.all(jnp.isclose(surprise, 0.24197073))
 
+
 def test_sgm():
     assert jnp.all(jnp.isclose(sigmoid(jnp.array([0.3, 0.3])), 0.5744425))
 

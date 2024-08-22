@@ -116,6 +116,7 @@ def test_beliefs_propagation():
     assert new_attributes[1]["mean"] == 0.20008
     assert new_attributes[2]["precision"] == 1.5
 
+
 def test_add_edges():
     """Test the add_edges function."""
     network = Network().add_nodes(kind="continuous-input").add_nodes(n_nodes=3)
@@ -126,6 +127,7 @@ def test_add_edges():
         kind="volatility", parent_idxs=2, children_idxs=0, coupling_strengths=1
     )
     network.add_edges(parent_idxs=1, children_idxs=0, coupling_strengths=1.0)
+
 
 def test_find_branch():
     """Test the find_branch function."""
@@ -138,6 +140,7 @@ def test_find_branch():
     )
     branch_list = list_branches([0], edges, branch_list=[])
     assert branch_list == [0, 1, 2]
+
 
 def test_set_update_sequence():
     """Test the set_update_sequence function."""
