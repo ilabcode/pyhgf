@@ -430,6 +430,7 @@ class Network:
             )
 
         # assess children number
+        # this is required to ensure the coupling functions match
         children_number = 1
         if value_children is None:
             children_number = 0
