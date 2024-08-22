@@ -146,9 +146,9 @@ Recovering parameters from the generative model and using the sampling functiona
 :::
 
 :::{grid-item-card} Non-linear value coupling
-:link: nonlinear_coupling
+:link: non_linear_coupling
 :link-type: ref
-:img-top: ./images/parameter_recovery.png
+:img-top: ./images/non_linear_coupling.png
 
 Recovering parameters from the generative model and using the sampling functionalities to estimate prior and posterior uncertainties.
 :::
