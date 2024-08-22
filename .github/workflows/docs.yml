@@ -35,7 +35,7 @@ jobs:
           branch: gh-pages
 
       - name: Deploy Dev 🚀
-        if: github.event_name == 'pull_request'
+        if: (github.event_name == 'pull_request') || (github.event_name == 'push')
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: docs/build/html
