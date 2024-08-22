@@ -568,6 +568,7 @@ document.write(`
 </ol>
 <p>The new precision of a state node <span class="math notranslate nohighlight">\(b\)</span> value coupled with other input and/or
 state nodes <span class="math notranslate nohighlight">\(j\)</span> at time <span class="math notranslate nohighlight">\(k\)</span> is given by:</p>
+<p>For linear coupling (default)</p>
 <div class="math notranslate nohighlight">
 \[\pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
 \kappa_j^2 \hat{\pi}_j^{(k)}\]</div>
@@ -578,6 +579,11 @@ computed by
 <code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error()</span></code>.
 If the child node is a state node, this value was computed by
 <code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error()</span></code>.</p>
+<p>For non-linear value coupling:</p>
+<div class="math notranslate nohighlight">
+\[\pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
+\hat{\pi}_j^{(k)} * (\kappa_j^2 * g'_{j,b}(\mu_b^(k-1))^2 -
+g''_{j,b}(\mu_b^(k-1))*\delta_j)\]</div>
 <ol class="arabic simple">
 <li><p>Precision update from volatility coupling.</p></li>
 </ol>

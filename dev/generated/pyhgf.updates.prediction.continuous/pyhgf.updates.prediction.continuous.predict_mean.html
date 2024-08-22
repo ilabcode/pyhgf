@@ -567,12 +567,13 @@ document.write(`
 parent(s) <span class="math notranslate nohighlight">\(b\)</span> is given by:</p>
 <div class="math notranslate nohighlight">
 \[\hat{\mu}_a^{(k)} = \lambda_a \mu_a^{(k-1)} + P_a^{(k)}\]</div>
-<p>where P_a^{(k)} is the drift rate (the total predicted drift of the mean, which sums
-the tonic and - optionally - phasic drifts). The variable <span class="math notranslate nohighlight">\(lambda_a\)</span>
-represents the state’s autoconnection strength, with <span class="math notranslate nohighlight">\(\lambda_a \in [0, 1]\)</span>.
-When <span class="math notranslate nohighlight">\(lambda_a = 1\)</span>, the node is performing a Gaussian Random Walk using the
-value :math:` P_a^{(k)}` as total drift rate. When <span class="math notranslate nohighlight">\(\lambda_a &lt; 1\)</span>, the state
-will revert back to the total mean <span class="math notranslate nohighlight">\(M_a\)</span>, which is given by:</p>
+<p>where <span class="math notranslate nohighlight">\(P_a^{(k)}\)</span> is the drift rate (the total predicted drift of the mean,
+which sums the tonic and - optionally - phasic drifts). The variable
+<span class="math notranslate nohighlight">\(lambda_a\)</span> represents the state’s autoconnection strength, with
+<span class="math notranslate nohighlight">\(\lambda_a \in [0, 1]\)</span>. When <span class="math notranslate nohighlight">\(lambda_a = 1\)</span>, the node is performing a
+Gaussian Random Walk using the value :math:` P_a^{(k)}` as total drift rate. When
+<span class="math notranslate nohighlight">\(\lambda_a &lt; 1\)</span>, the state will revert back to the total mean <span class="math notranslate nohighlight">\(M_a\)</span>,
+which is given by:</p>
 <div class="math notranslate nohighlight">
 \[M_a = \frac{\rho_a + f\left(x_b^{(k)}\right)} {1-\lambda_a},\]</div>
 <p>If <span class="math notranslate nohighlight">\(\lambda_a = 0\)</span>, the node is not influenced by its own mean anymore, but
