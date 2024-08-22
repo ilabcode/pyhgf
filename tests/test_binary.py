@@ -117,10 +117,10 @@ def test_update_binary_input_parents():
     }
 
     edges = (
-        AdjacencyLists(0, (1,), None, None, None),
-        AdjacencyLists(1, (2,), None, (0,), None),
-        AdjacencyLists(2, None, (3,), (1,), None),
-        AdjacencyLists(2, None, None, None, (2,)),
+        AdjacencyLists(0, (1,), None, None, None, (None,)),
+        AdjacencyLists(1, (2,), None, (0,), None, (None,)),
+        AdjacencyLists(2, None, (3,), (1,), None, (None,)),
+        AdjacencyLists(2, None, None, None, (2,), (None,)),
     )
     attributes = {
         0: input_node_parameters,
