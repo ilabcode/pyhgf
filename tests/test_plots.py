@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from pyhgf import load_data
-from pyhgf.model import HGF
+from pyhgf.model import HGF, Network
 
 
 def test_plotting_functions():
@@ -137,7 +137,7 @@ def test_plotting_functions():
     input_data = np.vstack([[0.0] * input_data.shape[1], input_data])
 
     # create the categorical HGF
-    categorical_hgf = HGF(model_type=None, verbose=False).add_nodes(
+    categorical_hgf = Network().add_nodes(
         kind="categorical-input",
         node_parameters={
             "n_categories": 3,

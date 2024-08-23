@@ -65,7 +65,6 @@ class Network:
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
         self.inputs: Inputs
-        self.verbose: bool = False
 
     def create_belief_propagation_fn(self, overwrite: bool = True) -> "Network":
         """Create the belief propagation function.
@@ -88,8 +87,6 @@ class Network:
         # create the update sequence if it does not already exist
         if self.update_sequence is None:
             self.set_update_sequence()
-            if self.verbose:
-                print("... Create the update sequence from the network structure.")
 
         # create the belief propagation function
         # this function is used by scan to loop over observations
@@ -99,8 +96,6 @@ class Network:
                 update_sequence=self.update_sequence,
                 structure=self.structure,
             )
-            if self.verbose:
-                print("... Create the belief propagation function.")
         else:
             if overwrite:
                 self.scan_fn = Partial(
@@ -108,11 +103,6 @@ class Network:
                     update_sequence=self.update_sequence,
                     structure=self.structure,
                 )
-                if self.verbose:
-                    print("... Create the belief propagation function (overwrite).")
-            else:
-                if self.verbose:
-                    print("... The belief propagation function is already defined.")
 
         return self
 
@@ -138,8 +128,6 @@ class Network:
                 jnp.ones((1, 1)),
             ),
         )
-        if self.verbose:
-            print("... Cache the belief propagation function.")
 
         return self
 
@@ -175,8 +163,6 @@ class Network:
         """
         if self.scan_fn is None:
             self = self.create_belief_propagation_fn()
-        if self.verbose:
-            print((f"Adding {len(input_data)} new observations."))
         if time_steps is None:
             time_steps = np.ones((len(input_data), 1))  # time steps vector
         else:
@@ -247,8 +233,6 @@ class Network:
             missing in the event log, or rejected trials).
 
         """
-        if self.verbose:
-            print((f"Adding {len(input_data)} new observations."))
         if time_steps is None:
             time_steps = np.ones(len(input_data))  # time steps vector
 

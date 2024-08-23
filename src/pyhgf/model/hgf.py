@@ -28,8 +28,6 @@ class HGF(Network):
         strength with children and parents (i.e. `"value_coupling_parents"`,
         `"value_coupling_children"`, `"volatility_coupling_parents"`,
         `"volatility_coupling_children"`).
-    verbose : bool
-        Verbosity level.
 
     """
 
@@ -62,7 +60,6 @@ class HGF(Network):
             "2": 0.0,
             "3": 0.0,
         },
-        verbose: bool = True,
     ) -> None:
         r"""Parameterization of the HGF model.
 
@@ -107,27 +104,15 @@ class HGF(Network):
             A dictionary containing the initial values for the tonic drift
             at different levels of the hierarchy. This represents the drift of the
             random walk. Defaults set all entries to `0.0` (no drift).
-        verbose :
-            The verbosity of the methods for model creation and fitting. Defaults to
-            `True`.
 
         """
-        self.verbose = verbose
         Network.__init__(self)
         self.model_type = model_type
         self.n_levels = n_levels
 
         if model_type not in ["continuous", "binary"]:
-            if self.verbose:
-                print("Initializing a network with custom node structure.")
+            raise ValueError("Invalid model type.")
         else:
-            if self.verbose:
-                print(
-                    (
-                        f"Creating a {self.model_type} Hierarchical Gaussian Filter "
-                        f"with {self.n_levels} levels."
-                    )
-                )
             if model_type == "continuous":
                 # Input
                 self.add_nodes(

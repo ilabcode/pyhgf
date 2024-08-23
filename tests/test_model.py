@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from pyhgf import load_data
-from pyhgf.model import HGF
+from pyhgf.model import HGF, Network
 from pyhgf.response import total_gaussian_surprise
 
 
@@ -16,7 +16,7 @@ def test_HGF():
     #####################
 
     custom_hgf = (
-        HGF(model_type=None)
+        Network()
         .add_nodes(kind="continuous-input")
         .add_nodes(kind="binary-input")
         .add_nodes(value_children=0)
