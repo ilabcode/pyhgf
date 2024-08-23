@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from pyhgf.model import HGF
+from pyhgf.model import Network
 
 
 def test_categorical_state_node():
@@ -13,7 +13,7 @@ def test_categorical_state_node():
     input_data = np.vstack([[0.0] * input_data.shape[1], input_data])
 
     # create the categorical HGF
-    categorical_hgf = HGF(model_type=None, verbose=False).add_nodes(
+    categorical_hgf = Network().add_nodes(
         kind="categorical-input",
         node_parameters={
             "n_categories": 3,
