@@ -538,7 +538,7 @@ document.write(`
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
 <span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">jit</span><span class="p">,</span> <span class="n">vjp</span>
 <span class="kn">from</span> <span class="nn">jax.tree_util</span> <span class="kn">import</span> <span class="n">Partial</span>
-<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">HGF</span>
+<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">Network</span>
 <span class="kn">from</span> <span class="nn">pyhgf.plots</span> <span class="kn">import</span> <span class="n">plot_nodes</span>
 <span class="kn">from</span> <span class="nn">pytensor.graph</span> <span class="kn">import</span> <span class="n">Apply</span><span class="p">,</span> <span class="n">Op</span>
 </pre></div>
@@ -581,7 +581,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/fa5c58473563c86694d4e20b4e03173f745c7a008754236a61f49a8a7e18b718.png" src="../_images/fa5c58473563c86694d4e20b4e03173f745c7a008754236a61f49a8a7e18b718.png" />
+<img alt="../_images/7e72e41e4a5d6e8f1bc79ed0dbd1fa2351f8f509ce4b8324d4ecca5dbc783759.png" src="../_images/7e72e41e4a5d6e8f1bc79ed0dbd1fa2351f8f509ce4b8324d4ecca5dbc783759.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -609,7 +609,7 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 <h3>Creating the probabilistic network<a class="headerlink" href="#creating-the-probabilistic-network" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">categorical_hgf</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">categorical_hgf</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
     <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;categorical-input&quot;</span><span class="p">,</span> <span class="n">n_categories</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">binary_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tonic_volatility_2&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">},</span>
 <span class="p">)</span>
 </pre></div>
@@ -695,7 +695,7 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/7a8d467d461f5af8bb86fd5fce3784ee520aa36692f9882a203c4548b2604f1a.png" src="../_images/7a8d467d461f5af8bb86fd5fce3784ee520aa36692f9882a203c4548b2604f1a.png" />
+<img alt="../_images/2667316eac916ca1e061e295ea07f52aa7704a48d03b39f080f40c38362fe672.png" src="../_images/2667316eac916ca1e061e295ea07f52aa7704a48d03b39f080f40c38362fe672.png" />
 </div>
 </div>
 </section>
@@ -843,7 +843,7 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Thu Aug 22 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Fri Aug 23 2024
 
 Python implementation: CPython
 Python version       : 3.12.5
@@ -853,12 +853,12 @@ pyhgf : 0.1.4
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-pytensor  : 2.25.3
-matplotlib: 3.9.2
-jax       : 0.4.31
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
-numpy     : 1.26.0
 seaborn   : 0.13.2
+matplotlib: 3.9.2
+pytensor  : 2.25.3
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+jax       : 0.4.31
+numpy     : 1.26.0
 
 Watermark: 2.4.3
 </pre></div>

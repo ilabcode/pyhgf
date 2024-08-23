@@ -608,12 +608,12 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># method 1</span>
-<span class="n">new_input_precision_1</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+<span class="n">new_input_precision_1</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
     <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mf">10.0</span>
 <span class="p">)</span>
 
 <span class="c1"># method 2</span>
-<span class="n">new_input_precision_2</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+<span class="n">new_input_precision_2</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
     <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_precision&quot;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">}</span>
 <span class="p">)</span>
 
@@ -751,7 +751,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/89955ff8121a828eb7f2f8f7a25ff663f6b3c4275c283bc99cd90032a6db2c7d.png" src="../_images/89955ff8121a828eb7f2f8f7a25ff663f6b3c4275c283bc99cd90032a6db2c7d.png" />
+<img alt="../_images/d47e0181f1bf4d2253f48efbfcef519100deb1489d66a0c6662fe25bfc932ac5.png" src="../_images/d47e0181f1bf4d2253f48efbfcef519100deb1489d66a0c6662fe25bfc932ac5.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -964,7 +964,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_2307/1724106460.py:6: UserWarning: The figure layout has changed to tight
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_2302/1724106460.py:6: UserWarning: The figure layout has changed to tight
   plt.tight_layout()
 </pre></div>
 </div>
@@ -1086,7 +1086,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Thu Aug 22 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Fri Aug 23 2024
 
 Python implementation: CPython
 Python version       : 3.12.5
@@ -1096,10 +1096,10 @@ pyhgf : 0.1.4
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
-matplotlib: 3.9.2
-numpy     : 1.26.0
 seaborn   : 0.13.2
+matplotlib: 3.9.2
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+numpy     : 1.26.0
 
 Watermark: 2.4.3
 </pre></div>
