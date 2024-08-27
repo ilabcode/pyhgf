@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>From Reinforcement Learning to Generalised Bayesian Filtering &#8212; pyhgf 0.1.4 documentation</title>
+    <title>From Reinforcement Learning to Generalised Bayesian Filtering &#8212; pyhgf 0.1.5 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -511,7 +511,7 @@ document.write(`
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
 <span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">MultipleLocator</span>
 <span class="kn">from</span> <span class="nn">pyhgf.math</span> <span class="kn">import</span> <span class="n">MultivariateNormal</span><span class="p">,</span> <span class="n">Normal</span><span class="p">,</span> <span class="n">gaussian_predictive_distribution</span>
-<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">HGF</span><span class="p">,</span> <span class="n">Network</span>
+<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">Network</span>
 <span class="kn">from</span> <span class="nn">pyhgf.utils</span> <span class="kn">import</span> <span class="n">beliefs_propagation</span>
 <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">norm</span><span class="p">,</span> <span class="n">t</span>
 
@@ -598,7 +598,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/f0dc2038fd7d63fb9d089fb4e014d630892840afb2bd97e06060b19c4b8811ab.png" src="../_images/f0dc2038fd7d63fb9d089fb4e014d630892840afb2bd97e06060b19c4b8811ab.png" />
+<img alt="../_images/15044fdc9630a71171d4dac9edbdfd73025e4a8e3ca4aac76b58217035798b8a.png" src="../_images/15044fdc9630a71171d4dac9edbdfd73025e4a8e3ca4aac76b58217035798b8a.png" />
 </div>
 </div>
 <p>The vizualisation of the predictive distribution over new observations require integrating the joint probability of the prior <span class="math notranslate nohighlight">\(g_{\xi, \nu}(\vartheta)\)</span> and the posterior <span class="math notranslate nohighlight">\(f_x(\vartheta)\)</span>. In the case of a univariate normal, the <em>Gaussian-predictive</em> distribution is given by:</p>
@@ -634,7 +634,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/4443ca62577e5b8475d53eff8fe50481992a19feed13ac47d7bd415a23ec09e5.png" src="../_images/4443ca62577e5b8475d53eff8fe50481992a19feed13ac47d7bd415a23ec09e5.png" />
+<img alt="../_images/3260315760faa9350e38be2782ca7384d5df4224380c19f16562f799a02d718b.png" src="../_images/3260315760faa9350e38be2782ca7384d5df4224380c19f16562f799a02d718b.png" />
 </div>
 </div>
 </section>
@@ -712,7 +712,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/2c7818c5350cce7fa90eec1e863d95c4829bd1d4a48e20bbdd87da7df6326778.png" src="../_images/2c7818c5350cce7fa90eec1e863d95c4829bd1d4a48e20bbdd87da7df6326778.png" />
+<img alt="../_images/3797e86aee4d3f8d0645cde2135e9a0f1897c9f40884379211b289c663381866.png" src="../_images/3797e86aee4d3f8d0645cde2135e9a0f1897c9f40884379211b289c663381866.png" />
 </div>
 </div>
 <p>We can see that larger values for <span class="math notranslate nohighlight">\(\nu\)</span> correspond to a lower learning rate, and therefore smoother transition between states.</p>
@@ -730,7 +730,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">univariate_hgf</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">HGF</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">Network</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_precision&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">})</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.0</span><span class="p">})</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
@@ -777,7 +777,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/7098b912987d978731b0f0acd5094fb4263813cb0fb8a7a52384e39e3b825222.png" src="../_images/7098b912987d978731b0f0acd5094fb4263813cb0fb8a7a52384e39e3b825222.png" />
+<img alt="../_images/59b42cad80913d255332d76f526a0d19f6f7cb1ca1c26d048472fec662657c80.png" src="../_images/59b42cad80913d255332d76f526a0d19f6f7cb1ca1c26d048472fec662657c80.png" />
 </div>
 </div>
 </section>
@@ -808,7 +808,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 <p>Filtering the sufficient statistics of a two dimensional multivariate normal distribution requires tracking the values of 5 parameters in paralell. Our model therefore consist in 5 independent two-level continuous HGF.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bivariate_hgf</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bivariate_hgf</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
     <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span>
     <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_precision&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;expected_precision&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span>
     <span class="n">n_nodes</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
@@ -881,7 +881,7 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/09597271da6bb5dd652bb5e2b8345fd4bd2d871865d3e1438e61e4668228263c.png" src="../_images/09597271da6bb5dd652bb5e2b8345fd4bd2d871865d3e1438e61e4668228263c.png" />
+<img alt="../_images/12cab9c99f63ff9c5d7b4bc7627dd3b1f9e629acb9fffa89bfa7ec00a22e9fcb.png" src="../_images/12cab9c99f63ff9c5d7b4bc7627dd3b1f9e629acb9fffa89bfa7ec00a22e9fcb.png" />
 </div>
 </div>
 <div class="cell tag_hide-cell docutils container">
@@ -964,20 +964,20 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sun Aug 11 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Aug 27 2024
 
 Python implementation: CPython
-Python version       : 3.12.4
+Python version       : 3.12.5
 IPython version      : 8.26.0
 
-pyhgf : 0.1.4
+pyhgf : 0.1.5
 jax   : 0.4.31
 jaxlib: 0.4.31
 
+seaborn   : 0.13.2
+matplotlib: 3.9.2
 jax       : 0.4.31
 numpy     : 1.26.0
-matplotlib: 3.9.1.post1
-seaborn   : 0.13.2
 
 Watermark: 2.4.3
 </pre></div>

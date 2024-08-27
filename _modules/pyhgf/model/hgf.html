@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pyhgf.model.hgf &#8212; pyhgf 0.1.4 documentation</title>
+    <title>pyhgf.model.hgf &#8212; pyhgf 0.1.5 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../../../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -477,8 +477,6 @@ document.write(`
 <span class="sd">        strength with children and parents (i.e. `&quot;value_coupling_parents&quot;`,</span>
 <span class="sd">        `&quot;value_coupling_children&quot;`, `&quot;volatility_coupling_parents&quot;`,</span>
 <span class="sd">        `&quot;volatility_coupling_children&quot;`).</span>
-<span class="sd">    verbose : bool</span>
-<span class="sd">        Verbosity level.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -513,7 +511,6 @@ document.write(`
             <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
             <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="p">},</span>
-        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Parameterization of the HGF model.</span>
 
@@ -558,27 +555,15 @@ document.write(`
 <span class="sd">            A dictionary containing the initial values for the tonic drift</span>
 <span class="sd">            at different levels of the hierarchy. This represents the drift of the</span>
 <span class="sd">            random walk. Defaults set all entries to `0.0` (no drift).</span>
-<span class="sd">        verbose :</span>
-<span class="sd">            The verbosity of the methods for model creation and fitting. Defaults to</span>
-<span class="sd">            `True`.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
         <span class="n">Network</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span> <span class="o">=</span> <span class="n">model_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_levels</span> <span class="o">=</span> <span class="n">n_levels</span>
 
         <span class="k">if</span> <span class="n">model_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;continuous&quot;</span><span class="p">,</span> <span class="s2">&quot;binary&quot;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing a network with custom node structure.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid model type.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span>
-                    <span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Creating a </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2"> Hierarchical Gaussian Filter &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_levels</span><span class="si">}</span><span class="s2"> levels.&quot;</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
             <span class="k">if</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;continuous&quot;</span><span class="p">:</span>
                 <span class="c1"># Input</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>

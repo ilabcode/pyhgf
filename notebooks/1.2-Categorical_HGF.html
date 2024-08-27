@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>The categorical Hierarchical Gaussian Filter &#8212; pyhgf 0.1.4 documentation</title>
+    <title>The categorical Hierarchical Gaussian Filter &#8212; pyhgf 0.1.5 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -538,7 +538,7 @@ document.write(`
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
 <span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">jit</span><span class="p">,</span> <span class="n">vjp</span>
 <span class="kn">from</span> <span class="nn">jax.tree_util</span> <span class="kn">import</span> <span class="n">Partial</span>
-<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">HGF</span>
+<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">Network</span>
 <span class="kn">from</span> <span class="nn">pyhgf.plots</span> <span class="kn">import</span> <span class="n">plot_nodes</span>
 <span class="kn">from</span> <span class="nn">pytensor.graph</span> <span class="kn">import</span> <span class="n">Apply</span><span class="p">,</span> <span class="n">Op</span>
 </pre></div>
@@ -581,7 +581,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/81f48a572c253eb2a2c07eb8e25c2a9d2b2bd8e7024c07c096d03a8ca8e70d4f.png" src="../_images/81f48a572c253eb2a2c07eb8e25c2a9d2b2bd8e7024c07c096d03a8ca8e70d4f.png" />
+<img alt="../_images/7bd4715a5d124ee612caa78672b1ab237217934e83db3cc7e112b124a36500b2.png" src="../_images/7bd4715a5d124ee612caa78672b1ab237217934e83db3cc7e112b124a36500b2.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -609,7 +609,7 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 <h3>Creating the probabilistic network<a class="headerlink" href="#creating-the-probabilistic-network" title="Link to this heading">#</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">categorical_hgf</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">categorical_hgf</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
     <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;categorical-input&quot;</span><span class="p">,</span> <span class="n">n_categories</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">binary_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tonic_volatility_2&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">},</span>
 <span class="p">)</span>
 </pre></div>
@@ -695,7 +695,7 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/b8c0f634c591a1c4dd2ca56bdf8b0766a389ccb840500b3974022b974a4d794a.png" src="../_images/b8c0f634c591a1c4dd2ca56bdf8b0766a389ccb840500b3974022b974a4d794a.png" />
+<img alt="../_images/84664ea4eafdfa0fdfd1a43d7f93b58096992b6daa7217fe1b2be920e4ba06b5.png" src="../_images/84664ea4eafdfa0fdfd1a43d7f93b58096992b6daa7217fe1b2be920e4ba06b5.png" />
 </div>
 </div>
 </section>
@@ -843,21 +843,21 @@ KL[P||Q] = \ln{\frac{\Gamma(\sum_{i=1}^k\alpha_{1i})}{\Gamma(\sum_{i=1}^k\alpha_
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sun Aug 11 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Aug 27 2024
 
 Python implementation: CPython
-Python version       : 3.12.4
+Python version       : 3.12.5
 IPython version      : 8.26.0
 
-pyhgf : 0.1.4
+pyhgf : 0.1.5
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-sys       : 3.12.4 (main, Jul 15 2024, 21:50:45) [GCC 11.4.0]
-numpy     : 1.26.0
-matplotlib: 3.9.1.post1
 seaborn   : 0.13.2
-pytensor  : 2.25.2
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+numpy     : 1.26.0
+pytensor  : 2.25.4
+matplotlib: 3.9.2
 jax       : 0.4.31
 
 Watermark: 2.4.3

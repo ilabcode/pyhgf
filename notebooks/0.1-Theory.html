@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Introduction to the Generalised Hierarchical Gaussian Filter &#8212; pyhgf 0.1.4 documentation</title>
+    <title>Introduction to the Generalised Hierarchical Gaussian Filter &#8212; pyhgf 0.1.5 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -510,7 +510,7 @@ document.write(`
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%capture</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="k">if</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
-    <span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">watermark</span>
+    <span class="err">!</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">watermark</span>
 </pre></div>
 </div>
 </div>
@@ -565,7 +565,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \sigma^2)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/d814fd23b3f7b099575836f2b62e5b9c9ae51938e5b891447346b40c48ecbc61.png" src="../_images/d814fd23b3f7b099575836f2b62e5b9c9ae51938e5b891447346b40c48ecbc61.png" />
+<img alt="../_images/5f15153e05f43720f239cc69ef1fb75a81a5399a72af72977bfbe20303e702a7.png" src="../_images/5f15153e05f43720f239cc69ef1fb75a81a5399a72af72977bfbe20303e702a7.png" />
 </div>
 </div>
 <p>This simple process will be our first building block. Importantly here, the variability of the sensory input is constant across time: even if we don’t know exactly in which direction the time series is going to move in the future, we know that it is unlikely to make certain kinds of big jumps because it is controlled by a fixed parameter, the variance <span class="math notranslate nohighlight">\(\sigma^2\)</span>.</p>
@@ -596,7 +596,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + \rho, \sigma^2)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/5724e5e35bf95468aa0ec3e30c41491160148f75d09fbc6e19e074deb532bd0f.png" src="../_images/5724e5e35bf95468aa0ec3e30c41491160148f75d09fbc6e19e074deb532bd0f.png" />
+<img alt="../_images/7a4014dfac18f542961c245588d6ed7ad0c176937ac185c6e61df06f9a475e31.png" src="../_images/7a4014dfac18f542961c245588d6ed7ad0c176937ac185c6e61df06f9a475e31.png" />
 </div>
 </div>
 </section>
@@ -647,7 +647,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + \phi(m - x_1^{(k-1)}), \sigma^2)
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/6040f727be38e9717a1c6d3fc56d069530843db1ead62d090d6b958eb78c1228.png" src="../_images/6040f727be38e9717a1c6d3fc56d069530843db1ead62d090d6b958eb78c1228.png" />
+<img alt="../_images/11c80591f1feb1e492198c29c6a6a33956027947c3f1599ca65ec1522893a0bd.png" src="../_images/11c80591f1feb1e492198c29c6a6a33956027947c3f1599ca65ec1522893a0bd.png" />
 </div>
 </div>
 <p>With the two examples above, we have seen that a <a class="reference internal" href="#term-Gaussian-Random-Walk"><span class="xref std std-term">Gaussian Random Walk</span></a> - the simple iterative sampling from a given Gaussian distribution at each time step - can be further influenced by two kinds of parameterizations:</p>
@@ -747,7 +747,7 @@ $<span class="math notranslate nohighlight">\(
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/5fa32c588c488a2e0f56e7fdd83256a79b06cba8a9085572fa01ebf387ee21c0.png" src="../_images/5fa32c588c488a2e0f56e7fdd83256a79b06cba8a9085572fa01ebf387ee21c0.png" />
+<img alt="../_images/131fcc3900103760496ae9fd6e6b4d3df3c23b07169463b87e1622d0e0c47ecd.png" src="../_images/131fcc3900103760496ae9fd6e6b4d3df3c23b07169463b87e1622d0e0c47ecd.png" />
 </div>
 </div>
 </section>
@@ -813,7 +813,7 @@ x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/0cbd5843f679a7991df7f2bb1f4ce2f2257bc1df91b9c5c6fdde1445e7f8bef7.png" src="../_images/0cbd5843f679a7991df7f2bb1f4ce2f2257bc1df91b9c5c6fdde1445e7f8bef7.png" />
+<img alt="../_images/277ceffc71753cd625ee533794e87933c412b7c9cfab0c49045f4d8027c2f540.png" src="../_images/277ceffc71753cd625ee533794e87933c412b7c9cfab0c49045f4d8027c2f540.png" />
 </div>
 </div>
 <p>In this example, it becomes apparent that the volatility of the observation is not constant in time anymore, but depends on the values observed at the level above.</p>
@@ -913,20 +913,20 @@ Given the expectation from the prediction step</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sun Aug 11 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Aug 27 2024
 
 Python implementation: CPython
-Python version       : 3.12.4
+Python version       : 3.12.5
 IPython version      : 8.26.0
 
-pyhgf : 0.1.4
+pyhgf : 0.1.5
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-seaborn   : 0.13.2
-matplotlib: 3.9.1.post1
-sys       : 3.12.4 (main, Jul 15 2024, 21:50:45) [GCC 11.4.0]
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
 numpy     : 1.26.0
+seaborn   : 0.13.2
+matplotlib: 3.9.2
 
 Watermark: 2.4.3
 </pre></div>

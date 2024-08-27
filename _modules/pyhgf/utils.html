@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pyhgf.utils &#8212; pyhgf 0.1.4 documentation</title>
+    <title>pyhgf.utils &#8212; pyhgf 0.1.5 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -448,7 +448,7 @@ document.write(`
 <span></span><span class="c1"># Author: Nicolas Legrand &lt;nicolas.legrand@cas.au.dk&gt;</span>
 
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -663,10 +663,12 @@ document.write(`
     <span class="c1"># add the value dependency between the categorical and binary nodes</span>
     <span class="n">edges_as_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AdjacencyLists</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span>
     <span class="n">edges_as_list</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">AdjacencyLists</span><span class="p">(</span>
-        <span class="mi">0</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">binary_input_idxs</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">binary_input_idxs</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">binary_idx</span> <span class="ow">in</span> <span class="n">binary_input_idxs</span><span class="p">:</span>
-        <span class="n">edges_as_list</span><span class="p">[</span><span class="n">binary_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">AdjacencyLists</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">node_idx</span><span class="p">,),</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">edges_as_list</span><span class="p">[</span><span class="n">binary_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">AdjacencyLists</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">node_idx</span><span class="p">,),</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span>
+        <span class="p">)</span>
     <span class="n">network</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">edges_as_list</span><span class="p">)</span>
 
     <span class="c1"># loop over the number of categories and create as many second-levels binary HGF</span>
@@ -1065,6 +1067,7 @@ document.write(`
     <span class="n">parent_idxs</span><span class="o">=</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
     <span class="n">children_idxs</span><span class="o">=</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
     <span class="n">coupling_strengths</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">coupling_fn</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a value or volatility coupling link between a set of nodes.</span>
 
@@ -1082,6 +1085,14 @@ document.write(`
 <span class="sd">        The index(es) of the children node(s).</span>
 <span class="sd">    coupling_strengths :</span>
 <span class="sd">        The coupling strength between the parents and children.</span>
+<span class="sd">    coupling_fn :</span>
+<span class="sd">        Coupling function(s) between the current node and its value children.</span>
+<span class="sd">        It has to be provided as a tuple. If multiple value children are specified,</span>
+<span class="sd">        the coupling functions must be stated in the same order of the children.</span>
+<span class="sd">        Note: if a node has multiple parents nodes with different coupling</span>
+<span class="sd">        functions, a coupling function should be indicated for all the parent nodes.</span>
+<span class="sd">        If no coupling function is stated, the relationship between nodes is assumed</span>
+<span class="sd">        linear.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;volatility&quot;</span><span class="p">]:</span>
@@ -1114,6 +1125,7 @@ document.write(`
             <span class="n">volatility_parents</span><span class="p">,</span>
             <span class="n">value_children</span><span class="p">,</span>
             <span class="n">volatility_children</span><span class="p">,</span>
+            <span class="n">this_coupling_fn</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">=</span> <span class="n">edges_as_list</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span>
@@ -1127,6 +1139,7 @@ document.write(`
                 <span class="n">attributes</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">][</span><span class="s2">&quot;value_coupling_children&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span>
                     <span class="n">coupling_strengths</span>
                 <span class="p">)</span>
+                <span class="n">this_coupling_fn</span> <span class="o">=</span> <span class="n">this_coupling_fn</span> <span class="o">+</span> <span class="n">coupling_fn</span>
         <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;volatility&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">volatility_children</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">volatility_children</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">children_idxs</span><span class="p">)</span>
@@ -1146,6 +1159,7 @@ document.write(`
             <span class="n">volatility_parents</span><span class="p">,</span>
             <span class="n">value_children</span><span class="p">,</span>
             <span class="n">volatility_children</span><span class="p">,</span>
+            <span class="n">this_coupling_fn</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="c1"># update the children nodes</span>
@@ -1158,6 +1172,7 @@ document.write(`
             <span class="n">volatility_parents</span><span class="p">,</span>
             <span class="n">value_children</span><span class="p">,</span>
             <span class="n">volatility_children</span><span class="p">,</span>
+            <span class="n">coupling_fn</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">=</span> <span class="n">edges_as_list</span><span class="p">[</span><span class="n">children_idx</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span>
@@ -1190,6 +1205,7 @@ document.write(`
             <span class="n">volatility_parents</span><span class="p">,</span>
             <span class="n">value_children</span><span class="p">,</span>
             <span class="n">volatility_children</span><span class="p">,</span>
+            <span class="n">coupling_fn</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="c1"># convert the list back to a tuple</span>

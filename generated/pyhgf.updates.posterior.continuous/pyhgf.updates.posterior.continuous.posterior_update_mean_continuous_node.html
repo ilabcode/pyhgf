@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>pyhgf.updates.posterior.continuous.posterior_update_mean_continuous_node &#8212; pyhgf 0.1.4 documentation</title>
+    <title>pyhgf.updates.posterior.continuous.posterior_update_mean_continuous_node &#8212; pyhgf 0.1.5 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -568,6 +568,7 @@ document.write(`
 </ol>
 <p>The new mean of a state node <span class="math notranslate nohighlight">\(b\)</span> value coupled with other input and/or state
 nodes <span class="math notranslate nohighlight">\(j\)</span> at time <span class="math notranslate nohighlight">\(k\)</span> is given by:</p>
+<p>For linear value coupling:</p>
 <div class="math notranslate nohighlight">
 \[\mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
     \frac{\kappa_j \hat{\pi}_j^{(k)}}{\pi_b} \delta_j^{(k)}\]</div>
@@ -578,6 +579,11 @@ computed by
 <code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error()</span></code>.
 If the child node is a state node, this value was computed by
 <code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error()</span></code>.</p>
+<p>For non-linear value coupling:</p>
+<div class="math notranslate nohighlight">
+\[\mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
+    \frac{\kappa_j g'_{j,b}({\mu}_b^{(k-1)}) \hat{\pi}_j^{(k)}}{\pi_b}
+    \delta_j^{(k)}\]</div>
 <ol class="arabic simple" start="2">
 <li><p>Mean update from volatility coupling.</p></li>
 </ol>

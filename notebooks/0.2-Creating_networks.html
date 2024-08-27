@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Creating and manipulating networks of probabilistic nodes &#8212; pyhgf 0.1.4 documentation</title>
+    <title>Creating and manipulating networks of probabilistic nodes &#8212; pyhgf 0.1.5 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -568,9 +568,9 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 
 <span class="n">attributes</span> <span class="o">=</span> <span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
 <span class="n">edges</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">AdjacencyLists</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-    <span class="n">AdjacencyLists</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,),</span> <span class="kc">None</span><span class="p">),</span>
-    <span class="n">AdjacencyLists</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)),</span>
+    <span class="n">AdjacencyLists</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)),</span>
+    <span class="n">AdjacencyLists</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,),</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)),</span>
+    <span class="n">AdjacencyLists</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)),</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -608,12 +608,12 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># method 1</span>
-<span class="n">new_input_precision_1</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+<span class="n">new_input_precision_1</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
     <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mf">10.0</span>
 <span class="p">)</span>
 
 <span class="c1"># method 2</span>
-<span class="n">new_input_precision_2</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+<span class="n">new_input_precision_2</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
     <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_precision&quot;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">}</span>
 <span class="p">)</span>
 
@@ -683,7 +683,7 @@ A probabilistic node can store an arbitrary number of parameters. Parameter valu
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>AdjacencyLists(node_type=2, value_parents=None, volatility_parents=(6,), value_children=(1,), volatility_children=None)
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>AdjacencyLists(node_type=2, value_parents=None, volatility_parents=(6,), value_children=(1,), volatility_children=None, coupling_fn=(None,))
 </pre></div>
 </div>
 </div>
@@ -751,7 +751,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/d891fa62c95e2155a4675ec67a674aff78493b6aa69471762dd51dcc66dc4e01.png" src="../_images/d891fa62c95e2155a4675ec67a674aff78493b6aa69471762dd51dcc66dc4e01.png" />
+<img alt="../_images/a35acc2c5f896f3fa751e1d6aab267663439e69f9c32a6400daf807c1122507f.png" src="../_images/a35acc2c5f896f3fa751e1d6aab267663439e69f9c32a6400daf807c1122507f.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -818,7 +818,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/15af3ee317d040cbc4e6594c3044adc212b6adc126acf6fb49206d55772eca7b.png" src="../_images/15af3ee317d040cbc4e6594c3044adc212b6adc126acf6fb49206d55772eca7b.png" />
+<img alt="../_images/57cd3a2eb55efcf295e1312059a74eafddbcdee8bd95a9e507c9ff5824d86649.png" src="../_images/57cd3a2eb55efcf295e1312059a74eafddbcdee8bd95a9e507c9ff5824d86649.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -893,7 +893,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/2a245955e17eb21fd0f88ad3438f39d7546cf4348efa321304e29ab420149a69.png" src="../_images/2a245955e17eb21fd0f88ad3438f39d7546cf4348efa321304e29ab420149a69.png" />
+<img alt="../_images/dde283c611ced276218743354242b1768aea626f0816bb72ee207399a4386e20.png" src="../_images/dde283c611ced276218743354242b1768aea626f0816bb72ee207399a4386e20.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -964,11 +964,11 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_2241/1724106460.py:6: UserWarning: The figure layout has changed to tight
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_2231/1724106460.py:6: UserWarning: The figure layout has changed to tight
   plt.tight_layout()
 </pre></div>
 </div>
-<img alt="../_images/d11c6ff9d7b33d14f5ecea35209ce6d8b7f7f9981a5919bd1fbfd1fb75369615.png" src="../_images/d11c6ff9d7b33d14f5ecea35209ce6d8b7f7f9981a5919bd1fbfd1fb75369615.png" />
+<img alt="../_images/7350eae8d8bd94206492cfd823309029ed4eb868bf52395f7e089f82c545356d.png" src="../_images/7350eae8d8bd94206492cfd823309029ed4eb868bf52395f7e089f82c545356d.png" />
 </div>
 </div>
 </section>
@@ -1012,17 +1012,12 @@ Contrary to standard graph networks, the directed connection between nodes can h
     <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
     <span class="n">show_observations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_2241/2258103952.py:6: UserWarning: The figure layout has changed to tight
-  plt.tight_layout()
-</pre></div>
-</div>
-<img alt="../_images/631019720a868d5b15f50b98fabc94572468cca1722bf2eeed7dd7314cf0d830.png" src="../_images/631019720a868d5b15f50b98fabc94572468cca1722bf2eeed7dd7314cf0d830.png" />
+<img alt="../_images/9b20b7e7b4005b1060a6a1f17762c2a034a9bfe1de34736fcfe280a7ee55e914.png" src="../_images/9b20b7e7b4005b1060a6a1f17762c2a034a9bfe1de34736fcfe280a7ee55e914.png" />
 </div>
 </div>
 </section>
@@ -1091,20 +1086,20 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sun Aug 11 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Aug 27 2024
 
 Python implementation: CPython
-Python version       : 3.12.4
+Python version       : 3.12.5
 IPython version      : 8.26.0
 
-pyhgf : 0.1.4
+pyhgf : 0.1.5
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-matplotlib: 3.9.1.post1
-sys       : 3.12.4 (main, Jul 15 2024, 21:50:45) [GCC 11.4.0]
-numpy     : 1.26.0
 seaborn   : 0.13.2
+numpy     : 1.26.0
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+matplotlib: 3.9.2
 
 Watermark: 2.4.3
 </pre></div>

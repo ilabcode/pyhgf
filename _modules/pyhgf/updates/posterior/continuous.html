@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pyhgf.updates.posterior.continuous &#8212; pyhgf 0.1.4 documentation</title>
+    <title>pyhgf.updates.posterior.continuous &#8212; pyhgf 0.1.5 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../../../_static/documentation_options.js?v=fd825880"></script>
+    <script src="../../../../_static/documentation_options.js?v=59fadc99"></script>
     <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -451,7 +451,7 @@ document.write(`
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
 
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
-<span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">jit</span>
+<span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">grad</span><span class="p">,</span> <span class="n">jit</span>
 
 <span class="kn">from</span> <span class="nn">pyhgf.typing</span> <span class="kn">import</span> <span class="n">Edges</span>
 
@@ -460,7 +460,10 @@ document.write(`
 <a class="viewcode-back" href="../../../../generated/pyhgf.updates.posterior.continuous/pyhgf.updates.posterior.continuous.posterior_update_mean_continuous_node.html#pyhgf.updates.posterior.continuous.posterior_update_mean_continuous_node">[docs]</a>
 <span class="nd">@partial</span><span class="p">(</span><span class="n">jit</span><span class="p">,</span> <span class="n">static_argnames</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;node_idx&quot;</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">posterior_update_mean_continuous_node</span><span class="p">(</span>
-    <span class="n">attributes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="n">Edges</span><span class="p">,</span> <span class="n">node_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_precision</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">attributes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+    <span class="n">edges</span><span class="p">:</span> <span class="n">Edges</span><span class="p">,</span>
+    <span class="n">node_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">node_precision</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Update the mean of a state node using the value prediction errors.</span>
 
@@ -468,6 +471,8 @@ document.write(`
 
 <span class="sd">    The new mean of a state node :math:`b` value coupled with other input and/or state</span>
 <span class="sd">    nodes :math:`j` at time :math:`k` is given by:</span>
+
+<span class="sd">    For linear value coupling:</span>
 
 <span class="sd">    .. math::</span>
 <span class="sd">        \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}</span>
@@ -480,6 +485,14 @@ document.write(`
 <span class="sd">    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.</span>
 <span class="sd">    If the child node is a state node, this value was computed by</span>
 <span class="sd">    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.</span>
+
+<span class="sd">    For non-linear value coupling:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}</span>
+<span class="sd">            \frac{\kappa_j g&#39;_{j,b}({\mu}_b^{(k-1)}) \hat{\pi}_j^{(k)}}{\pi_b}</span>
+<span class="sd">            \delta_j^{(k)}</span>
+
 
 <span class="sd">    2. Mean update from volatility coupling.</span>
 
@@ -564,9 +577,10 @@ document.write(`
     <span class="c1"># Value coupling updates - update the mean of a value parent</span>
     <span class="c1"># ----------------------------------------------------------</span>
     <span class="k">if</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_children</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">value_child_idx</span><span class="p">,</span> <span class="n">value_coupling</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="k">for</span> <span class="n">value_child_idx</span><span class="p">,</span> <span class="n">value_coupling</span><span class="p">,</span> <span class="n">coupling_fn</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
             <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_children</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
             <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;value_coupling_children&quot;</span><span class="p">],</span>
+            <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">coupling_fn</span><span class="p">,</span>
         <span class="p">):</span>
             <span class="c1"># get the value prediction error (VAPE)</span>
             <span class="c1"># if this is jnp.nan (no observation) set the VAPE to 0.0</span>
@@ -577,11 +591,22 @@ document.write(`
             <span class="c1"># cancel the prediction error if the child value was not observed</span>
             <span class="n">value_prediction_error</span> <span class="o">*=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_child_idx</span><span class="p">][</span><span class="s2">&quot;observed&quot;</span><span class="p">]</span>
 
+            <span class="c1"># get differential of coupling function with value children</span>
+            <span class="k">if</span> <span class="n">coupling_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># linear coupling</span>
+                <span class="n">coupling_fn_prime</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># non-linear coupling</span>
+                <span class="c1"># Compute the derivative of the coupling function</span>
+                <span class="n">coupling_fn_prime</span> <span class="o">=</span> <span class="n">grad</span><span class="p">(</span><span class="n">coupling_fn</span><span class="p">)(</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span>
+
             <span class="c1"># expected precisions from the value children</span>
             <span class="c1"># sum the precision weigthed prediction errors over all children</span>
             <span class="n">value_precision_weigthed_prediction_error</span> <span class="o">+=</span> <span class="p">(</span>
                 <span class="p">(</span>
-                    <span class="p">(</span><span class="n">value_coupling</span> <span class="o">*</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_child_idx</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">])</span>
+                    <span class="p">(</span>
+                        <span class="n">value_coupling</span>
+                        <span class="o">*</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_child_idx</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">]</span>
+                        <span class="o">*</span> <span class="n">coupling_fn_prime</span>
+                    <span class="p">)</span>
                     <span class="o">/</span> <span class="n">node_precision</span>
                 <span class="p">)</span>
             <span class="p">)</span> <span class="o">*</span> <span class="n">value_prediction_error</span>
@@ -598,7 +623,8 @@ document.write(`
                 <span class="s2">&quot;volatility_prediction_error&quot;</span>
             <span class="p">]</span>
 
-            <span class="c1"># retrieve the effective precision (γ) computed during the prediction step</span>
+            <span class="c1"># retrieve the effective precision (γ)</span>
+            <span class="c1"># computed during the prediction step</span>
             <span class="n">effective_precision</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">volatility_child_idx</span><span class="p">][</span><span class="s2">&quot;temp&quot;</span><span class="p">][</span>
                 <span class="s2">&quot;effective_precision&quot;</span>
             <span class="p">]</span>
@@ -649,6 +675,8 @@ document.write(`
 <span class="sd">    The new precision of a state node :math:`b` value coupled with other input and/or</span>
 <span class="sd">    state nodes :math:`j` at time :math:`k` is given by:</span>
 
+<span class="sd">    For linear coupling (default)</span>
+
 <span class="sd">    .. math::</span>
 
 <span class="sd">            \pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}</span>
@@ -662,6 +690,13 @@ document.write(`
 <span class="sd">    If the child node is a state node, this value was computed by</span>
 <span class="sd">    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.</span>
 
+<span class="sd">    For non-linear value coupling:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">            \pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}</span>
+<span class="sd">            \hat{\pi}_j^{(k)} * (\kappa_j^2 * g&#39;_{j,b}(\mu_b^(k-1))^2 -</span>
+<span class="sd">            g&#39;&#39;_{j,b}(\mu_b^(k-1))*\delta_j)</span>
 
 <span class="sd">    #. Precision update from volatility coupling.</span>
 
@@ -736,13 +771,30 @@ document.write(`
     <span class="c1"># Value coupling updates - update the precision of a value parent</span>
     <span class="c1"># ---------------------------------------------------------------</span>
     <span class="k">if</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_children</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">value_child_idx</span><span class="p">,</span> <span class="n">value_coupling</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="k">for</span> <span class="n">value_child_idx</span><span class="p">,</span> <span class="n">value_coupling</span><span class="p">,</span> <span class="n">coupling_fn</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
             <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_children</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
             <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;value_coupling_children&quot;</span><span class="p">],</span>
+            <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">coupling_fn</span><span class="p">,</span>
         <span class="p">):</span>
+            <span class="k">if</span> <span class="n">coupling_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># linear coupling</span>
+                <span class="n">coupling_fn_prime</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">coupling_fn_second</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># non-linear coupling</span>
+                <span class="n">coupling_fn_prime</span> <span class="o">=</span> <span class="n">grad</span><span class="p">(</span><span class="n">coupling_fn</span><span class="p">)(</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+                <span class="n">value_prediction_error</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_child_idx</span><span class="p">][</span><span class="s2">&quot;temp&quot;</span><span class="p">][</span>
+                    <span class="s2">&quot;value_prediction_error&quot;</span>
+                <span class="p">]</span>
+                <span class="n">coupling_fn_second</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">grad</span><span class="p">(</span><span class="n">grad</span><span class="p">(</span><span class="n">coupling_fn</span><span class="p">))(</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span>
+                    <span class="o">*</span> <span class="n">value_prediction_error</span>
+                <span class="p">)</span>
+
             <span class="c1"># cancel the prediction error if the child value was not observed</span>
             <span class="n">precision_weigthed_prediction_error</span> <span class="o">+=</span> <span class="p">(</span>
-                <span class="n">value_coupling</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_child_idx</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">]</span>
+                <span class="n">value_coupling</span><span class="o">**</span><span class="mi">2</span>
+                <span class="o">*</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_child_idx</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">coupling_fn_prime</span>
+                <span class="o">-</span> <span class="n">coupling_fn_second</span>
             <span class="p">)</span> <span class="o">*</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_child_idx</span><span class="p">][</span><span class="s2">&quot;observed&quot;</span><span class="p">]</span>
 
     <span class="c1"># Volatility coupling updates - update the precision of a volatility parent</span>
@@ -786,7 +838,7 @@ document.write(`
     <span class="p">)</span>
 
     <span class="c1"># additionnal steps for unobserved values</span>
-    <span class="c1"># ----------------------------------------------------------------------------------</span>
+    <span class="c1"># ---------------------------------------</span>
 
     <span class="c1"># List the node&#39;s volatility parents</span>
     <span class="n">volatility_parents_idxs</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">volatility_parents</span>
@@ -951,7 +1003,10 @@ document.write(`
     <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">posterior_mean</span>
 
     <span class="n">posterior_precision</span> <span class="o">=</span> <span class="n">posterior_update_precision_continuous_node</span><span class="p">(</span>
-        <span class="n">attributes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">node_idx</span><span class="p">,</span> <span class="n">time_step</span>
+        <span class="n">attributes</span><span class="p">,</span>
+        <span class="n">edges</span><span class="p">,</span>
+        <span class="n">node_idx</span><span class="p">,</span>
+        <span class="n">time_step</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">posterior_precision</span>
 

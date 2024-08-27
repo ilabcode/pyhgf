@@ -164,7 +164,6 @@
     "# create just one default network - we will simply change the values of interest before fitting to save time\n",
     "agent = HGF(\n",
     "    n_levels=2,\n",
-    "    verbose=False,\n",
     "    model_type=\"binary\",\n",
     "    initial_mean={\"1\": 0.5, \"2\": 0.0},\n",
     ")"
