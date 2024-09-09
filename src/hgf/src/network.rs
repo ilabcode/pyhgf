@@ -116,15 +116,15 @@ impl Network {
 
         // 1. prediction propagation
 
-        // 2. inject the observations into the input nodes
         for i in 0..observations.len() {
-
+            
             let input_node_idx = self.inputs[i];
+            // 2. inject the observations into the input nodes
             self.posterior_update(&input_node_idx, observations[i]);
+            // 3. posterior update - prediction errors propagation
             self.prediction_error(input_node_idx);
         }
 
-        // 3. posterior update - prediction errors propagation
     }
 
     pub fn input_data(&mut self, input_data: Vec<Vec<f64>>) {
@@ -169,7 +169,7 @@ mod tests {
             Some(1),
         );
     
-        println!("Graph before belief propagation: {:?}", network);
+        // println!("Graph before belief propagation: {:?}", network);
     
         // belief propagation
         let input_data = vec![
@@ -183,7 +183,7 @@ mod tests {
         
         network.input_data(input_data);
         
-        println!("Graph after belief propagation: {:?}", network);
+        // println!("Graph after belief propagation: {:?}", network);
     
     }
 }

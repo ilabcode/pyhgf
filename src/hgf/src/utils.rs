@@ -1,4 +1,5 @@
 use crate::network::Network;
+use std::collections::HashSet;
 
 
 pub fn get_update_order(network: Network) -> Vec<usize> {
@@ -11,24 +12,77 @@ pub fn get_update_order(network: Network) -> Vec<usize> {
     // remove the input nodes
     nodes_idxs.retain(|x| !network.inputs.contains(x));
 
-    // start with the value parents of input nodes
-    for input_idx in network.inputs {
-        let value_parent_idxs = network.edges[input_idx].value_parents;
-        match value_parent_idxs {
-            Some(idx) => {
-                // if this parent is still in the list, update it now
-                if nodes_idxs.contains(&idx) {
+    let mut remaining = nodes_idxs.len();
 
-                    // add the node in the update list
-                    update_list.push(idx);
+    while remaining > 0 {
 
-                    // remove the parent from the availables nodes list
-                    nodes_idxs.retain(|&x| x != idx);
+        let mut has_update = false;
+        // loop over all available
+        for i in 0..nodes_idxs.len() {
 
-                }
+            let idx = nodes_idxs[i];
+            let value_children_idxs = network.edges[idx].value_children;
+    
+            // check if there is any element in value children 
+            // that is found in the to-be-updated list of nodes
+            let contains_common = value_children_idxs.iter().any(|&item| nodes_idxs.contains(&item));
+    
+            if !(contains_common) {
+    
+                // add the node in the update list
+                update_list.push(idx);
+    
+                // remove the parent from the availables nodes list
+                nodes_idxs.retain(|&x| x != idx);
+
+                remaining -= 1;
+                has_update = true;
+                break;
             }
-            None => println!("The value is None")
+            }
+        if !(has_update) {
+            break;
         }
     }
-    nodes_idxs
+    update_list
+}
+
+
+// Tests module for unit tests
+#[cfg(test)] // Only compile and include this module when running tests
+mod tests {
+    use super::*; // Import the parent module's items to test them
+
+    #[test]
+    fn test_get_update_order() {
+    
+        // initialize network
+        let mut network = Network::new();
+    
+        // create a network
+        network.add_node(
+            String::from("generic-input"),
+            Some(1),
+            None,
+        );
+        network.add_node(
+            String::from("exponential-node"),
+            Some(2),
+            Some(0),
+        );
+        network.add_node(
+            String::from("exponential-node"),
+            Some(3),
+            Some(1),
+        );
+        network.add_node(
+            String::from("exponential-node"),
+            None,
+            Some(2),
+        );
+
+        println!("Network: {:?}", network);
+        println!("Update order: {:?}", get_update_order(network));
+    
+    }
 }
