@@ -1,6 +1,0 @@
-﻿pyhgf.updates.prediction\_error.nodes.dirichlet.update\_cluster
-===============================================================
-
-.. currentmodule:: pyhgf.updates.prediction_error.nodes.dirichlet
-
-.. autofunction:: update_cluster

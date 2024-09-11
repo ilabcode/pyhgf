@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>PyHGF: A Neural Network Library for Predictive Coding &#8212; pyhgf 0.1.5 documentation</title>
+    <title>PyHGF: A Neural Network Library for Predictive Coding &#8212; pyhgf 0.1.6 documentation</title>
   
   
   
@@ -33,14 +33,13 @@
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/exercise.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=59fadc99"></script>
+    <script src="_static/documentation_options.js?v=6e0256f3"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -48,7 +47,6 @@
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -427,7 +425,7 @@ document.write(`
 <p><a class="reference external" href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white" /></a> <a class="reference external" href="https://github.com/ilabcode/pyhgf/blob/master/LICENSE"><img alt="license" src="https://img.shields.io/badge/License-GPL%20v3-blue.svg" /></a> <a class="reference external" href="https://codecov.io/gh/ilabcode/pyhgf"><img alt="codecov" src="https://codecov.io/gh/ilabcode/pyhgf/branch/master/graph/badge.svg" /></a> <a class="reference external" href="https://github.com/psf/black"><img alt="black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a> <a class="reference external" href="http://mypy-lang.org/"><img alt="mypy" src="http://www.mypy-lang.org/static/mypy_badge.svg" /></a> <a class="reference external" href="https://pycqa.github.io/isort/"><img alt="Imports: isort" src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&amp;labelColor=ef8336" /></a> <a class="reference external" href="https://badge.fury.io/py/pyhgf"><img alt="pip" src="https://badge.fury.io/py/pyhgf.svg" /></a></p>
 <section class="tex2jax_ignore mathjax_ignore" id="pyhgf-a-neural-network-library-for-predictive-coding">
 <h1>PyHGF: A Neural Network Library for Predictive Coding<a class="headerlink" href="#pyhgf-a-neural-network-library-for-predictive-coding" title="Link to this heading">#</a></h1>
-<p>PyHGF is a Python library written on top of <a class="reference external" href="https://jax.readthedocs.io/en/latest/jax.html">JAX</a> to create and manipulate graph neural networks that can perform belief updates through the diffusion of predictions and precision-weighted prediction errors. These networks can serve as biologically plausible computational models of cognitive functions for computational psychiatry and reinforcement learning or as a generalisation of Bayesian filtering to arbitrarily sized graphical structures for signal processing. In their most standard form, these models are a generalisation and nodalisation of the Hierarchical Gaussian Filters (HGF) for predictive coding. The library is made modular and designed to facilitate the manipulation of probabilistic networks, so the user can focus on model design. The core functions are derivable, JIT-able, and designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement learning, Bayesian inference or optimization.</p>
+<p>PyHGF is a Python library to create and manipulate dynamic hierarchical probabilistic networks for predictive coding. The networks can approximate Bayesian inference and optimize beliefs through the diffusion of predictions and precision-weighted prediction errors, and their structure is flexible during both observation and inference. These systems can serve as biologically plausible cognitive models for computational psychiatry and reinforcement learning or as a generalisation of Bayesian filtering to arbitrarily sized dynamic graphical structures for signal processing or decision-making agents. The default implementation supports the generalisation and nodalisation of the Hierarchical Gaussian Filters for predictive coding (gHGF, Weber et al., 2024), but the framework is flexible enough to support any possible algorithm. The library is written on top of <a class="reference external" href="https://jax.readthedocs.io/en/latest/jax.html">JAX</a>, the core functions are derivable and JIT-able whenever feasible and it is possible to sample free parameters from a network under given observations. It is conceived to facilitate manipulation and modularity, so the user can focus on modeling while interfacing smoothly with other libraries in the ecosystem for Bayesian inference or optimization. A binding with an implementation in <a class="reference external" href="https://www.rust-lang.org/">Rust</a> - that will provide full flexibility on structures during inference - is also under active development.</p>
 <ul class="simple">
 <li><p>📖 <a class="reference external" href="https://ilabcode.github.io/pyhgf/api.html">API Documentation</a></p></li>
 <li><p>✏️ <a class="reference external" href="https://ilabcode.github.io/pyhgf/learn.html">Tutorials and examples</a></p></li>
@@ -447,66 +445,70 @@ document.write(`
 </section>
 <section id="how-does-it-work">
 <h3>How does it work?<a class="headerlink" href="#how-does-it-work" title="Link to this heading">#</a></h3>
-<p>The nodalized Hierarchical Gaussian Filter consists of a network of probabilistic nodes hierarchically structured where each node can inherit its value and volatility sufficient statistics from other parent nodes. The presentation of a new observation at the lowest level of the hierarchy (i.e., the input node) triggers a recursive update of the nodes’ belief (i.e., posterior distribution) through the bottom-up propagation of precision-weighted prediction error.</p>
-<p>More generally, pyhgf operates on graph neural networks that can be defined and updated through the following variables:</p>
+<p>A dynamic hierarchical probabilistic network can be defined as a tuple containing the following variables:</p>
 <ul class="simple">
-<li><p>The node parameters (dictionary) that store each node’s parameters (value, precision, learning rates, volatility coupling, …).</p></li>
-<li><p>The node structure (tuple) that lists, for each node, the indexes of the value and volatility parents.</p></li>
-<li><p>A set of update functions that operate on any of the 3 other variables, starting from a target node.</p></li>
-<li><p>An update sequence (tuple) that defines the order in which the update functions are called, and the target node.</p></li>
+<li><p>The attributes (dictionary) that store each node’s states and parameters (e.g. value, precision, learning rates, volatility coupling, …).</p></li>
+<li><p>The edges (tuple) that lists, for each node, the indexes of the parents and children.</p></li>
+<li><p>A set of update functions. An update function receive a network tuple and returns an updated network tuple.</p></li>
+<li><p>An update sequence (tuple) that defines the order and target of the update functions.</p></li>
 </ul>
-<p><img alt="png" src="_images/graph_networks.svg" /></p>
-<p>Value parents and volatility parents are nodes themselves. Any node can be a value and/or volatility parent for other nodes and have multiple value and/or volatility parents. A filtering structure consists of nodes embedding other nodes hierarchically. Nodes are parametrized by their sufficient statistic and parents. The transformations between nodes can be linear, non-linear, or any function (thus a <em>generalization</em> of the HGF).</p>
-<p>The resulting probabilistic network operates as a filter for new observations. If a decision function (taking the whole model as a parameter) is also defined, behaviours can be triggered accordingly. By comparing those behaviours with actual outcomes, a surprise function can be optimized over the range of parameters of interest.</p>
+<p><img alt="png" src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg" /></p>
+<p>You can find a deeper introduction to how to create and manipulate networks under the following link:</p>
+<ul class="simple">
+<li><p>🎓 <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.2-Creating_networks.html">Creating and manipulating networks of probabilistic nodes</a></p></li>
+</ul>
 </section>
-<section id="the-hierarchical-gaussian-filter">
-<h3>The Hierarchical Gaussian Filter<a class="headerlink" href="#the-hierarchical-gaussian-filter" title="Link to this heading">#</a></h3>
-<p>The Hierarchical Gaussian Filter for binary and continuous inputs as it was described in <span id="id1">[<a class="reference internal" href="references.html#id3" title="Christoph D. Mathys, Ekaterina I. Lomakina, Jean Daunizeau, Sandra Iglesias, Kay H. Brodersen, Karl J. Friston, and Klaas E. Stephan. Uncertainty in perception and the hierarchical gaussian filter. Frontiers in Human Neuroscience, 2014. URL: https://www.frontiersin.org/articles/10.3389/fnhum.2014.00825, doi:10.3389/fnhum.2014.00825.">Mathys <em>et al.</em>, 2014</a>, <a class="reference internal" href="references.html#id2" title="Christoph D. Mathys. A Bayesian foundation for individual learning under uncertainty. Frontiers in Human Neuroscience, 5(May):1–20, 2011. URL: http://journal.frontiersin.org/article/10.3389/fnhum.2011.00039/abstract, doi:10.3389/fnhum.2011.00039.">Mathys, 2011</a>]</span>, and later implemented in the Matlab HGF Toolbox (part of <a class="reference external" href="https://translationalneuromodeling.github.io/tapas">TAPAS</a> <span id="id2">[<a class="reference internal" href="references.html#id10" title="Stefan Frässle, Eduardo A. Aponte, Saskia Bollmann, Kay H. Brodersen, Cao T. Do, Olivia K. Harrison, Samuel J. Harrison, Jakob Heinzle, Sandra Iglesias, Lars Kasper, Ekaterina I. Lomakina, Christoph Mathys, Matthias Müller-Schrader, Inês Pereira, Frederike H. Petzschner, Sudhir Raman, Dario Schöbi, Birte Toussaint, Lilian A. Weber, Yu Yao, and Klaas E. Stephan. TAPAS: an open-source software package for translational neuromodeling and computational psychiatry. Frontiers in Psychiatry, June 2021. URL: https://doi.org/10.3389/fpsyt.2021.680811, doi:10.3389/fpsyt.2021.680811.">Frässle <em>et al.</em>, 2021</a>]</span>), can be seen as a special case of this node structure such as:</p>
-<p><img alt="Figure2" src="_images/hgf.png" /></p>
-<p>The pyhgf package includes pre-implemented standard HGF models that can be used together with other neural network libraries or Bayesian inference tools. It is also possible for the user to build custom network structures which match specific needs.</p>
+<section id="the-generalized-hierarchical-gaussian-filter">
+<h3>The Generalized Hierarchical Gaussian Filter<a class="headerlink" href="#the-generalized-hierarchical-gaussian-filter" title="Link to this heading">#</a></h3>
+<p>Generalized Hierarchical Gaussian Filters (gHGF) are specific instances of dynamic probabilistic networks where each node encodes a Gaussian distribution that inherits its value (mean) and volatility (variance) from its parent. The presentation of a new observation at the lowest level of the hierarchy (i.e., the input node) triggers a recursive update of the nodes’ belief (i.e., posterior distribution) through top-down predictions and bottom-up precision-weighted prediction errors. The resulting probabilistic network operates as a Bayesian filter, and a decision function can parametrize actions/decisions given the current beliefs. By comparing those behaviours with actual outcomes, a surprise function can be optimized over a set of free parameters. The Hierarchical Gaussian Filter for binary and continuous inputs was first described in Mathys et al. (2011, 2014), and later implemented in the Matlab HGF Toolbox (part of <a class="reference external" href="https://translationalneuromodeling.github.io/tapas">TAPAS</a> (Frässle et al. 2021).</p>
+<p>You can find a deeper introduction on how does the HGF works under the following link:</p>
+<ul class="simple">
+<li><p>🎓 <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.2-Theory.html#theory">Introduction to the Hierarchical Gaussian Filter</a></p></li>
+</ul>
 </section>
 <section id="model-fitting">
 <h3>Model fitting<a class="headerlink" href="#model-fitting" title="Link to this heading">#</a></h3>
-<p>Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcomes from <span id="id3">[<a class="reference internal" href="references.html#id7" title="Sandra Iglesias, Lars Kasper, Samuel J. Harrison, Robert Manka, Christoph Mathys, and Klaas E. Stephan. Cholinergic and dopaminergic effects on prediction error and uncertainty responses during sensory associative learning. NeuroImage, 226:117590, February 2021. URL: https://doi.org/10.1016/j.neuroimage.2020.117590, doi:10.1016/j.neuroimage.2020.117590.">Iglesias <em>et al.</em>, 2021</a>]</span>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">HGF</span>
+<p>Here we demonstrate how to fit forwards a two-level binary Hierarchical Gaussian filter. The input time series are binary observations using an associative learning task Iglesias et al. (2013).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">Network</span>
 <span class="kn">from</span> <span class="nn">pyhgf</span> <span class="kn">import</span> <span class="n">load_data</span>
 
-<span class="c1"># Load time series example data</span>
-<span class="n">u</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">(</span><span class="s2">&quot;binary&quot;</span><span class="p">)</span>
+<span class="c1"># Load time series example data (observations, decisions)</span>
+<span class="n">u</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">(</span><span class="s2">&quot;binary&quot;</span><span class="p">)</span>
 
-<span class="c1"># This is where we define all the model parameters - You can control the value of</span>
-<span class="c1"># different variables at different levels using the corresponding dictionary.</span>
-<span class="n">hgf</span> <span class="o">=</span> <span class="n">HGF</span><span class="p">(</span>
-    <span class="n">n_levels</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-    <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;binary&quot;</span><span class="p">,</span>
-    <span class="n">initial_mean</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mf">.0</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">.5</span><span class="p">},</span>
-    <span class="n">initial_precision</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mf">.0</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">1e4</span><span class="p">},</span>
-    <span class="n">tonic_volatility</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">},</span>
+<span class="c1"># Create a two-level binary HGF from scratch</span>
+<span class="n">hgf</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Network</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-input&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-state&quot;</span><span class="p">,</span> <span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-state&quot;</span><span class="p">,</span> <span class="n">value_children</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="c1"># add new observations</span>
 <span class="n">hgf</span><span class="o">.</span><span class="n">input_data</span><span class="p">(</span><span class="n">input_data</span><span class="o">=</span><span class="n">u</span><span class="p">)</span>
 
-<span class="c1"># compute the model&#39;s surprise (-log(p))</span>
-<span class="n">surprise</span> <span class="o">=</span> <span class="n">hgf</span><span class="o">.</span><span class="n">surprise</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model&#39;s surprise = </span><span class="si">{</span><span class="n">surprise</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
 <span class="c1"># visualization of the belief trajectories</span>
 <span class="n">hgf</span><span class="o">.</span><span class="n">plot_trajectories</span><span class="p">();</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Creating</span> <span class="pre">a</span> <span class="pre">binary</span> <span class="pre">Hierarchical</span> <span class="pre">Gaussian</span> <span class="pre">Filter</span> <span class="pre">with</span> <span class="pre">2</span> <span class="pre">levels.</span></code>
-<code class="docutils literal notranslate"><span class="pre">...</span> <span class="pre">Create</span> <span class="pre">the</span> <span class="pre">update</span> <span class="pre">sequence</span> <span class="pre">from</span> <span class="pre">the</span> <span class="pre">network</span> <span class="pre">structure.</span></code>
-<code class="docutils literal notranslate"><span class="pre">...</span> <span class="pre">Create</span> <span class="pre">the</span> <span class="pre">belief</span> <span class="pre">propagation</span> <span class="pre">function.</span></code>
-<code class="docutils literal notranslate"><span class="pre">...</span> <span class="pre">Cache</span> <span class="pre">the</span> <span class="pre">belief</span> <span class="pre">propagation</span> <span class="pre">function.</span></code>
-<code class="docutils literal notranslate"><span class="pre">Adding</span> <span class="pre">320</span> <span class="pre">new</span> <span class="pre">observations.</span></code>
-<code class="docutils literal notranslate"><span class="pre">Model's</span> <span class="pre">surprise</span> <span class="pre">=</span> <span class="pre">203.6395263671875</span></code></p>
-<p><img alt="png" src="_images/trajectories.png" /></p>
+<p><img alt="png" src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/trajectories.png" /></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyhgf.response</span> <span class="kn">import</span> <span class="n">binary_softmax_inverse_temperature</span>
+
+<span class="c1"># compute the model&#39;s surprise (-log(p)) </span>
+<span class="c1"># using the binary softmax with inverse temperature as the response model</span>
+<span class="n">surprise</span> <span class="o">=</span> <span class="n">hgf</span><span class="o">.</span><span class="n">surprise</span><span class="p">(</span>
+    <span class="n">response_function</span><span class="o">=</span><span class="n">binary_softmax_inverse_temperature</span><span class="p">,</span>
+    <span class="n">response_function_inputs</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+    <span class="n">response_function_parameters</span><span class="o">=</span><span class="mf">4.0</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sum of surprises = </span><span class="si">{</span><span class="n">surprise</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Model's</span> <span class="pre">surprise</span> <span class="pre">=</span> <span class="pre">138.8992462158203</span></code></p>
 </section>
 </section>
 <section id="acknowledgments">
 <h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Link to this heading">#</a></h2>
-<p>This implementation of the Hierarchical Gaussian Filter was inspired by the original <a class="reference external" href="https://translationalneuromodeling.github.io/tapas">Matlab HGF Toolbox</a>. A Julia implementation of the generalized, nodalized and multilevel HGF is also available <a class="reference external" href="https://github.com/ilabcode/HGF.jl">here</a>.</p>
+<p>This implementation of the Hierarchical Gaussian Filter was inspired by the original <a class="reference external" href="https://translationalneuromodeling.github.io/tapas">Matlab HGF Toolbox</a>. A Julia implementation with similar aims is also available <a class="reference external" href="https://github.com/ilabcode/HGF.jl">here</a>.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
@@ -561,7 +563,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting started</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#how-does-it-work">How does it work?</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-hierarchical-gaussian-filter">The Hierarchical Gaussian Filter</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-generalized-hierarchical-gaussian-filter">The Generalized Hierarchical Gaussian Filter</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-fitting">Model fitting</a></li>
 </ul>
 </li>

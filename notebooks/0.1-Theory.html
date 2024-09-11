@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Introduction to the Generalised Hierarchical Gaussian Filter &#8212; pyhgf 0.1.5 documentation</title>
+    <title>Introduction to the Generalised Hierarchical Gaussian Filter &#8212; pyhgf 0.1.6 documentation</title>
   
   
   
@@ -33,14 +33,13 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=59fadc99"></script>
+    <script src="../_static/documentation_options.js?v=6e0256f3"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -48,7 +47,6 @@
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -440,7 +438,9 @@ document.write(`
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Introduction to the generalised Hierarchical Gaussian Filter</a></li>
 
+
 <li class="toctree-l1"><a class="reference internal" href="Exercise_2_Bayesian_reinforcement_learning.html">Application to reinforcement learning</a></li>
+
 
 
 </ul>
@@ -825,7 +825,7 @@ x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 <h3>The Hierarchical Gaussian Filter in a network of predictive nodes<a class="headerlink" href="#the-hierarchical-gaussian-filter-in-a-network-of-predictive-nodes" title="Link to this heading">#</a></h3>
 <p>The coding examples introduced above illustrated generative models that can simulate data forward from a given volatility structure, with key parameters stochastically fluctuating. Based on these principles, any given latent state in the world can be modelled as having a volatility parent state, a value parent state, both, or none. When the node is an orphan, it evolves as a Gaussian random walk around its previous value with a fixed step size. Consequently, when inferring the evolution of these states, the exact belief update equations (which include the computation of new predictions, posterior values, and prediction errors, and represent an approximate inversion of this generative model, see <span id="id4">[<a class="reference internal" href="../references.html#id2" title="Christoph D. Mathys. A Bayesian foundation for individual learning under uncertainty. Frontiers in Human Neuroscience, 5(May):1–20, 2011. URL: http://journal.frontiersin.org/article/10.3389/fnhum.2011.00039/abstract, doi:10.3389/fnhum.2011.00039.">Mathys, 2011</a>]</span> depend on the nature of the coupling of a given state with its parent and children states. In particular, the nodes that implement the belief updates will communicate with their value parents via value prediction errors, or <strong>VAPE</strong>s, and volatility prediction errors, or <strong>VOPE</strong>s, with their volatility parents. Hierarchical Gaussian Filters use this as a model of the environment to make sense of new observations, also referred to as the sensory part of the HGF, or the filtering part. In this situation, new observations are coming in at the network’s root and the model updates the belief structure accordingly (from bottom to top nodes). It is therefore straightforward to describe the standard two-level and three-level Hierarchical Gaussian Filters for continuous and binary inputs as the combination of value and volatility couplings (see <a class="reference internal" href="#hgf-fig"><span class="std std-ref">The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs.</span></a>)</p>
 <figure class="align-default" id="hgf-fig">
-<img alt="../_images/hgf.png" src="../_images/hgf.png" />
+<img alt="images/hgf.png" src="images/hgf.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 1 </span><span class="caption-text">The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs.</span><a class="headerlink" href="#hgf-fig" title="Link to this image">#</a></p>
 <div class="legend">
@@ -913,20 +913,20 @@ Given the expectation from the prediction step</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Aug 27 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Wed Sep 11 2024
 
 Python implementation: CPython
 Python version       : 3.12.5
-IPython version      : 8.26.0
+IPython version      : 8.27.0
 
-pyhgf : 0.1.5
+pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
 numpy     : 1.26.0
 seaborn   : 0.13.2
 matplotlib: 3.9.2
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
 
 Watermark: 2.4.3
 </pre></div>

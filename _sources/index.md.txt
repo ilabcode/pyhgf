@@ -4,7 +4,7 @@
 
 # PyHGF: A Neural Network Library for Predictive Coding
 
-PyHGF is a Python library written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html) to create and manipulate graph neural networks that can perform belief updates through the diffusion of predictions and precision-weighted prediction errors. These networks can serve as biologically plausible computational models of cognitive functions for computational psychiatry and reinforcement learning or as a generalisation of Bayesian filtering to arbitrarily sized graphical structures for signal processing. In their most standard form, these models are a generalisation and nodalisation of the Hierarchical Gaussian Filters (HGF) for predictive coding. The library is made modular and designed to facilitate the manipulation of probabilistic networks, so the user can focus on model design. The core functions are derivable, JIT-able, and designed to interface smoothly with other libraries in the JAX ecosystem for neural networks, reinforcement learning, Bayesian inference or optimization. 
+PyHGF is a Python library to create and manipulate dynamic hierarchical probabilistic networks for predictive coding. The networks can approximate Bayesian inference and optimize beliefs through the diffusion of predictions and precision-weighted prediction errors, and their structure is flexible during both observation and inference. These systems can serve as biologically plausible cognitive models for computational psychiatry and reinforcement learning or as a generalisation of Bayesian filtering to arbitrarily sized dynamic graphical structures for signal processing or decision-making agents. The default implementation supports the generalisation and nodalisation of the Hierarchical Gaussian Filters for predictive coding (gHGF, Weber et al., 2024), but the framework is flexible enough to support any possible algorithm. The library is written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html), the core functions are derivable and JIT-able whenever feasible and it is possible to sample free parameters from a network under given observations. It is conceived to facilitate manipulation and modularity, so the user can focus on modeling while interfacing smoothly with other libraries in the ecosystem for Bayesian inference or optimization. A binding with an implementation in [Rust](https://www.rust-lang.org/) - that will provide full flexibility on structures during inference - is also under active development.
 
 * 📖 [API Documentation](https://ilabcode.github.io/pyhgf/api.html)  
 * ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/learn.html)  
@@ -27,73 +27,76 @@ pip install “git+https://github.com/ilabcode/pyhgf.git”
 
 ### How does it work?
 
-The nodalized Hierarchical Gaussian Filter consists of a network of probabilistic nodes hierarchically structured where each node can inherit its value and volatility sufficient statistics from other parent nodes. The presentation of a new observation at the lowest level of the hierarchy (i.e., the input node) triggers a recursive update of the nodes' belief (i.e., posterior distribution) through the bottom-up propagation of precision-weighted prediction error.
+A dynamic hierarchical probabilistic network can be defined as a tuple containing the following variables:
 
-More generally, pyhgf operates on graph neural networks that can be defined and updated through the following variables:
+* The attributes (dictionary) that store each node's states and parameters (e.g. value, precision, learning rates, volatility coupling, ...).
+* The edges (tuple) that lists, for each node, the indexes of the parents and children.
+* A set of update functions. An update function receive a network tuple and returns an updated network tuple.
+* An update sequence (tuple) that defines the order and target of the update functions.
 
-* The node parameters (dictionary) that store each node's parameters (value, precision, learning rates, volatility coupling, ...).
-* The node structure (tuple) that lists, for each node, the indexes of the value and volatility parents.
-* A set of update functions that operate on any of the 3 other variables, starting from a target node.
-* An update sequence (tuple) that defines the order in which the update functions are called, and the target node.
+![png](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg)
 
-![png](./images/graph_networks.svg)
 
-Value parents and volatility parents are nodes themselves. Any node can be a value and/or volatility parent for other nodes and have multiple value and/or volatility parents. A filtering structure consists of nodes embedding other nodes hierarchically. Nodes are parametrized by their sufficient statistic and parents. The transformations between nodes can be linear, non-linear, or any function (thus a *generalization* of the HGF).
+You can find a deeper introduction to how to create and manipulate networks under the following link:
 
-The resulting probabilistic network operates as a filter for new observations. If a decision function (taking the whole model as a parameter) is also defined, behaviours can be triggered accordingly. By comparing those behaviours with actual outcomes, a surprise function can be optimized over the range of parameters of interest.
+* 🎓 [Creating and manipulating networks of probabilistic nodes](https://ilabcode.github.io/pyhgf/notebooks/0.2-Creating_networks.html)  
 
-### The Hierarchical Gaussian Filter
 
-The Hierarchical Gaussian Filter for binary and continuous inputs as it was described in {cite:p}`2014:mathys,2011:mathys`, and later implemented in the Matlab HGF Toolbox (part of [TAPAS](https://translationalneuromodeling.github.io/tapas) {cite:p}`frassle:2021`), can be seen as a special case of this node structure such as:
+### The Generalized Hierarchical Gaussian Filter
 
-![Figure2](./images/hgf.png)
+Generalized Hierarchical Gaussian Filters (gHGF) are specific instances of dynamic probabilistic networks where each node encodes a Gaussian distribution that inherits its value (mean) and volatility (variance) from its parent. The presentation of a new observation at the lowest level of the hierarchy (i.e., the input node) triggers a recursive update of the nodes' belief (i.e., posterior distribution) through top-down predictions and bottom-up precision-weighted prediction errors. The resulting probabilistic network operates as a Bayesian filter, and a decision function can parametrize actions/decisions given the current beliefs. By comparing those behaviours with actual outcomes, a surprise function can be optimized over a set of free parameters. The Hierarchical Gaussian Filter for binary and continuous inputs was first described in Mathys et al. (2011, 2014), and later implemented in the Matlab HGF Toolbox (part of [TAPAS](https://translationalneuromodeling.github.io/tapas) (Frässle et al. 2021).
 
-The pyhgf package includes pre-implemented standard HGF models that can be used together with other neural network libraries or Bayesian inference tools. It is also possible for the user to build custom network structures which match specific needs.
+You can find a deeper introduction on how does the HGF works under the following link:
+
+* 🎓 [Introduction to the Hierarchical Gaussian Filter](https://ilabcode.github.io/pyhgf/notebooks/0.2-Theory.html#theory)  
 
 ### Model fitting
 
-Here we demonstrate how to fit a two-level binary Hierarchical Gaussian filter. The input time series are binary outcomes from {cite:p}`Iglesias2021`.
+Here we demonstrate how to fit forwards a two-level binary Hierarchical Gaussian filter. The input time series are binary observations using an associative learning task Iglesias et al. (2013).
 
 ```python
-from pyhgf.model import HGF
+from pyhgf.model import Network
 from pyhgf import load_data
 
-# Load time series example data
-u, _ = load_data("binary")
+# Load time series example data (observations, decisions)
+u, y = load_data("binary")
 
-# This is where we define all the model parameters - You can control the value of
-# different variables at different levels using the corresponding dictionary.
-hgf = HGF(
-    n_levels=2,
-    model_type="binary",
-    initial_mean={"1": .0, "2": .5},
-    initial_precision={"1": .0, "2": 1e4},
-    tonic_volatility={"2": -3.0},
+# Create a two-level binary HGF from scratch
+hgf = (
+    Network()
+    .add_nodes(kind="binary-input")
+    .add_nodes(kind="binary-state", value_children=0)
+    .add_nodes(kind="continuous-state", value_children=1)
 )
 
 # add new observations
 hgf.input_data(input_data=u)
 
-# compute the model's surprise (-log(p))
-surprise = hgf.surprise()
-print(f"Model's surprise = {surprise}")
-
 # visualization of the belief trajectories
 hgf.plot_trajectories();
 ```
 
-`Creating a binary Hierarchical Gaussian Filter with 2 levels.`
-`... Create the update sequence from the network structure.`
-`... Create the belief propagation function.`
-`... Cache the belief propagation function.`
-`Adding 320 new observations.`
-`Model's surprise = 203.6395263671875`
+![png](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/trajectories.png)
 
-![png](./images/trajectories.png)
+```python
+from pyhgf.response import binary_softmax_inverse_temperature
+
+# compute the model's surprise (-log(p)) 
+# using the binary softmax with inverse temperature as the response model
+surprise = hgf.surprise(
+    response_function=binary_softmax_inverse_temperature,
+    response_function_inputs=y,
+    response_function_parameters=4.0
+)
+print(f"Sum of surprises = {surprise.sum()}")
+```
+
+`Model's surprise = 138.8992462158203`  
+
 
 ## Acknowledgments
 
-This implementation of the Hierarchical Gaussian Filter was inspired by the original [Matlab HGF Toolbox](https://translationalneuromodeling.github.io/tapas). A Julia implementation of the generalized, nodalized and multilevel HGF is also available [here](https://github.com/ilabcode/HGF.jl).
+This implementation of the Hierarchical Gaussian Filter was inspired by the original [Matlab HGF Toolbox](https://translationalneuromodeling.github.io/tapas). A Julia implementation with similar aims is also available [here](https://github.com/ilabcode/HGF.jl).
 
 ## References
 
