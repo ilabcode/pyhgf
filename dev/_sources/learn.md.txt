@@ -187,17 +187,6 @@ A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit
 
 ::::
 
-### Non-parametric predictive coding
-
-::::{grid} 1 1 2 3
-
-:::{grid-item-card} Self-organizing neural network using Dirichlet Process nodes
-:link: example_3
-:link-type: ref
-
-:::
-::::
-
 ## Exercises
 
 Hand-on exercises for theComputational Psychiatry Course (Zurich) to build intuition around the generalised Hierarchical Gaussian Filter, how to create and manipulate probabilistic networks, design an agent to perform a reinforcement learning task and use MCMC sampling for parameter inference and model comparison—about 4 hours.
@@ -209,6 +198,7 @@ Hand-on exercises for theComputational Psychiatry Course (Zurich) to build intui
 :::{grid-item-card} Introduction to the Generalised Hierarchical Gaussian Filter
 :link: hgf_exercises_1
 :link-type: ref
+:img-top: ./images/cpc_tutorial_1.png
 
 Theoretical introduction to the generative model of the generalised Hierarchical Gaussian Filter and presentation of the update functions (i.e. the first inversion of the model). 
 :::
@@ -216,7 +206,7 @@ Theoretical introduction to the generative model of the generalised Hierarchical
 :::{grid-item-card} Applying the Hierarchical Gaussian Filter to reinforcement learning
 :link: hgf_exercises_2
 :link-type: ref
-:img-top: ./images/model_comparison.png
+:img-top: ./images/cpc_tutorial_2.png
 
 Practical application of the generalised Hierarchical Gaussian Filter to reinforcement learning problems and estimation of parameters through MCMC sampling (i.e. the second inversion of the model). 
 :::
