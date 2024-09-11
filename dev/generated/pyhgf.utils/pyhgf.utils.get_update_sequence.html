@@ -33,7 +33,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="../../_static/exercise.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -48,7 +47,6 @@
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pyhgf.utils/pyhgf.utils.get_update_sequence';</script>
     <link rel="icon" href="../../_static/logo_small.svg"/>
@@ -466,6 +464,7 @@ document.write(`
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.model/pyhgf.model.HGF.html">pyhgf.model.HGF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pyhgf.model/pyhgf.model.Network.html">pyhgf.model.Network</a></li>
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../pyhgf.plots/pyhgf.plots.plot_trajectories.html">pyhgf.plots.plot_trajectories</a></li>
@@ -559,7 +558,7 @@ document.write(`
 <h1>pyhgf.utils.get_update_sequence<a class="headerlink" href="#pyhgf-utils-get-update-sequence" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pyhgf.utils.get_update_sequence">
-<span class="sig-prename descclassname"><span class="pre">pyhgf.utils.</span></span><span class="sig-name descname"><span class="pre">get_update_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span></span></span><a class="reference internal" href="../../_modules/pyhgf/utils.html#get_update_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyhgf.utils.get_update_sequence" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pyhgf.utils.</span></span><span class="sig-name descname"><span class="pre">get_update_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../pyhgf.model/pyhgf.model.Network.html#pyhgf.model.Network" title="pyhgf.model.Network"><span class="pre">Network</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span></span></span><a class="reference internal" href="../../_modules/pyhgf/utils.html#get_update_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyhgf.utils.get_update_sequence" title="Link to this definition">#</a></dt>
 <dd><p>Generate an update sequence from the network’s structure.</p>
 <p>This function return an optimized update sequence considering the edges of the
 network. The function ensures that the following principles apply:
@@ -572,7 +571,7 @@ node’s type (<cite>“continuous”</cite>, <cite>“binary”</cite> or <cite
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>network</strong></dt><dd><p>A neural network, instance of <code class="xref py py-class docutils literal notranslate"><span class="pre">pyhgf.model.network.Network</span></code>.</p>
+<dt><strong>network</strong></dt><dd><p>A neural network, instance of <a class="reference internal" href="../pyhgf.model/pyhgf.model.Network.html#pyhgf.model.Network" title="pyhgf.model.network.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyhgf.model.network.Network</span></code></a>.</p>
 </dd>
 <dt><strong>update_type</strong></dt><dd><p>The type of update to perform for volatility coupling. Can be <cite>“eHGF”</cite>
 (defaults) or <cite>“standard”</cite>. The eHGF update step was proposed as an

@@ -33,7 +33,6 @@
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/exercise.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -48,7 +47,6 @@
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -722,19 +720,19 @@ document.write(`
 embedded in models using PyMC&gt;=5.0.0.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.logp.html#pyhgf.distribution.logp" title="pyhgf.distribution.logp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logp</span></code></a>(mean_1, mean_2, mean_3, precision_1, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.logp.html#pyhgf.distribution.logp" title="pyhgf.distribution.logp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logp</span></code></a></p></td>
 <td><p>Compute the log-probability of a decision model under belief trajectories.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.hgf_logp.html#pyhgf.distribution.hgf_logp" title="pyhgf.distribution.hgf_logp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hgf_logp</span></code></a>([mean_1, mean_2, mean_3, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.hgf_logp.html#pyhgf.distribution.hgf_logp" title="pyhgf.distribution.hgf_logp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hgf_logp</span></code></a></p></td>
 <td><p>Compute log-probabilities of a batch of Hierarchical Gaussian Filters.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.HGFLogpGradOp.html#pyhgf.distribution.HGFLogpGradOp" title="pyhgf.distribution.HGFLogpGradOp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HGFLogpGradOp</span></code></a>([input_data, time_steps, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.HGFLogpGradOp.html#pyhgf.distribution.HGFLogpGradOp" title="pyhgf.distribution.HGFLogpGradOp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HGFLogpGradOp</span></code></a></p></td>
 <td><p>Gradient Op for the HGF distribution.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.HGFDistribution.html#pyhgf.distribution.HGFDistribution" title="pyhgf.distribution.HGFDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HGFDistribution</span></code></a>([input_data, time_steps, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.HGFDistribution.html#pyhgf.distribution.HGFDistribution" title="pyhgf.distribution.HGFDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HGFDistribution</span></code></a></p></td>
 <td><p>The HGF distribution PyMC &gt;= 5.0 compatible.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.HGFPointwise.html#pyhgf.distribution.HGFPointwise" title="pyhgf.distribution.HGFPointwise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HGFPointwise</span></code></a>([input_data, time_steps, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pyhgf.distribution/pyhgf.distribution.HGFPointwise.html#pyhgf.distribution.HGFPointwise" title="pyhgf.distribution.HGFPointwise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HGFPointwise</span></code></a></p></td>
 <td><p>The HGF distribution returning pointwise log probability.</p></td>
 </tr>
 </tbody>
@@ -748,8 +746,11 @@ continuous inputs, with two or three levels. This class wraps the previous JAX m
 and creates a standard node structure for these models.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pyhgf.model/pyhgf.model.HGF.html#pyhgf.model.HGF" title="pyhgf.model.HGF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HGF</span></code></a>([n_levels, model_type, initial_mean, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pyhgf.model/pyhgf.model.HGF.html#pyhgf.model.HGF" title="pyhgf.model.HGF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HGF</span></code></a></p></td>
 <td><p>The two-level and three-level Hierarchical Gaussian Filters (HGF).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pyhgf.model/pyhgf.model.Network.html#pyhgf.model.Network" title="pyhgf.model.Network"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Network</span></code></a></p></td>
+<td><p>A predictive coding neural network.</p></td>
 </tr>
 </tbody>
 </table>
