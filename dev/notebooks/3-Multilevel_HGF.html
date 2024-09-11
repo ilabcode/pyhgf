@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Hierarchical Bayesian modelling with probabilistic neural networks &#8212; pyhgf 0.1.5 documentation</title>
+    <title>Hierarchical Bayesian modelling with probabilistic neural networks &#8212; pyhgf 0.1.6 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=59fadc99"></script>
+    <script src="../_static/documentation_options.js?v=6e0256f3"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -782,7 +782,7 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/65080aaca9cb8b52c7b0e789e7c6674c31790d070c51c3e6fca17d3c6029cd37.svg" src="../_images/65080aaca9cb8b52c7b0e789e7c6674c31790d070c51c3e6fca17d3c6029cd37.svg" />
+<img alt="../_images/7c0bb4845e77f60c01907c695857f22913ccfa144d9af9106b5894a21b19fb06.svg" src="../_images/7c0bb4845e77f60c01907c695857f22913ccfa144d9af9106b5894a21b19fb06.svg" />
 </div>
 </div>
 </section>
@@ -824,16 +824,9 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 "ipywidgets" for Jupyter support
   warnings.warn('install "ipywidgets" for Jupyter support')
 </pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">/opt/hostedtoolcache/Python/3.12.5/x64/lib/python3.12/site-packages/rich/live.py:231: UserWarning: install 
-"ipywidgets" for Jupyter support
-  warnings.warn('install "ipywidgets" for Jupyter support')
-</pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 47 seconds.
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 46 seconds.
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
@@ -865,7 +858,7 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/1025bdbc7479f333efb39b8e51c94655e99c2872608ec517812c1bbd3cebb0b0.png" src="../_images/1025bdbc7479f333efb39b8e51c94655e99c2872608ec517812c1bbd3cebb0b0.png" />
+<img alt="../_images/7b4d7c730ffc721a30034d76bccea226486c003dbbb36ed00d587b369a8e8593.png" src="../_images/7b4d7c730ffc721a30034d76bccea226486c003dbbb36ed00d587b369a8e8593.png" />
 </div>
 </div>
 <p>The reference values on both posterior distributions indicate the mean of the distribution used for simulation.</p>
@@ -892,17 +885,17 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Computed from 2000 posterior samples and 3200 observations log-likelihood matrix.
 
          Estimate       SE
-elpd_loo -1684.20    25.64
-p_loo       17.98        -
+elpd_loo -1684.65    25.65
+p_loo       18.42        -
 
 There has been a warning during the calculation. Please check the results.
 ------
 
 Pareto k diagnostic values:
                          Count   Pct.
-(-Inf, 0.70]   (good)     3187   99.6%
+(-Inf, 0.70]   (good)     3186   99.6%
    (0.70, 1]   (bad)         2    0.1%
-   (1, Inf)   (very bad)   11    0.3%
+   (1, Inf)   (very bad)   12    0.4%
 </pre></div>
 </div>
 </div>
@@ -925,18 +918,18 @@ Python implementation: CPython
 Python version       : 3.12.5
 IPython version      : 8.27.0
 
-pyhgf : 0.1.5
+pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-arviz     : 0.19.0
-matplotlib: 3.9.2
-numpy     : 1.26.0
-jax       : 0.4.31
-pytensor  : 2.25.4
-seaborn   : 0.13.2
-pymc      : 5.16.2
 sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+jax       : 0.4.31
+pymc      : 5.16.2
+numpy     : 1.26.0
+matplotlib: 3.9.2
+seaborn   : 0.13.2
+arviz     : 0.19.0
+pytensor  : 2.25.4
 
 Watermark: 2.4.3
 </pre></div>
