@@ -560,6 +560,7 @@ class HGFDistribution(Op):
     Print a summary of the results using Arviz
 
     >>> az.summary(idata, var_names="ω_2")
+
     ===  =======  =====  =======  =======  =========  =======  ========  ========  =====
     ..      mean     sd   hdi_3%  hdi_97%  mcse_mean  mcse_sd  ess_bulk  ess_tail  r_hat
     ===  =======  =====  =======  =======  =========  =======  ========  ========  =====

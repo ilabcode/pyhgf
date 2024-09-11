@@ -196,6 +196,7 @@ embedded in models using PyMC>=5.0.0.
 
 .. autosummary::
    :toctree: generated/pyhgf.distribution
+   :nosignatures:
 
    logp
    hgf_logp
@@ -214,8 +215,10 @@ and creates a standard node structure for these models.
 
 .. autosummary::
    :toctree: generated/pyhgf.model
+   :nosignatures:
 
    HGF
+   Network
 
 Plots
 *****
