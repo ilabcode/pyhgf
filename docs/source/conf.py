@@ -44,6 +44,7 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
     "numpydoc",
     "myst_nb",
+    "sphinx_design",
     "sphinxcontrib.bibtex",
     "sphinx_togglebutton",
     "sphinx_exercise",
