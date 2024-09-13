@@ -1,0 +1,6 @@
+﻿pyhgf.updates.prediction\_error.nodes.continuous.continuous\_node\_value\_prediction\_error
+===========================================================================================
+
+.. currentmodule:: pyhgf.updates.prediction_error.nodes.continuous
+
+.. autofunction:: continuous_node_value_prediction_error
