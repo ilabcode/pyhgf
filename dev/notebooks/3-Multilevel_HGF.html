@@ -784,7 +784,7 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/14ce0fe48b4c42282a1f1418a319a9ecba80ec384cdb55da28354e40beca4ddf.svg" src="../_images/14ce0fe48b4c42282a1f1418a319a9ecba80ec384cdb55da28354e40beca4ddf.svg" />
+<img alt="../_images/7f83375f6bb4391f5e1312ee4a44e05aa4f48e556b396b42cb3261e32f9fb912.svg" src="../_images/7f83375f6bb4391f5e1312ee4a44e05aa4f48e556b396b42cb3261e32f9fb912.svg" />
 </div>
 </div>
 </section>
@@ -831,6 +831,9 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 </div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 45 seconds.
 </pre></div>
 </div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>There were 1 divergences after tuning. Increase `target_accept` or reparameterize.
+</pre></div>
+</div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
@@ -860,7 +863,7 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/8db728f301bcd2082eef19d10e180d6e0a33ea2a3dfad6846cdff597346d9b2a.png" src="../_images/8db728f301bcd2082eef19d10e180d6e0a33ea2a3dfad6846cdff597346d9b2a.png" />
+<img alt="../_images/25432f6d75602060a4bad305d793aca90494098794032fb1d2d1f394a706397c.png" src="../_images/25432f6d75602060a4bad305d793aca90494098794032fb1d2d1f394a706397c.png" />
 </div>
 </div>
 <p>The reference values on both posterior distributions indicate the mean of the distribution used for simulation.</p>
@@ -887,16 +890,16 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Computed from 2000 posterior samples and 3200 observations log-likelihood matrix.
 
          Estimate       SE
-elpd_loo -1684.41    25.64
-p_loo       18.15        -
+elpd_loo -1684.38    25.64
+p_loo       18.10        -
 
 There has been a warning during the calculation. Please check the results.
 ------
 
 Pareto k diagnostic values:
                          Count   Pct.
-(-Inf, 0.70]   (good)     3185   99.5%
-   (0.70, 1]   (bad)         2    0.1%
+(-Inf, 0.70]   (good)     3187   99.6%
+   (0.70, 1]   (bad)         0    0.0%
    (1, Inf)   (very bad)   13    0.4%
 </pre></div>
 </div>
@@ -924,14 +927,14 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-numpy     : 1.26.0
-pymc      : 5.16.2
 pytensor  : 2.25.4
-seaborn   : 0.13.2
 matplotlib: 3.9.2
 IPython   : 8.27.0
-arviz     : 0.19.0
+numpy     : 1.26.0
+seaborn   : 0.13.2
 sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+arviz     : 0.19.0
+pymc      : 5.16.2
 
 Watermark: 2.4.3
 </pre></div>

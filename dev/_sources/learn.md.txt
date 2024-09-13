@@ -67,7 +67,7 @@ How the generative model of the Hierarchical Gaussian filter can be turned into 
 :::{grid-item-card}  Creating and manipulating networks of probabilistic nodes
 :link: probabilistic_networks
 :link-type: ref
-:img-top: ./images/graph_networks.svg
+:img-top: ./images/graph_network.svg
 
 How to create and manipulate a network of probabilistic nodes for reinforcement learning? Working at the intersection of graphs, neural networks and probabilistic frameworks.
 :::
