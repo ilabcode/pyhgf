@@ -428,6 +428,10 @@ document.write(`
 
 <li class="toctree-l1"><a class="reference internal" href="4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling</a></li>
+
+
+
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Use cases</span></p>
 <ul class="nav bd-sidenav">
@@ -784,7 +788,7 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/7f83375f6bb4391f5e1312ee4a44e05aa4f48e556b396b42cb3261e32f9fb912.svg" src="../_images/7f83375f6bb4391f5e1312ee4a44e05aa4f48e556b396b42cb3261e32f9fb912.svg" />
+<img alt="../_images/e3c513ce4c604aab8ee845aeb2f86bd795bb34e7c31f5b482a0fa25576cd2a3c.svg" src="../_images/e3c513ce4c604aab8ee845aeb2f86bd795bb34e7c31f5b482a0fa25576cd2a3c.svg" />
 </div>
 </div>
 </section>
@@ -828,7 +832,7 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 </pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 45 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 46 seconds.
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>There were 1 divergences after tuning. Increase `target_accept` or reparameterize.
@@ -863,7 +867,7 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/25432f6d75602060a4bad305d793aca90494098794032fb1d2d1f394a706397c.png" src="../_images/25432f6d75602060a4bad305d793aca90494098794032fb1d2d1f394a706397c.png" />
+<img alt="../_images/148d0c58a3531672e0eb036e10b0cd2f246c19e2d61be4651b0770e3c1b3f94f.png" src="../_images/148d0c58a3531672e0eb036e10b0cd2f246c19e2d61be4651b0770e3c1b3f94f.png" />
 </div>
 </div>
 <p>The reference values on both posterior distributions indicate the mean of the distribution used for simulation.</p>
@@ -890,17 +894,17 @@ Model comparison requires pointwise estimates of the log probabilities of a mode
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Computed from 2000 posterior samples and 3200 observations log-likelihood matrix.
 
          Estimate       SE
-elpd_loo -1684.38    25.64
-p_loo       18.10        -
+elpd_loo -1684.41    25.63
+p_loo       18.16        -
 
 There has been a warning during the calculation. Please check the results.
 ------
 
 Pareto k diagnostic values:
                          Count   Pct.
-(-Inf, 0.70]   (good)     3187   99.6%
-   (0.70, 1]   (bad)         0    0.0%
-   (1, Inf)   (very bad)   13    0.4%
+(-Inf, 0.70]   (good)     3186   99.6%
+   (0.70, 1]   (bad)         2    0.1%
+   (1, Inf)   (very bad)   12    0.4%
 </pre></div>
 </div>
 </div>
@@ -927,14 +931,14 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-pytensor  : 2.25.4
 matplotlib: 3.9.2
-IPython   : 8.27.0
-numpy     : 1.26.0
-seaborn   : 0.13.2
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
-arviz     : 0.19.0
 pymc      : 5.16.2
+IPython   : 8.27.0
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+seaborn   : 0.13.2
+numpy     : 1.26.0
+arviz     : 0.19.0
+pytensor  : 2.25.4
 
 Watermark: 2.4.3
 </pre></div>

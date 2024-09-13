@@ -428,6 +428,10 @@ document.write(`
 
 <li class="toctree-l1"><a class="reference internal" href="4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling</a></li>
+
+
+
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Use cases</span></p>
 <ul class="nav bd-sidenav">
@@ -558,7 +562,7 @@ document.write(`
 x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \sigma^2)
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(\sigma^2\)</span> is the fixed variance of the distribution. You can find more details on this as well as some code to get started with the simulations in the first tutorial on the <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.1-Theory.html#">PyHGF documentation</a>.</p>
-<div class="exercise admonition" id="exercise1">
+<div class="exercise admonition" id="exercise1.1">
 
 <p class="admonition-title"><span class="caption-number">Exercise 1 </span></p>
 <section id="exercise-content">
@@ -609,7 +613,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + x_2^{(k)}, \, \sigma_1^2) \\
 <img alt="../_images/d45bbde33949adf04153e1861eb8ec35a1c4731a26a6a31957e556a6ba7926bc.png" src="../_images/d45bbde33949adf04153e1861eb8ec35a1c4731a26a6a31957e556a6ba7926bc.png" />
 </div>
 </div>
-<div class="exercise admonition" id="exercise2">
+<div class="exercise admonition" id="exercise1.2">
 
 <p class="admonition-title"><span class="caption-number">Exercise 2 </span></p>
 <section id="exercise-content">
@@ -644,7 +648,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 </div>
 </div>
 </div>
-<div class="exercise admonition" id="exercise3">
+<div class="exercise admonition" id="exercise1.3">
 
 <p class="admonition-title"><span class="caption-number">Exercise 3 </span></p>
 <section id="exercise-content">
@@ -720,7 +724,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 <img alt="../_images/babba9e084fdd4800027490244aa90841e57bf676925298c7b2edeead7c33d4a.png" src="../_images/babba9e084fdd4800027490244aa90841e57bf676925298c7b2edeead7c33d4a.png" />
 </div>
 </div>
-<div class="exercise admonition" id="exercise4">
+<div class="exercise admonition" id="exercise1.4">
 
 <p class="admonition-title"><span class="caption-number">Exercise 4 </span></p>
 <section id="exercise-content">
@@ -911,9 +915,16 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 </div>
 </div>
 </div>
-<div class="exercise admonition" id="exercise5">
+<div class="exercise admonition" id="exercise1.5">
 
 <p class="admonition-title"><span class="caption-number">Exercise 5 </span></p>
+<section id="exercise-content">
+<p>What quantity are we measuring in the code cell above? What does this represent?</p>
+</section>
+</div>
+<div class="exercise admonition" id="exercise1.6">
+
+<p class="admonition-title"><span class="caption-number">Exercise 6 </span></p>
 <section id="exercise-content">
 <ul class="simple">
 <li><p>Select a city and download a recording OR use the data frame loaded above.</p></li>
@@ -926,9 +937,9 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="solutions">
 <h1>Solutions<a class="headerlink" href="#solutions" title="Link to this heading">#</a></h1>
-<div class="solution admonition" id="solution-exercise1">
+<div class="solution admonition" id="solution-exercise1.1">
 
-<p class="admonition-title">Solution to<a class="reference internal" href="#exercise1"> Exercise 1</a></p>
+<p class="admonition-title">Solution to<a class="reference internal" href="#exercise1.1"> Exercise 1</a></p>
 <section id="solution-content">
 <p>We can simulate a simple Gaussian Random Walk in Python either using a for loop and a list:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
@@ -958,9 +969,9 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 </div>
 </section>
 </div>
-<div class="solution admonition" id="solution-exercise2">
+<div class="solution admonition" id="solution-exercise1.2">
 
-<p class="admonition-title">Solution to<a class="reference internal" href="#exercise2"> Exercise 2</a></p>
+<p class="admonition-title">Solution to<a class="reference internal" href="#exercise1.2"> Exercise 2</a></p>
 <section id="solution-content">
 <p>We can simulate values from <span class="math notranslate nohighlight">\(x_1\)</span> using a for loop:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x_1</span><span class="p">,</span> <span class="n">mu_1</span><span class="p">,</span> <span class="n">sigma_1</span> <span class="o">=</span> <span class="p">[],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.5</span>
@@ -973,9 +984,9 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 </div>
 </section>
 </div>
-<div class="solution admonition" id="solution-exercise3">
+<div class="solution admonition" id="solution-exercise1.3">
 
-<p class="admonition-title">Solution to<a class="reference internal" href="#exercise3"> Exercise 3</a></p>
+<p class="admonition-title">Solution to<a class="reference internal" href="#exercise1.3"> Exercise 3</a></p>
 <section id="solution-content">
 <p>We can simulate values from <span class="math notranslate nohighlight">\(x_1\)</span> using a for loop:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x_1</span><span class="p">,</span> <span class="n">mu_1</span><span class="p">,</span> <span class="n">sigma_1</span> <span class="o">=</span> <span class="p">[],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.5</span>
@@ -988,9 +999,9 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 </div>
 </section>
 </div>
-<div class="solution admonition" id="solution-exercise4">
+<div class="solution admonition" id="solution-exercise1.4">
 
-<p class="admonition-title">Solution to<a class="reference internal" href="#exercise4"> Exercise 4</a></p>
+<p class="admonition-title">Solution to<a class="reference internal" href="#exercise1.4"> Exercise 4</a></p>
 <section id="solution-content">
 <p>The code below will change mean, precision and tonic volatility at the first level. Here we use Python’s OOP features to express model creation, input data and plotting by chaining method call.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">(</span>
@@ -1003,6 +1014,13 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 <span class="p">);</span>
 </pre></div>
 </div>
+</section>
+</div>
+<div class="solution admonition" id="solution-exercise1.5">
+
+<p class="admonition-title">Solution to<a class="reference internal" href="#exercise1.5"> Exercise 5</a></p>
+<section id="solution-content">
+<p>This method return the Gaussian surprise at each time point, which are then summed. The sum of the Gaussian surprise reflect the performances of the model at predicting the next value, larger values pointing to a model more surprise by its inputs, therefore poor performances. The surprise is define as <span class="math notranslate nohighlight">\(s = -log(p)\)</span>, this is thus the negative of the log probability function. Log probability functions are commonly used by sampling algorithm, it is thus straigthforwars to sample a model parameters when this function is available. There are an infinity of response possible functions - just like there is an infinity of possible networks - for more details on how to use tem, you can refer to the <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/2-Using_custom_response_functions.html">tutorial on custom response models</a>.</p>
 </section>
 </div>
 </section>
@@ -1026,10 +1044,10 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
+numpy     : 1.26.0
+matplotlib: 3.9.2
 IPython   : 8.27.0
 sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
-matplotlib: 3.9.2
-numpy     : 1.26.0
 seaborn   : 0.13.2
 pandas    : 2.2.2
 

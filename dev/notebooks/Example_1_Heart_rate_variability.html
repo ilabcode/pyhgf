@@ -55,7 +55,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Example 2: Estimating the mean and precision of an input node" href="Example_2_Input_node_volatility_coupling.html" />
-    <link rel="prev" title="Recovering computational parameters from observed behaviours" href="4-Parameter_recovery.html" />
+    <link rel="prev" title="Non-linear value coupling" href="5-Non_linear_value_coupling.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -426,6 +426,10 @@ document.write(`
 
 <li class="toctree-l1"><a class="reference internal" href="4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling</a></li>
+
+
+
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Use cases</span></p>
 <ul class="current nav bd-sidenav">
@@ -567,16 +571,16 @@ document.write(`
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading ECG channel:   0%|          | 0/2 [00:00&lt;?, ?it/s]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading ECG channel:  50%|█████     | 1/2 [00:00&lt;00:00,  1.15it/s]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading ECG channel:  50%|█████     | 1/2 [00:00&lt;00:00,  3.05it/s]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel:  50%|█████     | 1/2 [00:00&lt;00:00,  1.15it/s]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel:  50%|█████     | 1/2 [00:00&lt;00:00,  3.05it/s]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel: 100%|██████████| 2/2 [00:01&lt;00:00,  1.35it/s]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel: 100%|██████████| 2/2 [00:00&lt;00:00,  2.84it/s]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel: 100%|██████████| 2/2 [00:01&lt;00:00,  1.31it/s]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel: 100%|██████████| 2/2 [00:00&lt;00:00,  2.86it/s]
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
@@ -710,7 +714,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/22d404d3312dc67a4b50a6cd3767370913f0e81621739a6f7254902e6c5febfa.png" src="../_images/22d404d3312dc67a4b50a6cd3767370913f0e81621739a6f7254902e6c5febfa.png" />
+<img alt="../_images/8edcaa44986656fbd7db7dfd3e2b0f09ca13774fe4bb0cf40e8dbefb3677638a.png" src="../_images/8edcaa44986656fbd7db7dfd3e2b0f09ca13774fe4bb0cf40e8dbefb3677638a.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -742,7 +746,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/766c9c1aca9edee0423e0175ef3997ee291e635c554f32931b03ade6df835a35.png" src="../_images/766c9c1aca9edee0423e0175ef3997ee291e635c554f32931b03ade6df835a35.png" />
+<img alt="../_images/b374b953382765f578994ee924da67c0ae7c466e02bc4a98532cfa1d72514d5b.png" src="../_images/b374b953382765f578994ee924da67c0ae7c466e02bc4a98532cfa1d72514d5b.png" />
 </div>
 </div>
 </section>
@@ -767,12 +771,12 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-matplotlib: 3.9.2
-arviz     : 0.19.0
-IPython   : 8.27.0
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
-numpy     : 1.26.0
 pymc      : 5.16.2
+IPython   : 8.27.0
+matplotlib: 3.9.2
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+arviz     : 0.19.0
+numpy     : 1.26.0
 
 Watermark: 2.4.3
 </pre></div>
@@ -792,12 +796,12 @@ Watermark: 2.4.3
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="4-Parameter_recovery.html"
+       href="5-Non_linear_value_coupling.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Recovering computational parameters from observed behaviours</p>
+        <p class="prev-next-title">Non-linear value coupling</p>
       </div>
     </a>
     <a class="right-next"

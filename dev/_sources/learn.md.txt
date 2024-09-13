@@ -26,6 +26,7 @@ notebooks/1.3-Continuous_HGF.ipynb
 notebooks/2-Using_custom_response_functions.ipynb
 notebooks/3-Multilevel_HGF.ipynb
 notebooks/4-Parameter_recovery.ipynb
+notebooks/5-Non_linear_value_coupling
 ```
 
 ```{toctree}

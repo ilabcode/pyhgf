@@ -428,6 +428,10 @@ document.write(`
 
 <li class="toctree-l1"><a class="reference internal" href="4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling</a></li>
+
+
+
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Use cases</span></p>
 <ul class="nav bd-sidenav">
@@ -967,19 +971,19 @@ surprise | y &amp; = \sum_{t=1}^{t} - \log(p(y^t | \hat{\mu}_1)) \\
   <tbody>
     <tr>
       <th>tonic_volatility_2</th>
-      <td>-3.939</td>
-      <td>0.49</td>
-      <td>-4.829</td>
-      <td>-3.004</td>
+      <td>-3.94</td>
+      <td>0.484</td>
+      <td>-4.857</td>
+      <td>-3.096</td>
       <td>0.018</td>
       <td>0.013</td>
-      <td>747.0</td>
-      <td>1359.0</td>
-      <td>1.0</td>
+      <td>684.0</td>
+      <td>1284.0</td>
+      <td>1.01</td>
     </tr>
   </tbody>
 </table>
-</div></div><img alt="../_images/25564f805e32fc7c22e4f64804c95fef19978c0e8b2a1c02e403155b1fa80863.png" src="../_images/25564f805e32fc7c22e4f64804c95fef19978c0e8b2a1c02e403155b1fa80863.png" />
+</div></div><img alt="../_images/0be70e6b4b052befc7a00016dc64ced5d1641fb2f30cbfdbb1ecc5e8b884e8e3.png" src="../_images/0be70e6b4b052befc7a00016dc64ced5d1641fb2f30cbfdbb1ecc5e8b884e8e3.png" />
 </div>
 </div>
 <p>The results above indicate that given the responses provided by the participant, the most likely values for the parameter <span class="math notranslate nohighlight">\(\omega_2\)</span> are between -4.9 and -3.1, with a mean at -3.9 (you can find slightly different values if you sample different actions from the decisions function). We can consider this as an excellent estimate given the sparsity of the data, and the complexity of the model.</p>
@@ -1017,13 +1021,13 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
+pymc      : 5.16.2
 jax       : 0.4.31
 IPython   : 8.27.0
-arviz     : 0.19.0
 matplotlib: 3.9.2
 numpy     : 1.26.0
+arviz     : 0.19.0
 sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
-pymc      : 5.16.2
 
 Watermark: 2.4.3
 </pre></div>

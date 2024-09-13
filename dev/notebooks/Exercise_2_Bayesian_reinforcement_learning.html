@@ -428,6 +428,10 @@ document.write(`
 
 <li class="toctree-l1"><a class="reference internal" href="4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
+<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling</a></li>
+
+
+
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Use cases</span></p>
 <ul class="nav bd-sidenav">
@@ -570,6 +574,19 @@ document.write(`
 </div>
 </div>
 </div>
+<div class="exercise admonition" id="exercise2.1">
+
+<p class="admonition-title"><span class="caption-number">Exercise 7 </span></p>
+<section id="exercise-content">
+<p>Create a two-level binary Hierarchical Gaussian Filter using the <code class="docutils literal notranslate"><span class="pre">Network</span></code> class and plot the network structure.</p>
+<p>This network should include:</p>
+<ul class="simple">
+<li><p>A binary input node</p></li>
+<li><p>A binary state node, value coupled with the input node</p></li>
+<li><p>A continuous state node value coupled with the binary state node</p></li>
+</ul>
+</section>
+</div>
 <p>It is also possible to create the same network using the <code class="docutils literal notranslate"><span class="pre">HGF</span></code> class, (note that <code class="docutils literal notranslate"><span class="pre">model_type=&quot;binary&quot;</span></code>).</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -634,6 +651,16 @@ document.write(`
 <div class="admonition hint">
 <p class="admonition-title">Hint</p>
 <p>The actions, or decisions, initiated by the agent are not influencing the way beliefs about the hidden states of the world are being updated (this is NOT active inference). This is for sure a limitation of the model, but it also means that the belief updating and the response model can be processed separately. In other words, no matter what actions the agent is taking along the way, this will not change the way sensory evidence is updating beliefs.</p>
+</div>
+<div class="exercise admonition" id="exercise2.2">
+
+<p class="admonition-title"><span class="caption-number">Exercise 8 </span></p>
+<section id="exercise-content">
+<ul class="simple">
+<li><p>Using the examples above, can you diagnose the performances of the agent?</p></li>
+<li><p>What could make it better? Can you try to change the parameters and get an agent with better performances (i.e. minimizing the surprise)?</p></li>
+</ul>
+</section>
 </div>
 </section>
 <section id="parameters-optimization">
@@ -729,7 +756,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/6c124353a22e3c8858a204cbb7ffe905b0b3cbd8c2fc72cbbcfe7e1b29bacd71.png" src="../_images/6c124353a22e3c8858a204cbb7ffe905b0b3cbd8c2fc72cbbcfe7e1b29bacd71.png" />
+<img alt="../_images/4f1075192203c44aa5a6229c66fe5709400aaa6db39b79f2c37c9f14ee11b401.png" src="../_images/4f1075192203c44aa5a6229c66fe5709400aaa6db39b79f2c37c9f14ee11b401.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -771,14 +798,14 @@ document.write(`
   <tbody>
     <tr>
       <th>tonic_volatility_2</th>
-      <td>-2.578</td>
-      <td>0.385</td>
-      <td>-3.282</td>
-      <td>-1.876</td>
-      <td>0.014</td>
-      <td>0.01</td>
-      <td>743.0</td>
-      <td>494.0</td>
+      <td>-2.618</td>
+      <td>0.405</td>
+      <td>-3.39</td>
+      <td>-1.91</td>
+      <td>0.017</td>
+      <td>0.013</td>
+      <td>538.0</td>
+      <td>348.0</td>
       <td>1.0</td>
     </tr>
   </tbody>
@@ -843,7 +870,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/51fda25b894f0eb9eab71d96d34d29d6af97801ce92b643e2c41fc605d59313b.png" src="../_images/51fda25b894f0eb9eab71d96d34d29d6af97801ce92b643e2c41fc605d59313b.png" />
+<img alt="../_images/e445ba72720269af48ccd6ea9dd74040a4213da91e32c1d88e886958d3ff8218.png" src="../_images/e445ba72720269af48ccd6ea9dd74040a4213da91e32c1d88e886958d3ff8218.png" />
 </div>
 </div>
 <p>Assess model fitting, here using leave-one-out cross-validation from the <a class="reference external" href="https://python.arviz.org/en/stable/api/generated/arviz.loo.html">Arviz</a> library.</p>
@@ -939,7 +966,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/ad08c32d710aad4621155a93dc111666d613b308254d09a513a27ed9486be2ca.png" src="../_images/ad08c32d710aad4621155a93dc111666d613b308254d09a513a27ed9486be2ca.png" />
+<img alt="../_images/078dca1fbf364561547bf306b75901234fc22bfc0d7689b9bedde5beb87dd8e5.png" src="../_images/078dca1fbf364561547bf306b75901234fc22bfc0d7689b9bedde5beb87dd8e5.png" />
 </div>
 </div>
 </section>
@@ -1059,7 +1086,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/264883212d2563ab55e75af7697da9c922e4b5dbb4320c8edfe374a088736b43.png" src="../_images/264883212d2563ab55e75af7697da9c922e4b5dbb4320c8edfe374a088736b43.png" />
+<img alt="../_images/8db22cdb5c722313b95faf6ebdaf34516af8e95d32fa94c41a93093a84a12d5f.png" src="../_images/8db22cdb5c722313b95faf6ebdaf34516af8e95d32fa94c41a93093a84a12d5f.png" />
 </div>
 </div>
 <p>We have saved the pointwise log probabilities as a variable, here we simply move this variable to the log_likelihoo field of the <code class="docutils literal notranslate"><span class="pre">idata</span></code> object, so <a class="reference external" href="https://python.arviz.org/en/stable/">Arviz</a> knows that this can be used later for model comparison.</p>
@@ -1178,7 +1205,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 7 seconds.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>There were 58 divergences after tuning. Increase `target_accept` or reparameterize.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>There were 60 divergences after tuning. Increase `target_accept` or reparameterize.
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
@@ -1193,7 +1220,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/3137124c3697d7d29702d87fef09593aaa269e8e7ad34ca6d6de35c76e712db2.png" src="../_images/3137124c3697d7d29702d87fef09593aaa269e8e7ad34ca6d6de35c76e712db2.png" />
+<img alt="../_images/207e3a8177e4cd006ecd466feb0d22d48465705bf27c2bd88fff3ee3352a2e7d.png" src="../_images/207e3a8177e4cd006ecd466feb0d22d48465705bf27c2bd88fff3ee3352a2e7d.png" />
 </div>
 </div>
 <p>Move pointwise estimate into the likelihood field.</p>
@@ -1266,11 +1293,11 @@ There is a subtle difference between the two: the pointwise distribution will re
     <tr>
       <th>three-level</th>
       <td>0</td>
-      <td>-112.573348</td>
-      <td>0.222371</td>
+      <td>-112.598245</td>
+      <td>0.242238</td>
       <td>0.000000</td>
       <td>1.000000e+00</td>
-      <td>4.044987</td>
+      <td>4.055695</td>
       <td>0.000000</td>
       <td>True</td>
       <td>log</td>
@@ -1278,36 +1305,36 @@ There is a subtle difference between the two: the pointwise distribution will re
     <tr>
       <th>two-level</th>
       <td>1</td>
-      <td>-113.635588</td>
-      <td>0.250715</td>
-      <td>1.062239</td>
+      <td>-113.611581</td>
+      <td>0.242668</td>
+      <td>1.013337</td>
       <td>0.000000e+00</td>
-      <td>4.002230</td>
-      <td>0.103979</td>
+      <td>4.005585</td>
+      <td>0.106739</td>
       <td>True</td>
       <td>log</td>
     </tr>
     <tr>
       <th>RW</th>
       <td>2</td>
-      <td>-123.019486</td>
-      <td>0.847962</td>
-      <td>10.446138</td>
+      <td>-123.013030</td>
+      <td>0.835840</td>
+      <td>10.414785</td>
       <td>0.000000e+00</td>
-      <td>5.511908</td>
-      <td>3.683090</td>
+      <td>5.505186</td>
+      <td>3.683489</td>
       <td>True</td>
       <td>log</td>
     </tr>
     <tr>
       <th>biased_random</th>
       <td>3</td>
-      <td>-222.438202</td>
-      <td>1.031221</td>
-      <td>109.864853</td>
-      <td>7.388934e-10</td>
-      <td>0.889946</td>
-      <td>4.161498</td>
+      <td>-222.475038</td>
+      <td>1.067818</td>
+      <td>109.876793</td>
+      <td>6.077983e-10</td>
+      <td>0.923998</td>
+      <td>4.179999</td>
       <td>False</td>
       <td>log</td>
     </tr>
@@ -1322,7 +1349,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/6a052e5f57f7ac6392ce614fb501095ae203a299bcc6e463d726f8366b226b23.png" src="../_images/6a052e5f57f7ac6392ce614fb501095ae203a299bcc6e463d726f8366b226b23.png" />
+<img alt="../_images/a98be28ed79208018b34fa48fedbf4881f09f037eec079328ea87d6361e5d2d2.png" src="../_images/a98be28ed79208018b34fa48fedbf4881f09f037eec079328ea87d6361e5d2d2.png" />
 </div>
 </div>
 <p>Looking at the final result, we can see that the three-level HGF had the best predictive performance on the participant decision, suggesting that higher-level uncertainty is important here to understand the agent’s behaviour.</p>
@@ -1439,7 +1466,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/05d12e103eb7b1600b7a878baf77195ef9499447795dcb592d04dddfe437ad9f.png" src="../_images/05d12e103eb7b1600b7a878baf77195ef9499447795dcb592d04dddfe437ad9f.png" />
+<img alt="../_images/14259323d63d851f9bfe533277b4cb8172dc1225e2024218b8178d619a30ad63.png" src="../_images/14259323d63d851f9bfe533277b4cb8172dc1225e2024218b8178d619a30ad63.png" />
 </div>
 </div>
 <p>The resulting samples show belief trajectories for 10 samples for each model (we are not depicting the biased random here for clarity). The trajectories are highly similar, but we can see that the two and three-level HGF are slightly adjusting their learning rates in a way that was more consistent with the observed behaviours.</p>
@@ -1462,6 +1489,35 @@ There is a subtle difference between the two: the pointwise distribution will re
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="solutions">
 <h1>Solutions<a class="headerlink" href="#solutions" title="Link to this heading">#</a></h1>
+<div class="solution admonition" id="solution-exercise2.1">
+
+<p class="admonition-title">Solution to<a class="reference internal" href="#exercise2.1"> Exercise 7</a></p>
+<section id="solution-content">
+<p>Here’s how we can create the network.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">binary_hgf</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Network</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-input&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-state&quot;</span><span class="p">,</span> <span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-state&quot;</span><span class="p">,</span> <span class="n">value_children</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Here’s how to plot the network.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">binary_hgf</span><span class="o">.</span><span class="n">plot_network</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</div>
+<div class="solution admonition" id="solution-exercise2.2">
+
+<p class="admonition-title">Solution to<a class="reference internal" href="#exercise2.2"> Exercise 8</a></p>
+<section id="solution-content">
+<ul class="simple">
+<li><p>Looking at the trajectories, both at the first and the second level (remember that the binary state node and the continuous state node are encoding the sa values using different scales), we can see that the agent is rather slow at changing its mind when the observed associations between the stimuli and the outcomes are switching.</p></li>
+<li><p>How fast the agent changes its mind is controlled by the learning rate (in the context of a Rescorla-Wagner model for example). Here, this quantity is controlled by the tonic volatility at the second level. In the previous example, we can see that this quantity was set to <code class="docutils literal notranslate"><span class="pre">-5.0</span></code>. We can try to set it to something higher (e.g. <code class="docutils literal notranslate"><span class="pre">-2.0</span></code>), which will produce noisier time series, and also minimize the surprise. The agent uses a more quickly updated belief about the hidden associations, therefore the decisions track the actual state of the experiment and are more accurate on average.</p></li>
+</ul>
+</section>
+</div>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="system-configuration">
 <h1>System configuration<a class="headerlink" href="#system-configuration" title="Link to this heading">#</a></h1>
@@ -1483,14 +1539,14 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-arviz     : 0.19.0
-matplotlib: 3.9.2
-numpy     : 1.26.0
 pytensor  : 2.25.4
-pymc      : 5.16.2
-seaborn   : 0.13.2
+arviz     : 0.19.0
+numpy     : 1.26.0
 sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+matplotlib: 3.9.2
+pymc      : 5.16.2
 IPython   : 8.27.0
+seaborn   : 0.13.2
 
 Watermark: 2.4.3
 </pre></div>
