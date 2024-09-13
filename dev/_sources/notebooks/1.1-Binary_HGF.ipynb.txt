@@ -38,11 +38,12 @@
    },
    "outputs": [],
    "source": [
-    "%%capture\n",
     "import sys\n",
-    "\n",
+    "from IPython.utils import io\n",
     "if 'google.colab' in sys.modules:\n",
-    "    !pip install pyhgf watermark"
+    "\n",
+    "  with io.capture_output() as captured:\n",
+    "      ! pip install pyhgf watermark"
    ]
   },
   {
@@ -870,7 +871,7 @@
    ],
    "source": [
     "with two_levels_binary_hgf:\n",
-    "    two_level_hgf_idata = pm.sample(chains=4, cores=1)"
+    "    two_level_hgf_idata = pm.sample(chains=2, cores=1)"
    ]
   },
   {
@@ -1299,7 +1300,7 @@
    ],
    "source": [
     "with three_levels_binary_hgf:\n",
-    "    three_level_hgf_idata = pm.sample(chains=4, cores=1)"
+    "    three_level_hgf_idata = pm.sample(chains=2, cores=1)"
    ]
   },
   {

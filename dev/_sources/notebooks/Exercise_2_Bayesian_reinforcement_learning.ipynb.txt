@@ -44,11 +44,12 @@
    },
    "outputs": [],
    "source": [
-    "%%capture\n",
     "import sys\n",
-    "\n",
+    "from IPython.utils import io\n",
     "if 'google.colab' in sys.modules:\n",
-    "    !pip install pyhgf watermark"
+    "\n",
+    "  with io.capture_output() as captured:\n",
+    "      ! pip install pyhgf watermark"
    ]
   },
   {
@@ -646,7 +647,7 @@
    ],
    "source": [
     "with two_levels_binary_hgf:\n",
-    "    two_level_hgf_idata = pm.sample(chains=4, cores=1)"
+    "    two_level_hgf_idata = pm.sample(chains=2, cores=1)"
    ]
   },
   {
@@ -946,7 +947,7 @@
     "\n",
     "    # sample from this model\n",
     "    biased_random_idata = pm.sample(\n",
-    "        chains=4, cores=1, idata_kwargs={\"log_likelihood\": True}\n",
+    "        chains=2, cores=1, idata_kwargs={\"log_likelihood\": True}\n",
     "    )"
    ]
   },
@@ -1121,7 +1122,7 @@
    ],
    "source": [
     "with rw_model:\n",
-    "    rw_idata = pm.sample(chains=4, cores=4, idata_kwargs={\"log_likelihood\": True})"
+    "    rw_idata = pm.sample(chains=2, cores=4, idata_kwargs={\"log_likelihood\": True})"
    ]
   },
   {
@@ -1455,7 +1456,7 @@
     "    pm.Deterministic('pointwise_loglikelihood', logp_pointwise(tonic_volatility_2))\n",
     "\n",
     "    # sample the model\n",
-    "    two_levels_idata = pm.sample(chains=4, cores=1)"
+    "    two_levels_idata = pm.sample(chains=2, cores=1)"
    ]
   },
   {
@@ -1789,7 +1790,7 @@
     "    # save the pointwise log probabilities for model comparison\n",
     "    pm.Deterministic('pointwise_loglikelihood', logp_pointwise(tonic_volatility_2))\n",
     "\n",
-    "    three_levels_idata = pm.sample(chains=4, cores=1)"
+    "    three_levels_idata = pm.sample(chains=2, cores=1)"
    ]
   },
   {

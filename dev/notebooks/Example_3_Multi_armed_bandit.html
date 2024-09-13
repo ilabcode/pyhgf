@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -46,6 +47,7 @@
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -510,11 +512,12 @@ document.write(`
 <span class="expanded">Hide code cell content</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%capture</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">IPython.utils</span> <span class="kn">import</span> <span class="n">io</span>
 <span class="k">if</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
-    <span class="err">!</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pyhgf</span> <span class="n">watermark</span>
+
+  <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">capture_output</span><span class="p">()</span> <span class="k">as</span> <span class="n">captured</span><span class="p">:</span>
+      <span class="o">!</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pyhgf<span class="w"> </span>watermark
 </pre></div>
 </div>
 </div>
@@ -1119,9 +1122,6 @@ p(A) = \frac{e^{\beta(W_a-L_a)}}{e^{\beta(W_a-L_a)} + e^{\beta(W_b-L_b)}}
 </div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 8 seconds.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
-</pre></div>
-</div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
@@ -1137,7 +1137,7 @@ p(A) = \frac{e^{\beta(W_a-L_a)}}{e^{\beta(W_a-L_a)} + e^{\beta(W_b-L_b)}}
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/607c723d5c127496bed7a1a3505695f440f6bf9a16f347941db4d2b6adaa9c7c.png" src="../_images/607c723d5c127496bed7a1a3505695f440f6bf9a16f347941db4d2b6adaa9c7c.png" />
+<img alt="../_images/128d2d731899b9ac31c46042c08ac6493e2a74b7ec747afff2f129b4d49ba93c.png" src="../_images/128d2d731899b9ac31c46042c08ac6493e2a74b7ec747afff2f129b4d49ba93c.png" />
 </div>
 </div>
 </section>
@@ -1162,14 +1162,15 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-arviz     : 0.19.0
-pytensor  : 2.25.4
 seaborn   : 0.13.2
-numpy     : 1.26.0
-matplotlib: 3.9.2
-pymc      : 5.16.2
-jax       : 0.4.31
 sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+numpy     : 1.26.0
+pymc      : 5.16.2
+pytensor  : 2.25.4
+jax       : 0.4.31
+IPython   : 8.27.0
+matplotlib: 3.9.2
+arviz     : 0.19.0
 
 Watermark: 2.4.3
 </pre></div>

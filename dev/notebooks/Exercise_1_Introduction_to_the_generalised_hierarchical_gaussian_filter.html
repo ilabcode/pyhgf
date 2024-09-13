@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -46,6 +47,7 @@
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -510,11 +512,12 @@ document.write(`
 <span class="expanded">Hide code cell content</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%capture</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">IPython.utils</span> <span class="kn">import</span> <span class="n">io</span>
 <span class="k">if</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
-    <span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">pyhgf</span> <span class="n">watermark</span>
+
+  <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">capture_output</span><span class="p">()</span> <span class="k">as</span> <span class="n">captured</span><span class="p">:</span>
+      <span class="o">!</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pyhgf<span class="w"> </span>watermark
 </pre></div>
 </div>
 </div>
@@ -661,7 +664,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 <p><a class="reference external" href="https://ilabcode.github.io/pyhgf/index.html">PyHGF</a> adds most of its values in that it allows the creation and manipulation of large and complex networks easily, and it automates the transmission of values between nodes. You can refer to <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.2-Creating_networks.html">the second part of the tutorial documentation</a> which covers the manipulation of networks for more details.</p>
 <p>But this is not the only thing it does. So far we have simulated observations from the generative model, going for the leaves to the root of the network. This describes how we expect the environment to behave, but not how an agent would learn from it. To do so we need to invert this model: we want to provide the observations, and let the network update the nodes accordingly, so the beliefs always reflect the current state of the environment. This process requires propagating precision prediction errors from the root to the leaves of the network, and this is where most of PyHGF’s dark magic is most useful.</p>
 <figure class="align-default" id="networks">
-<img alt="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_networks.svg" src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_networks.svg" />
+<img alt="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg" src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg" />
 <figcaption>
 <p><span class="caption-number">Fig. 6 </span><span class="caption-text">PyHGF is designed to automate the propagation of prediction (top-down) and prediction errors (bottom-up) in dynamic probabilistic networks. Predictions are triggered from the leaves to the roots of the networks prior to observation. Prediction errors and posterior updates a triggered after observation, from the roots to the leaves.</span><a class="headerlink" href="#networks" title="Link to this image">#</a></p>
 </figcaption>
@@ -1023,11 +1026,12 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-matplotlib: 3.9.2
-numpy     : 1.26.0
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
 seaborn   : 0.13.2
+numpy     : 1.26.0
+matplotlib: 3.9.2
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
 pandas    : 2.2.2
+IPython   : 8.27.0
 
 Watermark: 2.4.3
 </pre></div>

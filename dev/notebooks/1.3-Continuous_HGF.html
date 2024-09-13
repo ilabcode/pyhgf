@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -46,6 +47,7 @@
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -510,10 +512,12 @@ document.write(`
 <span class="expanded">Hide code cell content</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%capture</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">IPython.utils</span> <span class="kn">import</span> <span class="n">io</span>
 <span class="k">if</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
-    <span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">pyhgf</span> <span class="n">watermark</span>
+
+  <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">capture_output</span><span class="p">()</span> <span class="k">as</span> <span class="n">captured</span><span class="p">:</span>
+      <span class="o">!</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pyhgf<span class="w"> </span>watermark
 </pre></div>
 </div>
 </div>
@@ -827,7 +831,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/0747ca4d2db1d73075db0036fa2d7adb40e86a06d3c587c73103c1d2a5698bb6.svg" src="../_images/0747ca4d2db1d73075db0036fa2d7adb40e86a06d3c587c73103c1d2a5698bb6.svg" />
+<img alt="../_images/276f245ebd9fd4bcae5e926f51a69ac0c4a8b7994776641b7ca80207aba0e073.svg" src="../_images/276f245ebd9fd4bcae5e926f51a69ac0c4a8b7994776641b7ca80207aba0e073.svg" />
 </div>
 </div>
 </section>
@@ -836,7 +840,7 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">two_level_hgf</span><span class="p">:</span>
-    <span class="n">two_level_hgf_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">two_level_hgf_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -847,7 +851,7 @@ document.write(`
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initializing NUTS using jitter+adapt_diag...
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (4 chains in 1 job)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (2 chains in 1 job)
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NUTS: [tonic_volatility_1]
@@ -869,11 +873,16 @@ document.write(`
 "ipywidgets" for Jupyter support
   warnings.warn('install "ipywidgets" for Jupyter support')
 </pre>
+</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">/opt/hostedtoolcache/Python/3.12.5/x64/lib/python3.12/site-packages/rich/live.py:231: UserWarning: install 
+"ipywidgets" for Jupyter support
+  warnings.warn('install "ipywidgets" for Jupyter support')
+</pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 12 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 7 seconds.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
 </div>
@@ -886,11 +895,11 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_3131/2516081684.py:2: UserWarning: The figure layout has changed to tight
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_3137/2516081684.py:2: UserWarning: The figure layout has changed to tight
   plt.tight_layout()
 </pre></div>
 </div>
-<img alt="../_images/842a76674e08cb0b7f946ce9af35666fd761a9bc5540a075f97df694310057b9.png" src="../_images/842a76674e08cb0b7f946ce9af35666fd761a9bc5540a075f97df694310057b9.png" />
+<img alt="../_images/e288043d732abf201db1bbb2866ad3378beee8f0f8a551a277a89997f4109245.png" src="../_images/e288043d732abf201db1bbb2866ad3378beee8f0f8a551a277a89997f4109245.png" />
 </div>
 </div>
 </section>
@@ -925,7 +934,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/7d8f5b2c0e9b9ad51b18b1bc882942b5018f91dc04889c41540b25a321b28476.png" src="../_images/7d8f5b2c0e9b9ad51b18b1bc882942b5018f91dc04889c41540b25a321b28476.png" />
+<img alt="../_images/b1ebdbec5787b8c915620c04df80de2787306c989b8114b8f298fd93bff79efe.png" src="../_images/b1ebdbec5787b8c915620c04df80de2787306c989b8114b8f298fd93bff79efe.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -935,7 +944,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Array(-1106.1176, dtype=float32)
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Array(-1106.1144, dtype=float32)
 </pre></div>
 </div>
 </div>
@@ -985,7 +994,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/0747ca4d2db1d73075db0036fa2d7adb40e86a06d3c587c73103c1d2a5698bb6.svg" src="../_images/0747ca4d2db1d73075db0036fa2d7adb40e86a06d3c587c73103c1d2a5698bb6.svg" />
+<img alt="../_images/276f245ebd9fd4bcae5e926f51a69ac0c4a8b7994776641b7ca80207aba0e073.svg" src="../_images/276f245ebd9fd4bcae5e926f51a69ac0c4a8b7994776641b7ca80207aba0e073.svg" />
 </div>
 </div>
 </section>
@@ -994,7 +1003,7 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">three_level_hgf</span><span class="p">:</span>
-    <span class="n">three_level_hgf_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">three_level_hgf_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1005,7 +1014,7 @@ document.write(`
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initializing NUTS using jitter+adapt_diag...
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (4 chains in 1 job)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (2 chains in 1 job)
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NUTS: [tonic_volatility_1]
@@ -1031,11 +1040,16 @@ document.write(`
 "ipywidgets" for Jupyter support
   warnings.warn('install "ipywidgets" for Jupyter support')
 </pre>
+</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">/opt/hostedtoolcache/Python/3.12.5/x64/lib/python3.12/site-packages/rich/live.py:231: UserWarning: install 
+"ipywidgets" for Jupyter support
+  warnings.warn('install "ipywidgets" for Jupyter support')
+</pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 15 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 8 seconds.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
 </div>
@@ -1047,7 +1061,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/8aa84c2d117d5ce6610ec83b39947ef55dd2f1fe2c951cd94434116de4fcde2b.png" src="../_images/8aa84c2d117d5ce6610ec83b39947ef55dd2f1fe2c951cd94434116de4fcde2b.png" />
+<img alt="../_images/02d50512b4ae418f5375837aa92775400b80e4e22eb845907dd7168dcd7b0fb2.png" src="../_images/02d50512b4ae418f5375837aa92775400b80e4e22eb845907dd7168dcd7b0fb2.png" />
 </div>
 </div>
 </section>
@@ -1081,7 +1095,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/9b8c61b92f7253ef5bc9d4eb1f01d0aad4ad500e5601a532d0e27c64d7cb5bad.png" src="../_images/9b8c61b92f7253ef5bc9d4eb1f01d0aad4ad500e5601a532d0e27c64d7cb5bad.png" />
+<img alt="../_images/dbab2b51169a1b91ae69e678f19a9e80cfc34b65b22d843517577420e2779bcb.png" src="../_images/dbab2b51169a1b91ae69e678f19a9e80cfc34b65b22d843517577420e2779bcb.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -1091,7 +1105,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Array(-1118.0038, dtype=float32)
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Array(-1118.0496, dtype=float32)
 </pre></div>
 </div>
 </div>
@@ -1120,10 +1134,11 @@ jax   : 0.4.31
 jaxlib: 0.4.31
 
 jax       : 0.4.31
-arviz     : 0.19.0
-matplotlib: 3.9.2
+IPython   : 8.27.0
 sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+arviz     : 0.19.0
 pymc      : 5.16.2
+matplotlib: 3.9.2
 
 Watermark: 2.4.3
 </pre></div>

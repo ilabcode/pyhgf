@@ -44,10 +44,12 @@
    },
    "outputs": [],
    "source": [
-    "%%capture\n",
     "import sys\n",
+    "from IPython.utils import io\n",
     "if 'google.colab' in sys.modules:\n",
-    "    !pip install pyhgf watermark"
+    "\n",
+    "  with io.capture_output() as captured:\n",
+    "      ! pip install pyhgf watermark"
    ]
   },
   {
@@ -907,7 +909,7 @@
    ],
    "source": [
     "with sigmoid_hgf:\n",
-    "    sigmoid_hgf_idata = pm.sample(chains=4, cores=1)"
+    "    sigmoid_hgf_idata = pm.sample(chains=2, cores=1)"
    ]
   },
   {

@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -46,6 +47,7 @@
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -512,21 +514,190 @@ document.write(`
 <p>In this section, you can find tutorial notebooks that describe the internals of pyhgf, the theory behind the Hierarchical Gaussian filter, and step-by-step application and use cases of the model. At the beginning of every tutorial, you will find a badge <a class="reference external" href="https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.1-Creating_networks.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a> to run the notebook interactively in a Google Colab session.</p>
 <section id="theory">
 <h2>Theory<a class="headerlink" href="#theory" title="Link to this heading">#</a></h2>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-3 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/trajectories.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+An introduction to the Hierarchical Gaussian Filter</div>
+<p class="sd-card-text">How the generative model of the Hierarchical Gaussian filter can be turned into update functions that update nodes through value and volatility coupling?</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/0.1-Theory.html#theory"><span class="std std-ref">Introduction to the Generalised Hierarchical Gaussian Filter</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="images/graph_networks.svg" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Creating and manipulating networks of probabilistic nodes</div>
+<p class="sd-card-text">How to create and manipulate a network of probabilistic nodes for reinforcement learning? Working at the intersection of graphs, neural networks and probabilistic frameworks.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/0.2-Creating_networks.html#probabilistic-networks"><span class="std std-ref">Creating and manipulating networks of probabilistic nodes</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/multivariate_hgf.gif" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Generalised Bayesian filtering</div>
+<p class="sd-card-text">Predict, filter and smooth any distribution from the exponential family using generalisations of the Hierarchical Gaussian Filter.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/0.3-Generalised_filtering.html#generalised-filtering"><span class="std std-ref">From Reinforcement Learning to Generalised Bayesian Filtering</span></a></div>
+</div>
+</div>
+</div>
 </section>
 <section id="the-hierarchical-gaussian-filter">
 <h2>The Hierarchical Gaussian Filter<a class="headerlink" href="#the-hierarchical-gaussian-filter" title="Link to this heading">#</a></h2>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-3 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/binary.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+The binary Hierarchical Gaussian Filter</div>
+<p class="sd-card-text">Introducing with example the binary Hierarchical Gaussian filter and its applications to reinforcement learning.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/1.1-Binary_HGF.html#binary-hgf"><span class="std std-ref">The binary Hierarchical Gaussian Filter</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/categorical.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+The categorical Hierarchical Gaussian Filter</div>
+<p class="sd-card-text">The categorical Hierarchical Gaussian Filter is a generalisation of the binary HGF to handle categorical distribution with and without transition probabilities.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/1.2-Categorical_HGF.html#categorical-hgf"><span class="std std-ref">The categorical Hierarchical Gaussian Filter</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/continuous.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+The continuous Hierarchical Gaussian Filter</div>
+<p class="sd-card-text">Introducing with example the continuous Hierarchical Gaussian filter and its applications to signal processing.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/1.3-Continuous_HGF.html#continuous-hgf"><span class="std std-ref">The continuous Hierarchical Gaussian Filter</span></a></div>
+</div>
+</div>
+</div>
 </section>
 <section id="tutorials">
 <h2>Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading">#</a></h2>
 <p>Advanced customisation of predictive coding neural networks and Bayesian modelling for group studies.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-3 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/response_models.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Using custom response functions</div>
+<p class="sd-card-text">How to adapt any model to specific behaviours and experimental design by using custom response functions.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/2-Using_custom_response_functions.html#custom-response-functions"><span class="std std-ref">Using custom response models</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/multilevel-hgf.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Embedding the Hierarchical Gaussian Filter in a Bayesian network for multilevel inference</div>
+<p class="sd-card-text">How to use any model as a distribution to perform hierarchical inference at the group level.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/3-Multilevel_HGF.html#multilevel-hgf"><span class="std std-ref">Hierarchical Bayesian modelling with probabilistic neural networks</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/parameter_recovery.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Parameter recovery, prior and posterior predictive sampling</div>
+<p class="sd-card-text">Recovering parameters from the generative model and using the sampling functionalities to estimate prior and posterior uncertainties.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/4-Parameter_recovery.html#parameters-recovery"><span class="std std-ref">Recovering computational parameters from observed behaviours</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/non_linear_coupling.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Non-linear value coupling</div>
+<p class="sd-card-text">Recovering parameters from the generative model and using the sampling functionalities to estimate prior and posterior uncertainties.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/5-Non_linear_value_coupling.html#non-linear-coupling"><span class="std std-ref">Non-linear value coupling</span></a></div>
+</div>
+</div>
+</div>
 </section>
 <section id="use-cases">
 <h2>Use cases<a class="headerlink" href="#use-cases" title="Link to this heading">#</a></h2>
 <p>Examples of possible applications and extensions of the standards Hierarchical Gaussian Filters to more complex experimental designs</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-3 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Inferring cardiac beliefs using Bayesian filtering</div>
+<p class="sd-card-text">Application of continuous Bayesian filtering to cardiac physiological recordings to infer interoceptive beliefs and their volatility.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Example_1_Heart_rate_variability.html#example-1"><span class="std std-ref">Example 1: Bayesian filtering of cardiac volatility</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/input_mean_precision.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Value and volatility coupling with an input node</div>
+<p class="sd-card-text">Dynamic inference over both the mean and variance of a normal distribution.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Example_2_Input_node_volatility_coupling.html#example-2"><span class="std std-ref">Example 2: Estimating the mean and precision of an input node</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/multiarmedbandittask.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Multi-armed bandit task with independent reward and punishments</div>
+<p class="sd-card-text">A generalisation of the binary Hierarchical Gaussian Filter to multiarmed bandit where the probabilities of the outcomes are evolving independently.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Example_3_Multi_armed_bandit.html#example-3"><span class="std std-ref">Example 3: A multi-armed bandit task with independent rewards and punishments</span></a></div>
+</div>
+</div>
+</div>
 </section>
 <section id="exercises">
 <h2>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">#</a></h2>
 <p>Hand-on exercises for theComputational Psychiatry Course (Zurich) to build intuition around the generalised Hierarchical Gaussian Filter, how to create and manipulate probabilistic networks, design an agent to perform a reinforcement learning task and use MCMC sampling for parameter inference and model comparison—about 4 hours.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-2 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/cpc_tutorial_1.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Introduction to the Generalised Hierarchical Gaussian Filter</div>
+<p class="sd-card-text">Theoretical introduction to the generative model of the generalised Hierarchical Gaussian Filter and presentation of the update functions (i.e. the first inversion of the model).</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html#hgf-exercises-1"><span class="std std-ref">Introduction to the generalised Hierarchical Gaussian Filter</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<img alt="" class="sd-card-img-top" src="_images/cpc_tutorial_2.png" />
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Applying the Hierarchical Gaussian Filter to reinforcement learning</div>
+<p class="sd-card-text">Practical application of the generalised Hierarchical Gaussian Filter to reinforcement learning problems and estimation of parameters through MCMC sampling (i.e. the second inversion of the model).</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Exercise_2_Bayesian_reinforcement_learning.html#hgf-exercises-2"><span class="std std-ref">Application to reinforcement learning</span></a></div>
+</div>
+</div>
+</div>
 </section>
 </section>
 

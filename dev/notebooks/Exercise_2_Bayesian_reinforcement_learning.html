@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -46,6 +47,7 @@
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -510,11 +512,12 @@ document.write(`
 <span class="expanded">Hide code cell content</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%capture</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">IPython.utils</span> <span class="kn">import</span> <span class="n">io</span>
 <span class="k">if</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
-    <span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">pyhgf</span> <span class="n">watermark</span>
+
+  <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">capture_output</span><span class="p">()</span> <span class="k">as</span> <span class="n">captured</span><span class="p">:</span>
+      <span class="o">!</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pyhgf<span class="w"> </span>watermark
 </pre></div>
 </div>
 </div>
@@ -670,13 +673,13 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/ecd192b619fcda3b40cdb5f737d2b936691486677eb7a4f82b5cbc7f55367e9e.svg" src="../_images/ecd192b619fcda3b40cdb5f737d2b936691486677eb7a4f82b5cbc7f55367e9e.svg" />
+<img alt="../_images/7d29572ae423fb4c8d4ea736f01dab651bf0ee09a3d53b5838bcf639ba2eaf01.svg" src="../_images/7d29572ae423fb4c8d4ea736f01dab651bf0ee09a3d53b5838bcf639ba2eaf01.svg" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">two_levels_binary_hgf</span><span class="p">:</span>
-    <span class="n">two_level_hgf_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">two_level_hgf_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -687,7 +690,7 @@ document.write(`
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initializing NUTS using jitter+adapt_diag...
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (4 chains in 1 job)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (2 chains in 1 job)
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NUTS: [tonic_volatility_2]
@@ -711,9 +714,10 @@ document.write(`
 </pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 10 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 5 seconds.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
 </div>
@@ -725,7 +729,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/41343859d87f949dcb876677b765833f7d0a0ff534d8f26252203ee842ec69cd.png" src="../_images/41343859d87f949dcb876677b765833f7d0a0ff534d8f26252203ee842ec69cd.png" />
+<img alt="../_images/1e061dc0dd11f04e68a20b0f57a3087c2ad5d719eba4e38c5196874dbab3010e.png" src="../_images/1e061dc0dd11f04e68a20b0f57a3087c2ad5d719eba4e38c5196874dbab3010e.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -767,15 +771,15 @@ document.write(`
   <tbody>
     <tr>
       <th>tonic_volatility_2</th>
-      <td>-2.583</td>
-      <td>0.395</td>
-      <td>-3.34</td>
-      <td>-1.87</td>
+      <td>-2.567</td>
+      <td>0.388</td>
+      <td>-3.355</td>
+      <td>-1.889</td>
+      <td>0.016</td>
       <td>0.012</td>
-      <td>0.009</td>
-      <td>1003.0</td>
-      <td>904.0</td>
-      <td>1.01</td>
+      <td>620.0</td>
+      <td>557.0</td>
+      <td>1.0</td>
     </tr>
   </tbody>
 </table>
@@ -800,7 +804,7 @@ document.write(`
 
     <span class="c1"># sample from this model</span>
     <span class="n">biased_random_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
-        <span class="n">chains</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;log_likelihood&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+        <span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;log_likelihood&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
     <span class="p">)</span>
 </pre></div>
 </div>
@@ -812,7 +816,7 @@ document.write(`
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initializing NUTS using jitter+adapt_diag...
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (4 chains in 1 job)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (2 chains in 1 job)
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NUTS: [bias]
@@ -824,9 +828,10 @@ document.write(`
 </pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 4 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 2 seconds.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
 </div>
@@ -838,7 +843,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/20c6d0f79f1beb04ba66a159235b6cba8046e635ee0394491b9bfa6d40dbdfe4.png" src="../_images/20c6d0f79f1beb04ba66a159235b6cba8046e635ee0394491b9bfa6d40dbdfe4.png" />
+<img alt="../_images/4c4191b135346e26bfcee042f87e00916247057410c58490d37a3636fd237359.png" src="../_images/4c4191b135346e26bfcee042f87e00916247057410c58490d37a3636fd237359.png" />
 </div>
 </div>
 <p>Assess model fitting, here using leave-one-out cross-validation from the <a class="reference external" href="https://python.arviz.org/en/stable/api/generated/arviz.loo.html">Arviz</a> library.</p>
@@ -889,7 +894,7 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">rw_model</span><span class="p">:</span>
-    <span class="n">rw_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">idata_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;log_likelihood&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+    <span class="n">rw_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">idata_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;log_likelihood&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
 </pre></div>
 </div>
 </div>
@@ -900,7 +905,7 @@ document.write(`
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initializing NUTS using jitter+adapt_diag...
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Multiprocess sampling (4 chains in 4 jobs)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Multiprocess sampling (2 chains in 2 jobs)
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NUTS: [initial_belief, learning_rate]
@@ -919,7 +924,10 @@ document.write(`
 </pre></div>
 </div>
 <div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 42 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 21 seconds.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
 </div>
@@ -931,7 +939,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/40f0b27470f5b72e342b595603728476c59b3731d92187e9c7ead19d71f27e07.png" src="../_images/40f0b27470f5b72e342b595603728476c59b3731d92187e9c7ead19d71f27e07.png" />
+<img alt="../_images/50863c50e8795cfc47856eebdc1f084072f8b46179f15a85128799dbc80ace09.png" src="../_images/50863c50e8795cfc47856eebdc1f084072f8b46179f15a85128799dbc80ace09.png" />
 </div>
 </div>
 </section>
@@ -1005,7 +1013,7 @@ There is a subtle difference between the two: the pointwise distribution will re
     <span class="n">pm</span><span class="o">.</span><span class="n">Deterministic</span><span class="p">(</span><span class="s1">&#39;pointwise_loglikelihood&#39;</span><span class="p">,</span> <span class="n">logp_pointwise</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">))</span>
 
     <span class="c1"># sample the model</span>
-    <span class="n">two_levels_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">two_levels_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1016,7 +1024,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initializing NUTS using jitter+adapt_diag...
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (4 chains in 1 job)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (2 chains in 1 job)
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NUTS: [tonic_volatility_2]
@@ -1034,15 +1042,12 @@ There is a subtle difference between the two: the pointwise distribution will re
 "ipywidgets" for Jupyter support
   warnings.warn('install "ipywidgets" for Jupyter support')
 </pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">/opt/hostedtoolcache/Python/3.12.5/x64/lib/python3.12/site-packages/rich/live.py:231: UserWarning: install 
-"ipywidgets" for Jupyter support
-  warnings.warn('install "ipywidgets" for Jupyter support')
-</pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 10 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 5 seconds.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
 </div>
@@ -1054,7 +1059,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/ee78c83353f3be7f5540f3d3146b072d9a4eaf2e455e54f56b7287f2f8de8297.png" src="../_images/ee78c83353f3be7f5540f3d3146b072d9a4eaf2e455e54f56b7287f2f8de8297.png" />
+<img alt="../_images/914cd605f5f2a2a84217c9ef77c6dda6762bfbb9dd5ad944a12c60b531d034b2.png" src="../_images/914cd605f5f2a2a84217c9ef77c6dda6762bfbb9dd5ad944a12c60b531d034b2.png" />
 </div>
 </div>
 <p>We have saved the pointwise log probabilities as a variable, here we simply move this variable to the log_likelihoo field of the <code class="docutils literal notranslate"><span class="pre">idata</span></code> object, so <a class="reference external" href="https://python.arviz.org/en/stable/">Arviz</a> knows that this can be used later for model comparison.</p>
@@ -1131,7 +1136,7 @@ There is a subtle difference between the two: the pointwise distribution will re
     <span class="c1"># save the pointwise log probabilities for model comparison</span>
     <span class="n">pm</span><span class="o">.</span><span class="n">Deterministic</span><span class="p">(</span><span class="s1">&#39;pointwise_loglikelihood&#39;</span><span class="p">,</span> <span class="n">logp_pointwise</span><span class="p">(</span><span class="n">tonic_volatility_2</span><span class="p">))</span>
 
-    <span class="n">three_levels_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">three_levels_idata</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1142,7 +1147,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Initializing NUTS using jitter+adapt_diag...
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (4 chains in 1 job)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sequential sampling (2 chains in 1 job)
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NUTS: [tonic_volatility_2]
@@ -1170,12 +1175,13 @@ There is a subtle difference between the two: the pointwise distribution will re
 </pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 12 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 7 seconds.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>There were 119 divergences after tuning. Increase `target_accept` or reparameterize.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>There were 60 divergences after tuning. Increase `target_accept` or reparameterize.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
 </pre></div>
 </div>
 </div>
@@ -1187,7 +1193,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/6115318801ae34302a48ddab0937ca4b0fd9052a7971dde943ffdd84ba681259.png" src="../_images/6115318801ae34302a48ddab0937ca4b0fd9052a7971dde943ffdd84ba681259.png" />
+<img alt="../_images/317c1c9786c818b7cd919671434f1449433afde1071f92cbdffd78499b4d457f.png" src="../_images/317c1c9786c818b7cd919671434f1449433afde1071f92cbdffd78499b4d457f.png" />
 </div>
 </div>
 <p>Move pointwise estimate into the likelihood field.</p>
@@ -1260,11 +1266,11 @@ There is a subtle difference between the two: the pointwise distribution will re
     <tr>
       <th>three-level</th>
       <td>0</td>
-      <td>-112.602643</td>
-      <td>0.237144</td>
+      <td>-112.569930</td>
+      <td>0.229413</td>
       <td>0.000000</td>
       <td>1.000000e+00</td>
-      <td>4.049081</td>
+      <td>4.052772</td>
       <td>0.000000</td>
       <td>True</td>
       <td>log</td>
@@ -1272,36 +1278,36 @@ There is a subtle difference between the two: the pointwise distribution will re
     <tr>
       <th>two-level</th>
       <td>1</td>
-      <td>-113.625711</td>
-      <td>0.251233</td>
-      <td>1.023068</td>
+      <td>-113.611762</td>
+      <td>0.242169</td>
+      <td>1.041832</td>
       <td>0.000000e+00</td>
-      <td>4.010759</td>
-      <td>0.103185</td>
+      <td>4.007260</td>
+      <td>0.104594</td>
       <td>True</td>
       <td>log</td>
     </tr>
     <tr>
       <th>RW</th>
       <td>2</td>
-      <td>-123.035568</td>
-      <td>0.861774</td>
-      <td>10.432925</td>
+      <td>-123.079030</td>
+      <td>0.885582</td>
+      <td>10.509100</td>
       <td>0.000000e+00</td>
-      <td>5.518284</td>
-      <td>3.692304</td>
+      <td>5.510734</td>
+      <td>3.687639</td>
       <td>True</td>
       <td>log</td>
     </tr>
     <tr>
       <th>biased_random</th>
       <td>3</td>
-      <td>-222.346041</td>
-      <td>0.938941</td>
-      <td>109.743398</td>
-      <td>6.458976e-10</td>
-      <td>0.880764</td>
-      <td>4.163321</td>
+      <td>-222.413007</td>
+      <td>1.006053</td>
+      <td>109.843076</td>
+      <td>1.187516e-09</td>
+      <td>0.906231</td>
+      <td>4.172870</td>
       <td>False</td>
       <td>log</td>
     </tr>
@@ -1316,7 +1322,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/ab8d16061fa7b7128a483ac086c502355aac3ebaa7113709e491f1259faab4ff.png" src="../_images/ab8d16061fa7b7128a483ac086c502355aac3ebaa7113709e491f1259faab4ff.png" />
+<img alt="../_images/b1c82bad5094f37ec32f6bddc01e212b07e88918256b787d213c4dc95c141476.png" src="../_images/b1c82bad5094f37ec32f6bddc01e212b07e88918256b787d213c4dc95c141476.png" />
 </div>
 </div>
 <p>Looking at the final result, we can see that the three-level HGF had the best predictive performance on the participant decision, suggesting that higher-level uncertainty is important here to understand the agent’s behaviour.</p>
@@ -1433,7 +1439,7 @@ There is a subtle difference between the two: the pointwise distribution will re
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/9b2cc390d2aa4b48d4f7ed0dae19ab75bb5b4421a9b0cff4849ada80469e7efd.png" src="../_images/9b2cc390d2aa4b48d4f7ed0dae19ab75bb5b4421a9b0cff4849ada80469e7efd.png" />
+<img alt="../_images/9e9911d31fcdf444013d679b9fc0facd3e3be749fa6ec97fb72422c11217979b.png" src="../_images/9e9911d31fcdf444013d679b9fc0facd3e3be749fa6ec97fb72422c11217979b.png" />
 </div>
 </div>
 <p>The resulting samples show belief trajectories for 10 samples for each model (we are not depicting the biased random here for clarity). The trajectories are highly similar, but we can see that the two and three-level HGF are slightly adjusting their learning rates in a way that was more consistent with the observed behaviours.</p>
@@ -1478,12 +1484,13 @@ jax   : 0.4.31
 jaxlib: 0.4.31
 
 matplotlib: 3.9.2
-pytensor  : 2.25.4
-numpy     : 1.26.0
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
-arviz     : 0.19.0
 seaborn   : 0.13.2
+numpy     : 1.26.0
+IPython   : 8.27.0
+sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+pytensor  : 2.25.4
 pymc      : 5.16.2
+arviz     : 0.19.0
 
 Watermark: 2.4.3
 </pre></div>

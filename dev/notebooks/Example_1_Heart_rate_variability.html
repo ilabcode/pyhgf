@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
     <link rel="stylesheet" type="text/css" href="../_static/exercise.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -46,6 +47,7 @@
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
     <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'notebooks/Example_1_Heart_rate_variability';</script>
@@ -508,10 +510,12 @@ document.write(`
 <span class="expanded">Hide code cell content</span>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%capture</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">IPython.utils</span> <span class="kn">import</span> <span class="n">io</span>
 <span class="k">if</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
-    <span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">pyhgf</span> <span class="n">systole</span> <span class="n">watermark</span>
+
+  <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">capture_output</span><span class="p">()</span> <span class="k">as</span> <span class="n">captured</span><span class="p">:</span>
+      <span class="o">!</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pyhgf<span class="w"> </span>watermark<span class="w"> </span>systole
 </pre></div>
 </div>
 </div>
@@ -563,16 +567,16 @@ document.write(`
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading ECG channel:   0%|          | 0/2 [00:00&lt;?, ?it/s]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading ECG channel:  50%|█████     | 1/2 [00:01&lt;00:01,  1.10s/it]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading ECG channel:  50%|█████     | 1/2 [00:01&lt;00:01,  1.03s/it]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel:  50%|█████     | 1/2 [00:01&lt;00:01,  1.10s/it]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel:  50%|█████     | 1/2 [00:01&lt;00:01,  1.03s/it]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel: 100%|██████████| 2/2 [00:02&lt;00:00,  1.14s/it]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel: 100%|██████████| 2/2 [00:01&lt;00:00,  1.02it/s]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel: 100%|██████████| 2/2 [00:02&lt;00:00,  1.13s/it]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading Respiration channel: 100%|██████████| 2/2 [00:01&lt;00:00,  1.01it/s]
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
@@ -646,7 +650,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/8fc9c210ab62f5dd9a3be3ce533d3c8c7ee05351b66a0f94da4f8a26be10ae39.svg" src="../_images/8fc9c210ab62f5dd9a3be3ce533d3c8c7ee05351b66a0f94da4f8a26be10ae39.svg" />
+<img alt="../_images/8f02834ccc45a1fbb4bd4aabfac2d75a89a86b3ef90438ded772ac7bf43de688.svg" src="../_images/8f02834ccc45a1fbb4bd4aabfac2d75a89a86b3ef90438ded772ac7bf43de688.svg" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -695,7 +699,7 @@ document.write(`
 </pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
 </div><div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
-</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 10 seconds.
+</div><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sampling 2 chains for 1_000 tune and 1_000 draw iterations (2_000 + 2_000 draws total) took 9 seconds.
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>We recommend running at least 4 chains for robust computation of convergence diagnostics
@@ -710,7 +714,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/c70b356cd619e61fb4eb033d9701e54788a0a47ea4c0d477710fd63009e76af8.png" src="../_images/c70b356cd619e61fb4eb033d9701e54788a0a47ea4c0d477710fd63009e76af8.png" />
+<img alt="../_images/90685c5cae0e7b546798595c6eed168f1199cbb6dceb398a2aa1b47144491f9c.png" src="../_images/90685c5cae0e7b546798595c6eed168f1199cbb6dceb398a2aa1b47144491f9c.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -742,7 +746,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/a7192b112376ca60c97030319f2d9eed673a3cf76054affaffa7aa4f890eb046.png" src="../_images/a7192b112376ca60c97030319f2d9eed673a3cf76054affaffa7aa4f890eb046.png" />
+<img alt="../_images/0ba65546358df322c0e9a37419861fdb72ea8464d7bce7f2793a2fd31f425acb.png" src="../_images/0ba65546358df322c0e9a37419861fdb72ea8464d7bce7f2793a2fd31f425acb.png" />
 </div>
 </div>
 </section>
@@ -767,11 +771,12 @@ pyhgf : 0.1.6
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-arviz     : 0.19.0
-numpy     : 1.26.0
 pymc      : 5.16.2
-matplotlib: 3.9.2
+IPython   : 8.27.0
+arviz     : 0.19.0
 sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+numpy     : 1.26.0
+matplotlib: 3.9.2
 
 Watermark: 2.4.3
 </pre></div>

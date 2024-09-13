@@ -44,11 +44,12 @@
    },
    "outputs": [],
    "source": [
-    "%%capture\n",
     "import sys\n",
-    "\n",
+    "from IPython.utils import io\n",
     "if 'google.colab' in sys.modules:\n",
-    "    !pip install pyhgf watermark"
+    "\n",
+    "  with io.capture_output() as captured:\n",
+    "      ! pip install pyhgf watermark"
    ]
   },
   {
@@ -346,7 +347,7 @@
     "\n",
     "But this is not the only thing it does. So far we have simulated observations from the generative model, going for the leaves to the root of the network. This describes how we expect the environment to behave, but not how an agent would learn from it. To do so we need to invert this model: we want to provide the observations, and let the network update the nodes accordingly, so the beliefs always reflect the current state of the environment. This process requires propagating precision prediction errors from the root to the leaves of the network, and this is where most of PyHGF's dark magic is most useful.\n",
     "\n",
-    "```{figure} https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_networks.svg\n",
+    "```{figure} https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg\n",
     "---\n",
     "name: networks\n",
     "---\n",
