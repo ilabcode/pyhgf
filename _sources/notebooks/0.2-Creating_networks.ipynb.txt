@@ -42,11 +42,12 @@
    },
    "outputs": [],
    "source": [
-    "%%capture\n",
     "import sys\n",
-    "\n",
+    "from IPython.utils import io\n",
     "if 'google.colab' in sys.modules:\n",
-    "    !pip install pyhgf watermark"
+    "\n",
+    "  with io.capture_output() as captured:\n",
+    "      ! pip install pyhgf watermark"
    ]
   },
   {
@@ -131,7 +132,7 @@
     "\n",
     "This list describes the sequence of function-to-nodes instructions that are executed during the inference and update processes.\n",
     "\n",
-    "![graph_networks](../images/graph_networks.svg)\n",
+    "![graph_network](../images/graph_network.svg)\n",
     "\n",
     "```{tip} Compatibility with JAX transformations\n",
     "One of the advantages of reasoning this way is that it dissociates variables that are transparent to the JAX framework and can be expressed as \"PyTress\" from variables that should be filtered before transformations. The variable `attributes` ($\\theta$) is typically expressed as a PyTree while the other variables that contain parametrized functions are filtered. See [the documattion](https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#jit-mechanics-tracing-and-static-variables) for further details on JAX transformations.\n",

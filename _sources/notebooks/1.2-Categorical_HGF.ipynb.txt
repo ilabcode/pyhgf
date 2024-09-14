@@ -36,11 +36,12 @@
    },
    "outputs": [],
    "source": [
-    "%%capture\n",
     "import sys\n",
-    "\n",
+    "from IPython.utils import io\n",
     "if 'google.colab' in sys.modules:\n",
-    "    !pip install pyhgf watermark"
+    "\n",
+    "  with io.capture_output() as captured:\n",
+    "      ! pip install pyhgf watermark"
    ]
   },
   {

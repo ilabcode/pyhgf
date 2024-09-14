@@ -26,6 +26,7 @@ notebooks/1.3-Continuous_HGF.ipynb
 notebooks/2-Using_custom_response_functions.ipynb
 notebooks/3-Multilevel_HGF.ipynb
 notebooks/4-Parameter_recovery.ipynb
+notebooks/5-Non_linear_value_coupling
 ```
 
 ```{toctree}
@@ -67,7 +68,7 @@ How the generative model of the Hierarchical Gaussian filter can be turned into 
 :::{grid-item-card}  Creating and manipulating networks of probabilistic nodes
 :link: probabilistic_networks
 :link-type: ref
-:img-top: ./images/graph_networks.svg
+:img-top: ./images/graph_network.svg
 
 How to create and manipulate a network of probabilistic nodes for reinforcement learning? Working at the intersection of graphs, neural networks and probabilistic frameworks.
 :::

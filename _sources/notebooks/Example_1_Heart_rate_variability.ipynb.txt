@@ -44,10 +44,12 @@
    },
    "outputs": [],
    "source": [
-    "%%capture\n",
     "import sys\n",
+    "from IPython.utils import io\n",
     "if 'google.colab' in sys.modules:\n",
-    "    !pip install pyhgf systole watermark"
+    "\n",
+    "  with io.capture_output() as captured:\n",
+    "      ! pip install pyhgf watermark systole"
    ]
   },
   {
