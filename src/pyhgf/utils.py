@@ -11,52 +11,41 @@ from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
 from pyhgf.math import Normal, binary_surprise, gaussian_surprise
-from pyhgf.typing import AdjacencyLists, Attributes, Edges, Structure, UpdateSequence
-from pyhgf.updates.posterior.binary import binary_node_update_infinite
-from pyhgf.updates.posterior.categorical import categorical_input_update
+from pyhgf.typing import AdjacencyLists, Attributes, Edges, Sequence, UpdateSequence
+from pyhgf.updates.observation import set_observation
 from pyhgf.updates.posterior.continuous import (
-    continuous_node_update,
-    continuous_node_update_ehgf,
+    continuous_node_posterior_update,
+    continuous_node_posterior_update_ehgf,
 )
 from pyhgf.updates.posterior.exponential import posterior_update_exponential_family
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
 from pyhgf.updates.prediction.dirichlet import dirichlet_node_prediction
-from pyhgf.updates.prediction_error.inputs.binary import (
-    binary_input_prediction_error_infinite_precision,
-)
-from pyhgf.updates.prediction_error.inputs.continuous import (
-    continuous_input_prediction_error,
-)
-from pyhgf.updates.prediction_error.inputs.generic import generic_input_prediction_error
-from pyhgf.updates.prediction_error.nodes.binary import (
-    binary_state_node_prediction_error,
-)
-from pyhgf.updates.prediction_error.nodes.continuous import (
-    continuous_node_prediction_error,
-)
-from pyhgf.updates.prediction_error.nodes.dirichlet import (
-    dirichlet_node_prediction_error,
-)
+from pyhgf.updates.prediction_error.continuous import continuous_node_prediction_error
+from pyhgf.updates.prediction_error.dirichlet import dirichlet_node_prediction_error
 
 if TYPE_CHECKING:
     from pyhgf.model import Network
 
 
-@partial(jit, static_argnames=("update_sequence", "structure"))
+@partial(jit, static_argnames=("update_sequence", "edges", "input_idxs"))
 def beliefs_propagation(
     attributes: Attributes,
-    input_data: ArrayLike,
+    input_data: Tuple[ArrayLike, ArrayLike, ArrayLike],
     update_sequence: UpdateSequence,
-    structure: Structure,
+    edges: Edges,
+    input_idxs: Tuple[int],
 ) -> Tuple[Dict, Dict]:
     """Update the network's parameters after observing new data point(s).
 
-    This function performs the beliefs propagation step at a time *t* triggered by the
-    observation of a new batch of value(s). The way beliefs propagate is defined by the
-    `update_sequence` and the `edges`. A tuple of two new
-    `parameter_structure` is then returned (the carryover and the accumulated in the
-    context of :py:func:`jax.lax.scan`).
+    This function performs the beliefs propagation step. Belief propagation consists in:
+    1. A prediction sequence, from the leaves of the graph to the roots.
+    2. The assignation of new observations to target nodes (usually the roots of the
+    network)
+    3. An inference step alternating between prediction errors and posterior updates,
+    starting from the roots of the network to the leaves.
+    This function returns a tuple of two new `parameter_structure` (i.e. the carryover
+    and the accumulated in the context of :py:func:`jax.lax.scan`).
 
     Parameters
     ----------
@@ -64,16 +53,18 @@ def beliefs_propagation(
         The dictionaries of nodes' parameters. This variable is updated and returned
         after the beliefs propagation step.
     input_data :
-        An array containing the new observation(s) as well as the time steps. The new
-        observations can be a single value or a vector of observation with a length
-        matching the length `inputs.idx`. `inputs.idx` is used to index the
-        ith value in the vector to the ith input node, so the ordering of the input
-        array matters. The time steps are the last column of the array, the default is
-        unit incrementation.
+        An array containing the new observation(s), the time steps as well as a boolean
+        mask for observed values. The new observations can be a single value or a
+        vector of observation with a length matching the length `inputs.idx`.
+        `inputs.idx` is used to index the ith value in the vector to the ith input
+        node, so the ordering of the input array matters. The time steps are the last
+        column of the array, the default is unit incrementation.
     update_sequence :
         The sequence of updates that will be applied to the node structure.
-    structure :
-        Information on the network's structure, including input types and edges.
+    edges :
+        Information on the network's edges.
+    input_idxs :
+        List input indexes.
 
     Returns
     -------
@@ -81,31 +72,46 @@ def beliefs_propagation(
         A tuple of parameters structure (carryover and accumulated).
 
     """
-    # unpack static info about the network structure
-    inputs, edges = structure
-    input_idxs = jnp.array(inputs.idx)
+    prediction_steps, update_steps = update_sequence
 
     # extract value(s) and time steps
-    values, time_step, observed = input_data
+    values, time_step, mask = input_data
 
-    # Fit the model with the current time and value variables, given the model structure
-    for sequence in update_sequence:
-        node_idx, update_fn = sequence
+    attributes[-1]["time_step"] = time_step
 
-        # if we are updating an input node, select the value that should be passed
-        # otherwise, just pass 0.0 and the value will be ignored
-        value = jnp.sum(jnp.where(jnp.equal(input_idxs, node_idx), values, 0.0))
+    # Prediction sequence
+    # -------------------
+    for step in prediction_steps:
 
-        # is it an observation or a missing observation
-        observed_value = jnp.sum(jnp.equal(input_idxs, node_idx) * observed)
+        node_idx, update_fn = step
 
         attributes = update_fn(
             attributes=attributes,
-            time_step=time_step[0],
             node_idx=node_idx,
             edges=edges,
+        )
+
+    # Observations
+    # ------------
+    for value, node_idx, observed in zip(values, input_idxs, mask):
+
+        attributes = set_observation(
+            attributes=attributes,
+            node_idx=node_idx,
             value=value,
-            observed=observed_value,
+            observed=observed,
+        )
+
+    # Update sequence
+    # ---------------
+    for step in update_steps:
+
+        node_idx, update_fn = step
+
+        attributes = update_fn(
+            attributes=attributes,
+            node_idx=node_idx,
+            edges=edges,
         )
 
     return (
@@ -255,17 +261,15 @@ def fill_categorical_state_node(
     return network
 
 
-def get_update_sequence(network: "Network", update_type: str) -> List:
+def get_update_sequence(
+    network: "Network", update_type: str
+) -> Tuple[Sequence, Sequence]:
     """Generate an update sequence from the network's structure.
 
     This function return an optimized update sequence considering the edges of the
     network. The function ensures that the following principles apply:
     1. all children have computed prediction errors before the parent is updated.
     2. all children have been updated before the parent compute the prediction errors.
-    3. the update function of an input node is chosen based on the node's type
-    (`"continuous"`, `"binary"` or `"categorical"`).
-    4. the update function of the parent of an input node is chosen based on the
-    node's type (`"continuous"`, `"binary"` or `"categorical"`).
 
     Parameters
     ----------
@@ -280,8 +284,10 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
 
     Returns
     -------
-    sequence :
-        The update sequence generated from the node structure.
+    prediction_sequence :
+        The sequence of prediction update.
+    update_sequence :
+        The sequence of prediction error and posterior updates.
 
     """
     # initialize the update and prediction sequences
@@ -291,55 +297,53 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
     n_nodes = len(network.edges)
 
     # list all nodes that are not triggering prediction errors or posterior updates
-    node_without_pe = [i for i in range(n_nodes)]
-    node_without_update = [i for i in range(n_nodes)]
+    # do not call posterior updates for nodes without children (input nodes)
+    nodes_without_prediction_error = [i for i in range(n_nodes)]
+    nodes_without_prediction = [i for i in range(n_nodes)]
+    nodes_without_posterior_update = [
+        i
+        for i in range(n_nodes)
+        if not (
+            (network.edges[i].value_children is None)
+            & (network.edges[i].volatility_children is None)
+        )
+    ]
 
-    # start by injecting the observations in all input nodes
-    # ------------------------------------------------------
-    for input_idx, kind in zip(network.inputs.idx, network.inputs.kind):
-        if kind == 0:
-            update_fn = continuous_input_prediction_error
-            update_sequence.append((input_idx, update_fn))
+    # prediction updates ---------------------------------------------------------------
+    while True:
+        no_update = True
 
-        elif kind == 1:
+        # for all nodes that should apply prediction update ----------------------------
+        # verify that all children have computed the prediction error
+        for idx in nodes_without_prediction:
+            all_parents = [
+                i
+                for idx in [
+                    network.edges[idx].value_parents,
+                    network.edges[idx].volatility_parents,
+                ]
+                if idx is not None
+                for i in idx
+            ]
 
-            # add the update steps for the binary state node as well
-            binary_state_idx = network.edges[input_idx].value_parents[0]  # type: ignore
+            # there is no parent waiting for a prediction update
+            if not any([i in nodes_without_prediction for i in all_parents]):
+                no_update = False
+                nodes_without_prediction.remove(idx)
+                if network.edges[idx].node_type == 1:
+                    prediction_sequence.append((idx, binary_state_node_prediction))
+                elif network.edges[idx].node_type == 2:
+                    prediction_sequence.append((idx, continuous_node_prediction))
+                elif network.edges[idx].node_type == 4:
+                    prediction_sequence.append((idx, dirichlet_node_prediction))
 
-            # TODO: once HGF and Network classes implemented separately, we can add the
-            # finite binary HGF back
-            # if hgf.attributes[input_idx]["expected_precision"] == jnp.inf:
-            update_sequence.append(
-                (input_idx, binary_input_prediction_error_infinite_precision)
+        if not nodes_without_prediction:
+            break
+
+        if no_update:
+            raise Warning(
+                "The structure of the network cannot be updated consistently."
             )
-            update_sequence.append((binary_state_idx, binary_node_update_infinite))
-            # else:
-            #     update_sequence.append(
-            #         (input_idx, binary_input_prediction_error_finite_precision)
-            #     )
-            #     update_sequence.append((binary_state_idx, binary_node_update_finite))
-            update_sequence.append(
-                (binary_state_idx, binary_state_node_prediction_error)
-            )
-            node_without_pe.remove(binary_state_idx)
-            node_without_update.remove(binary_state_idx)
-            prediction_sequence.insert(
-                0, (binary_state_idx, binary_state_node_prediction)
-            )
-
-        elif kind == 3:
-            update_fn = generic_input_prediction_error
-            update_sequence.append((input_idx, update_fn))
-
-        elif kind == 4:
-            update_fn = dirichlet_node_prediction_error
-            update_sequence.append((input_idx, update_fn))
-
-        # add the PE step to the sequence
-        node_without_pe.remove(input_idx)
-
-        # input node does not need to update the posterior
-        node_without_update.remove(input_idx)
 
     # prediction errors and posterior updates
     # will fail if the structure of the network does not allow a consistent update order
@@ -347,9 +351,9 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
     while True:
         no_update = True
 
-        # for all nodes that should be updated
-        # verify that all children have been computed the PE
-        for idx in node_without_update:
+        # for all nodes that should apply posterior update -----------------------------
+        # verify that all children have computed the prediction error
+        for idx in nodes_without_posterior_update:
             all_children = [
                 i
                 for idx in [
@@ -361,19 +365,16 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
             ]
 
             # all the children have computed prediction errors
-            if all([i not in node_without_pe for i in all_children]):
+            if all([i not in nodes_without_prediction_error for i in all_children]):
                 no_update = False
                 if network.edges[idx].node_type == 2:
                     if update_type == "eHGF":
                         if network.edges[idx].volatility_children is not None:
-                            update_fn = continuous_node_update_ehgf
+                            update_fn = continuous_node_posterior_update_ehgf
                         else:
-                            update_fn = continuous_node_update
+                            update_fn = continuous_node_posterior_update
                     elif update_type == "standard":
-                        update_fn = continuous_node_update
-
-                    # the prediction sequence is the update sequence in reverse order
-                    prediction_sequence.insert(0, (idx, continuous_node_prediction))
+                        update_fn = continuous_node_posterior_update
 
                 elif network.edges[idx].node_type == 3:
 
@@ -388,16 +389,14 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
                 elif network.edges[idx].node_type == 4:
 
                     update_fn = None
-                    # the prediction sequence is the update sequence in reverse order
-                    prediction_sequence.insert(0, (idx, dirichlet_node_prediction))
 
                 update_sequence.append((idx, update_fn))
-                node_without_update.remove(idx)
+                nodes_without_posterior_update.remove(idx)
 
-        # for all nodes that should compute a PE ---------------------------------------
-        # verify that all children have been updated and compute the PE
-        for idx in node_without_pe:
-            # if this node has no parent, no need to compute prediction errors
+        # for all nodes that should apply prediction error------------------------------
+        # verify that all children have been updated
+        for idx in nodes_without_prediction_error:
+
             all_parents = [
                 i
                 for idx in [
@@ -407,11 +406,13 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
                 if idx is not None
                 for i in idx
             ]
+
+            # if this node has no parent, no need to compute prediction errors
             if len(all_parents) == 0:
-                node_without_pe.remove(idx)
+                nodes_without_prediction_error.remove(idx)
             else:
                 # if this node has been updated
-                if idx not in node_without_update:
+                if idx not in nodes_without_posterior_update:
 
                     if network.edges[idx].node_type == 2:
                         update_fn = continuous_node_prediction_error
@@ -420,9 +421,11 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
 
                     no_update = False
                     update_sequence.append((idx, update_fn))
-                    node_without_pe.remove(idx)
+                    nodes_without_prediction_error.remove(idx)
 
-        if (not node_without_pe) and (not node_without_update):
+        if (not nodes_without_prediction_error) and (
+            not nodes_without_posterior_update
+        ):
             break
 
         if no_update:
@@ -430,19 +433,13 @@ def get_update_sequence(network: "Network", update_type: str) -> List:
                 "The structure of the network cannot be updated consistently."
             )
 
-    # append the prediction sequence at the beginning
-    prediction_sequence.extend(update_sequence)
-
-    # add the categorical update here, if any
-    for kind, idx in zip(network.inputs.kind, network.inputs.idx):
-        if kind == 2:
-            # create a new sequence step and add it to the list
-            prediction_sequence.append((idx, categorical_input_update))
-
     # remove None steps and return the update sequence
-    sequence = [update for update in prediction_sequence if update[1] is not None]
+    prediction_sequence = [
+        update for update in prediction_sequence if update[1] is not None
+    ]
+    update_sequence = [update for update in update_sequence if update[1] is not None]
 
-    return sequence
+    return tuple(prediction_sequence), tuple(update_sequence)
 
 
 def to_pandas(network: "Network") -> pd.DataFrame:
@@ -451,49 +448,23 @@ def to_pandas(network: "Network") -> pd.DataFrame:
     Returns
     -------
     trajectories_df :
-        Pandas data frame with the time series of sufficient statistics and
-        the surprise of each node in the structure.
+        Pandas data frame with the time series of sufficient statistics and the
+        surprise of each node in the structure.
 
     """
+    n_nodes = len(network.edges)
     # get time and time steps from the first input node
     trajectories_df = pd.DataFrame(
         {
-            "time_steps": network.node_trajectories[network.inputs.idx[0]]["time_step"],
-            "time": jnp.cumsum(
-                network.node_trajectories[network.inputs.idx[0]]["time_step"]
-            ),
+            "time_steps": network.node_trajectories[-1]["time_step"],
+            "time": jnp.cumsum(network.node_trajectories[-1]["time_step"]),
         }
     )
-
-    # Observations
-    # ------------
-
-    # add the observations from input nodes
-    for idx, kind in zip(network.inputs.idx, network.inputs.kind):
-        if kind == 2:
-            df = pd.DataFrame(
-                dict(
-                    [
-                        (
-                            f"observation_input_{idx}_{i}",
-                            network.node_trajectories[0]["values"][:, i],
-                        )
-                        for i in range(network.node_trajectories[0]["values"].shape[1])
-                    ]
-                )
-            )
-            pd.concat([trajectories_df, df], axis=1)
-        else:
-            trajectories_df[f"observation_input_{idx}"] = network.node_trajectories[
-                idx
-            ]["values"]
 
     # loop over continuous and binary state nodes and store sufficient statistics
     # ---------------------------------------------------------------------------
     continuous_indexes = [
-        i
-        for i in range(1, len(network.node_trajectories))
-        if network.edges[i].node_type in [1, 2]
+        i for i in range(n_nodes) if network.edges[i].node_type in [1, 2]
     ]
     df = pd.DataFrame(
         dict(
@@ -508,11 +479,7 @@ def to_pandas(network: "Network") -> pd.DataFrame:
 
     # loop over exponential family state nodes and store sufficient statistics
     # ------------------------------------------------------------------------
-    ef_indexes = [
-        i
-        for i in range(1, len(network.node_trajectories))
-        if network.edges[i].node_type == 3
-    ]
+    ef_indexes = [i for i in range(n_nodes) if network.edges[i].node_type == 3]
     for i in ef_indexes:
         for var in ["nus", "xis", "values"]:
             if network.node_trajectories[i][var].ndim == 1:
@@ -544,25 +511,8 @@ def to_pandas(network: "Network") -> pd.DataFrame:
                         axis=1,
                     )
 
-    # Expectations and surprises
-    # --------------------------
-
-    # add surprise and expected precision from continuous and binary inputs
-    for idx, kind in zip(network.inputs.idx, network.inputs.kind):
-        if kind in [0, 1]:
-            trajectories_df[f"observation_input_{idx}_surprise"] = (
-                network.node_trajectories[idx]["surprise"]
-            )
-            trajectories_df[f"observation_input_{idx}_expected_precision"] = (
-                network.node_trajectories[idx]["expected_precision"]
-            )
-
     # add surprise from binary state nodes
-    binary_indexes = [
-        i
-        for i in range(1, len(network.node_trajectories))
-        if network.edges[i].node_type == 1
-    ]
+    binary_indexes = [i for i in range(n_nodes) if network.edges[i].node_type == 1]
     for i in binary_indexes:
         binary_input = network.edges[i].value_children[0]  # type: ignore
         surprise = binary_surprise(
@@ -748,3 +698,28 @@ def add_edges(
     edges = tuple(edges_as_list)
 
     return attributes, edges
+
+
+def get_input_idxs(edges: Edges) -> Tuple[int, ...]:
+    """List all possible default inputs nodes.
+
+    An input node is a state node without any child.
+
+    Parameters
+    ----------
+    edges :
+        The edges of the probabilistic network as a tuple of
+        :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the number of
+        nodes. For each node, the index list value/volatility - parents/children.
+
+    """
+    return tuple(
+        [
+            i
+            for i in range(len(edges))
+            if (
+                (edges[i].value_children is None)
+                & (edges[i].volatility_children is None)
+            )
+        ]
+    )

@@ -116,9 +116,7 @@ class HGF(Network):
             if model_type == "continuous":
                 # Input
                 self.add_nodes(
-                    kind="continuous-input",
-                    input_precision=continuous_precision,
-                    expected_precision=continuous_precision,
+                    precision=continuous_precision,
                 )
 
                 # X-1

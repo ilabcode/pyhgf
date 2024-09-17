@@ -30,8 +30,8 @@ Binary nodes
 .. autosummary::
    :toctree: generated/pyhgf.updates.posterior.binary
 
-    binary_node_update_infinite
-    binary_node_update_finite
+    binary_node_update_posterior_infinite
+    binary_node_update_posterior_finite
 
 
 Categorical nodes
@@ -54,8 +54,8 @@ Continuous nodes
 
     posterior_update_mean_continuous_node
     posterior_update_precision_continuous_node
-    continuous_node_update
-    continuous_node_update_ehgf
+    continuous_node_posterior_update
+    continuous_node_posterior_update_ehgf
 
 Exponential family
 ------------------

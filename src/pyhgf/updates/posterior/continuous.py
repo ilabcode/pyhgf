@@ -214,7 +214,6 @@ def posterior_update_precision_continuous_node(
     attributes: Dict,
     edges: Edges,
     node_idx: int,
-    time_step: float,
 ) -> float:
     r"""Update the precision of a state node using the volatility prediction errors.
 
@@ -406,6 +405,7 @@ def posterior_update_precision_continuous_node(
             )
 
     # compute the predicted_volatility from the total volatility
+    time_step = attributes[-1]["time_step"]
     predicted_volatility = time_step * jnp.exp(total_volatility)
 
     # Estimate the new precision for the continuous state node
@@ -433,8 +433,8 @@ def posterior_update_precision_continuous_node(
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def continuous_node_update(
-    attributes: Dict, node_idx: int, edges: Edges, time_step: float, **args
+def continuous_node_posterior_update(
+    attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the posterior of a continuous node using the standard HGF update.
 
@@ -454,8 +454,6 @@ def continuous_node_update(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    time_step :
-        The time elapsed between this observation and the previous one.
 
     Returns
     -------
@@ -474,22 +472,20 @@ def continuous_node_update(
 
     """
     # update the posterior mean and precision
-    posterior_precision = posterior_update_precision_continuous_node(
-        attributes, edges, node_idx, time_step
+    attributes[node_idx]["precision"] = posterior_update_precision_continuous_node(
+        attributes, edges, node_idx
     )
-    attributes[node_idx]["precision"] = posterior_precision
 
-    posterior_mean = posterior_update_mean_continuous_node(
+    attributes[node_idx]["mean"] = posterior_update_mean_continuous_node(
         attributes, edges, node_idx, node_precision=attributes[node_idx]["precision"]
     )
-    attributes[node_idx]["mean"] = posterior_mean
 
     return attributes
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def continuous_node_update_ehgf(
-    attributes: Dict, node_idx: int, edges: Edges, time_step: float, **args
+def continuous_node_posterior_update_ehgf(
+    attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the posterior of a continuous node using the eHGF update.
 
@@ -515,8 +511,6 @@ def continuous_node_update_ehgf(
         The edges of the probabilistic nodes as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as node number.
         For each node, the index list value and volatility parents and children.
-    time_step :
-        The time elapsed between this observation and the previous one.
 
     Returns
     -------
@@ -548,7 +542,6 @@ def continuous_node_update_ehgf(
         attributes,
         edges,
         node_idx,
-        time_step,
     )
     attributes[node_idx]["precision"] = posterior_precision
 

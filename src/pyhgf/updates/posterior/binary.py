@@ -10,7 +10,7 @@ from pyhgf.typing import Edges
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def binary_node_update_infinite(
+def binary_node_posterior_update_infinite(
     attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the posterior of a binary node given infinite precision of the input.
@@ -52,7 +52,7 @@ def binary_node_update_infinite(
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def binary_node_update_finite(
+def binary_node_posterior_update_finite(
     attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the posterior of a binary node given finite precision of the input.

@@ -39,15 +39,13 @@ def first_level_gaussian_surprise(
     # compute the sum of Gaussian surprise at the first level
     # the input value at time t is compared to the Gaussian prediction at t-1
     surprise = gaussian_surprise(
-        x=hgf.node_trajectories[0]["values"],
+        x=hgf.node_trajectories[0]["mean"],
         expected_mean=hgf.node_trajectories[1]["expected_mean"],
         expected_precision=hgf.node_trajectories[1]["expected_precision"],
     )
 
     # Return an infinite surprise if the model could not fit at any point
-    return jnp.where(
-        jnp.any(jnp.isnan(hgf.node_trajectories[1]["mean"])), jnp.inf, surprise
-    )
+    return jnp.where(jnp.isnan(surprise), jnp.inf, surprise)
 
 
 def total_gaussian_surprise(
@@ -78,7 +76,7 @@ def total_gaussian_surprise(
 
     # first we start with nodes that are value parents to input nodes
     input_parents_list = []
-    for idx in hgf.inputs.idx:
+    for idx in hgf.input_idxs:
         va_pa = hgf.edges[idx].value_parents[0]  # type: ignore
         input_parents_list.append(va_pa)
         surprise += gaussian_surprise(
@@ -90,7 +88,7 @@ def total_gaussian_surprise(
     # then we do the same for every node that is not an input node
     # and not the parent of an input node
     for i in range(len(hgf.edges)):
-        if (i not in hgf.inputs.idx) and (i not in input_parents_list):
+        if (i not in hgf.input_idxs) and (i not in input_parents_list):
             surprise += gaussian_surprise(
                 x=hgf.node_trajectories[i]["mean"],
                 expected_mean=hgf.node_trajectories[i]["expected_mean"],
