@@ -72,6 +72,7 @@ class Network:
         for idx in input_idxs:
             if self.edges[idx].node_type == 2:
                 self.attributes[idx]["autoconnection_strength"] = 0.0
+                self.attributes[idx]["tonic_volatility"] = 0.0
         return input_idxs
 
     @input_idxs.setter
@@ -466,7 +467,7 @@ class Network:
         elif kind == "binary-state":
             default_parameters = {
                 "observed": 1,
-                "mean": 0.5,
+                "mean": 0,
                 "expected_mean": 0.5,
                 "precision": 1.0,
                 "expected_precision": 1.0,

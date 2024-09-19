@@ -35,9 +35,4 @@ def set_observation(
     attributes[node_idx]["mean"] = value
     attributes[node_idx]["observed"] = observed
 
-    # this step is central as it cancel the diffusion of uncertainty and fix
-    # the expected precision to the precision of the input node
-
-    attributes[node_idx]["expected_precision"] = attributes[node_idx]["precision"]
-
     return attributes

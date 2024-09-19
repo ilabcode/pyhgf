@@ -244,7 +244,19 @@ def continuous_node_prediction(
     )
 
     # Update this node's parameters
-    attributes[node_idx]["expected_precision"] = expected_precision
+
+    # 1. input node without volatility parent
+    if (
+        (edges[node_idx].value_children is None)
+        and (edges[node_idx].volatility_children is None)
+        and (edges[node_idx].volatility_parents is None)
+    ):
+        attributes[node_idx]["expected_precision"] = attributes[node_idx]["precision"]
+
+    # 2. regular continuous state node, or input with volatility parent
+    else:
+        attributes[node_idx]["expected_precision"] = expected_precision
+
     attributes[node_idx]["temp"]["effective_precision"] = effective_precision
     attributes[node_idx]["expected_mean"] = expected_mean
 

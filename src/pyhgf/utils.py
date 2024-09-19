@@ -472,7 +472,8 @@ def to_pandas(network: "Network") -> pd.DataFrame:
             [
                 (f"x_{i}_{var}", network.node_trajectories[i][var])
                 for i in states_indexes
-                for var in ["mean", "precision", "expected_mean", "expected_precision"]
+                for var in network.node_trajectories[i].keys()
+                if (("mean" in var) or ("precision" in var))
             ]
         )
     )
