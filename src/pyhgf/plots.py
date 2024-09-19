@@ -426,8 +426,19 @@ def plot_nodes(
     # ----------------------
     for i, node_idx in enumerate(node_idxs):
         if node_idx in network.input_idxs:
+            # plotting mean
+            axs[i].plot(
+                trajectories_df.time,
+                trajectories_df[f"x_{node_idx}_expected_mean"],
+                label="Expected mean",
+                color=color,
+                linewidth=1,
+                zorder=2,
+            )
+            axs[i].set_ylabel(rf"$\mu_{{{node_idx}}}$")
 
-            if network.edges[node_idx].node_type == 2:  # continuous state node
+            # continuous state node ----------------------------------------------------
+            if network.edges[node_idx].node_type == 2:
                 input_label = "Continuous"
                 axs[i].scatter(
                     x=trajectories_df.time,
@@ -437,7 +448,15 @@ def plot_nodes(
                     color="#2a2a2a",
                     zorder=10,
                 )
-            elif network.edges[node_idx].node_type == 1:  # binary state node
+                # plotting standard deviation
+                if ci is True:
+                    precision = trajectories_df[f"x_{node_idx}_expected_precision"]
+                    sd = np.sqrt(1 / precision)
+                    y1 = trajectories_df[f"x_{node_idx}_expected_mean"] - sd
+                    y2 = trajectories_df[f"x_{node_idx}_expected_mean"] + sd
+
+            # binary state node --------------------------------------------------------
+            elif network.edges[node_idx].node_type == 1:
                 input_label = "Binary"
                 axs[i].scatter(
                     x=trajectories_df.time,
@@ -445,14 +464,28 @@ def plot_nodes(
                     label="Input",
                     color="#2a2a2a",
                     zorder=10,
+                    alpha=0.4,
                 )
 
-            # plotting standard deviation
+                # plotting standard deviation - in the case of a binary input node, the
+                # CI should be read from the value parent using the sigmoid transform
+                if ci is True:
+
+                    # get parent nodes and sum predictions
+                    mean_parent, precision_parent = 0.0, 0.0
+                    for idx in network.edges[node_idx].value_parents:  # type: ignore
+
+                        # compute  mu +/- sd at time t-1
+                        # and use the sigmoid transform before plotting
+                        mean_parent += trajectories_df[f"x_{idx}_expected_mean"]
+                        precision_parent += trajectories_df[
+                            f"x_{idx}_expected_precision"
+                        ]
+                    sd = np.sqrt(1 / precision_parent)
+                    y1 = 1 / (1 + np.exp(-mean_parent + sd))
+                    y2 = 1 / (1 + np.exp(-mean_parent - sd))
+
             if ci is True:
-                precision = trajectories_df[f"x_{node_idx}_expected_precision"]
-                sd = np.sqrt(1 / precision)
-                y1 = trajectories_df[f"x_{node_idx}_expected_mean"] - sd
-                y2 = trajectories_df[f"x_{node_idx}_expected_mean"] + sd
 
                 axs[i].fill_between(
                     x=trajectories_df["time"],
@@ -464,7 +497,7 @@ def plot_nodes(
                 )
 
             axs[i].set_title(f"{input_label} Input Node {node_idx}", loc="left")
-            axs[i].legend()
+            axs[i].legend(loc="upper left")
 
         # plotting state nodes
         # --------------------
@@ -547,6 +580,7 @@ def plot_nodes(
                     color="#7f7f7f",
                     alpha=0.1,
                     zorder=-1,
+                    label="Surprise",
                 )
 
                 # hide surprise if the input was not observed
@@ -559,7 +593,6 @@ def plot_nodes(
                     color="#2a2a2a",
                     linewidth=0.5,
                     zorder=-1,
-                    label="Surprise",
                 )
                 surprise_ax.set_ylabel("Surprise")
                 surprise_ax.legend(loc="upper right")

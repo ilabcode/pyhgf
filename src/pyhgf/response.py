@@ -104,12 +104,12 @@ def total_gaussian_surprise(
 def first_level_binary_surprise(
     hgf: "HGF", response_function_inputs=None, response_function_parameters=None
 ) -> float:
-    """Sum of the binary surprise along the time series (binary HGF).
+    """Time series of binary surprises for all binary state nodes.
 
     .. note::
       The binary surprise is the default method to compute surprise when
-      `model_type=="binary"`, therefore this method will only return the sum of
-      valid time points, and `jnp.inf` if the model could not fit.
+      `model_type=="binary"`, therefore this method will only return the valid time
+      points, and `jnp.inf` if the model could not fit.
 
     Parameters
     ----------
@@ -126,10 +126,12 @@ def first_level_binary_surprise(
         The model's surprise given the input data.
 
     """
-    surprise = binary_surprise(
-        expected_mean=hgf.node_trajectories[1]["expected_mean"],
-        x=hgf.node_trajectories[0]["values"],
-    )
+    surprise = jnp.zeros(len(hgf.node_trajectories[-1]["time_step"]))
+    for binary_input_idx in hgf.input_idxs:
+        surprise += binary_surprise(
+            expected_mean=hgf.node_trajectories[binary_input_idx]["expected_mean"],
+            x=hgf.node_trajectories[binary_input_idx]["mean"],
+        )
 
     # Return an infinite surprise if the model cannot fit
     surprise = jnp.where(

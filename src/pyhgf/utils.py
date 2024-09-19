@@ -21,6 +21,7 @@ from pyhgf.updates.posterior.exponential import posterior_update_exponential_fam
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
 from pyhgf.updates.prediction.dirichlet import dirichlet_node_prediction
+from pyhgf.updates.prediction_error.binary import binary_state_node_prediction_error
 from pyhgf.updates.prediction_error.continuous import continuous_node_prediction_error
 from pyhgf.updates.prediction_error.dirichlet import dirichlet_node_prediction_error
 
@@ -414,7 +415,9 @@ def get_update_sequence(
                 # if this node has been updated
                 if idx not in nodes_without_posterior_update:
 
-                    if network.edges[idx].node_type == 2:
+                    if network.edges[idx].node_type == 1:
+                        update_fn = binary_state_node_prediction_error
+                    elif network.edges[idx].node_type == 2:
                         update_fn = continuous_node_prediction_error
                     elif network.edges[idx].node_type == 4:
                         update_fn = dirichlet_node_prediction_error
@@ -463,14 +466,12 @@ def to_pandas(network: "Network") -> pd.DataFrame:
 
     # loop over continuous and binary state nodes and store sufficient statistics
     # ---------------------------------------------------------------------------
-    continuous_indexes = [
-        i for i in range(n_nodes) if network.edges[i].node_type in [1, 2]
-    ]
+    states_indexes = [i for i in range(n_nodes) if network.edges[i].node_type in [1, 2]]
     df = pd.DataFrame(
         dict(
             [
                 (f"x_{i}_{var}", network.node_trajectories[i][var])
-                for i in continuous_indexes
+                for i in states_indexes
                 for var in ["mean", "precision", "expected_mean", "expected_precision"]
             ]
         )
@@ -513,30 +514,22 @@ def to_pandas(network: "Network") -> pd.DataFrame:
 
     # add surprise from binary state nodes
     binary_indexes = [i for i in range(n_nodes) if network.edges[i].node_type == 1]
-    for i in binary_indexes:
-        binary_input = network.edges[i].value_children[0]  # type: ignore
+    for bin_idx in binary_indexes:
         surprise = binary_surprise(
-            x=network.node_trajectories[binary_input]["values"],
-            expected_mean=network.node_trajectories[i]["expected_mean"],
+            x=network.node_trajectories[bin_idx]["mean"],
+            expected_mean=network.node_trajectories[bin_idx]["expected_mean"],
         )
-        # fill with nans when the model cannot fit
-        surprise = jnp.where(
-            jnp.isnan(network.node_trajectories[i]["mean"]), jnp.nan, surprise
-        )
-        trajectories_df[f"x_{i}_surprise"] = surprise
+        trajectories_df[f"x_{bin_idx}_surprise"] = surprise
 
     # add surprise from continuous state nodes
-    for i in continuous_indexes:
+    continuous_indexes = [i for i in range(n_nodes) if network.edges[i].node_type == 2]
+    for con_idx in continuous_indexes:
         surprise = gaussian_surprise(
-            x=network.node_trajectories[i]["mean"],
-            expected_mean=network.node_trajectories[i]["expected_mean"],
-            expected_precision=network.node_trajectories[i]["expected_precision"],
+            x=network.node_trajectories[con_idx]["mean"],
+            expected_mean=network.node_trajectories[con_idx]["expected_mean"],
+            expected_precision=network.node_trajectories[con_idx]["expected_precision"],
         )
-        # fill with nans when the model cannot fit
-        surprise = jnp.where(
-            jnp.isnan(network.node_trajectories[i]["mean"]), jnp.nan, surprise
-        )
-        trajectories_df[f"x_{i}_surprise"] = surprise
+        trajectories_df[f"x_{con_idx}_surprise"] = surprise
 
     # compute the global surprise over all node
     trajectories_df["total_surprise"] = trajectories_df.iloc[

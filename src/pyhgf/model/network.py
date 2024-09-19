@@ -465,23 +465,14 @@ class Network:
             }
         elif kind == "binary-state":
             default_parameters = {
-                "mean": 0.0,
-                "expected_mean": 0.0,
+                "observed": 1,
+                "mean": 0.5,
+                "expected_mean": 0.5,
                 "precision": 1.0,
                 "expected_precision": 1.0,
-                "volatility_coupling_children": volatility_children[1],
-                "volatility_coupling_parents": volatility_parents[1],
-                "value_coupling_children": value_children[1],
                 "value_coupling_parents": value_parents[1],
-                "tonic_volatility": 0.0,
-                "tonic_drift": 0.0,
-                "autoconnection_strength": 1.0,
-                "observed": 1,
-                "binary_expected_precision": 0.0,
                 "temp": {
-                    "effective_precision": 0.0,
                     "value_prediction_error": 0.0,
-                    "volatility_prediction_error": 0.0,
                 },
             }
         elif kind == "generic-state":

@@ -114,12 +114,12 @@ class HGF(Network):
             raise ValueError("Invalid model type.")
         else:
             if model_type == "continuous":
-                # Input
+                # X - 0
                 self.add_nodes(
                     precision=continuous_precision,
                 )
 
-                # X-1
+                # X - 1
                 self.add_nodes(
                     value_children=([0], [1.0]),
                     node_parameters={
@@ -130,7 +130,7 @@ class HGF(Network):
                     },
                 )
 
-                # X-2
+                # X - 2
                 self.add_nodes(
                     volatility_children=([1], [volatility_coupling["1"]]),
                     node_parameters={
@@ -141,31 +141,36 @@ class HGF(Network):
                     },
                 )
 
+                #########################
+                # Meta volatility level #
+                #########################
+                if self.n_levels == 3:
+                    self.add_nodes(
+                        volatility_children=([2], [volatility_coupling["2"]]),
+                        node_parameters={
+                            "mean": initial_mean["3"],
+                            "precision": initial_precision["3"],
+                            "tonic_volatility": tonic_volatility["3"],
+                            "tonic_drift": tonic_drift["3"],
+                        },
+                    )
+
             elif model_type == "binary":
-                # Input
-                self.add_nodes(
-                    kind="binary-input",
-                    node_parameters={
-                        "eta0": eta0,
-                        "eta1": eta1,
-                        "binary_precision": binary_precision,
-                    },
-                )
 
-                # X -1
-                self.add_nodes(
-                    kind="binary-state",
-                    value_children=([0], [1.0]),
-                    node_parameters={
-                        "mean": initial_mean["1"],
-                        "precision": initial_precision["1"],
-                    },
-                )
+                if binary_precision == jnp.inf:
+                    # X - 0
+                    self.add_nodes(
+                        kind="binary-state",
+                        node_parameters={
+                            "mean": initial_mean["1"],
+                            "precision": initial_precision["1"],
+                        },
+                    )
 
-                # X -2
+                # X - 1
                 self.add_nodes(
                     kind="continuous-state",
-                    value_children=([1], [1.0]),
+                    value_children=([0], [1.0]),
                     node_parameters={
                         "mean": initial_mean["2"],
                         "precision": initial_precision["2"],
@@ -174,19 +179,19 @@ class HGF(Network):
                     },
                 )
 
-            #########
-            # x - 3 #
-            #########
-            if self.n_levels == 3:
-                self.add_nodes(
-                    volatility_children=([2], [volatility_coupling["2"]]),
-                    node_parameters={
-                        "mean": initial_mean["3"],
-                        "precision": initial_precision["3"],
-                        "tonic_volatility": tonic_volatility["3"],
-                        "tonic_drift": tonic_drift["3"],
-                    },
-                )
+                #########################
+                # Meta volatility level #
+                #########################
+                if self.n_levels == 3:
+                    self.add_nodes(
+                        volatility_children=([1], [volatility_coupling["2"]]),
+                        node_parameters={
+                            "mean": initial_mean["3"],
+                            "precision": initial_precision["3"],
+                            "tonic_volatility": tonic_volatility["3"],
+                            "tonic_drift": tonic_drift["3"],
+                        },
+                    )
 
             # initialize the model so it is ready to receive new observations
             self.create_belief_propagation_fn()
