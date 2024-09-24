@@ -479,14 +479,14 @@ class Network:
             }
         elif kind == "generic-state":
             default_parameters = {
-                "values": 0.0,
+                "mean": 0.0,
                 "observed": 1,
             }
         elif "ef-normal" in kind:
             default_parameters = {
                 "nus": 3.0,
                 "xis": jnp.array([0.0, 1.0]),
-                "values": 0.0,
+                "mean": 0.0,
                 "observed": 1.0,
             }
         elif kind == "DP-state":
@@ -508,7 +508,7 @@ class Network:
                 "sensory_precision": 1.0,
                 "activated": jnp.zeros(batch_size),
                 "value_coupling_children": (1.0,),
-                "values": 0.0,
+                "mean": 0.0,
                 "n_active_cluster": 0,
             }
 

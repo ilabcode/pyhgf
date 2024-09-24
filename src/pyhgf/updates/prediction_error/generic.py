@@ -10,7 +10,7 @@ from pyhgf.typing import Edges
 
 @partial(jit, static_argnames=("node_idx", "edges"))
 def generic_state_prediction_error(
-    attributes: Dict, edges: Edges, node_idx: int, value: float, observed: bool, **args
+    attributes: Dict, edges: Edges, node_idx: int, **args
 ) -> Dict:
     """Prediction error from a generic input node.
 
@@ -28,10 +28,6 @@ def generic_state_prediction_error(
         children.
     node_idx :
         Pointer to the value parent node that will be updated.
-    value :
-        The new observed value.
-    observed :
-        Whether value was observed or not.
 
     Returns
     -------
@@ -39,11 +35,7 @@ def generic_state_prediction_error(
         The attributes of the probabilistic nodes.
 
     """
-    # store value and time step in the node's parameters
-    attributes[node_idx]["mean"] = value
-    attributes[node_idx]["observed"] = observed
-
     for value_parent_idx in edges[node_idx].value_parents:  # type: ignore
-        attributes[value_parent_idx]["mean"] = value
+        attributes[value_parent_idx]["mean"] = attributes[node_idx]["mean"]
 
     return attributes

@@ -18,6 +18,4 @@ def test_generic_input():
         attributes=attributes,
         edges=edges,
         node_idx=0,
-        value=10.0,
-        observed=True,
     )

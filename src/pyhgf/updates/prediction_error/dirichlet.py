@@ -49,7 +49,7 @@ def dirichlet_node_prediction_error(
         The attributes of the probabilistic nodes.
 
     """
-    values = attributes[node_idx]["values"]  # the input value
+    values = attributes[node_idx]["mean"]  # the input value
     alpha = attributes[node_idx]["alpha"]  # the concentration parameter
     n_total = attributes[node_idx]["n_total"]  # total number of observations
     n = attributes[node_idx]["n"]  # number of observations per cluster
