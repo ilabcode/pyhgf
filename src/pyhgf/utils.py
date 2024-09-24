@@ -24,6 +24,7 @@ from pyhgf.updates.prediction.dirichlet import dirichlet_node_prediction
 from pyhgf.updates.prediction_error.binary import binary_state_node_prediction_error
 from pyhgf.updates.prediction_error.continuous import continuous_node_prediction_error
 from pyhgf.updates.prediction_error.dirichlet import dirichlet_node_prediction_error
+from pyhgf.updates.prediction_error.generic import generic_state_prediction_error
 
 if TYPE_CHECKING:
     from pyhgf.model import Network
@@ -415,10 +416,14 @@ def get_update_sequence(
                 # if this node has been updated
                 if idx not in nodes_without_posterior_update:
 
-                    if network.edges[idx].node_type == 1:
+                    if network.edges[idx].node_type == 0:
+                        update_fn = generic_state_prediction_error
+                    elif network.edges[idx].node_type == 1:
                         update_fn = binary_state_node_prediction_error
                     elif network.edges[idx].node_type == 2:
                         update_fn = continuous_node_prediction_error
+                    elif network.edges[idx].node_type == 3:
+                        update_fn = None
                     elif network.edges[idx].node_type == 4:
                         update_fn = dirichlet_node_prediction_error
 

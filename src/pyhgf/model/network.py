@@ -399,6 +399,7 @@ class Network:
             "ef-normal",
             "continuous-state",
             "binary-state",
+            "generic-state",
         ]:
             raise ValueError(
                 (
