@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from pyhgf.model import Network
-from pyhgf.updates.prediction_error.nodes.dirichlet import (
+from pyhgf.updates.prediction_error.dirichlet import (
     dirichlet_node_prediction_error,
     get_candidate,
 )
