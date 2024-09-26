@@ -22,17 +22,6 @@ Posterior updates
 
 Update the sufficient statistics of a state node after receiving prediction errors from children nodes. The prediction errors from all the children below the node should be computed before calling the posterior update step.
 
-Binary nodes
-------------
-
-.. currentmodule:: pyhgf.updates.posterior.binary
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.posterior.binary
-
-    binary_node_update_posterior_infinite
-    binary_node_update_posterior_finite
-
 
 Categorical nodes
 -----------------
@@ -42,7 +31,7 @@ Categorical nodes
 .. autosummary::
    :toctree: generated/pyhgf.updates.posterior.categorical
 
-    categorical_input_update
+    categorical_state_update
 
 Continuous nodes
 ----------------
@@ -109,55 +98,26 @@ Prediction error steps
 
 Compute the value and volatility prediction errors of a given node. The prediction error can only be computed after the posterior update (or observation) of a given node.
 
-Inputs
-------
-
-Binary inputs
-^^^^^^^^^^^^^
-
-.. currentmodule:: pyhgf.updates.prediction_error.inputs.binary
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.inputs.binary
-
-    binary_input_prediction_error_infinite_precision
-    binary_input_prediction_error_finite_precision
-
-Continuous inputs
-^^^^^^^^^^^^^^^^^
-
-.. currentmodule:: pyhgf.updates.prediction_error.inputs.continuous
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.inputs.continuous
-
-    continuous_input_volatility_prediction_error
-    continuous_input_value_prediction_error
-    continuous_input_prediction_error
-
-Generic input
-^^^^^^^^^^^^^
-
-.. currentmodule:: pyhgf.updates.prediction_error.inputs.generic
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.inputs.generic
-
-    generic_input_prediction_error
-
-State nodes
------------
-
-
 Binary state nodes
 ^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: pyhgf.updates.prediction_error.nodes.binary
+.. currentmodule:: pyhgf.updates.prediction_error.binary
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.nodes.binary
+   :toctree: generated/pyhgf.updates.prediction_error.binary
 
     binary_state_node_prediction_error
+    binary_finite_state_node_prediction_error
+
+Categorical state nodes
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.categorical
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.categorical
+
+    categorical_state_prediction_error
 
 Continuous state nodes
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -171,8 +131,8 @@ Continuous state nodes
     continuous_node_volatility_prediction_error
     continuous_node_prediction_error
 
-Dirichlet processes
-^^^^^^^^^^^^^^^^^^^
+Dirichlet state nodes
+^^^^^^^^^^^^^^^^^^^^^
 
 .. currentmodule:: pyhgf.updates.prediction_error.nodes.dirichlet
 
@@ -269,6 +229,7 @@ Utilities for manipulating neural networks.
    get_update_sequence
    to_pandas
    add_edges
+   get_input_idxs
 
 Math
 ****

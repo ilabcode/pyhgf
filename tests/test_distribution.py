@@ -54,7 +54,7 @@ def test_logp():
     assert jnp.isclose(log_likelihood.sum(), 1141.0585)
 
 
-def test_vectorized_logp():
+def test_vectorized_continuous_logp():
     """Test the vectorized version of the log-probability function."""
 
     timeseries = load_data("continuous")
@@ -151,6 +151,105 @@ def test_vectorized_logp():
     )
 
     assert jnp.isclose(log_likelihoods.sum(), 2282.1165).all()
+
+
+def test_vectorized_binary_logp():
+    """Test the vectorized version of the log-probability function."""
+
+    u, y = load_data("binary")
+    hgf = HGF(n_levels=2, model_type="binary")
+
+    # generate data with 2 parameters set
+    input_data = np.array([u] * 2)
+    time_steps = np.ones(shape=input_data.shape)
+
+    tonic_volatility_1 = -3.0
+    tonic_volatility_2 = -3.0
+    tonic_volatility_3 = jnp.nan
+    input_precision = jnp.nan
+    tonic_drift_1 = 0.0
+    tonic_drift_2 = 0.0
+    tonic_drift_3 = jnp.nan
+    precision_1 = jnp.nan
+    precision_2 = 1.0
+    precision_3 = jnp.nan
+    mean_1 = 0.5
+    mean_2 = 0.0
+    mean_3 = jnp.nan
+    volatility_coupling_1 = 1.0
+    volatility_coupling_2 = jnp.nan
+    response_function_parameters = jnp.ones(2)
+
+    # Broadcast inputs to an array with length n>=1
+    (
+        _tonic_volatility_1,
+        _tonic_volatility_2,
+        _tonic_volatility_3,
+        _input_precision,
+        _tonic_drift_1,
+        _tonic_drift_2,
+        _tonic_drift_3,
+        _precision_1,
+        _precision_2,
+        _precision_3,
+        _mean_1,
+        _mean_2,
+        _mean_3,
+        _volatility_coupling_1,
+        _volatility_coupling_2,
+        _,
+    ) = jnp.broadcast_arrays(
+        tonic_volatility_1,
+        tonic_volatility_2,
+        tonic_volatility_3,
+        input_precision,
+        tonic_drift_1,
+        tonic_drift_2,
+        tonic_drift_3,
+        precision_1,
+        precision_2,
+        precision_3,
+        mean_1,
+        mean_2,
+        mean_3,
+        volatility_coupling_1,
+        volatility_coupling_2,
+        jnp.zeros(2),
+    )
+
+    # create the vectorized version of the function
+    vectorized_logp_two_levels = vmap(
+        Partial(
+            logp,
+            hgf=hgf,
+            response_function=binary_softmax_inverse_temperature,
+        )
+    )
+
+    # model fit
+    log_likelihoods = vectorized_logp_two_levels(
+        input_data=input_data,
+        response_function_inputs=np.array([y] * 2),
+        response_function_parameters=response_function_parameters,
+        time_steps=time_steps,
+        mean_1=_mean_1,
+        mean_2=_mean_2,
+        mean_3=_mean_3,
+        precision_1=_precision_1,
+        precision_2=_precision_2,
+        precision_3=_precision_3,
+        tonic_volatility_1=_tonic_volatility_1,
+        tonic_volatility_2=_tonic_volatility_2,
+        tonic_volatility_3=_tonic_volatility_3,
+        tonic_drift_1=_tonic_drift_1,
+        tonic_drift_2=_tonic_drift_2,
+        tonic_drift_3=_tonic_drift_3,
+        volatility_coupling_1=_volatility_coupling_1,
+        volatility_coupling_2=_volatility_coupling_2,
+        input_precision=_input_precision,
+    )
+
+    assert jnp.isclose(log_likelihoods.sum(), -283.83594).all()
 
 
 def test_hgf_logp():
