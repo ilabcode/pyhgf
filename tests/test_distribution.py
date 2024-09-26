@@ -264,14 +264,10 @@ def test_hgf_logp():
         tonic_volatility_1=np.nan,
         tonic_volatility_2=-2.0,
         tonic_volatility_3=-6.0,
-        input_precision=np.inf,
-        tonic_drift_1=0.0,
-        tonic_drift_2=0.0,
-        tonic_drift_3=0.0,
         precision_1=np.nan,
         precision_2=1.0,
         precision_3=1.0,
-        mean_1=0.0,
+        mean_1=0.5,
         mean_2=0.0,
         mean_3=0.0,
         volatility_coupling_1=1.0,
@@ -562,7 +558,7 @@ def test_pymc_sampling():
 
     with pm.Model() as model:
         y_data = pm.Data("y_data", y)
-        tonic_volatility_2 = pm.Normal("tonic_volatility_2", -11.0, 2)
+        tonic_volatility_2 = pm.Normal("tonic_volatility_2", -3.0, 2)
         pm.CustomDist("likelihood", tonic_volatility_2, logp=logp, observed=y_data)
 
     initial_point = model.initial_point()
