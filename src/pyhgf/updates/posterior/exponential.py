@@ -51,7 +51,7 @@ def posterior_update_exponential_family(
     """
     # update the hyperparameter vectors
     xis = attributes[node_idx]["xis"] + (1 / (1 + attributes[node_idx]["nus"])) * (
-        sufficient_stats_fn(x=attributes[node_idx]["values"])
+        sufficient_stats_fn(x=attributes[node_idx]["mean"])
         - attributes[node_idx]["xis"]
     )
 

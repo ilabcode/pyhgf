@@ -565,7 +565,7 @@ def test_pymc_sampling():
 
     pointslogs = model.point_logps(initial_point)
     assert pointslogs["tonic_volatility_2"] == -1.61
-    assert pointslogs["likelihood"] == -212.59
+    assert pointslogs["likelihood"] == -141.92
 
     with model:
         idata = pm.sample(chains=2, cores=1, tune=1000)

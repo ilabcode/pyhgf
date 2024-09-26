@@ -142,7 +142,7 @@ def test_plotting_functions():
 
     # create the categorical HGF
     categorical_hgf = Network().add_nodes(
-        kind="categorical-input",
+        kind="categorical-state",
         node_parameters={
             "n_categories": 3,
             "binary_parameters": {"tonic_volatility_2": -2.0},
@@ -150,7 +150,9 @@ def test_plotting_functions():
     )
 
     # fitting the model forwards
-    categorical_hgf.input_data(input_data=input_data.T)
+    categorical_hgf.input_data(
+        input_data=(input_data, np.ones(input_data.shape, dtype=int))
+    )
 
     # plot node structures
     categorical_hgf.plot_network()

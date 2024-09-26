@@ -453,9 +453,10 @@ def get_update_sequence(
 
     # move all categorical steps at the end of the sequence
     for step in update_sequence:
-        if step[1].__name__ == "categorical_state_update":
-            update_sequence.remove(step)
-            update_sequence.append(step)
+        if not isinstance(step[1], Partial):
+            if step[1].__name__ == "categorical_state_update":
+                update_sequence.remove(step)
+                update_sequence.append(step)
 
     return tuple(prediction_sequence), tuple(update_sequence)
 
@@ -498,7 +499,7 @@ def to_pandas(network: "Network") -> pd.DataFrame:
     # ------------------------------------------------------------------------
     ef_indexes = [i for i in range(n_nodes) if network.edges[i].node_type == 3]
     for i in ef_indexes:
-        for var in ["nus", "xis", "values"]:
+        for var in ["nus", "xis", "mean"]:
             if network.node_trajectories[i][var].ndim == 1:
                 trajectories_df = pd.concat(
                     [
