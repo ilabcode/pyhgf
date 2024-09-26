@@ -8,8 +8,8 @@ from pyhgf.model import HGF, Network
 from pyhgf.response import total_gaussian_surprise
 
 
-def test_HGF():
-    """Test the model class"""
+def test_network():
+    """Test the network class"""
 
     #####################
     # Creating networks #
@@ -17,11 +17,10 @@ def test_HGF():
 
     custom_hgf = (
         Network()
-        .add_nodes(kind="continuous-input")
-        .add_nodes(kind="binary-input")
+        .add_nodes(kind="continuous-state")
+        .add_nodes(kind="binary-state")
         .add_nodes(value_children=0)
         .add_nodes(
-            kind="binary-state",
             value_children=1,
         )
         .add_nodes(value_children=[2, 3])
@@ -31,12 +30,14 @@ def test_HGF():
         .add_nodes(volatility_children=7)
     )
 
-    custom_hgf.cache_belief_propagation_fn()
     custom_hgf.create_belief_propagation_fn(overwrite=False)
     custom_hgf.create_belief_propagation_fn(overwrite=True)
 
-    custom_hgf.input_data(input_data=np.array([0.2, 1]))
+    custom_hgf.input_data(input_data=np.ones((10, 2)))
 
+
+def test_continuous_hgf():
+    """Test the continuous HGF"""
     ##############
     # Continuous #
     ##############
@@ -78,6 +79,10 @@ def test_HGF():
     # test an alternative response function
     sp = total_gaussian_surprise(three_level_continuous_hgf)
     assert jnp.isclose(sp.sum(), 1159.1089)
+
+
+def test_binary_hgf():
+    """Test the binary HGF"""
 
     ##########
     # Binary #
@@ -122,9 +127,14 @@ def test_HGF():
     surprise = three_level_binary_hgf.surprise()
     assert jnp.isclose(surprise.sum(), 215.59067)
 
+
+def test_custom_sequence():
+    """Test the continuous HGF"""
+
     ############################
     # dynamic update sequences #
     ############################
+    u, _ = load_data("binary")
 
     three_level_binary_hgf = HGF(
         n_levels=3,

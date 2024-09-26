@@ -120,31 +120,6 @@ class Network:
 
         return self
 
-    def cache_belief_propagation_fn(self) -> "Network":
-        """Blank call to the belief propagation function.
-
-        .. note:
-           This step is called by default when using py:meth:`input_data`. It can
-           sometimes be convenient to call this step independently to chache the JITed
-           function before fitting the model.
-
-        """
-        if self.scan_fn is None:
-            self = self.create_belief_propagation_fn()
-
-        # blanck call to cache the JIT-ed functions
-        _ = scan(
-            self.scan_fn,
-            self.attributes,
-            (
-                jnp.ones((1, len(self.input_idxs))),
-                jnp.ones((1, 1)),
-                jnp.ones((1, 1)),
-            ),
-        )
-
-        return self
-
     def input_data(
         self,
         input_data: Union[np.ndarray, tuple],
@@ -199,7 +174,11 @@ class Network:
 
                 # Interleave observations and masks
                 input_data = tuple(
-                    [item for pair in zip(observations, observed) for item in pair]
+                    [
+                        item.flatten()
+                        for pair in zip(observations, observed)
+                        for item in pair
+                    ]
                 )
 
         # time steps vector
@@ -226,6 +205,7 @@ class Network:
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
         observed: Optional[np.ndarray] = None,
+        input_idxs: Optional[Tuple[int]] = None,
     ):
         """Add new observations with custom update sequences.
 
@@ -263,22 +243,34 @@ class Network:
             Missing inputs are missing observations from the agent's perspective and
             should not be used to handle missing data points that were observed (e.g.
             missing in the event log, or rejected trials).
+        input_idxs :
+            Indexes on the state nodes receiving observations.
 
         """
-        if time_steps is None:
-            time_steps = np.ones(len(input_data))  # time steps vector
+        # set the input nodes indexes
+        if input_idxs is not None:
+            self.input_idxs = input_idxs
 
-        # concatenate data and time
-        if time_steps is None:
-            time_steps = np.ones((len(input_data), 1))  # time steps vector
-        else:
-            time_steps = time_steps[..., jnp.newaxis]
-        if input_data.ndim == 1:
-            input_data = input_data[..., jnp.newaxis]
+        # input_data should be a tuple of n by time_steps arrays
+        if not isinstance(input_data, tuple):
+            if observed is None:
+                observed = np.ones(input_data.shape, dtype=int)
+            if input_data.ndim == 1:
 
-        # is it observation or missing inputs
-        if observed is None:
-            observed = np.ones(input_data.shape, dtype=int)
+                # Interleave observations and masks
+                input_data = (input_data, observed)
+            else:
+                observed = jnp.hsplit(observed, input_data.shape[1])
+                observations = jnp.hsplit(input_data, input_data.shape[1])
+
+                # Interleave observations and masks
+                input_data = tuple(
+                    [item for pair in zip(observations, observed) for item in pair]
+                )
+
+        # time steps vector
+        if time_steps is None:
+            time_steps = np.ones(input_data[0].shape[0])
 
         # create the update functions that will be scanned
         branches_fn = [
@@ -286,28 +278,24 @@ class Network:
                 beliefs_propagation,
                 update_sequence=seq,
                 edges=self.edges,
+                input_idxs=self.input_idxs,
             )
             for seq in update_branches
         ]
 
         # create the function that will be scanned
         def switching_propagation(attributes, scan_input):
-            data, idx = scan_input
+            (*data, idx) = scan_input
             return switch(idx, branches_fn, attributes, data)
 
         # wrap the inputs
-        scan_input = (input_data, time_steps, observed), branches_idx
+        scan_input = (*input_data, time_steps, branches_idx)
 
         # scan over the input data and apply the switching belief propagation functions
         _, node_trajectories = scan(switching_propagation, self.attributes, scan_input)
 
         # the node structure at each value updates
         self.node_trajectories = node_trajectories
-
-        # because some of the input nodes might not have been updated, here we manually
-        # insert the input data to the input node (without triggering updates)
-        for idx, inp in zip(self.input_idxs, range(input_data.shape[1])):
-            self.node_trajectories[idx]["values"] = input_data[inp]
 
         return self
 
