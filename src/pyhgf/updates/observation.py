@@ -10,7 +10,7 @@ from jax import jit
 def set_observation(
     attributes: Dict,
     node_idx: int,
-    value: float,
+    values: float,
     observed: int,
 ) -> Dict:
     r"""Add observations to the target node by setting the posterior to a given value.
@@ -21,7 +21,7 @@ def set_observation(
         The attributes of the probabilistic network.
     node_idx :
         Pointer to the input node.
-    value :
+    values :
         The new observed value.
     observed :
         Whether value was observed or not.
@@ -32,7 +32,7 @@ def set_observation(
         The attributes of the probabilistic network.
 
     """
-    attributes[node_idx]["mean"] = value
+    attributes[node_idx]["mean"] = values
     attributes[node_idx]["observed"] = observed
 
     return attributes

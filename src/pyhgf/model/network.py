@@ -21,6 +21,7 @@ from pyhgf.typing import (
 from pyhgf.utils import (
     add_edges,
     beliefs_propagation,
+    fill_categorical_state_node,
     get_input_idxs,
     get_update_sequence,
     to_pandas,
@@ -146,9 +147,9 @@ class Network:
 
     def input_data(
         self,
-        input_data: np.ndarray,
+        input_data: Union[np.ndarray, tuple],
         time_steps: Optional[np.ndarray] = None,
-        observed: Optional[np.ndarray] = None,
+        observed: Optional[Union[np.ndarray, tuple]] = None,
         input_idxs: Optional[Tuple[int]] = None,
     ):
         """Add new observations.
@@ -184,21 +185,32 @@ class Network:
         if self.scan_fn is None:
             self = self.create_belief_propagation_fn()
 
+        # input_data should be a tuple of n by time_steps arrays
+        if not isinstance(input_data, tuple):
+            if observed is None:
+                observed = np.ones(input_data.shape, dtype=int)
+            if input_data.ndim == 1:
+
+                # Interleave observations and masks
+                input_data = (input_data, observed)
+            else:
+                observed = jnp.hsplit(observed, input_data.shape[1])
+                observations = jnp.hsplit(input_data, input_data.shape[1])
+
+                # Interleave observations and masks
+                input_data = tuple(
+                    [item for pair in zip(observations, observed) for item in pair]
+                )
+
         # time steps vector
         if time_steps is None:
-            time_steps = np.ones(input_data.shape[0])
-        if input_data.ndim == 1:
-            input_data = input_data[..., jnp.newaxis]
-
-        # is it an observation or a missing input
-        if observed is None:
-            observed = np.ones(input_data.shape, dtype=int)
+            time_steps = np.ones(input_data[0].shape[0])
 
         # this is where the model loops over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
         last_attributes, node_trajectories = scan(
-            self.scan_fn, self.attributes, (input_data, time_steps, observed)
+            self.scan_fn, self.attributes, (*input_data, time_steps)
         )
 
         # belief trajectories
@@ -397,6 +409,7 @@ class Network:
         if kind not in [
             "DP-state",
             "ef-normal",
+            "categorical-state",
             "continuous-state",
             "binary-state",
             "generic-state",
@@ -405,7 +418,7 @@ class Network:
                 (
                     "Invalid node type. Should be one of the following: "
                     "'DP-state', 'continuous-state', 'binary-state', 'ef-normal'."
-                    "'generic-state'"
+                    "'generic-state' or 'categorical-state'"
                 )
             )
 
@@ -489,6 +502,37 @@ class Network:
                 "mean": 0.0,
                 "observed": 1.0,
             }
+        elif kind == "categorical-state":
+            if "n_categories" in node_parameters:
+                n_categories = node_parameters["n_categories"]
+            elif "n_categories" in additional_parameters:
+                n_categories = additional_parameters["n_categories"]
+            else:
+                n_categories = 4
+            binary_parameters = {
+                "n_categories": n_categories,
+                "precision_1": 1.0,
+                "precision_2": 1.0,
+                "precision_3": 1.0,
+                "mean_1": 1 / n_categories,
+                "mean_2": -jnp.log(n_categories - 1),
+                "mean_3": 0.0,
+                "tonic_volatility_2": -4.0,
+                "tonic_volatility_3": -4.0,
+            }
+            binary_idxs: List[int] = [
+                1 + i + len(self.edges) for i in range(n_categories)
+            ]
+            default_parameters = {
+                "binary_idxs": binary_idxs,  # type: ignore
+                "n_categories": n_categories,
+                "surprise": 0.0,
+                "kl_divergence": 0.0,
+                "alpha": jnp.ones(n_categories),
+                "observed": jnp.ones(n_categories, dtype=int),
+                "mean": jnp.array([1.0 / n_categories] * n_categories),
+                "binary_parameters": binary_parameters,
+            }
         elif kind == "DP-state":
 
             if "batch_size" in additional_parameters.keys():
@@ -549,6 +593,8 @@ class Network:
             node_type = 3
         elif kind == "DP-state":
             node_type = 4
+        elif kind == "categorical-state":
+            node_type = 5
 
         for _ in range(n_nodes):
             # convert the structure to a list to modify it
@@ -609,6 +655,16 @@ class Network:
                     children_idxs=node_idx,
                     coupling_strengths=volatility_parents[1],  # type: ignore
                 )
+
+        if kind == "categorical-state":
+            # if we are creating a categorical state or state-transition node
+            # we have to generate the implied binary network(s) here
+            self = fill_categorical_state_node(
+                self,
+                node_idx=node_idx,
+                binary_states_idxs=node_parameters["binary_idxs"],  # type: ignore
+                binary_parameters=binary_parameters,
+            )
 
         return self
 

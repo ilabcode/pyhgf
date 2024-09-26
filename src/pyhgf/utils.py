@@ -13,6 +13,7 @@ from jax.typing import ArrayLike
 from pyhgf.math import Normal, binary_surprise, gaussian_surprise
 from pyhgf.typing import AdjacencyLists, Attributes, Edges, Sequence, UpdateSequence
 from pyhgf.updates.observation import set_observation
+from pyhgf.updates.posterior.categorical import categorical_state_update
 from pyhgf.updates.posterior.continuous import (
     continuous_node_posterior_update,
     continuous_node_posterior_update_ehgf,
@@ -22,6 +23,9 @@ from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
 from pyhgf.updates.prediction.dirichlet import dirichlet_node_prediction
 from pyhgf.updates.prediction_error.binary import binary_state_node_prediction_error
+from pyhgf.updates.prediction_error.categorical import (
+    categorical_state_prediction_error,
+)
 from pyhgf.updates.prediction_error.continuous import continuous_node_prediction_error
 from pyhgf.updates.prediction_error.dirichlet import dirichlet_node_prediction_error
 from pyhgf.updates.prediction_error.generic import generic_state_prediction_error
@@ -33,7 +37,7 @@ if TYPE_CHECKING:
 @partial(jit, static_argnames=("update_sequence", "edges", "input_idxs"))
 def beliefs_propagation(
     attributes: Attributes,
-    input_data: Tuple[ArrayLike, ArrayLike, ArrayLike],
+    inputs: Tuple[ArrayLike, ...],
     update_sequence: UpdateSequence,
     edges: Edges,
     input_idxs: Tuple[int],
@@ -54,12 +58,11 @@ def beliefs_propagation(
     attributes :
         The dictionaries of nodes' parameters. This variable is updated and returned
         after the beliefs propagation step.
-    input_data :
-        An array containing the new observation(s), the time steps as well as a boolean
-        mask for observed values. The new observations can be a single value or a
-        vector of observation with a length matching the length `inputs.idx`.
-        `inputs.idx` is used to index the ith value in the vector to the ith input
-        node, so the ordering of the input array matters. The time steps are the last
+    inputs :
+        A tuple of n by time steps arrays containing the new observation(s), the time
+        steps as well as a boolean mask for observed values. The new observations are a
+        tuple of array, with length equal to the number of input nodes. Each input node
+        can receive observations  The time steps are the last
         column of the array, the default is unit incrementation.
     update_sequence :
         The sequence of updates that will be applied to the node structure.
@@ -76,8 +79,8 @@ def beliefs_propagation(
     """
     prediction_steps, update_steps = update_sequence
 
-    # extract value(s) and time steps
-    values, time_step, mask = input_data
+    # unpack input data - input_values is a tuple of n x time steps arrays
+    (*input_data, time_step) = inputs
 
     attributes[-1]["time_step"] = time_step
 
@@ -95,12 +98,14 @@ def beliefs_propagation(
 
     # Observations
     # ------------
-    for value, node_idx, observed in zip(values, input_idxs, mask):
+    for values, observed, node_idx in zip(
+        input_data[::2], input_data[1::2], input_idxs
+    ):
 
         attributes = set_observation(
             attributes=attributes,
             node_idx=node_idx,
-            value=value,
+            values=values,
             observed=observed,
         )
 
@@ -182,7 +187,7 @@ def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List
 def fill_categorical_state_node(
     network: "Network",
     node_idx: int,
-    binary_input_idxs: List[int],
+    binary_states_idxs: List[int],
     binary_parameters: Dict,
 ) -> "Network":
     """Generate a binary network implied by categorical state(-transition) nodes.
@@ -193,8 +198,8 @@ def fill_categorical_state_node(
         Instance of a Network.
     node_idx :
         Index to the categorical state node.
-    binary_input_idxs :
-        The idexes of the binary input nodes.
+    binary_states_idxs :
+        The indexes of the binary state nodes.
     binary_parameters :
         Parameters for the set of implied binary HGFs.
 
@@ -204,42 +209,32 @@ def fill_categorical_state_node(
         The updated instance of the HGF model.
 
     """
-    # add the binary inputs - one for each category
+    # add the binary states - one for each category
     network.add_nodes(
-        kind="binary-input",
-        n_nodes=len(binary_input_idxs),
+        kind="binary-state",
+        n_nodes=len(binary_states_idxs),
         node_parameters={
-            key: binary_parameters[key] for key in ["eta0", "eta1", "binary_precision"]
+            "mean": binary_parameters["mean_1"],
+            "precision": binary_parameters["precision_1"],
         },
     )
 
-    # add the value dependency between the categorical and binary nodes
+    # add the value coupling between the categorical and binary states
     edges_as_list: List[AdjacencyLists] = list(network.edges)
     edges_as_list[node_idx] = AdjacencyLists(
-        0, tuple(binary_input_idxs), None, None, None, (None,)
+        5, tuple(binary_states_idxs), None, None, None, (None,)
     )
-    for binary_idx in binary_input_idxs:
+    for binary_idx in binary_states_idxs:
         edges_as_list[binary_idx] = AdjacencyLists(
-            0, None, None, (node_idx,), None, (None,)
+            1, None, None, (node_idx,), None, (None,)
         )
     network.edges = tuple(edges_as_list)
 
-    # loop over the number of categories and create as many second-levels binary HGF
-    for i in range(binary_parameters["n_categories"]):
-        # binary state node
-        network.add_nodes(
-            kind="binary-state",
-            value_children=binary_input_idxs[i],
-            node_parameters={
-                "mean": binary_parameters["mean_1"],
-                "precision": binary_parameters["precision_1"],
-            },
-        )
-
-    # add the continuous parent node
+    # add continuous state parent nodes
+    n_nodes = len(network.edges)
     for i in range(binary_parameters["n_categories"]):
         network.add_nodes(
-            value_children=binary_input_idxs[i] + binary_parameters["n_categories"],
+            value_children=i + n_nodes - binary_parameters["n_categories"],
             node_parameters={
                 "mean": binary_parameters["mean_2"],
                 "precision": binary_parameters["precision_2"],
@@ -251,7 +246,7 @@ def fill_categorical_state_node(
     # as a shared parents between the second level nodes
     network.add_nodes(
         volatility_children=[
-            idx + 2 * binary_parameters["n_categories"] for idx in binary_input_idxs
+            idx + binary_parameters["n_categories"] for idx in binary_states_idxs
         ],
         node_parameters={
             "mean": binary_parameters["mean_3"],
@@ -355,6 +350,7 @@ def get_update_sequence(
 
         # for all nodes that should apply posterior update -----------------------------
         # verify that all children have computed the prediction error
+        update_fn = None
         for idx in nodes_without_posterior_update:
             all_children = [
                 i
@@ -397,6 +393,7 @@ def get_update_sequence(
 
         # for all nodes that should apply prediction error------------------------------
         # verify that all children have been updated
+        update_fn = None
         for idx in nodes_without_prediction_error:
 
             all_parents = [
@@ -426,6 +423,13 @@ def get_update_sequence(
                         update_fn = None
                     elif network.edges[idx].node_type == 4:
                         update_fn = dirichlet_node_prediction_error
+                    elif network.edges[idx].node_type == 5:
+                        update_fn = categorical_state_prediction_error
+
+                        # add the update here, this will move at the end of the sequence
+                        update_sequence.append((idx, categorical_state_update))
+                    else:
+                        raise ValueError(f"Invalid node type encountered at node {idx}")
 
                     no_update = False
                     update_sequence.append((idx, update_fn))
@@ -446,6 +450,12 @@ def get_update_sequence(
         update for update in prediction_sequence if update[1] is not None
     ]
     update_sequence = [update for update in update_sequence if update[1] is not None]
+
+    # move all categorical steps at the end of the sequence
+    for step in update_sequence:
+        if step[1].__name__ == "categorical_state_update":
+            update_sequence.remove(step)
+            update_sequence.append(step)
 
     return tuple(prediction_sequence), tuple(update_sequence)
 

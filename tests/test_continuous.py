@@ -99,7 +99,7 @@ def test_nonlinear_coupling_fn():
         assert jnp.isclose(test_HGF.node_trajectories[3][idx][1], val)
 
 
-def test_scan_loop():
+def test_continuous_scan_loop():
     timeserie = load_data("continuous")
 
     two_level_hgf = (

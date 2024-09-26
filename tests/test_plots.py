@@ -37,7 +37,8 @@ def test_plotting_functions():
 
     # plot nodes
     two_level_continuous.plot_nodes(
-        node_idxs=2, show_current_state=True, show_observations=True
+        node_idxs=2,
+        show_posterior=True,
     )
 
     # Set up standard 3-level HGF for continuous inputs
@@ -62,7 +63,8 @@ def test_plotting_functions():
 
     # plot nodes
     three_level_continuous.plot_nodes(
-        node_idxs=2, show_current_state=True, show_observations=True
+        node_idxs=2,
+        show_posterior=True,
     )
 
     ##########
@@ -96,7 +98,8 @@ def test_plotting_functions():
 
     # plot node structures
     two_level_binary_hgf.plot_nodes(
-        node_idxs=2, show_current_state=True, show_observations=True
+        node_idxs=1,
+        show_posterior=True,
     )
 
     three_level_binary_hgf = HGF(
@@ -123,7 +126,8 @@ def test_plotting_functions():
 
     # plot node structures
     three_level_binary_hgf.plot_nodes(
-        node_idxs=2, show_current_state=True, show_observations=True
+        node_idxs=2,
+        show_posterior=True,
     )
 
     #############

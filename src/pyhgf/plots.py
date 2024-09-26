@@ -226,7 +226,7 @@ def plot_correlations(network: "Network") -> Axes:
     )
     ax.set_title("Correlations between the model trajectories")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", size=8)
-    ax.set_yticklabels(ax.get_xticklabels(), size=8)
+    ax.set_yticklabels(ax.get_yticklabels(), size=8)
 
     return ax
 
@@ -250,7 +250,7 @@ def plot_network(network: "Network") -> "Source":
     except ImportError:
         print(
             (
-                "Graphviz is required to plot the nodes structure. "
+                "Graphviz is required to plot networks. "
                 "See https://pypi.org/project/graphviz/"
             )
         )
@@ -287,12 +287,22 @@ def plot_network(network: "Network") -> "Source":
             )
 
         elif network.edges[idx].node_type == 4:
-            # Dirichlet PRocess state node
+            # Dirichlet Process state node
             graphviz_structure.node(
                 f"x_{idx}",
                 label=f"DP-{idx}",
                 style="filled",
                 shape="doublecircle",
+                fillcolor="#e2d8c1",
+            )
+
+        elif network.edges[idx].node_type == 5:
+            # Categorical state node
+            graphviz_structure.node(
+                f"x_{idx}",
+                label=f"Ca-{idx}",
+                style=style,
+                shape="diamond",
                 fillcolor="#e2d8c1",
             )
 
