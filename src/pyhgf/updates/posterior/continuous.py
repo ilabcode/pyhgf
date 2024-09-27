@@ -31,11 +31,8 @@ def posterior_update_mean_continuous_node(
 
     Where :math:`\kappa_j` is the volatility coupling strength between the child node
     and the state node and :math:`\delta_j^{(k)}` is the value prediction error that
-    was computed beforehand. If the child node is an input node, this value was
-    computed by
-    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
-    If the child node is a state node, this value was computed by
-    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
+    was computed beforehand by
+    :py:func:`pyhgf.updates.prediction_errors.continuous.continuous_node_value_prediction_error`.
 
     For non-linear value coupling:
 
@@ -75,11 +72,9 @@ def posterior_update_mean_continuous_node(
     with :math:`\Omega_j^{(k)}` the predicted volatility computed in the prediction
     step :py:func:`pyhgf.updates.prediction.predict_precision`.
 
-    If the child node is an input node, the volatility prediction error
+    If the child node is a continuous state node, the volatility prediction error
     :math:`\Delta_j^{(k)}` was computed by
-    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_volatility_prediction_error`.
-    If the child node is a state node, this value was computed by
-    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_volatility_prediction_error`.
+    :py:func:`pyhgf.updates.prediction_errors.continuous.continuous_node_volatility_prediction_error`.
 
     Parameters
     ----------
@@ -231,11 +226,8 @@ def posterior_update_precision_continuous_node(
 
     Where :math:`\kappa_j` is the volatility coupling strength between the child node
     and the state node and :math:`\delta_j^{(k)}` is the value prediction error that
-    was computed before hand. If the child node is an input node, this value was
-    computed by
-    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.
-    If the child node is a state node, this value was computed by
-    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.
+    was computed before hand by
+    :py:func:`pyhgf.updates.prediction_errors.continuous.continuous_node_value_prediction_error`.
 
     For non-linear value coupling:
 

@@ -20,7 +20,7 @@ def continuous_node_value_prediction_error(
 
     .. math::
 
-        :math:`\delta_j^{(k)} = \mu_j^{k} - \hat{\mu}_j^{k}`.
+        \delta_j^{(k)} = \mu_j^{k} - \hat{\mu}_j^{k}
 
     Parameters
     ----------
