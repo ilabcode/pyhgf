@@ -20,7 +20,7 @@ def continuous_node_value_prediction_error(
 
     .. math::
 
-        :math:`\delta_j^{(k)} = \mu_j^{k} - \hat{\mu}_j^{k}`.
+        \delta_j^{(k)} = \mu_j^{k} - \hat{\mu}_j^{k}
 
     Parameters
     ----------
@@ -49,6 +49,10 @@ def continuous_node_value_prediction_error(
     value_prediction_error = (
         attributes[node_idx]["mean"] - attributes[node_idx]["expected_mean"]
     )
+
+    # divide by the number of value parents
+    if attributes[node_idx]["value_coupling_parents"] is not None:
+        value_prediction_error /= len(attributes[node_idx]["value_coupling_parents"])
 
     # send to the value parent node for later use in the update step
     attributes[node_idx]["temp"]["value_prediction_error"] = value_prediction_error
@@ -100,6 +104,12 @@ def continuous_node_volatility_prediction_error(
         * (attributes[node_idx]["temp"]["value_prediction_error"]) ** 2
         - 1
     )
+
+    # divide by the number of volatility parents
+    if attributes[node_idx]["volatility_coupling_parents"] is not None:
+        volatility_prediction_error /= len(
+            attributes[node_idx]["volatility_coupling_parents"]
+        )
 
     attributes[node_idx]["temp"][
         "volatility_prediction_error"

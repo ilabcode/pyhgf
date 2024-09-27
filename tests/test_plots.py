@@ -37,7 +37,8 @@ def test_plotting_functions():
 
     # plot nodes
     two_level_continuous.plot_nodes(
-        node_idxs=2, show_current_state=True, show_observations=True
+        node_idxs=2,
+        show_posterior=True,
     )
 
     # Set up standard 3-level HGF for continuous inputs
@@ -62,7 +63,8 @@ def test_plotting_functions():
 
     # plot nodes
     three_level_continuous.plot_nodes(
-        node_idxs=2, show_current_state=True, show_observations=True
+        node_idxs=2,
+        show_posterior=True,
     )
 
     ##########
@@ -96,7 +98,8 @@ def test_plotting_functions():
 
     # plot node structures
     two_level_binary_hgf.plot_nodes(
-        node_idxs=2, show_current_state=True, show_observations=True
+        node_idxs=1,
+        show_posterior=True,
     )
 
     three_level_binary_hgf = HGF(
@@ -123,7 +126,8 @@ def test_plotting_functions():
 
     # plot node structures
     three_level_binary_hgf.plot_nodes(
-        node_idxs=2, show_current_state=True, show_observations=True
+        node_idxs=2,
+        show_posterior=True,
     )
 
     #############
@@ -138,7 +142,7 @@ def test_plotting_functions():
 
     # create the categorical HGF
     categorical_hgf = Network().add_nodes(
-        kind="categorical-input",
+        kind="categorical-state",
         node_parameters={
             "n_categories": 3,
             "binary_parameters": {"tonic_volatility_2": -2.0},
@@ -146,7 +150,9 @@ def test_plotting_functions():
     )
 
     # fitting the model forwards
-    categorical_hgf.input_data(input_data=input_data.T)
+    categorical_hgf.input_data(
+        input_data=(input_data, np.ones(input_data.shape, dtype=int))
+    )
 
     # plot node structures
     categorical_hgf.plot_network()

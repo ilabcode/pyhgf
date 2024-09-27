@@ -1,6 +1,5 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-import itertools
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
@@ -8,8 +7,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib.axes import Axes
-
-from pyhgf.typing import input_types
 
 if TYPE_CHECKING:
     from graphviz.sources import Source
@@ -21,8 +18,8 @@ def plot_trajectories(
     network: "Network",
     ci: bool = True,
     show_surprise: bool = True,
-    show_current_state: bool = False,
-    show_observations: bool = False,
+    show_posterior: bool = False,
+    show_total_surprise: bool = False,
     figsize: Tuple[int, int] = (18, 9),
     axs: Optional[Union[List, Axes]] = None,
 ) -> Axes:
@@ -40,14 +37,12 @@ def plot_trajectories(
     show_surprise :
         If `True` plot each node's surprise together with sufficient statistics.
         If `False`, only the input node's surprise is depicted.
-    show_current_state :
-        If `True`, plot the current mean and precision on the top of expected mean and
+    show_posterior :
+        If `True`, plot the posterior mean and precision on the top of expected mean and
         precision. Defaults to `False`.
-    show_observations :
-        If `True`, show the observations received from the child node(s). In the
-        situation of value coupled nodes, plot the mean of the child node(s). This
-        feature is not supported in the situation of volatility coupling. Defaults to
-        `False`.
+    show_total_surprise :
+        If `True`, plot the sum of surprises across all nodes in the bottom panel.
+        Defaults to `False`.
     figsize :
         The width and height of the figure. Defaults to `(18, 9)` for a two-level model,
         or to `(18, 12)` for a three-level model.
@@ -123,66 +118,67 @@ def plot_trajectories(
     """
     trajectories_df = network.to_pandas()
     n_nodes = len(network.edges)
-    palette = itertools.cycle(sns.color_palette())
 
     if axs is None:
-        _, axs = plt.subplots(nrows=n_nodes + 1, figsize=figsize, sharex=True)
-
-    # plot the input node(s)
-    # ----------------------
-    for i, input_idx in enumerate(network.inputs.idx):
-        plot_nodes(
-            network=network,
-            node_idxs=input_idx,
-            axs=axs[-2 - i],
-            show_surprise=show_surprise,
-            show_current_state=show_current_state,
-            ci=ci,
-            show_observations=show_observations,
+        _, axs = plt.subplots(
+            nrows=n_nodes + 1 if show_total_surprise else n_nodes,
+            figsize=figsize,
+            sharex=True,
         )
 
-    # plot continuous and binary nodes
-    # --------------------------------
-    ax_i = n_nodes - len(network.inputs.idx) - 1
-    for node_idx in range(0, n_nodes):
-        if node_idx not in network.inputs.idx:
-            # use different colors for each node
-            color = next(palette)
-            plot_nodes(
-                network=network,
-                node_idxs=node_idx,
-                axs=axs[ax_i],
-                color=color,
-                show_surprise=show_surprise,
-                show_current_state=show_current_state,
-                ci=ci,
-                show_observations=show_observations,
-            )
-            ax_i -= 1
+    # plot all nodes
+    # --------------
+    ax_i = n_nodes - 1
+    for node_idx in range(n_nodes):
 
-    # plot the global surprise of the model
-    # -------------------------------------
-    surprise_ax = axs[n_nodes].twinx()
-    surprise_ax.fill_between(
-        x=trajectories_df.time,
-        y1=trajectories_df.total_surprise,
-        y2=trajectories_df.total_surprise.min(),
-        label="Surprise",
-        color="#7f7f7f",
-        alpha=0.2,
-    )
-    surprise_ax.plot(
-        trajectories_df.time,
-        trajectories_df.total_surprise,
-        color="#2a2a2a",
-        linewidth=0.5,
-        zorder=-1,
-        label="Surprise",
-    )
-    sp = trajectories_df.total_surprise.sum()
-    surprise_ax.set_title(f"Total surprise: {sp:.2f}", loc="right")
-    surprise_ax.set_ylabel("Surprise")
-    surprise_ax.set_xlabel("Time")
+        if node_idx in network.input_idxs:
+            _show_posterior = True
+            color = "#4c72b0"
+        else:
+            _show_posterior = show_posterior
+            color = (
+                "#55a868"
+                if network.edges[node_idx].volatility_children is None
+                else "#c44e52"
+            )
+
+        # use different colors for each node
+        plot_nodes(
+            network=network,
+            node_idxs=node_idx,
+            axs=axs[ax_i],
+            color=color,
+            show_surprise=show_surprise,
+            show_posterior=_show_posterior,
+            ci=ci,
+        )
+        ax_i -= 1
+
+    # plot the total surprise of the model
+    # ------------------------------------
+    if show_total_surprise:
+        surprise_ax = axs[n_nodes].twinx()
+        surprise_ax.fill_between(
+            x=trajectories_df.time,
+            y1=trajectories_df.total_surprise,
+            y2=trajectories_df.total_surprise.min(),
+            label="Surprise",
+            color="#7f7f7f",
+            alpha=0.2,
+        )
+        surprise_ax.plot(
+            trajectories_df.time,
+            trajectories_df.total_surprise,
+            color="#2a2a2a",
+            linewidth=0.5,
+            zorder=-1,
+            label="Surprise",
+        )
+        sp = trajectories_df.total_surprise.sum()
+        surprise_ax.set_title(f"Total surprise: {sp:.2f}", loc="right")
+        surprise_ax.set_ylabel("Surprise")
+
+    axs[n_nodes - 1].set_xlabel("Time")
 
     return axs
 
@@ -205,10 +201,16 @@ def plot_correlations(network: "Network") -> Axes:
     trajectories_df = network.to_pandas()
     trajectories_df = pd.concat(
         [
+            trajectories_df[["time"]],
             trajectories_df[
-                ["time", "observation_input_0", "observation_input_0_surprise"]
+                [
+                    f"x_{i}_mean"
+                    for i in range(len(network.edges))
+                    if i in network.input_idxs
+                ]
             ],
             trajectories_df.filter(regex="expected"),
+            trajectories_df.filter(regex="surprise"),
         ],
         axis=1,
     )
@@ -216,7 +218,6 @@ def plot_correlations(network: "Network") -> Axes:
     correlation_mat = trajectories_df.corr()
     ax = sns.heatmap(
         correlation_mat,
-        annot=True,
         cmap="RdBu",
         vmin=-1,
         vmax=1,
@@ -224,6 +225,8 @@ def plot_correlations(network: "Network") -> Axes:
         square=True,
     )
     ax.set_title("Correlations between the model trajectories")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", size=8)
+    ax.set_yticklabels(ax.get_yticklabels(), size=8)
 
     return ax
 
@@ -247,7 +250,7 @@ def plot_network(network: "Network") -> "Source":
     except ImportError:
         print(
             (
-                "Graphviz is required to plot the nodes structure. "
+                "Graphviz is required to plot networks. "
                 "See https://pypi.org/project/graphviz/"
             )
         )
@@ -256,33 +259,28 @@ def plot_network(network: "Network") -> "Source":
 
     graphviz_structure.attr("node", shape="circle")
 
-    # set input nodes
-    for idx, kind in zip(network.inputs.idx, network.inputs.kind):
-        if kind == 0:
-            label, shape = f"Co-{idx}", "oval"
-        elif kind == 1:
-            label, shape = f"Bi-{idx}", "box"
-        elif kind == 2:
-            label, shape = f"Ca-{idx}", "diamond"
-        elif kind == 3:
-            label, shape = f"Ge-{idx}", "point"
-        graphviz_structure.node(
-            f"x_{idx}",
-            label=label,
-            style="filled",
-            shape=shape,
-        )
-
     # create the rest of nodes
     for idx in range(len(network.edges)):
 
-        if network.edges[idx].node_type == 1:
+        style = "filled" if idx in network.input_idxs else ""
+
+        if network.edges[idx].node_type == 0:
             # binary state node
-            graphviz_structure.node(f"x_{idx}", label=str(idx), shape="square")
+            graphviz_structure.node(
+                f"x_{idx}", label=str(idx), shape="ellipse", style=style
+            )
+
+        elif network.edges[idx].node_type == 1:
+            # binary state node
+            graphviz_structure.node(
+                f"x_{idx}", label=str(idx), shape="square", style=style
+            )
 
         elif network.edges[idx].node_type == 2:
             # Continuous state nore
-            graphviz_structure.node(f"x_{idx}", label=str(idx), shape="circle")
+            graphviz_structure.node(
+                f"x_{idx}", label=str(idx), shape="circle", style=style
+            )
 
         elif network.edges[idx].node_type == 3:
             # Exponential family state nore
@@ -295,12 +293,22 @@ def plot_network(network: "Network") -> "Source":
             )
 
         elif network.edges[idx].node_type == 4:
-            # Dirichlet PRocess state node
+            # Dirichlet Process state node
             graphviz_structure.node(
                 f"x_{idx}",
                 label=f"DP-{idx}",
                 style="filled",
                 shape="doublecircle",
+                fillcolor="#e2d8c1",
+            )
+
+        elif network.edges[idx].node_type == 5:
+            # Categorical state node
+            graphviz_structure.node(
+                f"x_{idx}",
+                label=f"Ca-{idx}",
+                style=style,
+                shape="diamond",
                 fillcolor="#e2d8c1",
             )
 
@@ -345,8 +353,7 @@ def plot_nodes(
     node_idxs: Union[int, List[int]],
     ci: bool = True,
     show_surprise: bool = True,
-    show_observations: bool = False,
-    show_current_state: bool = False,
+    show_posterior: bool = False,
     figsize: Tuple[int, int] = (12, 5),
     color: Optional[Union[Tuple, str]] = None,
     axs: Optional[Union[List, Axes]] = None,
@@ -373,14 +380,9 @@ def plot_nodes(
         If `True` the surprise, defined as the negative log probability of the
         observation given the expectation, is plotted in the backgroud of the figure
         as grey shadded area.
-    show_observations :
-        If `True`, show the observations received from the child node(s). In the
-        situation of value coupled nodes, plot the expected mean of the child
-        node(s). This feature is not supported in the situation of volatility coupling.
-        Defaults to `False`.
-    show_current_state :
-        If `True`, plot the current states (mean and precision) on the top of
-        expected states (mean and precision). Defaults to `False`.
+    show_posterior :
+        If `True`, plot the posterior mean and precision on the top of expected mean and
+        precision. Defaults to `False`.
     figsize :
         The width and height of the figure. Defaults to `(18, 9)` for a two-level model,
         or to `(18, 12)` for a three-level model.
@@ -436,40 +438,70 @@ def plot_nodes(
     if isinstance(node_idxs, int) | len(node_idxs) == 1:
         axs = [axs]
 
+    # plotting an input node
+    # ----------------------
     for i, node_idx in enumerate(node_idxs):
-        # plotting an input node
-        # ----------------------
-        if node_idx in network.inputs.idx:
-            input_type = network.inputs.kind[network.inputs.idx.index(node_idx)]
-            if input_type == 0:
+        if node_idx in network.input_idxs:
+            # plotting mean
+            axs[i].plot(
+                trajectories_df.time,
+                trajectories_df[f"x_{node_idx}_expected_mean"],
+                label="Expected mean",
+                color=color,
+                linewidth=1,
+                zorder=2,
+            )
+            axs[i].set_ylabel(rf"$\mu_{{{node_idx}}}$")
+
+            # continuous state node ----------------------------------------------------
+            if network.edges[node_idx].node_type == 2:
+                input_label = "Continuous"
                 axs[i].scatter(
                     x=trajectories_df.time,
-                    y=trajectories_df[f"observation_input_{node_idx}"],
+                    y=trajectories_df[f"x_{node_idx}_mean"],
                     s=3,
                     label="Input",
                     color="#2a2a2a",
                     zorder=10,
-                    alpha=0.5,
                 )
-            elif input_type == 1:
+                # plotting standard deviation
+                if ci is True:
+                    precision = trajectories_df[f"x_{node_idx}_expected_precision"]
+                    sd = np.sqrt(1 / precision)
+                    y1 = trajectories_df[f"x_{node_idx}_expected_mean"] - sd
+                    y2 = trajectories_df[f"x_{node_idx}_expected_mean"] + sd
+
+            # binary state node --------------------------------------------------------
+            elif network.edges[node_idx].node_type == 1:
+                input_label = "Binary"
                 axs[i].scatter(
                     x=trajectories_df.time,
-                    y=trajectories_df[f"observation_input_{node_idx}"],
+                    y=trajectories_df[f"x_{node_idx}_mean"],
                     label="Input",
-                    color="#4c72b0",
-                    alpha=0.2,
-                    edgecolors="k",
+                    color="#2a2a2a",
                     zorder=10,
+                    alpha=0.4,
                 )
 
-            # plotting standard deviation
+                # plotting standard deviation - in the case of a binary input node, the
+                # CI should be read from the value parent using the sigmoid transform
+                if ci is True:
+
+                    # get parent nodes and sum predictions
+                    mean_parent, precision_parent = 0.0, 0.0
+                    for idx in network.edges[node_idx].value_parents:  # type: ignore
+
+                        # compute  mu +/- sd at time t-1
+                        # and use the sigmoid transform before plotting
+                        mean_parent += trajectories_df[f"x_{idx}_expected_mean"]
+                        precision_parent += trajectories_df[
+                            f"x_{idx}_expected_precision"
+                        ]
+                    sd = np.sqrt(1 / precision_parent)
+                    y1 = 1 / (1 + np.exp(-mean_parent + sd))
+                    y2 = 1 / (1 + np.exp(-mean_parent - sd))
+
             if ci is True:
-                precision = trajectories_df[
-                    f"observation_input_{node_idx}_expected_precision"
-                ]
-                sd = np.sqrt(1 / precision)
-                y1 = trajectories_df[f"observation_input_{node_idx}"] - sd
-                y2 = trajectories_df[f"observation_input_{node_idx}"] + sd
 
                 axs[i].fill_between(
                     x=trajectories_df["time"],
@@ -479,15 +511,13 @@ def plot_nodes(
                     color=color,
                     zorder=2,
                 )
-            input_label = list(input_types.keys())[
-                input_type
-            ].capitalize()  # type: ignore
 
             axs[i].set_title(f"{input_label} Input Node {node_idx}", loc="left")
-            axs[i].legend()
+            axs[i].legend(loc="upper left")
+
+        # plotting state nodes
+        # --------------------
         else:
-            # plotting state nodes
-            # --------------------
 
             axs[i].set_title(
                 f"State Node {node_idx}",
@@ -496,10 +526,8 @@ def plot_nodes(
 
             # show the expected states
             # ------------------------
-
             # extract sufficient statistics from the data frame
             mean = trajectories_df[f"x_{node_idx}_expected_mean"]
-            precision = trajectories_df[f"x_{node_idx}_expected_precision"]
 
             # plotting mean
             axs[i].plot(
@@ -514,41 +542,10 @@ def plot_nodes(
 
             # plotting standard deviation
             if ci is True:
+                precision = trajectories_df[f"x_{node_idx}_expected_precision"]
                 sd = np.sqrt(1 / precision)
-                y1 = trajectories_df[f"x_{node_idx}_expected_mean"] - sd
-                y2 = trajectories_df[f"x_{node_idx}_expected_mean"] + sd
-
-                # if this is the value parent of an input node
-                # the CI should be treated diffeently
-                if network.edges[node_idx].value_children is not None:
-                    if np.any(
-                        [
-                            (
-                                i  # type : ignore
-                                in network.edges[  # type: ignore
-                                    node_idx  # type: ignore
-                                ].value_children  # type: ignore
-                            )
-                            and kind == 1
-                            for i, kind in enumerate(network.inputs.kind)
-                        ]
-                    ):
-                        # get parent node
-                        parent_idx = network.edges[  # type: ignore
-                            node_idx  # type: ignore
-                        ].value_parents[
-                            0
-                        ]  # type: ignore
-
-                        # compute  mu +/- sd at time t-1
-                        # and use the sigmoid transform before plotting
-                        mean_parent = trajectories_df[f"x_{parent_idx}_expected_mean"]
-                        precision_parent = trajectories_df[
-                            f"x_{parent_idx}_expected_precision"
-                        ]
-                        sd = np.sqrt(1 / precision_parent)
-                        y1 = 1 / (1 + np.exp(-mean_parent + sd))
-                        y2 = 1 / (1 + np.exp(-mean_parent - sd))
+                y1 = mean - sd
+                y2 = mean + sd
 
                 axs[i].fill_between(
                     x=trajectories_df.time,
@@ -563,101 +560,25 @@ def plot_nodes(
 
             # show the current states
             # -----------------------
-            if show_current_state:
+            if show_posterior:
                 # extract sufficient statistics from the data frame
                 mean = trajectories_df[f"x_{node_idx}_mean"]
-                precision = trajectories_df[f"x_{node_idx}_precision"]
 
-                # plotting mean
-                axs[i].plot(
-                    trajectories_df.time,
-                    mean,
-                    label="Mean",
-                    color="gray",
-                    linewidth=0.5,
-                    zorder=2,
-                    linestyle="--",
+                axs[i].scatter(
+                    x=trajectories_df.time,
+                    y=mean,
+                    s=3,
+                    label="Posterior",
+                    color="#2a2a2a",
+                    zorder=10,
+                    alpha=0.5,
                 )
-
-                # plotting standard deviation
-                if ci is True:
-                    sd = np.sqrt(1 / precision)
-                    axs[i].fill_between(
-                        x=trajectories_df.time,
-                        y1=trajectories_df[f"x_{node_idx}_mean"] - sd,
-                        y2=trajectories_df[f"x_{node_idx}_mean"] + sd,
-                        alpha=0.1,
-                        color=color,
-                        zorder=2,
-                    )
                 axs[i].legend(loc="lower left")
-
-            # plot the inputs from child nodes
-            # --------------------------------
-            if show_observations:
-                # value coupling
-                if network.edges[node_idx].value_children is not None:
-                    input_colors = plt.cm.cividis(
-                        np.linspace(
-                            0,
-                            1,
-                            len(network.edges[node_idx].value_children),  # type: ignore
-                        )
-                    )
-
-                    for ii, child_idx in enumerate(
-                        network.edges[node_idx].value_children  # type: ignore
-                    ):
-                        if child_idx not in network.inputs.idx:
-                            axs[i].scatter(
-                                trajectories_df.time,
-                                trajectories_df[f"x_{child_idx}_mean"],
-                                s=3,
-                                label=f"Value child node - {ii}",
-                                alpha=0.5,
-                                color=input_colors[ii],
-                                edgecolors="grey",
-                            )
-                            axs[i].plot(
-                                trajectories_df.time,
-                                trajectories_df[f"x_{child_idx}_mean"],
-                                linewidth=0.5,
-                                linestyle="--",
-                                alpha=0.5,
-                                color=input_colors[ii],
-                            )
-                        else:
-                            child_idx = np.where(
-                                np.array(network.inputs.idx) == child_idx
-                            )[0][0]
-                            axs[i].scatter(
-                                trajectories_df.time,
-                                trajectories_df[f"observation_input_{child_idx}"],
-                                s=3,
-                                label=f"Value child node - {ii}",
-                                alpha=0.3,
-                                color=input_colors[ii],
-                                edgecolors="grey",
-                            )
-                            axs[i].plot(
-                                trajectories_df.time,
-                                trajectories_df[f"observation_input_{child_idx}"],
-                                linewidth=0.5,
-                                linestyle="--",
-                                alpha=0.3,
-                                color=input_colors[ii],
-                            )
-                    axs[i].legend(loc="lower right")
 
         # plotting surprise
         # -----------------
         if show_surprise:
-            if node_idx in network.inputs.idx:
-                node_surprise = trajectories_df[
-                    f"observation_input_{node_idx}_surprise"
-                ].to_numpy()
-            else:
-                node_surprise = trajectories_df[f"x_{node_idx}_surprise"].to_numpy()
+            node_surprise = trajectories_df[f"x_{node_idx}_surprise"].to_numpy()
 
             if not np.isnan(node_surprise).all():
                 surprise_ax = axs[i].twinx()
@@ -675,6 +596,7 @@ def plot_nodes(
                     color="#7f7f7f",
                     alpha=0.1,
                     zorder=-1,
+                    label="Surprise",
                 )
 
                 # hide surprise if the input was not observed
@@ -687,7 +609,6 @@ def plot_nodes(
                     color="#2a2a2a",
                     linewidth=0.5,
                     zorder=-1,
-                    label="Surprise",
                 )
                 surprise_ax.set_ylabel("Surprise")
                 surprise_ax.legend(loc="upper right")

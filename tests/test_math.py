@@ -6,8 +6,18 @@ from pyhgf.math import (
     Normal,
     binary_surprise_finite_precision,
     gaussian_predictive_distribution,
+    gaussian_surprise,
     sigmoid_inverse_temperature,
 )
+
+
+def test_gaussian_surprise():
+    surprise = gaussian_surprise(
+        x=jnp.array([1.0, 1.0]),
+        expected_mean=jnp.array([0.0, 0.0]),
+        expected_precision=jnp.array([1.0, 1.0]),
+    )
+    assert jnp.all(jnp.isclose(surprise, 1.4189385))
 
 
 def test_multivariate_normal():

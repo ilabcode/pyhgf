@@ -15,15 +15,14 @@ from pyhgf.typing import (
     AdjacencyLists,
     Attributes,
     Edges,
-    Inputs,
     NetworkParameters,
     UpdateSequence,
-    input_types,
 )
 from pyhgf.utils import (
     add_edges,
     beliefs_propagation,
     fill_categorical_state_node,
+    get_input_idxs,
     get_update_sequence,
     to_pandas,
 )
@@ -61,16 +60,33 @@ class Network:
         """Initialize an empty neural network."""
         self.edges: Edges = ()
         self.node_trajectories: Dict = {}
-        self.attributes: Attributes = {}
+        self.attributes: Attributes = {-1: {"time_step": 0.0}}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
-        self.inputs: Inputs
 
-    def create_belief_propagation_fn(self, overwrite: bool = True) -> "Network":
+    @property
+    def input_idxs(self):
+        """Idexes of state nodes that can observe new data points by default."""
+        input_idxs = get_input_idxs(self.edges)
+
+        # set the autoconnection strength and tonic volatility to 0
+        for idx in input_idxs:
+            if self.edges[idx].node_type == 2:
+                self.attributes[idx]["autoconnection_strength"] = 0.0
+                self.attributes[idx]["tonic_volatility"] = 0.0
+        return input_idxs
+
+    @input_idxs.setter
+    def input_idxs(self, value):
+        self.input_idxs = value
+
+    def create_belief_propagation_fn(
+        self, overwrite: bool = True, update_type: str = "eHGF"
+    ) -> "Network":
         """Create the belief propagation function.
 
         .. note:
-        This step is called by default when using py:meth:`input_data`.
+           This step is called by default when using py:meth:`input_data`.
 
         Parameters
         ----------
@@ -78,64 +94,38 @@ class Network:
             If `True` (default), create a new belief propagation function and ignore
             preexisting values. Otherwise, do not create a new function if the attribute
             `scan_fn` is already defined.
+        update_type :
+            The type of update to perform for volatility coupling. Can be `"eHGF"`
+            (defaults) or `"standard"`. The eHGF update step was proposed as an
+            alternative to the original definition in that it starts by updating the
+            mean and then the precision of the parent node, which generally reduces the
+            errors associated with impossible parameter space and improves sampling.
 
         """
-        # create the network structure from edges and inputs
-        self.inputs = Inputs(self.inputs.idx, self.inputs.kind)
-        self.structure = (self.inputs, self.edges)
-
         # create the update sequence if it does not already exist
         if self.update_sequence is None:
-            self.set_update_sequence()
+            self.update_sequence = get_update_sequence(
+                network=self, update_type=update_type
+            )
 
         # create the belief propagation function
         # this function is used by scan to loop over observations
-        if self.scan_fn is None:
+        if (self.scan_fn is None) or overwrite:
             self.scan_fn = Partial(
                 beliefs_propagation,
                 update_sequence=self.update_sequence,
-                structure=self.structure,
+                edges=self.edges,
+                input_idxs=self.input_idxs,
             )
-        else:
-            if overwrite:
-                self.scan_fn = Partial(
-                    beliefs_propagation,
-                    update_sequence=self.update_sequence,
-                    structure=self.structure,
-                )
-
-        return self
-
-    def cache_belief_propagation_fn(self) -> "Network":
-        """Blank call to the belief propagation function.
-
-        .. note:
-           This step is called by default when using py:meth:`input_data`. It can
-           sometimes be convenient to call this step independently to chache the JITed
-           function before fitting the model.
-
-        """
-        if self.scan_fn is None:
-            self = self.create_belief_propagation_fn()
-
-        # blanck call to cache the JIT-ed functions
-        _ = scan(
-            self.scan_fn,
-            self.attributes,
-            (
-                jnp.ones((1, len(self.inputs.idx))),
-                jnp.ones((1, 1)),
-                jnp.ones((1, 1)),
-            ),
-        )
 
         return self
 
     def input_data(
         self,
-        input_data: np.ndarray,
+        input_data: Union[np.ndarray, tuple],
         time_steps: Optional[np.ndarray] = None,
-        observed: Optional[np.ndarray] = None,
+        observed: Optional[Union[np.ndarray, tuple]] = None,
+        input_idxs: Optional[Tuple[int]] = None,
     ):
         """Add new observations.
 
@@ -144,44 +134,65 @@ class Network:
         input_data :
             2d array of new observations (time x features).
         time_steps :
-            Time vector (optional). If `None`, the time vector will default to
-            `np.ones(len(input_data))`. This vector is automatically transformed
-            into a time steps vector.
+            Time steps vector (optional). If `None`, this will default to
+            `np.ones(len(input_data))`.
         observed :
-            A 2d boolean array masking `input_data`. In case of missing inputs, (i.e.
-            `observed` is `0`), the input node will have value and volatility set to
-            `0.0`. If the parent(s) of this input receive prediction error from other
-            children, they simply ignore this one. If they are not receiving other
-            prediction errors, they are updated by keeping the same mean by decreasing
-            the precision as a function of time to reflect the evolution of the
-            underlying Gaussian Random Walk.
+            A time * input node boolean array masking `input_data`. In case of missing
+            inputs, (i.e. `observed` is `0`), the input node will have value and
+            volatility set to `0.0`. If the parent(s) of this input receive prediction
+            error from other children, they simply ignore this one. If they are not
+            receiving other prediction errors, they are updated by keeping the same
+            mean by decreasing the precision as a function of time to reflect the
+            evolution of the underlying Gaussian Random Walk.
         .. warning::
             Missing inputs are missing observations from the agent's perspective and
             should not be used to handle missing data points that were observed (e.g.
             missing in the event log, or rejected trials).
+        input_idxs :
+            Indexes on the state nodes receiving observations.
 
         """
+        # set the input nodes indexes
+        if input_idxs is not None:
+            self.input_idxs = input_idxs
+
+        # belief propagation function
         if self.scan_fn is None:
             self = self.create_belief_propagation_fn()
-        if time_steps is None:
-            time_steps = np.ones((len(input_data), 1))  # time steps vector
-        else:
-            time_steps = time_steps[..., jnp.newaxis]
-        if input_data.ndim == 1:
-            input_data = input_data[..., jnp.newaxis]
 
-        # is it observation or missing inputs
-        if observed is None:
-            observed = np.ones(input_data.shape, dtype=int)
+        # input_data should be a tuple of n by time_steps arrays
+        if not isinstance(input_data, tuple):
+            if observed is None:
+                observed = np.ones(input_data.shape, dtype=int)
+            if input_data.ndim == 1:
+
+                # Interleave observations and masks
+                input_data = (input_data, observed)
+            else:
+                observed = jnp.hsplit(observed, input_data.shape[1])
+                observations = jnp.hsplit(input_data, input_data.shape[1])
+
+                # Interleave observations and masks
+                input_data = tuple(
+                    [
+                        item.flatten()
+                        for pair in zip(observations, observed)
+                        for item in pair
+                    ]
+                )
+
+        # time steps vector
+        if time_steps is None:
+            time_steps = np.ones(input_data[0].shape[0])
 
         # this is where the model loops over the whole input time series
         # at each time point, the node structure is traversed and beliefs are updated
         # using precision-weighted prediction errors
         last_attributes, node_trajectories = scan(
-            self.scan_fn, self.attributes, (input_data, time_steps, observed)
+            self.scan_fn, self.attributes, (*input_data, time_steps)
         )
 
-        # trajectories of the network attributes a each time point
+        # belief trajectories
         self.node_trajectories = node_trajectories
         self.last_attributes = last_attributes
 
@@ -194,12 +205,13 @@ class Network:
         input_data: np.ndarray,
         time_steps: Optional[np.ndarray] = None,
         observed: Optional[np.ndarray] = None,
+        input_idxs: Optional[Tuple[int]] = None,
     ):
         """Add new observations with custom update sequences.
 
-        This method should be used when the update sequence should be adapted to the
-        input data. (e.g. in the case of missing/null observations that should not
-        trigger node update).
+        This method should be used when the update sequence is function of the input
+        data. (e.g. in the case of missing/null observations that should not trigger
+        node update).
 
         .. note::
            When the dynamic adaptation of the update sequence is not required, it is
@@ -231,40 +243,53 @@ class Network:
             Missing inputs are missing observations from the agent's perspective and
             should not be used to handle missing data points that were observed (e.g.
             missing in the event log, or rejected trials).
+        input_idxs :
+            Indexes on the state nodes receiving observations.
 
         """
-        if time_steps is None:
-            time_steps = np.ones(len(input_data))  # time steps vector
+        # set the input nodes indexes
+        if input_idxs is not None:
+            self.input_idxs = input_idxs
 
-        # concatenate data and time
-        if time_steps is None:
-            time_steps = np.ones((len(input_data), 1))  # time steps vector
-        else:
-            time_steps = time_steps[..., jnp.newaxis]
-        if input_data.ndim == 1:
-            input_data = input_data[..., jnp.newaxis]
+        # input_data should be a tuple of n by time_steps arrays
+        if not isinstance(input_data, tuple):
+            if observed is None:
+                observed = np.ones(input_data.shape, dtype=int)
+            if input_data.ndim == 1:
 
-        # is it observation or missing inputs
-        if observed is None:
-            observed = np.ones(input_data.shape, dtype=int)
+                # Interleave observations and masks
+                input_data = (input_data, observed)
+            else:
+                observed = jnp.hsplit(observed, input_data.shape[1])
+                observations = jnp.hsplit(input_data, input_data.shape[1])
+
+                # Interleave observations and masks
+                input_data = tuple(
+                    [item for pair in zip(observations, observed) for item in pair]
+                )
+
+        # time steps vector
+        if time_steps is None:
+            time_steps = np.ones(input_data[0].shape[0])
 
         # create the update functions that will be scanned
         branches_fn = [
             Partial(
                 beliefs_propagation,
                 update_sequence=seq,
-                structure=self.structure,
+                edges=self.edges,
+                input_idxs=self.input_idxs,
             )
             for seq in update_branches
         ]
 
         # create the function that will be scanned
         def switching_propagation(attributes, scan_input):
-            data, idx = scan_input
+            (*data, idx) = scan_input
             return switch(idx, branches_fn, attributes, data)
 
         # wrap the inputs
-        scan_input = (input_data, time_steps, observed), branches_idx
+        scan_input = (*input_data, time_steps, branches_idx)
 
         # scan over the input data and apply the switching belief propagation functions
         _, node_trajectories = scan(switching_propagation, self.attributes, scan_input)
@@ -272,42 +297,16 @@ class Network:
         # the node structure at each value updates
         self.node_trajectories = node_trajectories
 
-        # because some of the input nodes might not have been updated, here we manually
-        # insert the input data to the input node (without triggering updates)
-        for idx, inp in zip(self.inputs.idx, range(input_data.shape[1])):
-            self.node_trajectories[idx]["values"] = input_data[inp]
-
         return self
 
     def get_network(self) -> NetworkParameters:
-        """Return the attributes, structure and update sequence defining the network."""
+        """Return the attributes, edges and update sequence defining the network."""
         if self.scan_fn is None:
             self = self.create_belief_propagation_fn()
 
         assert self.update_sequence is not None
 
-        return self.attributes, self.structure, self.update_sequence
-
-    def set_update_sequence(self, update_type: str = "eHGF") -> "Network":
-        """Generate an update sequence from the network's structure.
-
-        See :py:func:`pyhgf.networks.get_update_sequence` for more details.
-
-        Parameters
-        ----------
-        update_type :
-            The type of update to perform for volatility coupling. Can be `"eHGF"`
-            (defaults) or `"standard"`. The eHGF update step was proposed as an
-            alternative to the original definition in that it starts by updating the
-            mean and then the precision of the parent node, which generally reduces the
-            errors associated with impossible parameter space and improves sampling.
-
-        """
-        self.update_sequence = tuple(
-            get_update_sequence(network=self, update_type=update_type)
-        )
-
-        return self
+        return self.attributes, self.edges, self.update_sequence
 
     def add_nodes(
         self,
@@ -396,20 +395,18 @@ class Network:
 
         """
         if kind not in [
-            "continuous-input",
-            "binary-input",
-            "categorical-input",
             "DP-state",
             "ef-normal",
-            "generic-input",
+            "categorical-state",
             "continuous-state",
             "binary-state",
+            "generic-state",
         ]:
             raise ValueError(
                 (
                     "Invalid node type. Should be one of the following: "
-                    "'continuous-input', 'binary-input', 'categorical-input', "
                     "'DP-state', 'continuous-state', 'binary-state', 'ef-normal'."
+                    "'generic-state' or 'categorical-state'"
                 )
             )
 
@@ -467,64 +464,33 @@ class Network:
                     "effective_precision": 0.0,
                     "value_prediction_error": 0.0,
                     "volatility_prediction_error": 0.0,
-                    "expected_precision_children": 0.0,
                 },
             }
         elif kind == "binary-state":
             default_parameters = {
-                "mean": 0.0,
-                "expected_mean": 0.0,
+                "observed": 1,
+                "mean": 0,
+                "expected_mean": 0.5,
                 "precision": 1.0,
                 "expected_precision": 1.0,
-                "volatility_coupling_children": volatility_children[1],
-                "volatility_coupling_parents": volatility_parents[1],
-                "value_coupling_children": value_children[1],
                 "value_coupling_parents": value_parents[1],
-                "tonic_volatility": 0.0,
-                "tonic_drift": 0.0,
-                "autoconnection_strength": 1.0,
+                "temp": {
+                    "value_prediction_error": 0.0,
+                },
+            }
+        elif kind == "generic-state":
+            default_parameters = {
+                "mean": 0.0,
                 "observed": 1,
-                "binary_expected_precision": 0.0,
-                "temp": {
-                    "effective_precision": 0.0,
-                    "value_prediction_error": 0.0,
-                    "volatility_prediction_error": 0.0,
-                    "expected_precision_children": 0.0,
-                },
             }
-        elif kind == "generic-input":
+        elif "ef-normal" in kind:
             default_parameters = {
-                "values": 0.0,
-                "time_step": 0.0,
-                "observed": 0,
+                "nus": 3.0,
+                "xis": jnp.array([0.0, 1.0]),
+                "mean": 0.0,
+                "observed": 1.0,
             }
-        elif kind == "continuous-input":
-            default_parameters = {
-                "volatility_coupling_parents": None,
-                "value_coupling_parents": None,
-                "input_precision": 1e4,
-                "expected_precision": 1e4,
-                "time_step": 0.0,
-                "values": 0.0,
-                "surprise": 0.0,
-                "observed": 0,
-                "temp": {
-                    "effective_precision": 1.0,  # should be fixed to 1 for input nodes
-                    "value_prediction_error": 0.0,
-                    "volatility_prediction_error": 0.0,
-                },
-            }
-        elif kind == "binary-input":
-            default_parameters = {
-                "expected_precision": jnp.inf,
-                "eta0": 0.0,
-                "eta1": 1.0,
-                "time_step": 0.0,
-                "values": 0.0,
-                "observed": 0,
-                "surprise": 0.0,
-            }
-        elif kind == "categorical-input":
+        elif kind == "categorical-state":
             if "n_categories" in node_parameters:
                 n_categories = node_parameters["n_categories"]
             elif "n_categories" in additional_parameters:
@@ -532,14 +498,11 @@ class Network:
             else:
                 n_categories = 4
             binary_parameters = {
-                "eta0": 0.0,
-                "eta1": 1.0,
-                "binary_precision": jnp.inf,
                 "n_categories": n_categories,
                 "precision_1": 1.0,
                 "precision_2": 1.0,
                 "precision_3": 1.0,
-                "mean_1": 0.0,
+                "mean_1": 1 / n_categories,
                 "mean_2": -jnp.log(n_categories - 1),
                 "mean_3": 0.0,
                 "tonic_volatility_2": -4.0,
@@ -553,20 +516,10 @@ class Network:
                 "n_categories": n_categories,
                 "surprise": 0.0,
                 "kl_divergence": 0.0,
-                "time_step": jnp.nan,
                 "alpha": jnp.ones(n_categories),
-                "pe": jnp.zeros(n_categories),
-                "xi": jnp.array([1.0 / n_categories] * n_categories),
+                "observed": jnp.ones(n_categories, dtype=int),
                 "mean": jnp.array([1.0 / n_categories] * n_categories),
-                "values": jnp.zeros(n_categories),
                 "binary_parameters": binary_parameters,
-            }
-        elif "ef-normal" in kind:
-            default_parameters = {
-                "nus": 3.0,
-                "xis": jnp.array([0.0, 1.0]),
-                "values": 0.0,
-                "observed": 1.0,
             }
         elif kind == "DP-state":
 
@@ -587,7 +540,7 @@ class Network:
                 "sensory_precision": 1.0,
                 "activated": jnp.zeros(batch_size),
                 "value_coupling_children": (1.0,),
-                "values": 0.0,
+                "mean": 0.0,
                 "n_active_cluster": 0,
             }
 
@@ -617,29 +570,25 @@ class Network:
         default_parameters.update(node_parameters)
         node_parameters = default_parameters
 
-        if "input" in kind:
-            # "continuous": 0, "binary": 1, "categorical": 2, "generic": 3
-            input_type = input_types[kind.split("-")[0]]
-        else:
-            input_type = None
-
         # define the type of node that is created
-        if "input" in kind:
+        if kind == "generic-state":
             node_type = 0
-        elif "binary-state" in kind:
+        elif kind == "binary-state":
             node_type = 1
-        elif "continuous-state" in kind:
+        elif kind == "continuous-state":
             node_type = 2
-        elif "ef-normal" in kind:
+        elif kind == "ef-normal":
             node_type = 3
-        elif "DP-state" in kind:
+        elif kind == "DP-state":
             node_type = 4
+        elif kind == "categorical-state":
+            node_type = 5
 
         for _ in range(n_nodes):
             # convert the structure to a list to modify it
             edges_as_list: List = list(self.edges)
 
-            node_idx = len(self.attributes)  # the index of the new node
+            node_idx = len(self.edges)  # the index of the new node
 
             # for mutiple value children, set a default tuple with corresponding length
             if children_number != len(coupling_fn):
@@ -660,22 +609,8 @@ class Network:
             # convert the list back to a tuple
             self.edges = tuple(edges_as_list)
 
-            if node_idx == 0:
-                # this is the first node, create the node structure
-                self.attributes = {node_idx: deepcopy(node_parameters)}
-                if input_type is not None:
-                    self.inputs = Inputs((node_idx,), (input_type,))
-            else:
-                # update the node structure
-                self.attributes[node_idx] = deepcopy(node_parameters)
-
-                if input_type is not None:
-                    # add information about the new input node in the indexes
-                    new_idx = self.inputs.idx
-                    new_idx += (node_idx,)
-                    new_kind = self.inputs.kind
-                    new_kind += (input_type,)
-                    self.inputs = Inputs(new_idx, new_kind)
+            # update the node structure
+            self.attributes[node_idx] = deepcopy(node_parameters)
 
             # Update the edges of the parents and children accordingly
             # --------------------------------------------------------
@@ -709,13 +644,13 @@ class Network:
                     coupling_strengths=volatility_parents[1],  # type: ignore
                 )
 
-        if kind == "categorical-input":
+        if kind == "categorical-state":
             # if we are creating a categorical state or state-transition node
             # we have to generate the implied binary network(s) here
             self = fill_categorical_state_node(
                 self,
                 node_idx=node_idx,
-                binary_input_idxs=node_parameters["binary_idxs"],  # type: ignore
+                binary_states_idxs=node_parameters["binary_idxs"],  # type: ignore
                 binary_parameters=binary_parameters,
             )
 

@@ -49,7 +49,7 @@ def dirichlet_node_prediction_error(
         The attributes of the probabilistic nodes.
 
     """
-    values = attributes[node_idx]["values"]  # the input value
+    values = attributes[node_idx]["mean"]  # the input value
     alpha = attributes[node_idx]["alpha"]  # the concentration parameter
     n_total = attributes[node_idx]["n_total"]  # total number of observations
     n = attributes[node_idx]["n"]  # number of observations per cluster
@@ -158,7 +158,7 @@ def update_cluster(operands: Tuple, edges: Edges, node_idx: int) -> Attributes:
     for i, value_parent_idx in enumerate(edges[node_idx].value_parents):  # type: ignore
 
         attributes[value_parent_idx]["observed"] = jnp.where(cluster_idx == i, 1.0, 0.0)
-        attributes[value_parent_idx]["values"] = value
+        attributes[value_parent_idx]["mean"] = value
 
     attributes[node_idx]["n"] = (
         attributes[node_idx]["n"]
@@ -200,7 +200,7 @@ def create_cluster(operands: Tuple, edges: Edges, node_idx: int) -> Attributes:
     for i, value_parent_idx in enumerate(edges[node_idx].value_parents):  # type: ignore
 
         attributes[value_parent_idx]["observed"] = 0.0
-        attributes[value_parent_idx]["values"] = value
+        attributes[value_parent_idx]["mean"] = value
 
         # initialize the new cluster using candidate values
         attributes[value_parent_idx]["xis"] = jnp.where(

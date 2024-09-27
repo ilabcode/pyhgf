@@ -11,8 +11,8 @@ from pyhgf.typing import Edges
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def categorical_input_update(
-    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+def categorical_state_update(
+    attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the categorical input node given an array of binary observations.
 
@@ -29,8 +29,6 @@ def categorical_input_update(
         `"psis"` is the value coupling strength. It should have the same length as the
         volatility parents' indexes. `"volatility_coupling"` is the volatility coupling
         strength. It should have the same length as the volatility parents' indexes.
-    time_step :
-        The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the node that needs to be updated.
     edges :
@@ -49,56 +47,51 @@ def categorical_input_update(
     binary_input_update, continuous_input_update
 
     """
-    # get the expected values at time k from the binary inputs (X_1)
-    new_xi = jnp.array(
+    # get the expected values before the update
+    expected_mean = jnp.array(
         [
-            attributes[edges[vapa].value_parents[0]]["expected_mean"]
-            for vapa in edges[node_idx].value_parents  # type: ignore
+            attributes[value_parent_idx]["expected_mean"]
+            for value_parent_idx in edges[node_idx].value_parents  # type: ignore
         ]
     )
 
-    # the differential of expectations (parents predictions at time k and k-1)
-    delta_xi = new_xi - attributes[node_idx]["xi"]
+    # get the new values after the update from the continuous state
+    updated_mean = jnp.array(
+        [
+            attributes[edges[parent_idx].value_parents[0]]["mean"]
+            for parent_idx in edges[node_idx].value_parents  # type: ignore
+        ]
+    )
+    updated_mean = 1 / (1 + jnp.exp(-updated_mean))  # logit transform
 
-    # using the PE for the previous time point, we can compute nu and the alpha vector
-    pe = attributes[node_idx]["pe"]
+    # compute the prediction error (observed - expected) at time K
+    pe = attributes[node_idx]["mean"] - expected_mean
+
+    # the differential of expectations (parent posterior - parents expectation)
+    delta_xi = updated_mean - expected_mean
+
+    # using the new PE, we can update nu and the alpha vector
     nu = (pe / delta_xi) - 1
-    alpha = (nu * new_xi) + 1  # concentration parameters for the Dirichlet
+    alpha = (nu * expected_mean) + 1  # concentration parameters for the Dirichlet
 
-    # in case alpha contains NaNs (e.g. after the first time step,
-    # due to the absence of belief evolution)
-    alpha = jnp.where(jnp.isnan(alpha), 1.0, alpha)
-
-    # now retrieve the values observed at time k
-    attributes[node_idx]["values"] = jnp.array(
-        [
-            attributes[vapa]["values"]
-            for vapa in edges[node_idx].value_parents  # type: ignore
-        ]
-    )
-
-    # compute the prediction error at time K
-    pe = attributes[node_idx]["values"] - new_xi
-    attributes[node_idx]["pe"] = pe  # keep PE for later use at k+1
-    attributes[node_idx]["xi"] = new_xi  # keep expectation for later use at k+1
+    # in case alpha contains NaNs
+    # alpha = jnp.where(jnp.isnan(alpha), 1.0, alpha)
 
     # compute Bayesian surprise as :
     # 1 - KL divergence from the concentration parameters
-    # 2 - the sum of binary surprises observed in the parents nodes
     attributes[node_idx]["kl_divergence"] = dirichlet_kullback_leibler(
         attributes[node_idx]["alpha"], alpha
     )
+    # 2 - the sum of binary surprises observed in the parents nodes
     attributes[node_idx]["surprise"] = jnp.sum(
-        binary_surprise(
-            x=attributes[node_idx]["values"], expected_mean=attributes[node_idx]["xi"]
-        )
+        binary_surprise(x=attributes[node_idx]["mean"], expected_mean=expected_mean)
     )
 
     # save the new concentration parameters
     attributes[node_idx]["alpha"] = alpha
+    attributes[node_idx]["mean"] = updated_mean
 
     # prediction mean
-    attributes[node_idx]["mean"] = alpha / jnp.sum(alpha)
-    attributes[node_idx]["time_step"] = time_step
+    # attributes[node_idx]["mean"] = alpha / jnp.sum(alpha)
 
     return attributes

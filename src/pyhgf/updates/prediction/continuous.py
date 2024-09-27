@@ -13,7 +13,6 @@ from pyhgf.typing import Edges
 def predict_mean(
     attributes: Dict,
     edges: Edges,
-    time_step: float,
     node_idx: int,
 ) -> Array:
     r"""Compute the expected mean of a continuous state node.
@@ -54,8 +53,6 @@ def predict_mean(
         The edges of the probabilistic network as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the number of
         nodes. For each node, the index list value/volatility - parents/children.
-    time_step :
-        The time interval between the previous time point and the current time point.
     node_idx :
         Index of the node that should be updated.
 
@@ -71,6 +68,8 @@ def predict_mean(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
+    time_step = attributes[-1]["time_step"]
+
     # List the node's value parents
     value_parents_idxs = edges[node_idx].value_parents
 
@@ -104,9 +103,7 @@ def predict_mean(
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
-def predict_precision(
-    attributes: Dict, edges: Edges, time_step: float, node_idx: int
-) -> Array:
+def predict_precision(attributes: Dict, edges: Edges, node_idx: int) -> Array:
     r"""Compute the expected precision of a continuous state node.
 
     The expected precision at time :math:`k` for a state node :math:`a` is given by:
@@ -145,8 +142,6 @@ def predict_precision(
         The edges of the probabilistic network as a tuple of
         :py:class:`pyhgf.typing.Indexes`. The tuple has the same length as the number of
         nodes. For each node, the index list value/volatility - parents/children.
-    time_step :
-        The time interval between the previous time point and the current time point.
     node_idx :
         Index of the node that should be updated.
 
@@ -165,6 +160,8 @@ def predict_precision(
        arXiv. https://doi.org/10.48550/ARXIV.2305.10937
 
     """
+    time_step = attributes[-1]["time_step"]
+
     # List the node's volatility parents
     volatility_parents_idxs = edges[node_idx].volatility_parents
 
@@ -201,7 +198,7 @@ def predict_precision(
 
 @partial(jit, static_argnames=("edges", "node_idx"))
 def continuous_node_prediction(
-    attributes: Dict, time_step: float, node_idx: int, edges: Edges, **args
+    attributes: Dict, node_idx: int, edges: Edges, **args
 ) -> Dict:
     """Update the expected mean and expected precision of a continuous node.
 
@@ -214,8 +211,6 @@ def continuous_node_prediction(
         strength with children and parents (i.e. `"value_coupling_parents"`,
         `"value_coupling_children"`, `"volatility_coupling_parents"`,
         `"volatility_coupling_children"`).
-    time_step :
-        The interval between the previous time point and the current time point.
     node_idx :
         Pointer to the node that will be updated.
     edges :
@@ -241,15 +236,27 @@ def continuous_node_prediction(
 
     """
     # Get the new expected mean
-    expected_mean = predict_mean(attributes, edges, time_step, node_idx)
+    expected_mean = predict_mean(attributes, edges, node_idx)
 
     # Get the new expected precision and predicted volatility (Ω)
     expected_precision, effective_precision = predict_precision(
-        attributes, edges, time_step, node_idx
+        attributes, edges, node_idx
     )
 
     # Update this node's parameters
-    attributes[node_idx]["expected_precision"] = expected_precision
+
+    # 1. input node without volatility parent
+    if (
+        (edges[node_idx].value_children is None)
+        and (edges[node_idx].volatility_children is None)
+        and (edges[node_idx].volatility_parents is None)
+    ):
+        attributes[node_idx]["expected_precision"] = attributes[node_idx]["precision"]
+
+    # 2. regular continuous state node, or input with volatility parent
+    else:
+        attributes[node_idx]["expected_precision"] = expected_precision
+
     attributes[node_idx]["temp"]["effective_precision"] = effective_precision
     attributes[node_idx]["expected_mean"] = expected_mean
 

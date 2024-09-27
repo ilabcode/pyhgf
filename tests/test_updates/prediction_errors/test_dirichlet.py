@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from pyhgf.model import Network
-from pyhgf.updates.prediction_error.nodes.dirichlet import (
+from pyhgf.updates.prediction_error.dirichlet import (
     dirichlet_node_prediction_error,
     get_candidate,
 )
@@ -26,7 +26,7 @@ def test_dirichlet_node_prediction_error():
 
     network = (
         Network()
-        .add_nodes(kind="generic-input")
+        .add_nodes(kind="generic-state")
         .add_nodes(kind="DP-state", value_children=0, batch_size=2)
         .add_nodes(
             kind="ef-normal",
@@ -37,7 +37,7 @@ def test_dirichlet_node_prediction_error():
         )
     )
 
-    attributes, (_, edges), _ = network.get_network()
+    attributes, edges, _ = network.get_network()
     dirichlet_node_prediction_error(
         edges=edges,
         attributes=attributes,

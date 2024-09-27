@@ -39,15 +39,13 @@ def first_level_gaussian_surprise(
     # compute the sum of Gaussian surprise at the first level
     # the input value at time t is compared to the Gaussian prediction at t-1
     surprise = gaussian_surprise(
-        x=hgf.node_trajectories[0]["values"],
+        x=hgf.node_trajectories[0]["mean"],
         expected_mean=hgf.node_trajectories[1]["expected_mean"],
         expected_precision=hgf.node_trajectories[1]["expected_precision"],
     )
 
     # Return an infinite surprise if the model could not fit at any point
-    return jnp.where(
-        jnp.any(jnp.isnan(hgf.node_trajectories[1]["mean"])), jnp.inf, surprise
-    )
+    return jnp.where(jnp.isnan(surprise), jnp.inf, surprise)
 
 
 def total_gaussian_surprise(
@@ -74,23 +72,12 @@ def total_gaussian_surprise(
 
     """
     # compute the sum of Gaussian surprise across every node
-    surprise = jnp.zeros(len(hgf.node_trajectories[0]["values"]))
-
-    # first we start with nodes that are value parents to input nodes
-    input_parents_list = []
-    for idx in hgf.inputs.idx:
-        va_pa = hgf.edges[idx].value_parents[0]  # type: ignore
-        input_parents_list.append(va_pa)
-        surprise += gaussian_surprise(
-            x=hgf.node_trajectories[idx]["values"],
-            expected_mean=hgf.node_trajectories[va_pa]["expected_mean"],
-            expected_precision=hgf.node_trajectories[va_pa]["expected_precision"],
-        )
+    surprise = 0.0
 
     # then we do the same for every node that is not an input node
     # and not the parent of an input node
     for i in range(len(hgf.edges)):
-        if (i not in hgf.inputs.idx) and (i not in input_parents_list):
+        if hgf.edges[i].node_type == 2:
             surprise += gaussian_surprise(
                 x=hgf.node_trajectories[i]["mean"],
                 expected_mean=hgf.node_trajectories[i]["expected_mean"],
@@ -106,12 +93,12 @@ def total_gaussian_surprise(
 def first_level_binary_surprise(
     hgf: "HGF", response_function_inputs=None, response_function_parameters=None
 ) -> float:
-    """Sum of the binary surprise along the time series (binary HGF).
+    """Time series of binary surprises for all binary state nodes.
 
     .. note::
       The binary surprise is the default method to compute surprise when
-      `model_type=="binary"`, therefore this method will only return the sum of
-      valid time points, and `jnp.inf` if the model could not fit.
+      `model_type=="binary"`, therefore this method will only return the valid time
+      points, and `jnp.inf` if the model could not fit.
 
     Parameters
     ----------
@@ -128,10 +115,12 @@ def first_level_binary_surprise(
         The model's surprise given the input data.
 
     """
-    surprise = binary_surprise(
-        expected_mean=hgf.node_trajectories[1]["expected_mean"],
-        x=hgf.node_trajectories[0]["values"],
-    )
+    surprise = jnp.zeros(len(hgf.node_trajectories[-1]["time_step"]))
+    for binary_input_idx in hgf.input_idxs:
+        surprise += binary_surprise(
+            expected_mean=hgf.node_trajectories[binary_input_idx]["expected_mean"],
+            x=hgf.node_trajectories[binary_input_idx]["mean"],
+        )
 
     # Return an infinite surprise if the model cannot fit
     surprise = jnp.where(
@@ -167,7 +156,7 @@ def binary_softmax(
 
     """
     # the expected values at the first level of the HGF
-    beliefs = hgf.node_trajectories[1]["expected_mean"]
+    beliefs = hgf.node_trajectories[0]["expected_mean"]
 
     # the binary surprises
     surprise = binary_surprise(x=response_function_inputs, expected_mean=beliefs)
@@ -213,10 +202,10 @@ def binary_softmax_inverse_temperature(
     """
     # the expected values at the first level of the HGF
     beliefs = (
-        hgf.node_trajectories[1]["expected_mean"] ** response_function_parameters
+        hgf.node_trajectories[0]["expected_mean"] ** response_function_parameters
     ) / (
-        hgf.node_trajectories[1]["expected_mean"] ** response_function_parameters
-        + (1 - hgf.node_trajectories[1]["expected_mean"])
+        hgf.node_trajectories[0]["expected_mean"] ** response_function_parameters
+        + (1 - hgf.node_trajectories[0]["expected_mean"])
         ** response_function_parameters
     )
 

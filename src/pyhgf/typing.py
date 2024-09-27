@@ -1,6 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from typing import Callable, Dict, NamedTuple, Optional, Tuple
+from typing import Callable, Dict, NamedTuple, Optional, Tuple, Union
 
 
 class AdjacencyLists(NamedTuple):
@@ -27,27 +27,15 @@ class AdjacencyLists(NamedTuple):
     coupling_fn: Tuple[Optional[Callable], ...]
 
 
-class Inputs(NamedTuple):
-    """Input nodes type and index."""
-
-    idx: Tuple[int, ...]
-    kind: Tuple[int, ...]
-
-
 # the nodes' attributes
-Attributes = Dict[int, Dict]
+Attributes = Dict[Union[int, str], Dict]
 
 # the network edges
 Edges = Tuple[AdjacencyLists, ...]
 
-# the network structure (the edges and the inputs info)
-Structure = Tuple[Inputs, Edges]
-
 # the update sequence
-UpdateSequence = Tuple[Tuple[int, Callable], ...]
+Sequence = Tuple[Tuple[int, Callable], ...]
+UpdateSequence = Tuple[Sequence, Sequence]
 
 # a fully defined network
-NetworkParameters = Tuple[Attributes, Structure, UpdateSequence]
-
-# encoding input types using intergers
-input_types = {"continuous": 0, "binary": 1, "categorical": 2, "generic": 3}
+NetworkParameters = Tuple[Attributes, Edges, UpdateSequence]

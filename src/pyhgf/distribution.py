@@ -47,54 +47,66 @@ def logp(
     Parameters
     ----------
     mean_1 :
-        The mean at the first level of the HGF.
+        The mean at the first level of the HGF. For the continuous HGF, this is the mean
+        of the first value parent (x_1). For the binary HGF this is the mean of the
+        binary state node (x_0).
     mean_2 :
-        The mean at the second level of the HGF.
+        The mean at the second level of the HGF. For the continuous HGF, this is the
+        mean of the first volatility parent (x_2). For the binary HGF this is the mean
+        of the first continuous state node (x_1).
     mean_3 :
         The mean at the third level of the HGF. The value of this parameter will be
-        ignored when using a two-level HGF (`n_levels=2`).
+        ignored when using a two-level HGF (`n_levels=2`). For the continuous HGF, this
+        is the mean of the second volatility parent (x_3). For the binary HGF this is
+        the mean of the first volatility parent (x_2).
     precision_1 :
-        The precision at the first level of the HGF.
+        The precision at the first level of the HGF. For the continuous HGF, this is the
+        precision of the first value parent (x_1). For the binary HGF this is the
+        precision of the binary state node (x_0).
     precision_2 :
-        The precision at the second level of the HGF.
+        The precision at the second level of the HGF. For the continuous HGF, this is
+        the precision of the first volatility parent (x_2). For the binary HGF this is
+        the precision of the first continuous state node (x_1).
     precision_3 :
         The precision at the third level of the HGF. The value of this parameter will
-        be ignored when using a two-level HGF (`n_levels=2`).
+        be ignored when using a two-level HGF (`n_levels=2`). For the continuous HGF,
+        this is the precision of the second volatility parent (x_3). For the binary HGF
+        this is the precision of the first volatility parent (x_2).
     tonic_volatility_1 :
-        The tonic volatility at the first level of the HGF. This parameter represents
-        the tonic part of the variance (the part that is not inherited from parent
-        nodes).
+        The tonic volatility at the first level (x_1 for the continuous HGF, x_2 for the
+        binary HGF). This parameter represents the tonic part of the variance (the part
+        that is not inherited from parent nodes).
     tonic_volatility_2 :
-        The tonic volatility at the second level of the HGF. This parameter represents
-        the tonic part of the variance (the part that is not inherited from parent
-        nodes).
+        The tonic volatility at the second level (x_2 for the continuous HGF, x_3 for
+        the binary HGF). This parameter represents the tonic part of the variance (the
+        part that is not inherited from parent nodes).
     tonic_volatility_3 :
         The tonic volatility at the third level of the HGF. This parameter represents
         the tonic part of the variance (the part that is not inherited from parent
-        nodes). The value of this parameter will be ignored when using a two-level HGF
-        (`n_levels=2`).
+        nodes). This parameter is only used for a three-level continuous HGF.
     tonic_drift_1 :
-        The tonic drift at the first level of the HGF. This parameter represents the
-        drift of the random walk.
+        The tonic drift at the first level of the HGF (x_1 for the continuous HGF,
+        x_2 for the binary HGF). This parameter represents the drift of the random walk.
     tonic_drift_2 :
-        The tonic drift at the second level of the HGF. This parameter represents the
-        drift of the random walk.
+        The tonic drift at the second level of the HGF (x_2 for the continuous HGF,
+        x_3 for the binary HGF). This parameter represents the drift of the random walk.
     tonic_drift_3 :
         The tonic drift at the third level of the HGF. This parameter represents the
-        drift of the random walk. The value of this parameter will be ignored when
-        using a two-level HGF (`n_levels=2`).
+        drift of the random walk. This parameter is only used for a three-level
+        continuous HGF.
     volatility_coupling_1 :
-        The volatility coupling between the first and second levels of the HGF. This
-        represents the phasic part of the variance (the part affected by the
+        The volatility coupling between the first and second levels of the HGF (between
+        x_1 and x_2 for a continuous HGF, and between x_2 and x_3 for a binary HGF).
+        This represents the phasic part of the variance (the part affected by the
         parent nodes). Defaults to `1.0` (full connectivity).
     volatility_coupling_2 :
-        The volatility coupling between the second and third levels of the HGF. This
-        represents the phasic part of the variance (the part affected by the
-        parent nodes). Defaults to `1.0`  (full connectivity). The value of this
-        parameter will be ignored when using a two-level HGF (`n_levels=2`).
+        The volatility coupling between the second and third levels of the HGF (x_2 and
+        x_2 for a continuous HGF, not applicable to a binary HGF). This represents the
+        phasic part of the variance (the part affected by the parent nodes). Defaults
+        to `1.0`  (full connectivity). The value of this parameter will be ignored when
+        using a two-level HGF (`n_levels=2`).
     input_precision :
-        The expected precision associated with the continuous or binary input, depending
-        on the model type.
+        The expected precision associated with the continuous input.
     response_function_parameters :
         An array of additional parameters that will be passed to the response function
         to compute the surprise. This can include values over which inference is
@@ -119,29 +131,54 @@ def logp(
         The log-probability (negative surprise).
 
     """
-    # update this network's attributes
-    hgf.attributes[0]["expected_precision"] = input_precision
+    if hgf.model_type == "continuous":
 
-    hgf.attributes[1]["mean"] = mean_1
-    hgf.attributes[2]["mean"] = mean_2
+        # update this network's attributes
+        hgf.attributes[0]["precision"] = input_precision
 
-    hgf.attributes[1]["precision"] = precision_1
-    hgf.attributes[2]["precision"] = precision_2
+        hgf.attributes[1]["mean"] = mean_1
+        hgf.attributes[2]["mean"] = mean_2
 
-    hgf.attributes[1]["tonic_volatility"] = tonic_volatility_1
-    hgf.attributes[2]["tonic_volatility"] = tonic_volatility_2
+        hgf.attributes[1]["precision"] = precision_1
+        hgf.attributes[2]["precision"] = precision_2
 
-    hgf.attributes[1]["tonic_drift"] = tonic_drift_1
-    hgf.attributes[2]["tonic_drift"] = tonic_drift_2
+        hgf.attributes[1]["tonic_volatility"] = tonic_volatility_1
+        hgf.attributes[2]["tonic_volatility"] = tonic_volatility_2
 
-    hgf.attributes[2]["volatility_coupling"] = (volatility_coupling_1,)
+        hgf.attributes[1]["tonic_drift"] = tonic_drift_1
+        hgf.attributes[2]["tonic_drift"] = tonic_drift_2
 
-    if hgf.n_levels == 3:
-        hgf.attributes[3]["mean"] = mean_3
-        hgf.attributes[3]["precision"] = precision_3
-        hgf.attributes[3]["tonic_volatility"] = tonic_volatility_3
-        hgf.attributes[3]["tonic_drift"] = tonic_drift_3
-        hgf.attributes[3]["volatility_coupling"] = (volatility_coupling_2,)
+        hgf.attributes[1]["volatility_coupling_parents"] = (volatility_coupling_1,)
+        hgf.attributes[2]["volatility_coupling_children"] = (volatility_coupling_1,)
+
+        if hgf.n_levels == 3:
+            hgf.attributes[3]["mean"] = mean_3
+            hgf.attributes[3]["precision"] = precision_3
+            hgf.attributes[3]["tonic_volatility"] = tonic_volatility_3
+            hgf.attributes[3]["tonic_drift"] = tonic_drift_3
+            hgf.attributes[2]["volatility_coupling_parents"] = (volatility_coupling_2,)
+            hgf.attributes[3]["volatility_coupling_children"] = (volatility_coupling_2,)
+
+    elif hgf.model_type == "binary":
+
+        # update this network's attributes
+        hgf.attributes[0]["mean"] = mean_1
+        hgf.attributes[1]["mean"] = mean_2
+
+        hgf.attributes[0]["precision"] = precision_1
+        hgf.attributes[1]["precision"] = precision_2
+
+        hgf.attributes[1]["tonic_volatility"] = tonic_volatility_2
+
+        hgf.attributes[1]["tonic_drift"] = tonic_drift_1
+
+        if hgf.n_levels == 3:
+            hgf.attributes[2]["mean"] = mean_3
+            hgf.attributes[2]["precision"] = precision_3
+            hgf.attributes[2]["tonic_volatility"] = tonic_volatility_3
+            hgf.attributes[2]["tonic_drift"] = tonic_drift_3
+            hgf.attributes[1]["volatility_coupling_parents"] = (volatility_coupling_2,)
+            hgf.attributes[2]["volatility_coupling_children"] = (volatility_coupling_2,)
 
     surprise = hgf.input_data(input_data=input_data, time_steps=time_steps).surprise(
         response_function=response_function,
@@ -404,7 +441,7 @@ class HGFLogpGradOp(Op):
         mean_3: ArrayLike = np.array(0.0),
         precision_1: ArrayLike = np.array(1.0),
         precision_2: ArrayLike = np.array(1.0),
-        precision_3: ArrayLike = np.array(0.0),
+        precision_3: ArrayLike = np.array(1.0),
         tonic_volatility_1: ArrayLike = np.array(-3.0),
         tonic_volatility_2: ArrayLike = np.array(-3.0),
         tonic_volatility_3: ArrayLike = np.array(-3.0),
@@ -413,7 +450,7 @@ class HGFLogpGradOp(Op):
         tonic_drift_3: ArrayLike = np.array(0.0),
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
-        input_precision: ArrayLike = np.inf,
+        input_precision: ArrayLike = np.array(1e4),
         response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Initialize node structure."""
@@ -659,7 +696,7 @@ class HGFDistribution(Op):
         tonic_drift_3: ArrayLike = np.array(0.0),
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
-        input_precision: ArrayLike = np.inf,
+        input_precision: ArrayLike = np.array(1e4),
         response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Convert inputs to symbolic variables."""
@@ -825,7 +862,7 @@ class HGFPointwise(Op):
         tonic_drift_3: ArrayLike = np.array(0.0),
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
-        input_precision: ArrayLike = np.inf,
+        input_precision: ArrayLike = np.array(1e4),
         response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Convert inputs to symbolic variables."""
