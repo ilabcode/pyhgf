@@ -122,10 +122,10 @@ Categorical state nodes
 Continuous state nodes
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: pyhgf.updates.prediction_error.nodes.continuous
+.. currentmodule:: pyhgf.updates.prediction_error.continuous
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.nodes.continuous
+   :toctree: generated/pyhgf.updates.prediction_error.continuous
 
     continuous_node_value_prediction_error
     continuous_node_volatility_prediction_error
@@ -134,10 +134,10 @@ Continuous state nodes
 Dirichlet state nodes
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: pyhgf.updates.prediction_error.nodes.dirichlet
+.. currentmodule:: pyhgf.updates.prediction_error.dirichlet
 
 .. autosummary::
-   :toctree: generated/pyhgf.updates.prediction_error.nodes.dirichlet
+   :toctree: generated/pyhgf.updates.prediction_error.dirichlet
 
     dirichlet_node_prediction_error
     update_cluster

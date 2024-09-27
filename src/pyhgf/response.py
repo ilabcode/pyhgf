@@ -72,23 +72,12 @@ def total_gaussian_surprise(
 
     """
     # compute the sum of Gaussian surprise across every node
-    surprise = jnp.zeros(len(hgf.node_trajectories[0]["mean"]))
-
-    # first we start with nodes that are value parents to input nodes
-    input_parents_list = []
-    for idx in hgf.input_idxs:
-        va_pa = hgf.edges[idx].value_parents[0]  # type: ignore
-        input_parents_list.append(va_pa)
-        surprise += gaussian_surprise(
-            x=hgf.node_trajectories[idx]["mean"],
-            expected_mean=hgf.node_trajectories[va_pa]["expected_mean"],
-            expected_precision=hgf.node_trajectories[va_pa]["expected_precision"],
-        )
+    surprise = 0.0
 
     # then we do the same for every node that is not an input node
     # and not the parent of an input node
     for i in range(len(hgf.edges)):
-        if (i not in hgf.input_idxs) and (i not in input_parents_list):
+        if hgf.edges[i].node_type == 2:
             surprise += gaussian_surprise(
                 x=hgf.node_trajectories[i]["mean"],
                 expected_mean=hgf.node_trajectories[i]["expected_mean"],

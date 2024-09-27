@@ -134,7 +134,7 @@ def logp(
     if hgf.model_type == "continuous":
 
         # update this network's attributes
-        hgf.attributes[0]["expected_precision"] = input_precision
+        hgf.attributes[0]["precision"] = input_precision
 
         hgf.attributes[1]["mean"] = mean_1
         hgf.attributes[2]["mean"] = mean_2
@@ -148,14 +148,16 @@ def logp(
         hgf.attributes[1]["tonic_drift"] = tonic_drift_1
         hgf.attributes[2]["tonic_drift"] = tonic_drift_2
 
-        hgf.attributes[2]["volatility_coupling"] = (volatility_coupling_1,)
+        hgf.attributes[1]["volatility_coupling_parents"] = (volatility_coupling_1,)
+        hgf.attributes[2]["volatility_coupling_children"] = (volatility_coupling_1,)
 
         if hgf.n_levels == 3:
             hgf.attributes[3]["mean"] = mean_3
             hgf.attributes[3]["precision"] = precision_3
             hgf.attributes[3]["tonic_volatility"] = tonic_volatility_3
             hgf.attributes[3]["tonic_drift"] = tonic_drift_3
-            hgf.attributes[3]["volatility_coupling"] = (volatility_coupling_2,)
+            hgf.attributes[2]["volatility_coupling_parents"] = (volatility_coupling_2,)
+            hgf.attributes[3]["volatility_coupling_children"] = (volatility_coupling_2,)
 
     elif hgf.model_type == "binary":
 
@@ -439,7 +441,7 @@ class HGFLogpGradOp(Op):
         mean_3: ArrayLike = np.array(0.0),
         precision_1: ArrayLike = np.array(1.0),
         precision_2: ArrayLike = np.array(1.0),
-        precision_3: ArrayLike = np.array(0.0),
+        precision_3: ArrayLike = np.array(1.0),
         tonic_volatility_1: ArrayLike = np.array(-3.0),
         tonic_volatility_2: ArrayLike = np.array(-3.0),
         tonic_volatility_3: ArrayLike = np.array(-3.0),
@@ -448,7 +450,7 @@ class HGFLogpGradOp(Op):
         tonic_drift_3: ArrayLike = np.array(0.0),
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
-        input_precision: ArrayLike = np.inf,
+        input_precision: ArrayLike = np.array(1e4),
         response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Initialize node structure."""
@@ -694,7 +696,7 @@ class HGFDistribution(Op):
         tonic_drift_3: ArrayLike = np.array(0.0),
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
-        input_precision: ArrayLike = np.inf,
+        input_precision: ArrayLike = np.array(1e4),
         response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Convert inputs to symbolic variables."""
@@ -860,7 +862,7 @@ class HGFPointwise(Op):
         tonic_drift_3: ArrayLike = np.array(0.0),
         volatility_coupling_1: ArrayLike = np.array(1.0),
         volatility_coupling_2: ArrayLike = np.array(1.0),
-        input_precision: ArrayLike = np.inf,
+        input_precision: ArrayLike = np.array(1e4),
         response_function_parameters: ArrayLike = np.array(1.0),
     ):
         """Convert inputs to symbolic variables."""

@@ -647,24 +647,24 @@ def test_pymc_sampling():
     hgf_logp_op = HGFDistribution(
         n_levels=2,
         model_type="binary",
-        input_data=u[np.newaxis, :],
+        input_data=u[np.newaxis, :].repeat(2, axis=0),
         response_function=binary_softmax_inverse_temperature,
-        response_function_inputs=y[np.newaxis, :],
+        response_function_inputs=y[np.newaxis, :].repeat(2, axis=0),
     )
 
     def logp(value, tonic_volatility_2):
         return hgf_logp_op(tonic_volatility_2=tonic_volatility_2)
 
     with pm.Model() as model:
-        y_data = pm.Data("y_data", y)
-        tonic_volatility_2 = pm.Normal("tonic_volatility_2", -3.0, 2)
+        y_data = pm.Data("y_data", y[np.newaxis, :].repeat(2, axis=0))
+        tonic_volatility_2 = pm.Normal("tonic_volatility_2", -11.0, 2, shape=(2,))
         pm.CustomDist("likelihood", tonic_volatility_2, logp=logp, observed=y_data)
 
     initial_point = model.initial_point()
 
     pointslogs = model.point_logps(initial_point)
-    assert pointslogs["tonic_volatility_2"] == -1.61
-    assert pointslogs["likelihood"] == -141.92
+    assert pointslogs["tonic_volatility_2"] == -3.22
+    assert pointslogs["likelihood"] == -425.18
 
     with model:
         idata = pm.sample(chains=2, cores=1, tune=1000)

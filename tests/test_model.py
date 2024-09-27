@@ -78,7 +78,7 @@ def test_continuous_hgf():
 
     # test an alternative response function
     sp = total_gaussian_surprise(three_level_continuous_hgf)
-    assert jnp.isclose(sp.sum(), 1159.1089)
+    assert jnp.isclose(sp.sum(), -2545.4248)
 
 
 def test_binary_hgf():

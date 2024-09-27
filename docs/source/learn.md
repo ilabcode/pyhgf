@@ -92,7 +92,7 @@ Predict, filter and smooth any distribution from the exponential family using ge
 :::{grid-item-card}  The binary Hierarchical Gaussian Filter
 :link: binary_hgf
 :link-type: ref
-:img-top: ./images/binary.png
+:img-top: ./images/binary.svg
 
 Introducing with example the binary Hierarchical Gaussian filter and its applications to reinforcement learning.
 :::
@@ -100,7 +100,7 @@ Introducing with example the binary Hierarchical Gaussian filter and its applica
 :::{grid-item-card}  The categorical Hierarchical Gaussian Filter
 :link: categorical_hgf
 :link-type: ref
-:img-top: ./images/categorical.png
+:img-top: ./images/categorical.svg
 
 The categorical Hierarchical Gaussian Filter is a generalisation of the binary HGF to handle categorical distribution with and without transition probabilities.
 :::
@@ -108,7 +108,7 @@ The categorical Hierarchical Gaussian Filter is a generalisation of the binary H
 :::{grid-item-card}  The continuous Hierarchical Gaussian Filter
 :link: continuous_hgf
 :link-type: ref
-:img-top: ./images/continuous.png
+:img-top: ./images/continuous.svg
 
 Introducing with example the continuous Hierarchical Gaussian filter and its applications to signal processing.
 :::
