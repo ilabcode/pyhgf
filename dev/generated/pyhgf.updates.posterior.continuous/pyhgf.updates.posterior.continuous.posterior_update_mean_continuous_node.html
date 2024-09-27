@@ -564,11 +564,8 @@ nodes <span class="math notranslate nohighlight">\(j\)</span> at time <span clas
     \frac{\kappa_j \hat{\pi}_j^{(k)}}{\pi_b} \delta_j^{(k)}\]</div>
 <p>Where <span class="math notranslate nohighlight">\(\kappa_j\)</span> is the volatility coupling strength between the child node
 and the state node and <span class="math notranslate nohighlight">\(\delta_j^{(k)}\)</span> is the value prediction error that
-was computed beforehand. If the child node is an input node, this value was
-computed by
-<code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error()</span></code>.
-If the child node is a state node, this value was computed by
-<code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error()</span></code>.</p>
+was computed beforehand by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.continuous.continuous_node_value_prediction_error()</span></code>.</p>
 <p>For non-linear value coupling:</p>
 <div class="math notranslate nohighlight">
 \[\mu_b^{(k)} =  \hat{\mu}_b^{(k)} + \sum_{j=1}^{N_{children}}
@@ -595,11 +592,9 @@ volatility prediction error is given by:</p>
 \[\gamma_j^{(k)} = \Omega_j^{(k)} \hat{\pi}_j^{(k)}\]</div>
 <p>with <span class="math notranslate nohighlight">\(\Omega_j^{(k)}\)</span> the predicted volatility computed in the prediction
 step <code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction.predict_precision()</span></code>.</p>
-<p>If the child node is an input node, the volatility prediction error
+<p>If the child node is a continuous state node, the volatility prediction error
 <span class="math notranslate nohighlight">\(\Delta_j^{(k)}\)</span> was computed by
-<code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_volatility_prediction_error()</span></code>.
-If the child node is a state node, this value was computed by
-<code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_volatility_prediction_error()</span></code>.</p>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.continuous.continuous_node_volatility_prediction_error()</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">

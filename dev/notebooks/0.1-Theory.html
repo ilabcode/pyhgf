@@ -428,7 +428,7 @@ document.write(`
 
 <li class="toctree-l1"><a class="reference internal" href="4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling between continuous state nodes</a></li>
 
 
 
@@ -833,7 +833,7 @@ x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 <h3>The Hierarchical Gaussian Filter in a network of predictive nodes<a class="headerlink" href="#the-hierarchical-gaussian-filter-in-a-network-of-predictive-nodes" title="Link to this heading">#</a></h3>
 <p>The coding examples introduced above illustrated generative models that can simulate data forward from a given volatility structure, with key parameters stochastically fluctuating. Based on these principles, any given latent state in the world can be modelled as having a volatility parent state, a value parent state, both, or none. When the node is an orphan, it evolves as a Gaussian random walk around its previous value with a fixed step size. Consequently, when inferring the evolution of these states, the exact belief update equations (which include the computation of new predictions, posterior values, and prediction errors, and represent an approximate inversion of this generative model, see <span id="id4">[<a class="reference internal" href="../references.html#id2" title="Christoph D. Mathys. A Bayesian foundation for individual learning under uncertainty. Frontiers in Human Neuroscience, 5(May):1–20, 2011. URL: http://journal.frontiersin.org/article/10.3389/fnhum.2011.00039/abstract, doi:10.3389/fnhum.2011.00039.">Mathys, 2011</a>]</span> depend on the nature of the coupling of a given state with its parent and children states. In particular, the nodes that implement the belief updates will communicate with their value parents via value prediction errors, or <strong>VAPE</strong>s, and volatility prediction errors, or <strong>VOPE</strong>s, with their volatility parents. Hierarchical Gaussian Filters use this as a model of the environment to make sense of new observations, also referred to as the sensory part of the HGF, or the filtering part. In this situation, new observations are coming in at the network’s root and the model updates the belief structure accordingly (from bottom to top nodes). It is therefore straightforward to describe the standard two-level and three-level Hierarchical Gaussian Filters for continuous and binary inputs as the combination of value and volatility couplings (see <a class="reference internal" href="#hgf-fig"><span class="std std-ref">The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs.</span></a>)</p>
 <figure class="align-default" id="hgf-fig">
-<img alt="images/hgf.png" src="images/hgf.png" />
+<img alt="../_images/hgf.svg" src="../_images/hgf.svg" />
 <figcaption>
 <p><span class="caption-number">Fig. 1 </span><span class="caption-text">The two-level and three-level Hierarchical Gaussian Filters for binary or continuous inputs.</span><a class="headerlink" href="#hgf-fig" title="Link to this image">#</a></p>
 <div class="legend">
@@ -931,9 +931,9 @@ pyhgf : 0.1.7
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-seaborn   : 0.13.2
-IPython   : 8.27.0
 sys       : 3.12.6 (main, Sep  9 2024, 03:08:08) [GCC 11.4.0]
+IPython   : 8.27.0
+seaborn   : 0.13.2
 numpy     : 1.26.0
 matplotlib: 3.9.2
 

@@ -480,11 +480,8 @@ document.write(`
 
 <span class="sd">    Where :math:`\kappa_j` is the volatility coupling strength between the child node</span>
 <span class="sd">    and the state node and :math:`\delta_j^{(k)}` is the value prediction error that</span>
-<span class="sd">    was computed beforehand. If the child node is an input node, this value was</span>
-<span class="sd">    computed by</span>
-<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.</span>
-<span class="sd">    If the child node is a state node, this value was computed by</span>
-<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.</span>
+<span class="sd">    was computed beforehand by</span>
+<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.continuous.continuous_node_value_prediction_error`.</span>
 
 <span class="sd">    For non-linear value coupling:</span>
 
@@ -524,11 +521,9 @@ document.write(`
 <span class="sd">    with :math:`\Omega_j^{(k)}` the predicted volatility computed in the prediction</span>
 <span class="sd">    step :py:func:`pyhgf.updates.prediction.predict_precision`.</span>
 
-<span class="sd">    If the child node is an input node, the volatility prediction error</span>
+<span class="sd">    If the child node is a continuous state node, the volatility prediction error</span>
 <span class="sd">    :math:`\Delta_j^{(k)}` was computed by</span>
-<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_volatility_prediction_error`.</span>
-<span class="sd">    If the child node is a state node, this value was computed by</span>
-<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_volatility_prediction_error`.</span>
+<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.continuous.continuous_node_volatility_prediction_error`.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -683,11 +678,8 @@ document.write(`
 
 <span class="sd">    Where :math:`\kappa_j` is the volatility coupling strength between the child node</span>
 <span class="sd">    and the state node and :math:`\delta_j^{(k)}` is the value prediction error that</span>
-<span class="sd">    was computed before hand. If the child node is an input node, this value was</span>
-<span class="sd">    computed by</span>
-<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.inputs.continuous.continuous_input_value_prediction_error`.</span>
-<span class="sd">    If the child node is a state node, this value was computed by</span>
-<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.nodes.continuous.continuous_node_value_prediction_error`.</span>
+<span class="sd">    was computed before hand by</span>
+<span class="sd">    :py:func:`pyhgf.updates.prediction_errors.continuous.continuous_node_value_prediction_error`.</span>
 
 <span class="sd">    For non-linear value coupling:</span>
 

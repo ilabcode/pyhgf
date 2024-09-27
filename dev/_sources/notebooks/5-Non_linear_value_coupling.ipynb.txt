@@ -5,7 +5,7 @@
    "metadata": {},
    "source": [
     "(non_linear_coupling)=\n",
-    "# Non-linear value coupling"
+    "# Non-linear value coupling between continuous state nodes"
    ]
   },
   {
@@ -19,11 +19,10 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "---\n",
-    "authors:\n",
-    "  - Kora Tristan, Aarhus University, Denmark (kora.montemagno@cas.au.dk)\n",
-    "  - Nicolas Legrand, Aarhus University, Denmark (nicolas.legrand@cas.au.dk)\n",
-    "---"
+    "```{tip} Authors\n",
+    "- Kora Tristan, Aarhus University, Denmark (kora.montemagno@cas.au.dk)\n",
+    "- Nicolas Legrand, Aarhus University, Denmark (nicolas.legrand@cas.au.dk)\n",
+    "```"
    ]
   },
   {
