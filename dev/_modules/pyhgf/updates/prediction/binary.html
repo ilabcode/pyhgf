@@ -498,22 +498,19 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># List the (unique) value parent of the binary state node</span>
-    <span class="n">value_parent_idx</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+    <span class="n">expected_mean</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">value_parent_idx</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+        <span class="n">expected_mean</span> <span class="o">+=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_parent_idx</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">]</span>
 
     <span class="c1"># Estimate the new expected mean using the sigmoid transform</span>
-    <span class="n">expected_mean</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">value_parent_idx</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">]</span>
     <span class="n">expected_mean</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">expected_mean</span><span class="p">)</span>
 
-    <span class="c1"># Estimate the new expected precision from the new expected mean</span>
-    <span class="n">expected_precision</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">expected_mean</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">expected_mean</span><span class="p">))</span>
-
-    <span class="c1"># use the inverse to fit the posterior update of the value parent</span>
-    <span class="c1"># (eq. 97, Weber et al., v1)</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">expected_precision</span>
-
-    <span class="c1"># Update this node&#39;s parameters - use different parameter names as these values are</span>
-    <span class="c1"># not used for the update of the value parent of the binary state node</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;binary_expected_precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expected_precision</span>
+    <span class="c1"># Estimate the new expected precision from the new expected mean - use the inverse</span>
+    <span class="c1"># to fit the posterior update of the value parent(eq. 97, Weber et al., v1)</span>
+    <span class="c1"># here we also update the precision</span>
+    <span class="c1"># so the expected precision remains during the observation step</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expected_mean</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">expected_mean</span><span class="p">)</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">]</span>
     <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expected_mean</span>
 
     <span class="k">return</span> <span class="n">attributes</span></div>

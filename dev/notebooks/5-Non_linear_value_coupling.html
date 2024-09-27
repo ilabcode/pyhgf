@@ -437,15 +437,15 @@ document.write(`
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="Example_1_Heart_rate_variability.html">Example 1: Bayesian filtering of cardiac volatility</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="Example_2_Input_node_volatility_coupling.html">Example 2: Estimating the mean and precision of an input node</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Example_2_Input_node_volatility_coupling.html">Example 2: Estimating the mean and precision of a time-varying Gaussian distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Example_3_Multi_armed_bandit.html">Example 3: A multi-armed bandit task with independent rewards and punishments</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Exercises</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Introduction to the generalised Hierarchical Gaussian Filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Zurich CPC I: Introduction to the Generalised Hierarchical Gaussian Filter</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="Exercise_2_Bayesian_reinforcement_learning.html">Application to reinforcement learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Exercise_2_Bayesian_reinforcement_learning.html">Zurich CPC II: Application to reinforcement learning</a></li>
 
 
 
@@ -519,7 +519,9 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+
 <span class="kn">from</span> <span class="nn">IPython.utils</span> <span class="kn">import</span> <span class="n">io</span>
+
 <span class="k">if</span> <span class="s1">&#39;google.colab&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
 
   <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">capture_output</span><span class="p">()</span> <span class="k">as</span> <span class="n">captured</span><span class="p">:</span>
@@ -533,9 +535,10 @@ document.write(`
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">lax</span>
-<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">Network</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">from</span> <span class="nn">jax</span> <span class="kn">import</span> <span class="n">lax</span>
+
+<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="n">Network</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.constrained_layout.use&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -558,7 +561,9 @@ document.write(`
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># create u as a Gaussian random walk</span>
 <span class="n">low_noise</span> <span class="o">=</span> <span class="mf">0.5</span>
-<span class="n">u_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">low_noise</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">u_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+    <span class="mf">0.01</span><span class="p">,</span> <span class="n">low_noise</span><span class="p">,</span> <span class="mi">1000</span>
+<span class="p">)</span>
 
 <span class="c1"># plot the signal</span>
 <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
@@ -584,7 +589,7 @@ document.write(`
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">high_noise</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">a</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1"># setting an arbitrary threshold</span>
-<span class="n">u2</span> <span class="o">=</span> <span class="n">u_1</span> <span class="o">-</span> <span class="p">(</span><span class="n">u_1</span> <span class="o">*</span> <span class="p">(</span><span class="n">u_1</span><span class="o">&lt;</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">high_noise</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span>
+<span class="n">u2</span> <span class="o">=</span> <span class="n">u_1</span> <span class="o">-</span> <span class="p">(</span><span class="n">u_1</span> <span class="o">*</span> <span class="p">(</span><span class="n">u_1</span> <span class="o">&lt;</span> <span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">high_noise</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span>
 
 <span class="c1"># plot the signal</span>
 <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
@@ -626,12 +631,8 @@ x_1^{(k)} \sim Normal(g_{2,1}(x_2^{(k)})), \theta_1)
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">linear_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">high_noise</span><span class="o">**</span><span class="mi">2</span>
-    <span class="p">)</span>  <span class="c1"># u1 - Continuous node 0</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">low_noise</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="p">)</span>  <span class="c1"># u2 - Continuous node 1</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">high_noise</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># u1 - Continuous node 0</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">low_noise</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># u2 - Continuous node 1</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoconnection_strength</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># x1 - node 2</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
         <span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
@@ -643,7 +644,7 @@ x_1^{(k)} \sim Normal(g_{2,1}(x_2^{(k)})), \theta_1)
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/6bf0cf963d8dc5b7bc8994f4f8ed92b1f29f7f80246ff7e0cb7b9f47254773c8.svg" src="../_images/6bf0cf963d8dc5b7bc8994f4f8ed92b1f29f7f80246ff7e0cb7b9f47254773c8.svg" />
+<img alt="../_images/eb5c0fdfb37b58a5a6cf1c9c87ddcdce1f9ac29bf64d0ddbb533e2e4057c533c.svg" src="../_images/eb5c0fdfb37b58a5a6cf1c9c87ddcdce1f9ac29bf64d0ddbb533e2e4057c533c.svg" />
 </div>
 </div>
 <p>In order to implement the non-linear coupling, we need to specify a coupling function <span class="math notranslate nohighlight">\(g_{2,1}\)</span>. In this case, we need a function that allows <span class="math notranslate nohighlight">\(x_1\)</span> to predict that the input signal below a threshold will be just random noise, but above the threshold is equal to the behaviour displayed by <span class="math notranslate nohighlight">\(u_2\)</span>.</p>
@@ -672,12 +673,8 @@ If the value parent, as in this case, possesses multiple children, all the funct
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nonlinear_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mf">10.0</span>
-    <span class="p">)</span>  <span class="c1"># u1 - Continuous node 0</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mf">10.0</span>
-    <span class="p">)</span>  <span class="c1"># u2 - Continuous node 1</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>  <span class="c1"># u1 - Continuous node 0</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>  <span class="c1"># u2 - Continuous node 1</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoconnection_strength</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># x1 - node 2</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
         <span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">coupling_fn</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
@@ -688,7 +685,7 @@ If the value parent, as in this case, possesses multiple children, all the funct
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/c21fa526fb35a08a0e1af3637880c4e448b45a796bb62939f861b773649a9b7a.svg" src="../_images/c21fa526fb35a08a0e1af3637880c4e448b45a796bb62939f861b773649a9b7a.svg" />
+<img alt="../_images/7166c97a8908e4796b3b750df9740b8b87dedf028aab9a7608f37b9488698405.svg" src="../_images/7166c97a8908e4796b3b750df9740b8b87dedf028aab9a7608f37b9488698405.svg" />
 </div>
 </div>
 <p>Let’s see how our two networks perform when we input the data.</p>
@@ -715,7 +712,7 @@ If the value parent, as in this case, possesses multiple children, all the funct
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/0b68ab3c43eff35bcf503770dd0a88a799ad6fb584ba46b87813aecb098ce066.png" src="../_images/0b68ab3c43eff35bcf503770dd0a88a799ad6fb584ba46b87813aecb098ce066.png" />
+<img alt="../_images/d8b6b53d75289386ca4e8993f13847d5b512dc7ab9d2d37d987cc154f3f3cbc3.png" src="../_images/d8b6b53d75289386ca4e8993f13847d5b512dc7ab9d2d37d987cc154f3f3cbc3.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -732,7 +729,7 @@ If the value parent, as in this case, possesses multiple children, all the funct
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/b5e86fb12ca0918b1c564aea266ab23bf883b9926d4bf42eb0e39e2e517c4e56.png" src="../_images/b5e86fb12ca0918b1c564aea266ab23bf883b9926d4bf42eb0e39e2e517c4e56.png" />
+<img alt="../_images/3e7d5260e28c32660b1deec04729c2bd497a9df8d44b696f8d03ba3711952790.png" src="../_images/3e7d5260e28c32660b1deec04729c2bd497a9df8d44b696f8d03ba3711952790.png" />
 </div>
 </div>
 <p>Let’s have a closer look at the behaviour of <span class="math notranslate nohighlight">\(x_1\)</span> (“State node 2” in the plot).</p>
@@ -747,7 +744,7 @@ If the value parent, as in this case, possesses multiple children, all the funct
 
 <span class="n">linear_hgf</span><span class="o">.</span><span class="n">plot_nodes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">axs</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">show_surprise</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">nonlinear_hgf</span><span class="o">.</span><span class="n">plot_nodes</span><span class="p">(</span>
-    <span class="mi">2</span><span class="p">,</span> <span class="n">axs</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">show_surprise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_observations</span><span class="o">=</span><span class="kc">True</span>
+    <span class="mi">2</span><span class="p">,</span> <span class="n">axs</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">show_surprise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_posterior</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$x$&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$f(x)$&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;Noisy signal, $u_2$&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
@@ -766,7 +763,7 @@ If the value parent, as in this case, possesses multiple children, all the funct
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/0bcc7a8ad1425a099aa0ea6c6f4d22b9d64ff9c4020b20e185964c30c54a089f.png" src="../_images/0bcc7a8ad1425a099aa0ea6c6f4d22b9d64ff9c4020b20e185964c30c54a089f.png" />
+<img alt="../_images/7da46414304b0470c66d2d2ec4af8dd98e35d69cb3f13e7fc9a0cd02894d01d6.png" src="../_images/7da46414304b0470c66d2d2ec4af8dd98e35d69cb3f13e7fc9a0cd02894d01d6.png" />
 </div>
 </div>
 <p>Notice how the HGF manages to track the gaussian random walk even with the linear coupling. However, it is using data coming from <span class="math notranslate nohighlight">\(u_2\)</span> to inform <span class="math notranslate nohighlight">\(x_1\)</span> state through the value parent <span class="math notranslate nohighlight">\(x_2\)</span> even below the threshold, something that in this specific example is incorrect, as <span class="math notranslate nohighlight">\(u_1\)</span> behaviour is non-linear and depends on a threshold. Providing a coupling function allows us to use the information coming from <span class="math notranslate nohighlight">\(u_2\)</span> just when needed, allowing a more precise tracking.</p>
@@ -798,7 +795,7 @@ where \)</span>t<span class="math notranslate nohighlight">\( is the timestep, \
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sinusoid_linear_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># input</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># input</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoconnection_strength</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># x1 - node 1</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
         <span class="n">value_children</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -810,7 +807,7 @@ where \)</span>t<span class="math notranslate nohighlight">\( is the timestep, \
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/e168d039ca6437d7483758ba6b1af33d1da2e6738a3bb6a2860438faa8750ea6.svg" src="../_images/e168d039ca6437d7483758ba6b1af33d1da2e6738a3bb6a2860438faa8750ea6.svg" />
+<img alt="../_images/1702ee2518cbf625d8f66604e10fcc35c49fdc377bf2b280730ff05491a698aa.svg" src="../_images/1702ee2518cbf625d8f66604e10fcc35c49fdc377bf2b280730ff05491a698aa.svg" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -829,7 +826,7 @@ where \)</span>t<span class="math notranslate nohighlight">\( is the timestep, \
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/2befadd45bfcbb489f6ae0f418b76bde05cfb80edbf8c369b085010d01dcdaa8.png" src="../_images/2befadd45bfcbb489f6ae0f418b76bde05cfb80edbf8c369b085010d01dcdaa8.png" />
+<img alt="../_images/a3846031fe96457d75ebaa649010d166bcab8a772cbc272e72fb7efe0da52f94.png" src="../_images/a3846031fe96457d75ebaa649010d166bcab8a772cbc272e72fb7efe0da52f94.png" />
 </div>
 </div>
 <p>Notice how <span class="math notranslate nohighlight">\(\mu_1\)</span> is just drifting during the missing observation chuncks.</p>
@@ -838,7 +835,7 @@ where \)</span>t<span class="math notranslate nohighlight">\( is the timestep, \
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sinusoid_nonlinear_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># input</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># input</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoconnection_strength</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># x1 - node 1</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">coupling_fn</span><span class="o">=</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sin</span><span class="p">,))</span>  <span class="c1"># x2 - node 2</span>
 <span class="p">)</span>
@@ -852,7 +849,7 @@ where \)</span>t<span class="math notranslate nohighlight">\( is the timestep, \
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/8041796f835474ed6c97337a3995423a594458dccfaa49bf17a232252d5bf851.png" src="../_images/8041796f835474ed6c97337a3995423a594458dccfaa49bf17a232252d5bf851.png" />
+<img alt="../_images/40bfba6cb58d1843d761c0a07dd27602c6eeb24028ee447bbb6756f0c2ab4193.png" src="../_images/40bfba6cb58d1843d761c0a07dd27602c6eeb24028ee447bbb6756f0c2ab4193.png" />
 </div>
 </div>
 <p>This happens because time is not included directly inside <span class="math notranslate nohighlight">\(g\)</span>, a fact that doesn’t allow the transformation of all the terms from the native space to the sinusoidal space.
@@ -871,7 +868,7 @@ The drift corresponds to the slope of <span class="math notranslate nohighlight"
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sinusoid_nonlinear_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span>
     <span class="p">)</span>  <span class="c1"># u1 - Continuous node 0</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">autoconnection_strength</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># x1 - node 1</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
@@ -892,7 +889,7 @@ The drift corresponds to the slope of <span class="math notranslate nohighlight"
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/2d3ae299fc87f250bcc236be2a3be91ba42ab282a0261e4d3b6b52f928f75c94.svg" src="../_images/2d3ae299fc87f250bcc236be2a3be91ba42ab282a0261e4d3b6b52f928f75c94.svg" />
+<img alt="../_images/3391f93b238ee909bc2277f5f9739fbf6179acc8d0864776c6ad6a5fe2cf5535.svg" src="../_images/3391f93b238ee909bc2277f5f9739fbf6179acc8d0864776c6ad6a5fe2cf5535.svg" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -905,7 +902,7 @@ The drift corresponds to the slope of <span class="math notranslate nohighlight"
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/1f7445370da7763edf877925964d02641ad14448f09b8928a69a7427b3948dde.png" src="../_images/1f7445370da7763edf877925964d02641ad14448f09b8928a69a7427b3948dde.png" />
+<img alt="../_images/fb042785ce547cc787d1a4ce81b00795f337c8889102af2b95060b7e3ddffb50.png" src="../_images/fb042785ce547cc787d1a4ce81b00795f337c8889102af2b95060b7e3ddffb50.png" />
 </div>
 </div>
 </section>
@@ -932,7 +929,7 @@ The drift corresponds to the slope of <span class="math notranslate nohighlight"
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sinusoid_nonlinear_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">precision</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">std</span><span class="o">**</span><span class="mi">2</span>
     <span class="p">)</span>  <span class="c1"># u1 - Continuous node 0</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">autoconnection_strength</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># x1 - node 1</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
@@ -965,7 +962,7 @@ The drift corresponds to the slope of <span class="math notranslate nohighlight"
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/51dee4d166f29eb6d0713eeb753cc45e7db93b94fcaeef24b568cacd971919c8.png" src="../_images/51dee4d166f29eb6d0713eeb753cc45e7db93b94fcaeef24b568cacd971919c8.png" />
+<img alt="../_images/20371717808ec8285088213ffd0d9e209663972e00ef7cd318a166eb833b74bc.png" src="../_images/20371717808ec8285088213ffd0d9e209663972e00ef7cd318a166eb833b74bc.png" />
 </div>
 </div>
 <p>Zooming on <span class="math notranslate nohighlight">\(x_3\)</span>, is it possible to observe that higher levels of <span class="math notranslate nohighlight">\(\mu_3\)</span> are associated with higher oscillation frequencies (<span class="math notranslate nohighlight">\(t=[400:600]\)</span>), as predicted. Since no data are given in the interval <span class="math notranslate nohighlight">\(t=[600:650]\)</span>, the network will not update the oscillation frequency until new data is inputed.</p>
@@ -980,24 +977,25 @@ The drift corresponds to the slope of <span class="math notranslate nohighlight"
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sat Sep 14 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Fri Sep 27 2024
 
 Python implementation: CPython
-Python version       : 3.12.5
+Python version       : 3.12.6
 IPython version      : 8.27.0
 
 pyhgf : 0.1.7
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-matplotlib: 3.9.2
-IPython   : 8.27.0
+sys       : 3.12.6 (main, Sep  9 2024, 03:08:08) [GCC 11.4.0]
+pyhgf     : 0.1.7
 seaborn   : 0.13.2
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
-jax       : 0.4.31
 numpy     : 1.26.0
+jax       : 0.4.31
+IPython   : 8.27.0
+matplotlib: 3.9.2
 
-Watermark: 2.4.3
+Watermark: 2.5.0
 </pre></div>
 </div>
 </div>

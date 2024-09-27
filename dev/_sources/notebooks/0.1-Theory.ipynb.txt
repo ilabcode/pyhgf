@@ -27,6 +27,12 @@
    "id": "6e1a2f15-fb23-417c-bf08-95fe8019903d",
    "metadata": {
     "editable": true,
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:18.703518Z",
+     "iopub.status.busy": "2024-09-27T12:25:18.703006Z",
+     "iopub.status.idle": "2024-09-27T12:25:18.713445Z",
+     "shell.execute_reply": "2024-09-27T12:25:18.711985Z"
+    },
     "slideshow": {
      "slide_type": ""
     },
@@ -46,7 +52,14 @@
    "cell_type": "code",
    "execution_count": 2,
    "id": "6430ec8b-1b42-450b-9ed5-a9866384042f",
-   "metadata": {},
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:18.716639Z",
+     "iopub.status.busy": "2024-09-27T12:25:18.716443Z",
+     "iopub.status.idle": "2024-09-27T12:25:19.632578Z",
+     "shell.execute_reply": "2024-09-27T12:25:19.631653Z"
+    }
+   },
    "outputs": [],
    "source": [
     "import matplotlib.pyplot as plt\n",
@@ -85,6 +98,12 @@
    "id": "054c77b0-855c-46bf-b861-96d430d90d56",
    "metadata": {
     "editable": true,
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:19.636211Z",
+     "iopub.status.busy": "2024-09-27T12:25:19.635797Z",
+     "iopub.status.idle": "2024-09-27T12:25:20.005129Z",
+     "shell.execute_reply": "2024-09-27T12:25:20.004269Z"
+    },
     "slideshow": {
      "slide_type": ""
     },
@@ -166,6 +185,12 @@
    "id": "a4cac17f-6ce5-41a3-8960-a781dc95e6b7",
    "metadata": {
     "editable": true,
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:20.007641Z",
+     "iopub.status.busy": "2024-09-27T12:25:20.007442Z",
+     "iopub.status.idle": "2024-09-27T12:25:20.215195Z",
+     "shell.execute_reply": "2024-09-27T12:25:20.214228Z"
+    },
     "slideshow": {
      "slide_type": ""
     },
@@ -228,6 +253,12 @@
    "id": "85c9972d-3e71-4737-9465-9f0f3d54b8ce",
    "metadata": {
     "editable": true,
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:20.217629Z",
+     "iopub.status.busy": "2024-09-27T12:25:20.217435Z",
+     "iopub.status.idle": "2024-09-27T12:25:20.494428Z",
+     "shell.execute_reply": "2024-09-27T12:25:20.493517Z"
+    },
     "slideshow": {
      "slide_type": ""
     },
@@ -335,6 +366,12 @@
    "id": "04b1309e-b74f-4f33-bde8-b153bd340586",
    "metadata": {
     "editable": true,
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:20.497782Z",
+     "iopub.status.busy": "2024-09-27T12:25:20.497355Z",
+     "iopub.status.idle": "2024-09-27T12:25:20.510535Z",
+     "shell.execute_reply": "2024-09-27T12:25:20.509496Z"
+    },
     "slideshow": {
      "slide_type": ""
     },
@@ -379,6 +416,12 @@
    "id": "a44fa090-e2b0-4029-969c-595e0083d09a",
    "metadata": {
     "editable": true,
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:20.514066Z",
+     "iopub.status.busy": "2024-09-27T12:25:20.513310Z",
+     "iopub.status.idle": "2024-09-27T12:25:21.200150Z",
+     "shell.execute_reply": "2024-09-27T12:25:21.199453Z"
+    },
     "slideshow": {
      "slide_type": ""
     },
@@ -490,6 +533,12 @@
    "id": "1da6f085-191c-4b9d-b425-10a0f29d9fec",
    "metadata": {
     "editable": true,
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:21.202549Z",
+     "iopub.status.busy": "2024-09-27T12:25:21.202353Z",
+     "iopub.status.idle": "2024-09-27T12:25:21.471704Z",
+     "shell.execute_reply": "2024-09-27T12:25:21.470976Z"
+    },
     "slideshow": {
      "slide_type": ""
     },
@@ -723,6 +772,12 @@
    "id": "b29ec7fb-2a4b-4d64-ac66-426f3bc9b6d5",
    "metadata": {
     "editable": true,
+    "execution": {
+     "iopub.execute_input": "2024-09-27T12:25:21.474220Z",
+     "iopub.status.busy": "2024-09-27T12:25:21.474029Z",
+     "iopub.status.idle": "2024-09-27T12:25:22.119015Z",
+     "shell.execute_reply": "2024-09-27T12:25:22.118232Z"
+    },
     "slideshow": {
      "slide_type": ""
     },
@@ -733,7 +788,7 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Last updated: Fri Aug 23 2024\n",
+      "Last updated: Fri Sep 27 2024\n",
       "\n",
       "Python implementation: CPython\n",
       "Python version       : 3.12.3\n",
@@ -743,10 +798,11 @@
       "jax   : 0.4.31\n",
       "jaxlib: 0.4.31\n",
       "\n",
-      "matplotlib: 3.8.4\n",
+      "sys       : 3.12.3 | packaged by conda-forge | (main, Apr 15 2024, 18:38:13) [GCC 12.3.0]\n",
       "numpy     : 1.26.0\n",
       "seaborn   : 0.13.2\n",
-      "sys       : 3.12.3 | packaged by conda-forge | (main, Apr 15 2024, 18:38:13) [GCC 12.3.0]\n",
+      "matplotlib: 3.8.4\n",
+      "IPython   : 8.23.0\n",
       "\n",
       "Watermark: 2.4.3\n",
       "\n"

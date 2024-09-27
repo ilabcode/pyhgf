@@ -565,14 +565,12 @@ document.write(`
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid model type.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;continuous&quot;</span><span class="p">:</span>
-                <span class="c1"># Input</span>
+                <span class="c1"># X - 0</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-                    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span>
-                    <span class="n">input_precision</span><span class="o">=</span><span class="n">continuous_precision</span><span class="p">,</span>
-                    <span class="n">expected_precision</span><span class="o">=</span><span class="n">continuous_precision</span><span class="p">,</span>
+                    <span class="n">precision</span><span class="o">=</span><span class="n">continuous_precision</span><span class="p">,</span>
                 <span class="p">)</span>
 
-                <span class="c1"># X-1</span>
+                <span class="c1"># X - 1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
                     <span class="n">value_children</span><span class="o">=</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]),</span>
                     <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
@@ -583,7 +581,7 @@ document.write(`
                     <span class="p">},</span>
                 <span class="p">)</span>
 
-                <span class="c1"># X-2</span>
+                <span class="c1"># X - 2</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
                     <span class="n">volatility_children</span><span class="o">=</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">volatility_coupling</span><span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">]]),</span>
                     <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
@@ -594,31 +592,36 @@ document.write(`
                     <span class="p">},</span>
                 <span class="p">)</span>
 
+                <span class="c1">#########################</span>
+                <span class="c1"># Meta volatility level #</span>
+                <span class="c1">#########################</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_levels</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+                        <span class="n">volatility_children</span><span class="o">=</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="n">volatility_coupling</span><span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">]]),</span>
+                        <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">initial_mean</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">initial_precision</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;tonic_volatility&quot;</span><span class="p">:</span> <span class="n">tonic_volatility</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;tonic_drift&quot;</span><span class="p">:</span> <span class="n">tonic_drift</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
+                        <span class="p">},</span>
+                    <span class="p">)</span>
+
             <span class="k">elif</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;binary&quot;</span><span class="p">:</span>
-                <span class="c1"># Input</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-                    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-input&quot;</span><span class="p">,</span>
-                    <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;eta0&quot;</span><span class="p">:</span> <span class="n">eta0</span><span class="p">,</span>
-                        <span class="s2">&quot;eta1&quot;</span><span class="p">:</span> <span class="n">eta1</span><span class="p">,</span>
-                        <span class="s2">&quot;binary_precision&quot;</span><span class="p">:</span> <span class="n">binary_precision</span><span class="p">,</span>
-                    <span class="p">},</span>
-                <span class="p">)</span>
 
-                <span class="c1"># X -1</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-                    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-state&quot;</span><span class="p">,</span>
-                    <span class="n">value_children</span><span class="o">=</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]),</span>
-                    <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">initial_mean</span><span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">initial_precision</span><span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">],</span>
-                    <span class="p">},</span>
-                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">binary_precision</span> <span class="o">==</span> <span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+                    <span class="c1"># X - 0</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+                        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-state&quot;</span><span class="p">,</span>
+                        <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">initial_mean</span><span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">initial_precision</span><span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">],</span>
+                        <span class="p">},</span>
+                    <span class="p">)</span>
 
-                <span class="c1"># X -2</span>
+                <span class="c1"># X - 1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
                     <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-state&quot;</span><span class="p">,</span>
-                    <span class="n">value_children</span><span class="o">=</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]),</span>
+                    <span class="n">value_children</span><span class="o">=</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]),</span>
                     <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">initial_mean</span><span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">],</span>
                         <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">initial_precision</span><span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">],</span>
@@ -627,19 +630,19 @@ document.write(`
                     <span class="p">},</span>
                 <span class="p">)</span>
 
-            <span class="c1">#########</span>
-            <span class="c1"># x - 3 #</span>
-            <span class="c1">#########</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_levels</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-                    <span class="n">volatility_children</span><span class="o">=</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="n">volatility_coupling</span><span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">]]),</span>
-                    <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">initial_mean</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">initial_precision</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;tonic_volatility&quot;</span><span class="p">:</span> <span class="n">tonic_volatility</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;tonic_drift&quot;</span><span class="p">:</span> <span class="n">tonic_drift</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
-                    <span class="p">},</span>
-                <span class="p">)</span>
+                <span class="c1">#########################</span>
+                <span class="c1"># Meta volatility level #</span>
+                <span class="c1">#########################</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_levels</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
+                        <span class="n">volatility_children</span><span class="o">=</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">volatility_coupling</span><span class="p">[</span><span class="s2">&quot;2&quot;</span><span class="p">]]),</span>
+                        <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">initial_mean</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">initial_precision</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;tonic_volatility&quot;</span><span class="p">:</span> <span class="n">tonic_volatility</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
+                            <span class="s2">&quot;tonic_drift&quot;</span><span class="p">:</span> <span class="n">tonic_drift</span><span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">],</span>
+                        <span class="p">},</span>
+                    <span class="p">)</span>
 
             <span class="c1"># initialize the model so it is ready to receive new observations</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">create_belief_propagation_fn</span><span class="p">()</span></div>

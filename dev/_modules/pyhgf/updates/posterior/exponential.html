@@ -500,7 +500,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># update the hyperparameter vectors</span>
     <span class="n">xis</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xis&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;nus&quot;</span><span class="p">]))</span> <span class="o">*</span> <span class="p">(</span>
-        <span class="n">sufficient_stats_fn</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
+        <span class="n">sufficient_stats_fn</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span>
         <span class="o">-</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xis&quot;</span><span class="p">]</span>
     <span class="p">)</span>
 

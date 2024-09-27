@@ -1,6 +1,0 @@
-﻿pyhgf.updates.posterior.binary.binary\_node\_update\_finite
-===========================================================
-
-.. currentmodule:: pyhgf.updates.posterior.binary
-
-.. autofunction:: binary_node_update_finite
