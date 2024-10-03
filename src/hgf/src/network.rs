@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use crate::updates::posterior;
+use pyo3::prelude::*;
+use pyo3::wrap_pyfunction;
 
 #[derive(Debug)]
 pub struct AdjacencyLists{
@@ -25,14 +27,18 @@ pub enum Node {
 }
 
 #[derive(Debug)]
+#[pyclass]
 pub struct Network{
     pub nodes: HashMap<usize, Node>,
     pub edges: Vec<AdjacencyLists>,
     pub inputs: Vec<usize>,
 }
 
+#[pymethods]
 impl Network {
+
     // Create a new graph
+    #[new]  // Define the constructor accessible from Python
     pub fn new() -> Self {
         Network {
             nodes: HashMap::new(),
@@ -42,6 +48,7 @@ impl Network {
     }
 
     // Add a node to the graph
+    #[pyo3(signature = (kind, value_parents=None, value_childrens=None))]
     pub fn add_node(&mut self, kind: String, value_parents: Option<usize>, value_childrens: Option<usize>) {
         
         // the node ID is equal to the number of nodes already in the network
@@ -99,9 +106,9 @@ impl Network {
         }
         }
 
-    pub fn posterior_update(&mut self, node_idx: &usize, observation: f64) {
+    pub fn posterior_update(&mut self, node_idx: usize, observation: f64) {
 
-        match self.nodes.get_mut(node_idx) {
+        match self.nodes.get_mut(&node_idx) {
             Some(Node::Generic(ref mut node)) => {
                 node.observation = observation
             }
@@ -120,7 +127,7 @@ impl Network {
             
             let input_node_idx = self.inputs[i];
             // 2. inject the observations into the input nodes
-            self.posterior_update(&input_node_idx, observations[i]);
+            self.posterior_update(input_node_idx, observations[i]);
             // 3. posterior update - prediction errors propagation
             self.prediction_error(input_node_idx);
         }
@@ -134,6 +141,13 @@ impl Network {
     }
     }
 
+
+// Create a module to expose the class to Python
+#[pymodule]
+fn my_rust_library(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_class::<Network>()?; // Add the class to the Python module
+    Ok(())
+}
 
 // Tests module for unit tests
 #[cfg(test)] // Only compile and include this module when running tests

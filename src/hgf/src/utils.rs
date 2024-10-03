@@ -1,5 +1,4 @@
 use crate::network::Network;
-use std::collections::HashSet;
 
 
 pub fn get_update_order(network: Network) -> Vec<usize> {
