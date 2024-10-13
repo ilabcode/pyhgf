@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pyhgf.updates.posterior.categorical &#8212; pyhgf 0.1.7 documentation</title>
+    <title>pyhgf.updates.posterior.categorical &#8212; pyhgf 0.2.0 documentation</title>
   
   
   
@@ -39,8 +39,8 @@
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../../../_static/documentation_options.js?v=ca7ad2ea"></script>
-    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
@@ -457,11 +457,11 @@ document.write(`
 <span class="kn">from</span> <span class="nn">pyhgf.typing</span> <span class="kn">import</span> <span class="n">Edges</span>
 
 
-<div class="viewcode-block" id="categorical_input_update">
-<a class="viewcode-back" href="../../../../generated/pyhgf.updates.posterior.categorical/pyhgf.updates.posterior.categorical.categorical_input_update.html#pyhgf.updates.posterior.categorical.categorical_input_update">[docs]</a>
+<div class="viewcode-block" id="categorical_state_update">
+<a class="viewcode-back" href="../../../../generated/pyhgf.updates.posterior.categorical/pyhgf.updates.posterior.categorical.categorical_state_update.html#pyhgf.updates.posterior.categorical.categorical_state_update">[docs]</a>
 <span class="nd">@partial</span><span class="p">(</span><span class="n">jit</span><span class="p">,</span> <span class="n">static_argnames</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="s2">&quot;node_idx&quot;</span><span class="p">))</span>
-<span class="k">def</span> <span class="nf">categorical_input_update</span><span class="p">(</span>
-    <span class="n">attributes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">time_step</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">node_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="n">Edges</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span>
+<span class="k">def</span> <span class="nf">categorical_state_update</span><span class="p">(</span>
+    <span class="n">attributes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">node_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="n">Edges</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the categorical input node given an array of binary observations.</span>
 
@@ -478,8 +478,6 @@ document.write(`
 <span class="sd">        `&quot;psis&quot;` is the value coupling strength. It should have the same length as the</span>
 <span class="sd">        volatility parents&#39; indexes. `&quot;volatility_coupling&quot;` is the volatility coupling</span>
 <span class="sd">        strength. It should have the same length as the volatility parents&#39; indexes.</span>
-<span class="sd">    time_step :</span>
-<span class="sd">        The interval between the previous time point and the current time point.</span>
 <span class="sd">    node_idx :</span>
 <span class="sd">        Pointer to the node that needs to be updated.</span>
 <span class="sd">    edges :</span>
@@ -498,57 +496,52 @@ document.write(`
 <span class="sd">    binary_input_update, continuous_input_update</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># get the expected values at time k from the binary inputs (X_1)</span>
-    <span class="n">new_xi</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+    <span class="c1"># get the expected values before the update</span>
+    <span class="n">expected_mean</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
         <span class="p">[</span>
-            <span class="n">attributes</span><span class="p">[</span><span class="n">edges</span><span class="p">[</span><span class="n">vapa</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">vapa</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span>  <span class="c1"># type: ignore</span>
+            <span class="n">attributes</span><span class="p">[</span><span class="n">value_parent_idx</span><span class="p">][</span><span class="s2">&quot;expected_mean&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">value_parent_idx</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span>  <span class="c1"># type: ignore</span>
         <span class="p">]</span>
     <span class="p">)</span>
 
-    <span class="c1"># the differential of expectations (parents predictions at time k and k-1)</span>
-    <span class="n">delta_xi</span> <span class="o">=</span> <span class="n">new_xi</span> <span class="o">-</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xi&quot;</span><span class="p">]</span>
+    <span class="c1"># get the new values after the update from the continuous state</span>
+    <span class="n">updated_mean</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">attributes</span><span class="p">[</span><span class="n">edges</span><span class="p">[</span><span class="n">parent_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">parent_idx</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span>  <span class="c1"># type: ignore</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">updated_mean</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">jnp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">updated_mean</span><span class="p">))</span>  <span class="c1"># logit transform</span>
 
-    <span class="c1"># using the PE for the previous time point, we can compute nu and the alpha vector</span>
-    <span class="n">pe</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;pe&quot;</span><span class="p">]</span>
+    <span class="c1"># compute the prediction error (observed - expected) at time K</span>
+    <span class="n">pe</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">expected_mean</span>
+
+    <span class="c1"># the differential of expectations (parent posterior - parents expectation)</span>
+    <span class="n">delta_xi</span> <span class="o">=</span> <span class="n">updated_mean</span> <span class="o">-</span> <span class="n">expected_mean</span>
+
+    <span class="c1"># using the new PE, we can update nu and the alpha vector</span>
     <span class="n">nu</span> <span class="o">=</span> <span class="p">(</span><span class="n">pe</span> <span class="o">/</span> <span class="n">delta_xi</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="n">alpha</span> <span class="o">=</span> <span class="p">(</span><span class="n">nu</span> <span class="o">*</span> <span class="n">new_xi</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># concentration parameters for the Dirichlet</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="p">(</span><span class="n">nu</span> <span class="o">*</span> <span class="n">expected_mean</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># concentration parameters for the Dirichlet</span>
 
-    <span class="c1"># in case alpha contains NaNs (e.g. after the first time step,</span>
-    <span class="c1"># due to the absence of belief evolution)</span>
-    <span class="n">alpha</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">alpha</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
-
-    <span class="c1"># now retrieve the values observed at time k</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-        <span class="p">[</span>
-            <span class="n">attributes</span><span class="p">[</span><span class="n">vapa</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">vapa</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span><span class="o">.</span><span class="n">value_parents</span>  <span class="c1"># type: ignore</span>
-        <span class="p">]</span>
-    <span class="p">)</span>
-
-    <span class="c1"># compute the prediction error at time K</span>
-    <span class="n">pe</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_xi</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;pe&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pe</span>  <span class="c1"># keep PE for later use at k+1</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_xi</span>  <span class="c1"># keep expectation for later use at k+1</span>
+    <span class="c1"># in case alpha contains NaNs</span>
+    <span class="c1"># alpha = jnp.where(jnp.isnan(alpha), 1.0, alpha)</span>
 
     <span class="c1"># compute Bayesian surprise as :</span>
     <span class="c1"># 1 - KL divergence from the concentration parameters</span>
-    <span class="c1"># 2 - the sum of binary surprises observed in the parents nodes</span>
     <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;kl_divergence&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dirichlet_kullback_leibler</span><span class="p">(</span>
         <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;alpha&quot;</span><span class="p">],</span> <span class="n">alpha</span>
     <span class="p">)</span>
+    <span class="c1"># 2 - the sum of binary surprises observed in the parents nodes</span>
     <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;surprise&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">binary_surprise</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;values&quot;</span><span class="p">],</span> <span class="n">expected_mean</span><span class="o">=</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;xi&quot;</span><span class="p">]</span>
-        <span class="p">)</span>
+        <span class="n">binary_surprise</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span> <span class="n">expected_mean</span><span class="o">=</span><span class="n">expected_mean</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="c1"># save the new concentration parameters</span>
     <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alpha</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">updated_mean</span>
 
     <span class="c1"># prediction mean</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">/</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">][</span><span class="s2">&quot;time_step&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_step</span>
+    <span class="c1"># attributes[node_idx][&quot;mean&quot;] = alpha / jnp.sum(alpha)</span>
 
     <span class="k">return</span> <span class="n">attributes</span></div>
 
@@ -602,7 +595,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.2.
     <br/>
   </p>
 </div>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Learn &#8212; pyhgf 0.1.7 documentation</title>
+    <title>Learn &#8212; pyhgf 0.2.0 documentation</title>
   
   
   
@@ -40,8 +40,8 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=ca7ad2ea"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
@@ -428,7 +428,7 @@ document.write(`
 
 <li class="toctree-l1"><a class="reference internal" href="notebooks/4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="notebooks/5-Non_linear_value_coupling.html">Non-linear value coupling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/5-Non_linear_value_coupling.html">Non-linear value coupling between continuous state nodes</a></li>
 
 
 
@@ -437,15 +437,15 @@ document.write(`
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="notebooks/Example_1_Heart_rate_variability.html">Example 1: Bayesian filtering of cardiac volatility</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="notebooks/Example_2_Input_node_volatility_coupling.html">Example 2: Estimating the mean and precision of an input node</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/Example_2_Input_node_volatility_coupling.html">Example 2: Estimating the mean and precision of a time-varying Gaussian distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/Example_3_Multi_armed_bandit.html">Example 3: A multi-armed bandit task with independent rewards and punishments</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Exercises</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="notebooks/Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Introduction to the generalised Hierarchical Gaussian Filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Zurich CPC I: Introduction to the Generalised Hierarchical Gaussian Filter</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="notebooks/Exercise_2_Bayesian_reinforcement_learning.html">Application to reinforcement learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/Exercise_2_Bayesian_reinforcement_learning.html">Zurich CPC II: Application to reinforcement learning</a></li>
 
 
 
@@ -559,7 +559,7 @@ Generalised Bayesian filtering</div>
 <div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-3 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
 <div class="sd-col sd-d-flex-row docutils">
 <div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
-<img alt="" class="sd-card-img-top" src="_images/binary.png" />
+<img alt="" class="sd-card-img-top" src="_images/binary.svg" />
 <div class="sd-card-body docutils">
 <div class="sd-card-title sd-font-weight-bold docutils">
 The binary Hierarchical Gaussian Filter</div>
@@ -569,7 +569,7 @@ The binary Hierarchical Gaussian Filter</div>
 </div>
 <div class="sd-col sd-d-flex-row docutils">
 <div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
-<img alt="" class="sd-card-img-top" src="_images/categorical.png" />
+<img alt="" class="sd-card-img-top" src="_images/categorical.svg" />
 <div class="sd-card-body docutils">
 <div class="sd-card-title sd-font-weight-bold docutils">
 The categorical Hierarchical Gaussian Filter</div>
@@ -579,7 +579,7 @@ The categorical Hierarchical Gaussian Filter</div>
 </div>
 <div class="sd-col sd-d-flex-row docutils">
 <div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
-<img alt="" class="sd-card-img-top" src="_images/continuous.png" />
+<img alt="" class="sd-card-img-top" src="_images/continuous.svg" />
 <div class="sd-card-body docutils">
 <div class="sd-card-title sd-font-weight-bold docutils">
 The continuous Hierarchical Gaussian Filter</div>
@@ -633,7 +633,7 @@ Parameter recovery, prior and posterior predictive sampling</div>
 Non-linear value coupling</div>
 <p class="sd-card-text">Recovering parameters from the generative model and using the sampling functionalities to estimate prior and posterior uncertainties.</p>
 </div>
-<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/5-Non_linear_value_coupling.html#non-linear-coupling"><span class="std std-ref">Non-linear value coupling</span></a></div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/5-Non_linear_value_coupling.html#non-linear-coupling"><span class="std std-ref">Non-linear value coupling between continuous state nodes</span></a></div>
 </div>
 </div>
 </div>
@@ -660,7 +660,7 @@ Inferring cardiac beliefs using Bayesian filtering</div>
 Value and volatility coupling with an input node</div>
 <p class="sd-card-text">Dynamic inference over both the mean and variance of a normal distribution.</p>
 </div>
-<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Example_2_Input_node_volatility_coupling.html#example-2"><span class="std std-ref">Example 2: Estimating the mean and precision of an input node</span></a></div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Example_2_Input_node_volatility_coupling.html#example-2"><span class="std std-ref">Example 2: Estimating the mean and precision of a time-varying Gaussian distributions</span></a></div>
 </div>
 <div class="sd-col sd-d-flex-row docutils">
 <div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
@@ -688,7 +688,7 @@ Multi-armed bandit task with independent reward and punishments</div>
 Introduction to the Generalised Hierarchical Gaussian Filter</div>
 <p class="sd-card-text">Theoretical introduction to the generative model of the generalised Hierarchical Gaussian Filter and presentation of the update functions (i.e. the first inversion of the model).</p>
 </div>
-<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html#hgf-exercises-1"><span class="std std-ref">Introduction to the generalised Hierarchical Gaussian Filter</span></a></div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html#hgf-exercises-1"><span class="std std-ref">Zurich CPC I: Introduction to the Generalised Hierarchical Gaussian Filter</span></a></div>
 </div>
 <div class="sd-col sd-d-flex-row docutils">
 <div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
@@ -698,7 +698,7 @@ Introduction to the Generalised Hierarchical Gaussian Filter</div>
 Applying the Hierarchical Gaussian Filter to reinforcement learning</div>
 <p class="sd-card-text">Practical application of the generalised Hierarchical Gaussian Filter to reinforcement learning problems and estimation of parameters through MCMC sampling (i.e. the second inversion of the model).</p>
 </div>
-<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Exercise_2_Bayesian_reinforcement_learning.html#hgf-exercises-2"><span class="std std-ref">Application to reinforcement learning</span></a></div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="notebooks/Exercise_2_Bayesian_reinforcement_learning.html#hgf-exercises-2"><span class="std std-ref">Zurich CPC II: Application to reinforcement learning</span></a></div>
 </div>
 </div>
 </div>
@@ -802,7 +802,7 @@ Applying the Hierarchical Gaussian Filter to reinforcement learning</div>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.2.
     <br/>
   </p>
 </div>

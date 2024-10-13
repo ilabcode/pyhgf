@@ -1,6 +1,0 @@
-﻿pyhgf.updates.prediction\_error.inputs.binary.binary\_input\_prediction\_error\_finite\_precision
-=================================================================================================
-
-.. currentmodule:: pyhgf.updates.prediction_error.inputs.binary
-
-.. autofunction:: binary_input_prediction_error_finite_precision

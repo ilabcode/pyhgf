@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pyhgf.distribution &#8212; pyhgf 0.1.7 documentation</title>
+    <title>pyhgf.distribution &#8212; pyhgf 0.2.0 documentation</title>
   
   
   
@@ -39,8 +39,8 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
@@ -496,54 +496,66 @@ document.write(`
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    mean_1 :</span>
-<span class="sd">        The mean at the first level of the HGF.</span>
+<span class="sd">        The mean at the first level of the HGF. For the continuous HGF, this is the mean</span>
+<span class="sd">        of the first value parent (x_1). For the binary HGF this is the mean of the</span>
+<span class="sd">        binary state node (x_0).</span>
 <span class="sd">    mean_2 :</span>
-<span class="sd">        The mean at the second level of the HGF.</span>
+<span class="sd">        The mean at the second level of the HGF. For the continuous HGF, this is the</span>
+<span class="sd">        mean of the first volatility parent (x_2). For the binary HGF this is the mean</span>
+<span class="sd">        of the first continuous state node (x_1).</span>
 <span class="sd">    mean_3 :</span>
 <span class="sd">        The mean at the third level of the HGF. The value of this parameter will be</span>
-<span class="sd">        ignored when using a two-level HGF (`n_levels=2`).</span>
+<span class="sd">        ignored when using a two-level HGF (`n_levels=2`). For the continuous HGF, this</span>
+<span class="sd">        is the mean of the second volatility parent (x_3). For the binary HGF this is</span>
+<span class="sd">        the mean of the first volatility parent (x_2).</span>
 <span class="sd">    precision_1 :</span>
-<span class="sd">        The precision at the first level of the HGF.</span>
+<span class="sd">        The precision at the first level of the HGF. For the continuous HGF, this is the</span>
+<span class="sd">        precision of the first value parent (x_1). For the binary HGF this is the</span>
+<span class="sd">        precision of the binary state node (x_0).</span>
 <span class="sd">    precision_2 :</span>
-<span class="sd">        The precision at the second level of the HGF.</span>
+<span class="sd">        The precision at the second level of the HGF. For the continuous HGF, this is</span>
+<span class="sd">        the precision of the first volatility parent (x_2). For the binary HGF this is</span>
+<span class="sd">        the precision of the first continuous state node (x_1).</span>
 <span class="sd">    precision_3 :</span>
 <span class="sd">        The precision at the third level of the HGF. The value of this parameter will</span>
-<span class="sd">        be ignored when using a two-level HGF (`n_levels=2`).</span>
+<span class="sd">        be ignored when using a two-level HGF (`n_levels=2`). For the continuous HGF,</span>
+<span class="sd">        this is the precision of the second volatility parent (x_3). For the binary HGF</span>
+<span class="sd">        this is the precision of the first volatility parent (x_2).</span>
 <span class="sd">    tonic_volatility_1 :</span>
-<span class="sd">        The tonic volatility at the first level of the HGF. This parameter represents</span>
-<span class="sd">        the tonic part of the variance (the part that is not inherited from parent</span>
-<span class="sd">        nodes).</span>
+<span class="sd">        The tonic volatility at the first level (x_1 for the continuous HGF, x_2 for the</span>
+<span class="sd">        binary HGF). This parameter represents the tonic part of the variance (the part</span>
+<span class="sd">        that is not inherited from parent nodes).</span>
 <span class="sd">    tonic_volatility_2 :</span>
-<span class="sd">        The tonic volatility at the second level of the HGF. This parameter represents</span>
-<span class="sd">        the tonic part of the variance (the part that is not inherited from parent</span>
-<span class="sd">        nodes).</span>
+<span class="sd">        The tonic volatility at the second level (x_2 for the continuous HGF, x_3 for</span>
+<span class="sd">        the binary HGF). This parameter represents the tonic part of the variance (the</span>
+<span class="sd">        part that is not inherited from parent nodes).</span>
 <span class="sd">    tonic_volatility_3 :</span>
 <span class="sd">        The tonic volatility at the third level of the HGF. This parameter represents</span>
 <span class="sd">        the tonic part of the variance (the part that is not inherited from parent</span>
-<span class="sd">        nodes). The value of this parameter will be ignored when using a two-level HGF</span>
-<span class="sd">        (`n_levels=2`).</span>
+<span class="sd">        nodes). This parameter is only used for a three-level continuous HGF.</span>
 <span class="sd">    tonic_drift_1 :</span>
-<span class="sd">        The tonic drift at the first level of the HGF. This parameter represents the</span>
-<span class="sd">        drift of the random walk.</span>
+<span class="sd">        The tonic drift at the first level of the HGF (x_1 for the continuous HGF,</span>
+<span class="sd">        x_2 for the binary HGF). This parameter represents the drift of the random walk.</span>
 <span class="sd">    tonic_drift_2 :</span>
-<span class="sd">        The tonic drift at the second level of the HGF. This parameter represents the</span>
-<span class="sd">        drift of the random walk.</span>
+<span class="sd">        The tonic drift at the second level of the HGF (x_2 for the continuous HGF,</span>
+<span class="sd">        x_3 for the binary HGF). This parameter represents the drift of the random walk.</span>
 <span class="sd">    tonic_drift_3 :</span>
 <span class="sd">        The tonic drift at the third level of the HGF. This parameter represents the</span>
-<span class="sd">        drift of the random walk. The value of this parameter will be ignored when</span>
-<span class="sd">        using a two-level HGF (`n_levels=2`).</span>
+<span class="sd">        drift of the random walk. This parameter is only used for a three-level</span>
+<span class="sd">        continuous HGF.</span>
 <span class="sd">    volatility_coupling_1 :</span>
-<span class="sd">        The volatility coupling between the first and second levels of the HGF. This</span>
-<span class="sd">        represents the phasic part of the variance (the part affected by the</span>
+<span class="sd">        The volatility coupling between the first and second levels of the HGF (between</span>
+<span class="sd">        x_1 and x_2 for a continuous HGF, and between x_2 and x_3 for a binary HGF).</span>
+<span class="sd">        This represents the phasic part of the variance (the part affected by the</span>
 <span class="sd">        parent nodes). Defaults to `1.0` (full connectivity).</span>
 <span class="sd">    volatility_coupling_2 :</span>
-<span class="sd">        The volatility coupling between the second and third levels of the HGF. This</span>
-<span class="sd">        represents the phasic part of the variance (the part affected by the</span>
-<span class="sd">        parent nodes). Defaults to `1.0`  (full connectivity). The value of this</span>
-<span class="sd">        parameter will be ignored when using a two-level HGF (`n_levels=2`).</span>
+<span class="sd">        The volatility coupling between the second and third levels of the HGF (x_2 and</span>
+<span class="sd">        x_2 for a continuous HGF, not applicable to a binary HGF). This represents the</span>
+<span class="sd">        phasic part of the variance (the part affected by the parent nodes). Defaults</span>
+<span class="sd">        to `1.0`  (full connectivity). The value of this parameter will be ignored when</span>
+<span class="sd">        using a two-level HGF (`n_levels=2`).</span>
 <span class="sd">    input_precision :</span>
-<span class="sd">        The expected precision associated with the continuous or binary input, depending</span>
-<span class="sd">        on the model type.</span>
+<span class="sd">        The expected precision associated with the continuous input.</span>
 <span class="sd">    response_function_parameters :</span>
 <span class="sd">        An array of additional parameters that will be passed to the response function</span>
 <span class="sd">        to compute the surprise. This can include values over which inference is</span>
@@ -568,29 +580,54 @@ document.write(`
 <span class="sd">        The log-probability (negative surprise).</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># update this network&#39;s attributes</span>
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;expected_precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_precision</span>
+    <span class="k">if</span> <span class="n">hgf</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;continuous&quot;</span><span class="p">:</span>
 
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_1</span>
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_2</span>
+        <span class="c1"># update this network&#39;s attributes</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_precision</span>
 
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_1</span>
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_2</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_1</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_2</span>
 
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_volatility_1</span>
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_volatility_2</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_1</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_2</span>
 
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;tonic_drift&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_drift_1</span>
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;tonic_drift&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_drift_2</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_volatility_1</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_volatility_2</span>
 
-    <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;volatility_coupling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">,)</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;tonic_drift&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_drift_1</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;tonic_drift&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_drift_2</span>
 
-    <span class="k">if</span> <span class="n">hgf</span><span class="o">.</span><span class="n">n_levels</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_3</span>
-        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_3</span>
-        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_volatility_3</span>
-        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;tonic_drift&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_drift_3</span>
-        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;volatility_coupling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">,)</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_parents&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">,)</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_children&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">volatility_coupling_1</span><span class="p">,)</span>
+
+        <span class="k">if</span> <span class="n">hgf</span><span class="o">.</span><span class="n">n_levels</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_3</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_3</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_volatility_3</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;tonic_drift&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_drift_3</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_parents&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">,)</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_children&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">,)</span>
+
+    <span class="k">elif</span> <span class="n">hgf</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;binary&quot;</span><span class="p">:</span>
+
+        <span class="c1"># update this network&#39;s attributes</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_1</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_2</span>
+
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_1</span>
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_2</span>
+
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_volatility_2</span>
+
+        <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;tonic_drift&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_drift_1</span>
+
+        <span class="k">if</span> <span class="n">hgf</span><span class="o">.</span><span class="n">n_levels</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_3</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_3</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;tonic_volatility&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_volatility_3</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;tonic_drift&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tonic_drift_3</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_parents&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">,)</span>
+            <span class="n">hgf</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s2">&quot;volatility_coupling_children&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">volatility_coupling_2</span><span class="p">,)</span>
 
     <span class="n">surprise</span> <span class="o">=</span> <span class="n">hgf</span><span class="o">.</span><span class="n">input_data</span><span class="p">(</span><span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">,</span> <span class="n">time_steps</span><span class="o">=</span><span class="n">time_steps</span><span class="p">)</span><span class="o">.</span><span class="n">surprise</span><span class="p">(</span>
         <span class="n">response_function</span><span class="o">=</span><span class="n">response_function</span><span class="p">,</span>
@@ -862,7 +899,7 @@ document.write(`
         <span class="n">mean_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
         <span class="n">precision_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">precision_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
-        <span class="n">precision_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">precision_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">tonic_volatility_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
         <span class="n">tonic_volatility_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
         <span class="n">tonic_volatility_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="o">-</span><span class="mf">3.0</span><span class="p">),</span>
@@ -871,7 +908,7 @@ document.write(`
         <span class="n">tonic_drift_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
-        <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span>
         <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize node structure.&quot;&quot;&quot;</span>
@@ -1123,7 +1160,7 @@ document.write(`
         <span class="n">tonic_drift_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
-        <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span>
         <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert inputs to symbolic variables.&quot;&quot;&quot;</span>
@@ -1295,7 +1332,7 @@ document.write(`
         <span class="n">tonic_drift_3</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_1</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
         <span class="n">volatility_coupling_2</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
-        <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">input_precision</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span>
         <span class="n">response_function_parameters</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert inputs to symbolic variables.&quot;&quot;&quot;</span>
@@ -1378,7 +1415,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.2.
     <br/>
   </p>
 </div>

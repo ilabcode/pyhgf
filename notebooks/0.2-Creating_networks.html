@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Creating and manipulating networks of probabilistic nodes &#8212; pyhgf 0.1.7 documentation</title>
+    <title>Creating and manipulating networks of probabilistic nodes &#8212; pyhgf 0.2.0 documentation</title>
   
   
   
@@ -40,8 +40,8 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
@@ -428,7 +428,7 @@ document.write(`
 
 <li class="toctree-l1"><a class="reference internal" href="4-Parameter_recovery.html">Recovering computational parameters from observed behaviours</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-Non_linear_value_coupling.html">Non-linear value coupling between continuous state nodes</a></li>
 
 
 
@@ -437,15 +437,15 @@ document.write(`
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="Example_1_Heart_rate_variability.html">Example 1: Bayesian filtering of cardiac volatility</a></li>
 
-<li class="toctree-l1"><a class="reference internal" href="Example_2_Input_node_volatility_coupling.html">Example 2: Estimating the mean and precision of an input node</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Example_2_Input_node_volatility_coupling.html">Example 2: Estimating the mean and precision of a time-varying Gaussian distributions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Example_3_Multi_armed_bandit.html">Example 3: A multi-armed bandit task with independent rewards and punishments</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Exercises</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Introduction to the generalised Hierarchical Gaussian Filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.html">Zurich CPC I: Introduction to the Generalised Hierarchical Gaussian Filter</a></li>
 
 
-<li class="toctree-l1"><a class="reference internal" href="Exercise_2_Bayesian_reinforcement_learning.html">Application to reinforcement learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Exercise_2_Bayesian_reinforcement_learning.html">Zurich CPC II: Application to reinforcement learning</a></li>
 
 
 
@@ -560,8 +560,13 @@ Splitting the networks this way makes the components easily compatible with JAX 
 <p>The dynamic of belief propagation dynamics (which part of the network should be updated and in which order) are controlled by the ordered update sequence</p>
 <div class="math notranslate nohighlight">
 \[\Sigma = [f_1(n_1), ..., f_i(n_j), f \in \mathcal{F}, n \in 1, ..., k ]\]</div>
-<p>This list describes the sequence of function-to-nodes instructions that are executed during the inference and update processes.</p>
-<p><img alt="graph_network" src="../_images/graph_network.svg" /></p>
+<p>This list describes the sequence of function-to-nodes instructions executed during the inference and update processes.</p>
+<figure class="align-default" id="graph-fig">
+<img alt="../_images/graph_network.svg" src="../_images/graph_network.svg" />
+<figcaption>
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">Only four variables are needed to create a dynamic graph neural network: 1. The nodes’ attributes, 2. The nodes’ edges, 3. The update functions and 4. the update sequences.</span><a class="headerlink" href="#graph-fig" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Compatibility with JAX transformations
@@ -596,7 +601,7 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/d0460d224d463dfec1bf26fd4f870d5b9304223efd759cc9370000c8fcaa5d77.svg" src="../_images/d0460d224d463dfec1bf26fd4f870d5b9304223efd759cc9370000c8fcaa5d77.svg" />
+<img alt="../_images/b206995142a3c111a412aa92199b648e4347df5db1c8da041cf657c02c724447.svg" src="../_images/b206995142a3c111a412aa92199b648e4347df5db1c8da041cf657c02c724447.svg" />
 </div>
 </div>
 </section>
@@ -616,18 +621,18 @@ One of the advantages of reasoning this way is that it dissociates variables tha
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># method 1</span>
 <span class="n">new_input_precision_1</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mf">10.0</span>
+    <span class="n">precision</span><span class="o">=</span><span class="mf">10.0</span>
 <span class="p">)</span>
 
 <span class="c1"># method 2</span>
 <span class="n">new_input_precision_2</span> <span class="o">=</span> <span class="n">Network</span><span class="p">()</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_precision&quot;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">}</span>
+    <span class="n">node_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">}</span>
 <span class="p">)</span>
 
 <span class="c1"># both methods change the default values, but only method 2 will create a new key without error</span>
 <span class="k">assert</span> <span class="p">(</span>
-    <span class="n">new_input_precision_1</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;input_precision&quot;</span><span class="p">]</span>
-    <span class="o">==</span> <span class="n">new_input_precision_2</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;input_precision&quot;</span><span class="p">]</span>
+    <span class="n">new_input_precision_1</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span>
+    <span class="o">==</span> <span class="n">new_input_precision_2</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;precision&quot;</span><span class="p">]</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -648,7 +653,7 @@ A probabilistic node can store an arbitrary number of parameters. Parameter valu
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a_custom_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
@@ -660,14 +665,14 @@ A probabilistic node can store an arbitrary number of parameters. Parameter valu
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/2f1c66612b38f464566a092712ab692e3610241397d65229e04767192b93c4bf.svg" src="../_images/2f1c66612b38f464566a092712ab692e3610241397d65229e04767192b93c4bf.svg" />
+<img alt="../_images/110f4f355521578eeccc473ff746cc380d8b518412a3c56a8c63e7e9daeea9ac.svg" src="../_images/110f4f355521578eeccc473ff746cc380d8b518412a3c56a8c63e7e9daeea9ac.svg" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">another_custom_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">n_nodes</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -678,7 +683,7 @@ A probabilistic node can store an arbitrary number of parameters. Parameter valu
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/67a579eecd1f81ab4e285d15900455b968dc5513e776a82699093af19bc7d7e7.svg" src="../_images/67a579eecd1f81ab4e285d15900455b968dc5513e776a82699093af19bc7d7e7.svg" />
+<img alt="../_images/ee55c48ba6d1cc3f5f35cc2b6ceaaf10c6e2d6e2e2489e2b7e1cff4f51c935c4.svg" src="../_images/ee55c48ba6d1cc3f5f35cc2b6ceaaf10c6e2d6e2e2489e2b7e1cff4f51c935c4.svg" />
 </div>
 </div>
 <p>The structure of the probabilistic network is stored in the <code class="docutils literal notranslate"><span class="pre">edges</span></code> variable which consists of a tuple of <code class="docutils literal notranslate"><span class="pre">ContingencyLists</span></code> that store the indexes of value/volatility parents/children for each node. For example, accessing the nodes connected to node <code class="docutils literal notranslate"><span class="pre">4</span></code> in the example above is done with:</p>
@@ -734,7 +739,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># creating a network that contains many child nodes are value coupled to one parent node</span>
 <span class="n">many_value_children_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span>
 <span class="p">)</span>
@@ -745,20 +750,35 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/1ec19c774543f4d5f678f10bd2e826cb61ef0adf803ba28d60dfbba0baaa2b76.svg" src="../_images/1ec19c774543f4d5f678f10bd2e826cb61ef0adf803ba28d60dfbba0baaa2b76.svg" />
+<img alt="../_images/d2c2950ec0d492b1849cc88336f424f51e867c818e7a6c10a093734f3427c1a1.svg" src="../_images/d2c2950ec0d492b1849cc88336f424f51e867c818e7a6c10a093734f3427c1a1.svg" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">many_value_children_hgf</span><span class="o">.</span><span class="n">input_data</span><span class="p">(</span><span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">)</span>
-
-<span class="n">many_value_children_hgf</span><span class="o">.</span><span class="n">plot_nodes</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">show_observations</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">many_value_children_hgf</span><span class="o">.</span><span class="n">input_data</span><span class="p">(</span><span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">axs</span> <span class="o">=</span> <span class="n">many_value_children_hgf</span><span class="o">.</span><span class="n">plot_nodes</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> 
+        <span class="n">input_data</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#4c72b0&quot;</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">edgecolors</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span>
+        <span class="n">zorder</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="p">)</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/14ff8974e665bbc84e7736d7ef5aa5cf8cd704794bfe265a5b269ce073288375.png" src="../_images/14ff8974e665bbc84e7736d7ef5aa5cf8cd704794bfe265a5b269ce073288375.png" />
+<img alt="../_images/f70067f0e9da1f9cdc4707a700af3aeb6a82043bca0f5ba786d5af86f504ea68.png" src="../_images/f70067f0e9da1f9cdc4707a700af3aeb6a82043bca0f5ba786d5af86f504ea68.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -791,7 +811,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># creating a network that contains many child nodes that are volatility coupled to one parent node</span>
 <span class="n">many_volatility_children_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">mean</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span>
@@ -803,7 +823,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/48c9b0c50440898b27984f92cfd259223498d47422a0b93c3e2f8b9acc7df48c.svg" src="../_images/48c9b0c50440898b27984f92cfd259223498d47422a0b93c3e2f8b9acc7df48c.svg" />
+<img alt="../_images/5e0cd470150aa7e6d2146deafee22c387cf160419f282fa4476eeaf039b0217a.svg" src="../_images/5e0cd470150aa7e6d2146deafee22c387cf160419f282fa4476eeaf039b0217a.svg" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -818,14 +838,13 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">many_volatility_children_hgf</span><span class="o">.</span><span class="n">plot_nodes</span><span class="p">(</span>
     <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
     <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
-    <span class="n">show_observations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/57cd3a2eb55efcf295e1312059a74eafddbcdee8bd95a9e507c9ff5824d86649.png" src="../_images/57cd3a2eb55efcf295e1312059a74eafddbcdee8bd95a9e507c9ff5824d86649.png" />
+<img alt="../_images/949cbc858986e6d4695ae0906674408c1782bbee25196a599f99192845bcc84c.png" src="../_images/949cbc858986e6d4695ae0906674408c1782bbee25196a599f99192845bcc84c.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -857,11 +876,9 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <span class="c1"># value coupled to one value parent node</span>
 <span class="n">many_binary_children_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-input&quot;</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-state&quot;</span><span class="p">,</span> <span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-state&quot;</span><span class="p">,</span> <span class="n">value_children</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;binary-state&quot;</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="c1"># plot the network</span>
@@ -870,7 +887,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/3a482f15cb3c36fa7db97fe48c74e492295da209359cc51b7165e57dbf8d1693.svg" src="../_images/3a482f15cb3c36fa7db97fe48c74e492295da209359cc51b7165e57dbf8d1693.svg" />
+<img alt="../_images/0accd9589b61656913fb558e5eafb8c2021742fd9753dceea16af8d5d96f12fd.svg" src="../_images/0accd9589b61656913fb558e5eafb8c2021742fd9753dceea16af8d5d96f12fd.svg" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -890,17 +907,17 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">axs</span> <span class="o">=</span> <span class="n">many_binary_children_hgf</span><span class="o">.</span><span class="n">plot_trajectories</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
 
 <span class="c1"># plot the real contingencies</span>
-<span class="n">axs</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">u_0_prob</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Contingencies - Input Node 0&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-<span class="n">axs</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">u_1_prob</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Contingencies - Input Node 1&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">u_0_prob</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Contingencies - Input Node 0&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">u_1_prob</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Contingencies - Input Node 1&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/dde283c611ced276218743354242b1768aea626f0816bb72ee207399a4386e20.png" src="../_images/dde283c611ced276218743354242b1768aea626f0816bb72ee207399a4386e20.png" />
+<img alt="../_images/51475f8d6c7abc43752f455515666db445092523cc7ac01fb5e271317fc9b1ee.png" src="../_images/51475f8d6c7abc43752f455515666db445092523cc7ac01fb5e271317fc9b1ee.png" />
 </div>
 </div>
 <div class="admonition note">
@@ -917,9 +934,11 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
 
 <span class="c1"># simulate some time series - sampling from N(0, 1) sometime multiplied by 3</span>
-<span class="n">input_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">input_data</span><span class="p">[</span><span class="mi">250</span><span class="p">:</span><span class="mi">750</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">2</span>
-<span class="n">input_data</span><span class="p">[</span><span class="mi">1000</span><span class="p">:</span><span class="mi">1500</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">2</span>
+<span class="n">input_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">.05</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">input_data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">/</span> <span class="mi">45</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+<span class="n">input_data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">/</span> <span class="mi">45</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+<span class="n">input_data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span>
 </pre></div>
 </div>
 </div>
@@ -933,13 +952,11 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <span class="n">many_value_parents_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">expected_precision</span><span class="o">=</span><span class="mf">1.0</span>
+        <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mf">1e4</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">tonic_volatility</span><span class="o">=-</span><span class="mf">6.0</span><span class="p">)</span>
+    <span class="c1">#.add_nodes(value_children=[0], tonic_volatility=-2.0)</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tonic_volatility</span><span class="o">=-</span><span class="mf">2.0</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="c1"># plot the network</span>
@@ -948,7 +965,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/bcd8eabb6b414c7de442fe7937e9b43ec475156c19ab536b0a150e686ec158ea.svg" src="../_images/bcd8eabb6b414c7de442fe7937e9b43ec475156c19ab536b0a150e686ec158ea.svg" />
+<img alt="../_images/15a6020c56fc755ad986a8e39afdca024ed153de4b75d1750f8dd430f720a602.svg" src="../_images/15a6020c56fc755ad986a8e39afdca024ed153de4b75d1750f8dd430f720a602.svg" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -961,21 +978,15 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">many_value_parents_hgf</span><span class="o">.</span><span class="n">plot_nodes</span><span class="p">(</span>
-    <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
     <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
-    <span class="n">show_observations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_2215/1724106460.py:6: UserWarning: The figure layout has changed to tight
-  plt.tight_layout()
-</pre></div>
-</div>
-<img alt="../_images/7350eae8d8bd94206492cfd823309029ed4eb868bf52395f7e089f82c545356d.png" src="../_images/7350eae8d8bd94206492cfd823309029ed4eb868bf52395f7e089f82c545356d.png" />
+<img alt="../_images/371ee2712f9117915c9633160d0ca8228bfffc6eb217eeb8c32b6d8523f0dfd4.png" src="../_images/371ee2712f9117915c9633160d0ca8228bfffc6eb217eeb8c32b6d8523f0dfd4.png" />
 </div>
 </div>
 </section>
@@ -983,17 +994,27 @@ Contrary to standard graph networks, the directed connection between nodes can h
 <h4>Volatility coupling<a class="headerlink" href="#volatility-coupling" title="Link to this heading">#</a></h4>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+
+<span class="c1"># simulate some time series - sampling from N(0, 1) sometime multiplied by 3</span>
+<span class="n">input_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">.2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">input_data</span><span class="p">[</span><span class="mi">250</span><span class="p">:</span><span class="mi">750</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">5</span>
+<span class="n">input_data</span><span class="p">[</span><span class="mi">1000</span><span class="p">:</span><span class="mi">1500</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">5</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># creating a network with multiple volatility parents</span>
 <span class="n">many_volatility_parents_hgf</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span>
-        <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;continuous-input&quot;</span><span class="p">,</span> <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">input_precision</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">expected_precision</span><span class="o">=</span><span class="mf">1.0</span>
+        <span class="n">n_nodes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mf">1e4</span>
     <span class="p">)</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">value_children</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">volatility_children</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 <span class="p">)</span>
 
 <span class="c1"># plot the network</span>
@@ -1002,7 +1023,7 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/b5232cee86f1ab0c955671d61235032d44797d5846e367abb0991a7ac60e3a9d.svg" src="../_images/b5232cee86f1ab0c955671d61235032d44797d5846e367abb0991a7ac60e3a9d.svg" />
+<img alt="../_images/0a3d2e97c37f60ef46dc1b5974026a891a6d8076a940fc9e7c498226e439f284.svg" src="../_images/0a3d2e97c37f60ef46dc1b5974026a891a6d8076a940fc9e7c498226e439f284.svg" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -1014,17 +1035,28 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">many_volatility_parents_hgf</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>AdjacencyLists(node_type=2, value_parents=None, volatility_parents=(2, 3), value_children=None, volatility_children=None, coupling_fn=())
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">many_volatility_parents_hgf</span><span class="o">.</span><span class="n">plot_nodes</span><span class="p">(</span>
-    <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
     <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
-    <span class="n">show_observations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/9b20b7e7b4005b1060a6a1f17762c2a034a9bfe1de34736fcfe280a7ee55e914.png" src="../_images/9b20b7e7b4005b1060a6a1f17762c2a034a9bfe1de34736fcfe280a7ee55e914.png" />
+<img alt="../_images/5ecc82b32e438b29c8bf328b95fda1acae3fe282119a253ac30e6f5549ed281c.png" src="../_images/5ecc82b32e438b29c8bf328b95fda1acae3fe282119a253ac30e6f5549ed281c.png" />
 </div>
 </div>
 </section>
@@ -1093,23 +1125,24 @@ Contrary to standard graph networks, the directed connection between nodes can h
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sat Sep 14 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sun Oct 13 2024
 
 Python implementation: CPython
-Python version       : 3.12.5
-IPython version      : 8.27.0
+Python version       : 3.12.7
+IPython version      : 8.28.0
 
-pyhgf : 0.1.7
+pyhgf : 0.2.0
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-IPython   : 8.27.0
 seaborn   : 0.13.2
 numpy     : 1.26.0
-sys       : 3.12.5 (main, Aug 13 2024, 19:25:41) [GCC 11.4.0]
+pyhgf     : 0.2.0
 matplotlib: 3.9.2
+IPython   : 8.28.0
+sys       : 3.12.7 (main, Oct  1 2024, 15:17:55) [GCC 11.4.0]
 
-Watermark: 2.4.3
+Watermark: 2.5.0
 </pre></div>
 </div>
 </div>
@@ -1245,7 +1278,7 @@ Watermark: 2.4.3
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.2.
     <br/>
   </p>
 </div>
