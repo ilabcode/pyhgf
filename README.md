@@ -2,10 +2,11 @@
 
 # PyHGF: A Neural Network Library for Predictive Coding
 
-<img src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/logo.png" align="left" alt="hgf" width="180" HSPACE=20>
+
+<img src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/logo.png" align="left" alt="hgf" width="160" HSPACE=10>
 
 
-PyHGF is a Python library to create and manipulate dynamic probabilistic networks for predictive coding. The networks can approximate Bayesian inference and optimize beliefs through the diffusion of predictions and precision-weighted prediction errors, and their structure is flexible during both observation and inference. These systems can serve as biologically plausible cognitive models for computational psychiatry and reinforcement learning or as a generalisation of Bayesian filtering to arbitrarily sized dynamic graphical structures for signal processing or decision-making agents. The default implementation supports the generalisation and nodalisation of the Hierarchical Gaussian Filters for predictive coding (gHGF, Weber et al., 2024), but the framework is flexible enough to support any possible algorithm. The library is written on top of [JAX](https://jax.readthedocs.io/en/latest/jax.html), the core functions are derivable and JIT-able whenever feasible and it is possible to sample free parameters from a network under given observations. It is conceived to facilitate manipulation and modularity, so the user can focus on modeling while interfacing smoothly with other libraries in the ecosystem for Bayesian inference or optimization. A binding with an implementation in [Rust](https://www.rust-lang.org/) - that will provide full flexibility on structures during inference - is also under active development.
+PyHGF is a Python library for creating and manipulating dynamic probabilistic networks for predictive coding. These networks approximate Bayesian inference by optimizing beliefs through the diffusion of predictions and precision-weighted prediction errors. The network structure remains flexible during message-passing steps, allowing for dynamic adjustments. They can be used as a biologically plausible cognitive model in computational neuroscience or as a generalization of Bayesian filtering for designing efficient, modular decision-making agents. The default implementation supports the generalized Hierarchical Gaussian Filters (gHGF, Weber et al., 2024), but the framework is designed to be adaptable to other algorithms. Built on top of JAX, the core functions are differentiable and JIT-compiled where applicable. The library is optimized for modularity and ease of use, allowing seamless integration with other libraries in the ecosystem for Bayesian inference and optimization. Additionally, a binding with an implementation in Rust is under active development, which will further enhance flexibility during inference.
 
 * 📖 [API Documentation](https://ilabcode.github.io/pyhgf/api.html)  
 * ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/learn.html)  
@@ -31,7 +32,7 @@ Dynamic networks can be defined as a tuple containing the following variables:
 * A set of update functions. An update function receive a network tuple and returns an updated network tuple.
 * An update sequence (tuple) that defines the order and target of the update functions.
 
-![png](https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg)
+<img src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg" align="center" alt="networks" style="width:100%; height:auto;">
 
 
 You can find a deeper introduction to how to create and manipulate networks under the following link:
