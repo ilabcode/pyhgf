@@ -462,7 +462,7 @@ def plot_nodes(
                     s=3,
                     label="Input",
                     color="#2a2a2a",
-                    zorder=10,
+                    zorder=2,
                 )
                 # plotting standard deviation
                 if ci is True:
@@ -479,7 +479,7 @@ def plot_nodes(
                     y=trajectories_df[f"x_{node_idx}_mean"],
                     label="Input",
                     color="#2a2a2a",
-                    zorder=10,
+                    zorder=2,
                     alpha=0.4,
                 )
 
@@ -570,7 +570,7 @@ def plot_nodes(
                     s=3,
                     label="Posterior",
                     color="#2a2a2a",
-                    zorder=10,
+                    zorder=2,
                     alpha=0.5,
                 )
                 axs[i].legend(loc="lower left")
