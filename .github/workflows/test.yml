@@ -29,8 +29,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install graphviz
-        pip install -r requirements-tests.txt
-        pip install ipykernel coverage pytest pytest-cov
+        pip install poetry ipykernel coverage pytest pytest-cov
         python -m ipykernel install --user --name python3
     - name: Run tests and coverage
       run: |

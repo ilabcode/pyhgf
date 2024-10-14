@@ -24,7 +24,8 @@ jobs:
       - name: Build
         run: |
           sudo apt-get install graphviz
-          pip install -r requirements-docs.txt
+          pip install poetry
+          poetry install --with dev
           sphinx-build -j 4 -T -b html docs/source docs/build/html
 
       - name: Deploy Stable 🚀

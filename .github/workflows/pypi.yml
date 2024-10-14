@@ -14,20 +14,12 @@ jobs:
       with:
         python-version: "3.12"
 
-    - name: Install pypa/build
+    - name: Install poetry
       run: >-
-        python -m
-        pip install
-        build
-        --user
+        python -m pip install poetry --user
     - name: Build a binary wheel and a source tarball
       run: >-
-        python -m
-        build
-        --sdist
-        --wheel
-        --outdir dist/
-        .
+        python -m poetry build
     - name: Store the distribution packages
       uses: actions/upload-artifact@v3
       with:
