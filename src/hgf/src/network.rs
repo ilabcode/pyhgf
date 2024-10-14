@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use crate::updates::posterior;
 use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
 
 #[derive(Debug)]
 pub struct AdjacencyLists{
@@ -144,8 +143,8 @@ impl Network {
 
 // Create a module to expose the class to Python
 #[pymodule]
-fn my_rust_library(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<Network>()?; // Add the class to the Python module
+fn my_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_class::<Network>()?;
     Ok(())
 }
 
