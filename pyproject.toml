@@ -1,0 +1,52 @@
+[tool.poetry]
+name = "pyhgf"
+version = "0.0.0"
+description = "Dynamic neural networks for predictive coding"
+authors = ["Nicolas Legrand <nicolas.legrand@cas.au.dk>"]
+license = "GPL-3.0"
+readme = "README.md"
+homepage = "https://ilabcode.github.io/pyhgf/"
+repository = "https://github.com/ilabcode/pyhgf"
+keywords = ["reinforcement learning", "predictive coding", "neural networks", "graphs", "variational inference", "active inference", "causal inference"]
+include = [
+    "src/pyhgf/data/usdchf.txt",
+    "rc/pyhgf/data/binary_input.txt",
+    "src/pyhgf/data/binary_response.txt",
+]
+
+[tool.poetry-dynamic-versioning]
+# Enable dynamic versioning
+enable = true
+# Set the source of the version to __init__.py
+source = "src/pyhgf/__init__.py"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+numpy = "^1.18"
+matplotlib = "^3.0.2"
+seaborn = "^0.11.2"
+arviz = "^0.20.0"
+pymc = "^5.17.0"
+jax = "^0.4.26,<0.4.32"
+jaxlib = "^0.4.26,<0.4.32"
+
+
+[tool.poetry.dev-dependencies]
+sphinx = "^8.1.3"
+pydata-sphinx-theme = "^0.15.2"
+sphinxcontrib-bibtex = "^2.6.1"
+docutils = "^0.21.2"
+myst-nb = "^1.0.0"
+numpydoc = "^1.6.0"
+myst-parser = "^4.0.0"
+graphviz = "^0.20.3"
+watermark = "^2.5.0"
+systole = "^0.3.0"
+sphinx-togglebutton = "^0.3.2"
+sphinx-design = "^0.6.1"
+sphinx-exercise = "^0.4.1"
+ipywidgets = "^8.1.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
