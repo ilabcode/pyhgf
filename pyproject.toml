@@ -18,7 +18,7 @@ include = [
 # Enable dynamic versioning
 enable = true
 # Set the source of the version to __init__.py
-source = "src/pyhgf/__init__.py"
+source = ".src/pyhgf/__init__.py"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"

@@ -16,7 +16,7 @@ jobs:
 
     - name: Install poetry
       run: >-
-        python -m pip install poetry --user
+        python -m pip install poetry poetry-dynamic-versioning --user
     - name: Build a binary wheel and a source tarball
       run: >-
         python -m poetry build

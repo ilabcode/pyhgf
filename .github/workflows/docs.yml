@@ -24,7 +24,7 @@ jobs:
       - name: Build
         run: |
           sudo apt-get install graphviz
-          pip install poetry
+          pip install poetry poetry-dynamic-versioning
           poetry install --with dev
           sphinx-build -j 4 -T -b html docs/source docs/build/html
 
