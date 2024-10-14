@@ -36,7 +36,7 @@ jobs:
 
       # Step 4: Install System Dependencies
       - name: Install Graphviz
-        run: apt-get install -y graphviz
+        run: sudo apt-get install -y graphviz
 
       # Step 5: Install Python Dependencies using Poetry
       - name: Install dependencies

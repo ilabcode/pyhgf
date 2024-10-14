@@ -23,11 +23,16 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry self add "poetry-dynamic-versioning[plugin]"
+
       # 3. Install dependencies and build the documentation
       - name: Install dependencies and build docs
         run: |
-          apt-get install graphviz
-          pip install poetry poetry-dynamic-versioning
+          sudo apt-get install graphviz
           poetry install --with dev
           poetry run sphinx-build -j 4 -T -b html docs/source docs/build/html
 
