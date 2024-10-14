@@ -42,7 +42,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install --with dev
-          python -m ipykernel install --user --name python3
 
       # Step 6: Run Tests and Generate Coverage Report
       - name: Run tests and coverage
