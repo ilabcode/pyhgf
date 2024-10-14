@@ -5,34 +5,52 @@ on:
     branches:
       - master
   pull_request:
+    # This will run the action for pull requests from any branch
     branches:
-      - "*"
+      - '*'
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12']
+        python-version: ['3.12']  # Add more Python versions if needed, like '3.8', '3.9', '3.10', etc.
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Poetry
-      run: |
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python environment
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Step 3: Install Poetry
+      - name: Install Poetry
+        run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           poetry self add "poetry-dynamic-versioning[plugin]"
-    - name: Install dependencies
-      run: |
-        sudo apt-get install graphviz
-        poetry install --with dev
-        python -m ipykernel install --user --name python3
-    - name: Run tests and coverage
-      run: |
-        pytest ./tests/ --cov=./src/pyhgf/ --cov-report=xml
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }} # required
+
+      # Step 4: Install System Dependencies
+      - name: Install Graphviz
+        run: apt-get install -y graphviz
+
+      # Step 5: Install Python Dependencies using Poetry
+      - name: Install dependencies
+        run: |
+          poetry install --with dev
+          python -m ipykernel install --user --name python3
+
+      # Step 6: Run Tests and Generate Coverage Report
+      - name: Run tests and coverage
+        run: |
+          poetry run pytest ./tests/ --cov=./src/pyhgf/ --cov-report=xml
+
+      # Step 7: Upload Coverage Report to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}  # Make sure to set this token in repository secrets
