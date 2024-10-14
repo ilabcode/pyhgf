@@ -20,7 +20,7 @@ jobs:
         poetry self add "poetry-dynamic-versioning[plugin]"
     - name: Build a binary wheel and a source tarball
       run: >-
-        python -m poetry build
+        poetry build
     - name: Store the distribution packages
       uses: actions/upload-artifact@v3
       with:
