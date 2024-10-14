@@ -1,6 +1,5 @@
 [tool.poetry]
 name = "pyhgf"
-version = "0.0.0"
 description = "Dynamic neural networks for predictive coding"
 authors = ["Nicolas Legrand <nicolas.legrand@cas.au.dk>"]
 license = "GPL-3.0"
@@ -13,6 +12,12 @@ include = [
     "rc/pyhgf/data/binary_input.txt",
     "src/pyhgf/data/binary_response.txt",
 ]
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dynamic = ["version"]
 
 [tool.poetry-dynamic-versioning]
 # Enable dynamic versioning
@@ -51,5 +56,9 @@ pytest = "^8.3.3"
 pytest-cov = "^5.0.0"
 
 [build-system]
-requires = ["poetry-core", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["poetry-core", "poetry-dynamic-versioning>=1.0.0,<2.0.0", "maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+# "extension-module" tells pyo3 we want to build an extension module (skips linking against libpython.so)
+features = ["pyo3/extension-module"]
