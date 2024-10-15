@@ -143,7 +143,7 @@ impl Network {
 
 // Create a module to expose the class to Python
 #[pymodule]
-fn my_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn rshgf(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Network>()?;
     Ok(())
 }
