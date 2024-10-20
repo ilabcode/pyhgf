@@ -15,5 +15,4 @@ coverage.xm
 .mypy_cache
 .pytest_cache
 dist/*
-src/hgf/target*
-target/*
+target*

@@ -5,7 +5,7 @@
 <img src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/logo.png" align="left" alt="hgf" width="160" HSPACE=10>
 
 
-PyHGF is a Python library for creating and manipulating dynamic probabilistic networks for predictive coding. These networks approximate Bayesian inference by optimizing beliefs through the diffusion of predictions and precision-weighted prediction errors. The network structure remains flexible during message-passing steps, allowing for dynamic adjustments. They can be used as a biologically plausible cognitive model in computational neuroscience or as a generalization of Bayesian filtering for designing efficient, modular decision-making agents. The default implementation supports the generalized Hierarchical Gaussian Filters (gHGF, Weber et al., 2024), but the framework is designed to be adaptable to other algorithms. Built on top of JAX, the core functions are differentiable and JIT-compiled where applicable. The library is optimized for modularity and ease of use, allowing seamless integration with other libraries in the ecosystem for Bayesian inference and optimization. Additionally, a binding with an implementation in Rust is under active development, which will further enhance flexibility during inference.
+PyHGF is a Python library for creating and manipulating dynamic probabilistic networks for predictive coding. These networks approximate Bayesian inference by optimizing beliefs through the diffusion of predictions and precision-weighted prediction errors. The network structure remains flexible during message-passing steps, allowing for dynamic adjustments. They can be used as a biologically plausible cognitive model in computational neuroscience or as a generalization of Bayesian filtering for designing efficient, modular decision-making agents. The default implementation supports the generalized Hierarchical Gaussian Filters (gHGF, Weber et al., 2024), but the framework is designed to be adaptable to other algorithms. Built on top of JAX, the core functions are differentiable and JIT-compiled where applicable. The library is optimized for modularity and ease of use, allowing seamless integration with other libraries in the ecosystem for Bayesian inference and optimization. Additionally, a binding with an implementation in Rust is under active development, which will further enhance flexibility during inference. You can find the method paper describing the toolbox [here](https://arxiv.org/abs/2410.09206) and the method paper describing the gHGF, which is the main framework currently supported by the toolbox [here](https://arxiv.org/abs/2305.10937).
 
 * 📖 [API Documentation](https://ilabcode.github.io/pyhgf/api.html)  
 * ✏️ [Tutorials and examples](https://ilabcode.github.io/pyhgf/learn.html)  
@@ -49,7 +49,7 @@ Generalized Hierarchical Gaussian Filters (gHGF) are specific instances of dynam
 
 You can find a deeper introduction on how does the gHGF works under the following link:
 
-* 🎓 [Introduction to the Hierarchical Gaussian Filter](https://ilabcode.github.io/pyhgf/notebooks/0.2-Theory.html#theory)  
+* 🎓 [Introduction to the Hierarchical Gaussian Filter](https://ilabcode.github.io/pyhgf/notebooks/0.1-Theory.html#theory)  
 
 ### Model fitting
 
@@ -100,10 +100,12 @@ This implementation of the Hierarchical Gaussian Filter was inspired by the orig
 
 ## References
 
-1. Mathys, C. (2011). A Bayesian foundation for individual learning under uncertainty. In Frontiers in Human Neuroscience (Vol. 5). Frontiers Media SA. https://doi.org/10.3389/fnhum.2011.00039  
-2. Mathys, C. D., Lomakina, E. I., Daunizeau, J., Iglesias, S., Brodersen, K. H., Friston, K. J., & Stephan, K. E. (2014). Uncertainty in perception and the hierarchical Gaussian filter. Frontiers in Human Neuroscience, 8. https://doi.org/10.3389/fnhum.2014.00825  
-3. Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., & Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1). arXiv. https://doi.org/10.48550/ARXIV.2305.10937  
-4. Frässle, S., Aponte, E. A., Bollmann, S., Brodersen, K. H., Do, C. T., Harrison, O. K., Harrison, S. J., Heinzle, J., Iglesias, S., Kasper, L., Lomakina, E. I., Mathys, C., Müller-Schrader, M., Pereira, I., Petzschner, F. H., Raman, S., Schöbi, D., Toussaint, B., Weber, L. A., … Stephan, K. E. (2021). TAPAS: An Open-Source Software Package for Translational Neuromodeling and Computational Psychiatry. In Frontiers in Psychiatry (Vol. 12). Frontiers Media SA. https://doi.org/10.3389/fpsyt.2021.680811  
+1. Legrand, N., Weber, L., Waade, P. T., Daugaard, A. H. M., Khodadadi, M., Mikuš, N., & Mathys, C. (2024). pyhgf: A neural network library for predictive coding (Version 1). arXiv. https://doi.org/10.48550/ARXIV.2410.09206  
+2. Mathys, C. (2011). A Bayesian foundation for individual learning under uncertainty. In Frontiers in Human Neuroscience (Vol. 5). Frontiers Media SA. https://doi.org/10.3389/fnhum.2011.00039  
+3. Mathys, C. D., Lomakina, E. I., Daunizeau, J., Iglesias, S., Brodersen, K. H., Friston, K. J., & Stephan, K. E. (2014). Uncertainty in perception and the hierarchical Gaussian filter. Frontiers in Human Neuroscience, 8. https://doi.org/10.3389/fnhum.2014.00825  
+4. Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., & Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 2). arXiv. https://doi.org/10.48550/ARXIV.2305.10937  
+5. Frässle, S., Aponte, E. A., Bollmann, S., Brodersen, K. H., Do, C. T., Harrison, O. K., Harrison, S. J., Heinzle, J., Iglesias, S., Kasper, L., Lomakina, E. I., Mathys, C., Müller-Schrader, M., Pereira, I., Petzschner, F. H., Raman, S., Schöbi, D., Toussaint, B., Weber, L. A., … Stephan, K. E. (2021). TAPAS: An Open-Source Software Package for Translational Neuromodeling and Computational Psychiatry. In Frontiers in Psychiatry (Vol. 12). Frontiers Media SA. https://doi.org/10.3389/fpsyt.2021.680811  
+6. Iglesias, S., Kasper, L., Harrison, S. J., Manka, R., Mathys, C., & Stephan, K. E. (2021). Cholinergic and dopaminergic effects on prediction error and uncertainty responses during sensory associative learning. In NeuroImage (Vol. 226, p. 117590). Elsevier BV. https://doi.org/10.1016/j.neuroimage.2020.117590 
 
 ```{toctree}
 ---
