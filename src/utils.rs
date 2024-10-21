@@ -60,24 +60,32 @@ mod tests {
     
         // create a network
         network.add_node(
-            String::from("generic-input"),
+            String::from("continuous-state"),
             Some(1),
             None,
+            None,
+            Some(2),
         );
         network.add_node(
-            String::from("exponential-node"),
-            Some(2),
+            String::from("continuous-state"),
+            None,
             Some(0),
+            None,
+            None,
         );
         network.add_node(
-            String::from("exponential-node"),
-            Some(3),
-            Some(1),
+            String::from("continuous-state"),
+            None,
+            None,
+            Some(0),
+            None,
         );
         network.add_node(
             String::from("exponential-node"),
             None,
-            Some(2),
+            None,
+            None,
+            None,
         );
 
         println!("Network: {:?}", network);

@@ -6,23 +6,31 @@ use pyo3::prelude::*;
 pub struct AdjacencyLists{
     pub value_parents: Option<usize>,
     pub value_children: Option<usize>,
+    pub volatility_parents: Option<usize>,
+    pub volatility_children: Option<usize>,
 }
 #[derive(Debug, Clone)]
-pub struct GenericInputNode{
-    pub observation: f64,
-    pub time_step: f64,
+pub struct ContinuousStateNode{
+    pub mean: f64,
+    pub expected_mean: f64,
+    pub precision: f64,
+    pub expected_precision: f64,
+    pub tonic_volatility: f64,
+    pub tonic_drift: f64,
+    pub autoconnection_strength: f64,
 }
 #[derive(Debug, Clone)]
-pub struct ExponentialNode {
-    pub observation: f64,
+pub struct ExponentialFamiliyStateNode {
+    pub mean: f64,
+    pub expected_mean: f64,
     pub nus: f64,
     pub xis: [f64; 2],
 }
 
 #[derive(Debug, Clone)]
 pub enum Node {
-    Generic(GenericInputNode),
-    Exponential(ExponentialNode),
+    Continuous(ContinuousStateNode),
+    Exponential(ExponentialFamiliyStateNode),
 }
 
 #[derive(Debug)]
@@ -47,29 +55,46 @@ impl Network {
     }
 
     // Add a node to the graph
-    #[pyo3(signature = (kind, value_parents=None, value_childrens=None))]
-    pub fn add_node(&mut self, kind: String, value_parents: Option<usize>, value_childrens: Option<usize>) {
+    #[pyo3(signature = (kind, value_parents=None, value_children=None, volatility_children=None, volatility_parents=None))]
+    pub fn add_node(&mut self, kind: String, value_parents: Option<usize>, value_children: Option<usize>, volatility_children: Option<usize>, volatility_parents: Option<usize>) {
         
         // the node ID is equal to the number of nodes already in the network
         let node_id: usize = self.nodes.len();
         
         let edges = AdjacencyLists{
+            value_parents: value_children,
             value_children: value_parents, 
-            value_parents: value_childrens,
+            volatility_parents: volatility_parents,
+            volatility_children: volatility_children,
         };
         
         // add edges and attributes
-        if kind == "generic-input" {
-            let generic_input = GenericInputNode{observation: 0.0, time_step: 0.0};
-            let node = Node::Generic(generic_input);
+        if kind == "continuous-state" {
+            let continuous_state = ContinuousStateNode{
+                mean: 0.0, expected_mean: 0.0, precision: 1.0, expected_precision: 1.0,
+                tonic_drift: 0.0, tonic_volatility: -4.0, autoconnection_strength: 1.0
+            };
+            let node = Node::Continuous(continuous_state);
             self.nodes.insert(node_id, node);
             self.edges.push(edges);
-            self.inputs.push(node_id);
-        } else if kind == "exponential-node" {
-            let exponential_node: ExponentialNode = ExponentialNode{observation: 0.0, nus: 0.0, xis: [0.0, 0.0]};
+
+            // if this node has no children, this is an input node
+            if (value_children == None) & (volatility_children == None) {
+                self.inputs.push(node_id);
+            }
+        } else if kind == "exponential-state" {
+            let exponential_node: ExponentialFamiliyStateNode = ExponentialFamiliyStateNode{
+                mean: 0.0, expected_mean: 0.0, nus: 0.0, xis: [0.0, 0.0]
+            };
             let node = Node::Exponential(exponential_node);
             self.nodes.insert(node_id, node);
             self.edges.push(edges);
+            
+            // if this node has no children, this is an input node
+            if (value_children == None) & (volatility_children == None) {
+                self.inputs.push(node_id);
+            }
+
         } else {
             println!("Invalid type of node provided ({}).", kind);
         }
@@ -78,13 +103,13 @@ impl Network {
     pub fn prediction_error(&mut self, node_idx: usize) {
 
         // get the observation value
-        let observation;
+        let mean;
         match self.nodes[&node_idx] {
-            Node::Generic(ref node) => {
-                observation = node.observation;
+            Node::Continuous(ref node) => {
+                mean = node.mean;
             }
             Node::Exponential(ref node) => {
-                observation = node.observation;
+                mean = node.mean;
             }
         }
 
@@ -92,11 +117,11 @@ impl Network {
         match value_parent_idx {
             Some(idx) => {
                 match self.nodes.get_mut(idx)  {
-                    Some(Node::Generic(ref mut parent)) => {
-                        parent.observation = observation
+                    Some(Node::Continuous(ref mut parent)) => {
+                        parent.mean = mean
                     }
                     Some(Node::Exponential(ref mut parent)) => {
-                        parent.observation = observation
+                        parent.mean = mean
                     }
                     None => println!("No prediction error for this type of node."),
                 }
@@ -108,11 +133,11 @@ impl Network {
     pub fn posterior_update(&mut self, node_idx: usize, observation: f64) {
 
         match self.nodes.get_mut(&node_idx) {
-            Some(Node::Generic(ref mut node)) => {
-                node.observation = observation
+            Some(Node::Continuous(ref mut node)) => {
+                node.mean = observation
             }
             Some(Node::Exponential(ref mut node)) => {
-                posterior::continuous::posterior_update_exponential(node)
+                posterior::exponential::posterior_update_exponential(node)
             }
             None => println!("No posterior update for this type of node.")
         }
@@ -160,26 +185,20 @@ mod tests {
         // initialize network
         let mut network = Network::new();
     
-        // create a network
+        // create a network with two exponential family state nodes
         network.add_node(
-            String::from("generic-input"),
+            String::from("exponential-state"),
             None,
             None,
+            None,
+            None
         );
         network.add_node(
-            String::from("generic-input"),
+            String::from("exponential-state"),
             None,
             None,
-        );
-        network.add_node(
-            String::from("exponential-node"),
             None,
-            Some(0),
-        );
-        network.add_node(
-            String::from("exponential-node"),
-            None,
-            Some(1),
+            None
         );
     
         // println!("Graph before belief propagation: {:?}", network);
