@@ -59,29 +59,29 @@ mod tests {
         let mut network = Network::new();
     
         // create a network
-        network.add_node(
-            String::from("continuous-state"),
+        network.add_nodes(
+            "continuous-state",
             Some(1),
             None,
             None,
             Some(2),
         );
-        network.add_node(
-            String::from("continuous-state"),
+        network.add_nodes(
+            "continuous-state",
             None,
             Some(0),
             None,
             None,
         );
-        network.add_node(
-            String::from("continuous-state"),
+        network.add_nodes(
+            "continuous-state",
             None,
             None,
             Some(0),
             None,
         );
-        network.add_node(
-            String::from("exponential-node"),
+        network.add_nodes(
+            "exponential-node",
             None,
             None,
             None,
