@@ -1,6 +1,6 @@
 use crate::model::Network;
 
-/// Posterior update from a continuous state node
+/// Prediction from a continuous state node
 /// 
 /// # Arguments
 /// * `network` - The main network containing the node.
@@ -8,6 +8,6 @@ use crate::model::Network;
 /// 
 /// # Returns
 /// * `network` - The network after message passing.
-pub fn posterior_update_continuous_state_node(network: &mut Network, node_idx: usize) {
+pub fn prediction_continuous_state_node(network: &mut Network, node_idx: usize) {
     let a = 1;
 }
