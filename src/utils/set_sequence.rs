@@ -1,6 +1,7 @@
-use crate::{model::{FnType, Network, Node, UpdateSequence}, updates::{posterior::{continuous::posterior_update_continuous_state_node, exponential::posterior_update_exponential_state_node}, prediction::continuous::prediction_continuous_state_node, prediction_error::continuous::prediction_error_continuous_state_node}};
+use crate::{model::{Network, Node, UpdateSequence}, updates::{posterior::continuous::posterior_update_continuous_state_node, prediction::continuous::prediction_continuous_state_node, prediction_error::{continuous::prediction_error_continuous_state_node, exponential::prediction_error_exponential_state_node}}};
+use crate::utils::function_pointer::FnType;
 
-pub fn get_update_sequence(network: &Network) -> UpdateSequence {
+pub fn set_update_sequence(network: &Network) -> UpdateSequence {
     let predictions = get_predictions_sequence(network);
     let updates = get_updates_sequence(network);
 
@@ -40,8 +41,8 @@ pub fn get_predictions_sequence(network: &Network) -> Vec<(usize, FnType)> {
                 // If both are Some, merge the vectors
                 (Some(ref vec1), Some(ref vec2)) => {
                     // Create a new vector by merging the two
-                    let merged_vec: Vec<usize> = vec1.iter().chain(vec2.iter()).cloned().collect();
-                    Some(merged_vec) // Return the merged vector wrapped in Some
+                    let vec: Vec<usize> = vec1.iter().chain(vec2.iter()).cloned().collect();
+                    Some(vec) // Return the merged vector wrapped in Some
                 }
                 // If one is Some and the other is None, return the one that's Some
                 (Some(vec), None) | (None, Some(vec)) => Some(vec.clone()),
@@ -99,7 +100,7 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
     po_nodes_idxs.retain(|x| !network.inputs.contains(x));
 
     // iterate over all nodes and add the prediction step if all criteria are met
-    let mut n_remaining = 2 * pe_nodes_idxs.len();  // posterior updates + prediction errors
+    let mut n_remaining = po_nodes_idxs.len() + pe_nodes_idxs.len();  // posterior updates + prediction errors
 
     while n_remaining > 0 {
         
@@ -107,6 +108,7 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
         let mut has_update = false;
 
         // loop over all the remaining nodes for prediction errors ---------------------
+        // -----------------------------------------------------------------------------
         for i in 0..pe_nodes_idxs.len() {
 
             let idx = pe_nodes_idxs[i];
@@ -114,25 +116,42 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
             // to send a prediction error, this node should have been updated first
             if !(po_nodes_idxs.contains(&idx)) {
 
+                // only send a prediction error if this node has any parent
+                let value_parents_idxs = &network.edges[idx].value_parents;
+                let volatility_parents_idxs = &network.edges[idx].volatility_parents;
+                
+                let has_parents = match (value_parents_idxs, volatility_parents_idxs) {
+                    // If both are None, return false
+                    (None, None) => false,
+                    _ => true,
+                };
+
                 // add the node in the update list
-                match network.nodes.get(&idx) {
-                    Some(Node::Continuous(_)) => {
+                match (network.nodes.get(&idx), has_parents) {
+                    (Some(Node::Continuous(_)), true) => {
                         updates.push((idx, prediction_error_continuous_state_node));
+                        // remove the node from the to-be-updated list
+                        pe_nodes_idxs.retain(|&x| x != idx);
+                        n_remaining -= 1;
+                        has_update = true;
+                        break;
                     }
-                    Some(Node::Exponential(_)) => (),
-                    None => ()
+                    (Some(Node::Exponential(_)), _) => {
+                        updates.push((idx, prediction_error_exponential_state_node));
+                        // remove the node from the to-be-updated list
+                        pe_nodes_idxs.retain(|&x| x != idx);
+                        n_remaining -= 1;
+                        has_update = true;
+                        break;
+                    }
+                    _ => ()
 
                 }
-    
-                // remove the node from the to-be-updated list
-                pe_nodes_idxs.retain(|&x| x != idx);
-                n_remaining -= 1;
-                has_update = true;
-                break;
             }
         }
 
         // loop over all the remaining nodes for posterior updates ---------------------
+        // -----------------------------------------------------------------------------
         for i in 0..po_nodes_idxs.len() {
 
             let idx = po_nodes_idxs[i];
@@ -163,17 +182,14 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
             };
 
             // 3. if false, add the posterior update to the list
-            if !(missing_pe) {
+            if !missing_pe {
     
                 // add the node in the update list
                 match network.nodes.get(&idx) {
                     Some(Node::Continuous(_)) => {
                         updates.push((idx, posterior_update_continuous_state_node));
                     }
-                    Some(Node::Exponential(_)) => {
-                        updates.push((idx, posterior_update_exponential_state_node));
-                    }
-                    None => ()
+                    _ => ()
 
                 }
     
@@ -183,9 +199,7 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
                 has_update = true;
                 break;
             }
-            }
-        // 2. get update sequence ----------------------------------------------------------
-        
+            }        
         if !(has_update) {
             break;
         }
@@ -197,46 +211,62 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
 // Tests module for unit tests
 #[cfg(test)] // Only compile and include this module when running tests
 mod tests {
+    use crate::utils::function_pointer::get_func_map;
+
     use super::*; // Import the parent module's items to test them
 
     #[test]
     fn test_get_update_order() {
     
+        let func_map = get_func_map();
+
         // initialize network
-        let mut network = Network::new();
+        let mut hgf_network = Network::new();
     
         // create a network
-        network.add_nodes(
+        hgf_network.add_nodes(
             "continuous-state",
             Some(vec![1]),
             None,
-            None,
             Some(vec![2]),
+            None,
         );
-        network.add_nodes(
+        hgf_network.add_nodes(
             "continuous-state",
             None,
             Some(vec![0]),
             None,
             None,
         );
-        network.add_nodes(
+        hgf_network.add_nodes(
             "continuous-state",
             None,
             None,
+            None,
             Some(vec![0]),
-            None,
         );
-        network.add_nodes(
-            "exponential-node",
-            None,
-            None,
-            None,
-            None,
-        );
+        hgf_network.set_update_sequence();
 
-        println!("Network: {:?}", network);
-        println!("Update order: {:?}", get_update_sequence(&network));
-    
+        println!("Prediction sequence ----------");
+        println!("Node: {} - Function name: {}", &hgf_network.update_sequence.predictions[0].0, func_map.get(&hgf_network.update_sequence.predictions[0].1).unwrap_or(&"unknown"));
+        println!("Node: {} - Function name: {}", &hgf_network.update_sequence.predictions[1].0, func_map.get(&hgf_network.update_sequence.predictions[1].1).unwrap_or(&"unknown"));
+        println!("Node: {} - Function name: {}", &hgf_network.update_sequence.predictions[2].0, func_map.get(&hgf_network.update_sequence.predictions[2].1).unwrap_or(&"unknown"));
+        println!("Update sequence ----------");
+        println!("Node: {} - Function name: {}", &hgf_network.update_sequence.updates[0].0, func_map.get(&hgf_network.update_sequence.updates[0].1).unwrap_or(&"unknown"));
+        println!("Node: {} - Function name: {}", &hgf_network.update_sequence.updates[1].0, func_map.get(&hgf_network.update_sequence.updates[1].1).unwrap_or(&"unknown"));
+        println!("Node: {} - Function name: {}", &hgf_network.update_sequence.updates[2].0, func_map.get(&hgf_network.update_sequence.updates[2].1).unwrap_or(&"unknown"));
+
+        // initialize network
+        let mut exp_network = Network::new();
+        exp_network.add_nodes(
+            "exponential-state",
+            None,
+            None,
+            None,
+            None,
+        );
+        exp_network.set_update_sequence();
+        println!("Node: {} - Function name: {}", &exp_network.update_sequence.updates[0].0, func_map.get(&exp_network.update_sequence.updates[0].1).unwrap_or(&"unknown"));
+
     }
 }

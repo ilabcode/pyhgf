@@ -9,7 +9,7 @@ use crate::math::sufficient_statistics;
 /// 
 /// # Returns
 /// * `network` - The network after message passing.
-pub fn posterior_update_exponential_state_node(network: &mut Network, node_idx: usize) {
+pub fn prediction_error_exponential_state_node(network: &mut Network, node_idx: usize) {
 
     match network.nodes.get_mut(&node_idx) {
         Some(Node::Exponential(ref mut node)) => {

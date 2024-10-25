@@ -1,6 +1,8 @@
 use std::collections::HashMap;
-use crate::updates::observations::observation_update;
-use crate::utils::get_update_sequence;
+use crate::{updates::observations::observation_update, utils::function_pointer::FnType};
+use crate::utils::set_sequence::set_update_sequence;
+use crate::utils::function_pointer::get_func_map;
+use pyo3::types::PyTuple;
 use pyo3::{prelude::*, types::{PyList, PyDict}};
 
 #[derive(Debug)]
@@ -39,9 +41,6 @@ pub enum Node {
     Exponential(ExponentialFamiliyStateNode),
 }
 
-// Create a default signature for update functions
-pub type FnType = fn(&mut Network, usize);
-
 #[derive(Debug)]
 pub struct UpdateSequence {
     pub predictions: Vec<(usize, FnType)>,
@@ -79,10 +78,10 @@ impl Network {
     /// * `value_children` - The indexes of the node's value children.
     /// * `volatility_children` - The indexes of the node's volatility children.
     /// * `volatility_parents` - The indexes of the node's volatility parents.
-    #[pyo3(signature = (kind="continuous-state", value_parents=None, value_children=None, volatility_children=None, volatility_parents=None))]
+    #[pyo3(signature = (kind="continuous-state", value_parents=None, value_children=None, volatility_parents=None, volatility_children=None,))]
     pub fn add_nodes(&mut self, kind: &str, value_parents: Option<Vec<usize>>, 
-        value_children: Option<Vec<usize>>, volatility_children: Option<Vec<usize>>, 
-        volatility_parents: Option<Vec<usize>>) {
+        value_children: Option<Vec<usize>>,
+        volatility_parents: Option<Vec<usize>>, volatility_children: Option<Vec<usize>>, ) {
 
         // the node ID is equal to the number of nodes already in the network
         let node_id: usize = self.nodes.len();
@@ -93,8 +92,8 @@ impl Network {
         }
         
         let edges = AdjacencyLists{
-            value_parents: value_children,
-            value_children: value_parents, 
+            value_parents: value_parents,
+            value_children: value_children, 
             volatility_parents: volatility_parents,
             volatility_children: volatility_children,
         };
@@ -122,8 +121,8 @@ impl Network {
         }
     }
 
-    pub fn get_update_sequence(&mut self) {
-        self.update_sequence = get_update_sequence(self);
+    pub fn set_update_sequence(&mut self) {
+        self.update_sequence = set_update_sequence(self);
     }
 
     /// Single time slice belief propagation.
@@ -188,6 +187,35 @@ impl Network {
             py_list.append(py_dict)?;
         }
         Ok(py_list)
+    }
+
+    #[getter]
+    pub fn get_update_sequence<'py>(&self, py: Python<'py>) -> PyResult<&'py PyList> {
+    
+    let func_map = get_func_map();
+    let py_list = PyList::empty(py);
+    // Iterate over the Rust vector and convert each tuple
+    for &(num, func) in self.update_sequence.predictions.iter() {
+        // Retrieve the function name from the map
+        let func_name = func_map.get(&func).unwrap_or(&"unknown");
+
+        // Convert the Rust tuple to a Python tuple with the function name as a string
+        let py_tuple = PyTuple::new(py, &[num.into_py(py), (*func_name).into_py(py)]);
+
+        // Append the Python tuple to the Python list
+        py_list.append(py_tuple)?;
+    }        
+    for &(num, func) in self.update_sequence.updates.iter() {
+        // Retrieve the function name from the map
+        let func_name = func_map.get(&func).unwrap_or(&"unknown");
+
+        // Convert the Rust tuple to a Python tuple with the function name as a string
+        let py_tuple = PyTuple::new(py, &[num.into_py(py), (*func_name).into_py(py)]);
+
+        // Append the Python tuple to the Python list
+        py_list.append(py_tuple)?;
+    }        
+    Ok(py_list)
     }
 }
 
