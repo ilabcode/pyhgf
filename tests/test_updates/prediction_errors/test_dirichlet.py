@@ -29,7 +29,7 @@ def test_dirichlet_node_prediction_error():
         .add_nodes(kind="generic-state")
         .add_nodes(kind="DP-state", value_children=0, batch_size=2)
         .add_nodes(
-            kind="ef-normal",
+            kind="exponential-state",
             n_nodes=2,
             value_children=1,
             xis=jnp.array([0.0, 1 / 8]),

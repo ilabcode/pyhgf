@@ -4,10 +4,13 @@ use crate::utils::set_sequence::set_update_sequence;
 use crate::utils::function_pointer::get_func_map;
 use pyo3::types::PyTuple;
 use pyo3::{prelude::*, types::{PyList, PyDict}};
+use ndarray::{Array2, Axis, stack};
 
 #[derive(Debug)]
 #[pyclass]
 pub struct AdjacencyLists{
+    #[pyo3(get, set)]
+    pub node_type: String,
     #[pyo3(get, set)]
     pub value_parents: Option<Vec<usize>>,
     #[pyo3(get, set)]
@@ -17,29 +20,6 @@ pub struct AdjacencyLists{
     #[pyo3(get, set)]
     pub volatility_children: Option<Vec<usize>>,
 }
-#[derive(Debug, Clone)]
-pub struct ContinuousStateNode{
-    pub mean: f64,
-    pub expected_mean: f64,
-    pub precision: f64,
-    pub expected_precision: f64,
-    pub tonic_volatility: f64,
-    pub tonic_drift: f64,
-    pub autoconnection_strength: f64,
-}
-#[derive(Debug, Clone)]
-pub struct ExponentialFamiliyStateNode {
-    pub mean: f64,
-    pub expected_mean: f64,
-    pub nus: f64,
-    pub xis: [f64; 2],
-}
-
-#[derive(Debug, Clone)]
-pub enum Node {
-    Continuous(ContinuousStateNode),
-    Exponential(ExponentialFamiliyStateNode),
-}
 
 #[derive(Debug)]
 pub struct UpdateSequence {
@@ -48,12 +28,25 @@ pub struct UpdateSequence {
 }
 
 #[derive(Debug)]
+pub struct Attributes {
+    pub floats: HashMap<usize, HashMap<String, f64>>,
+    pub vectors: HashMap<usize, HashMap<String, Vec<f64>>>,
+}
+
+#[derive(Debug)]
+pub struct NodeTrajectories {
+    pub floats: HashMap<usize, HashMap<String, Vec<f64>>>,
+    pub vectors: HashMap<usize, HashMap<String, Vec<Vec<f64>>>>,
+}
+
+#[derive(Debug)]
 #[pyclass]
 pub struct Network{
-    pub nodes: HashMap<usize, Node>,
-    pub edges: Vec<AdjacencyLists>,
+    pub attributes: Attributes,
+    pub edges: HashMap<usize, AdjacencyLists>,
     pub inputs: Vec<usize>,
     pub update_sequence: UpdateSequence,
+    pub node_trajectories: NodeTrajectories,
 }
 
 #[pymethods]
@@ -63,12 +56,13 @@ impl Network {
     #[new]  // Define the constructor accessible from Python
     pub fn new() -> Self {
         Network {
-            nodes: HashMap::new(),
-            edges: Vec::new(),
+            attributes: Attributes {floats: HashMap::new(), vectors: HashMap::new()},
+            edges: HashMap::new(),
             inputs: Vec::new(),
-            update_sequence: UpdateSequence {predictions: Vec::new(), updates: Vec::new()}
+            update_sequence: UpdateSequence {predictions: Vec::new(), updates: Vec::new()},
+            node_trajectories: NodeTrajectories {floats: HashMap::new(), vectors: HashMap::new()}
         }
-    }
+        }
 
     /// Add nodes to the network.
     /// 
@@ -84,7 +78,7 @@ impl Network {
         volatility_parents: Option<Vec<usize>>, volatility_children: Option<Vec<usize>>, ) {
 
         // the node ID is equal to the number of nodes already in the network
-        let node_id: usize = self.nodes.len();
+        let node_id: usize = self.edges.len();
 
         // if this node has no children, this is an input node
         if (value_children == None) & (volatility_children == None) {
@@ -92,29 +86,39 @@ impl Network {
         }
         
         let edges = AdjacencyLists{
+            node_type: String::from(kind),
             value_parents: value_parents,
             value_children: value_children, 
             volatility_parents: volatility_parents,
             volatility_children: volatility_children,
         };
-        
+
         // add edges and attributes
         if kind == "continuous-state" {
-            let continuous_state = ContinuousStateNode{
-                mean: 0.0, expected_mean: 0.0, precision: 1.0, expected_precision: 1.0,
-                tonic_drift: 0.0, tonic_volatility: -4.0, autoconnection_strength: 1.0
-            };
-            let node = Node::Continuous(continuous_state);
-            self.nodes.insert(node_id, node);
-            self.edges.push(edges);
+
+            let attributes =  [
+                (String::from("mean"), 0.0), 
+                (String::from("expected_mean"), 0.0), 
+                (String::from("precision"), 1.0), 
+                (String::from("expected_precision"), 1.0), 
+                (String::from("tonic_volatility"), -4.0), 
+                (String::from("tonic_drift"), 0.0), 
+                (String::from("autoconnection_strength"), 1.0)].into_iter().collect();
+
+            self.attributes.floats.insert(node_id, attributes);
+            self.edges.insert(node_id, edges);
 
         } else if kind == "exponential-state" {
-            let exponential_node: ExponentialFamiliyStateNode = ExponentialFamiliyStateNode{
-                mean: 0.0, expected_mean: 0.0, nus: 0.0, xis: [0.0, 0.0]
-            };
-            let node = Node::Exponential(exponential_node);
-            self.nodes.insert(node_id, node);
-            self.edges.push(edges);
+
+            let floats_attributes =  [
+                (String::from("mean"), 0.0), 
+                (String::from("nus"), 3.0)].into_iter().collect();
+            let vector_attributes =  [
+                (String::from("xis"), vec![0.0, 1.0])].into_iter().collect();
+
+            self.attributes.floats.insert(node_id, floats_attributes);
+            self.attributes.vectors.insert(node_id, vector_attributes);
+            self.edges.insert(node_id, edges);
 
         } else {
             println!("Invalid type of node provided ({}).", kind);
@@ -157,10 +161,57 @@ impl Network {
     /// # Arguments
     /// * `input_data` - A vector of vectors. Each vector is a time series of observations
     /// associated with one node.
-    pub fn input_data(&mut self, input_data: Vec<Vec<f64>>) {
-        for observation in input_data {
-            self.belief_propagation(observation);
+    pub fn input_data(&mut self, input_data: Vec<f64>) {
+
+        // initialize the belief trajectories result struture
+        let mut node_trajectories = NodeTrajectories {floats: HashMap::new(), vectors: HashMap::new()};
+        for (node_idx, node) in &self.attributes.floats {
+            let new_map: HashMap<String, Vec<f64>> = HashMap::new();
+            node_trajectories.floats.insert(*node_idx, new_map);
+            if let Some(attr) = node_trajectories.floats.get_mut(node_idx) {
+                for key in node.keys() {
+                    attr.insert(key.clone(), Vec::new());
+                }
+            }
         }
+        // iterate over the observations
+        for observation in input_data {
+
+            // 1. belief propagation for one time slice
+            self.belief_propagation(vec![observation]);
+
+            // 2. append the new states in the result vector
+            for (new_node_idx, new_node) in &self.attributes.floats {
+                for (new_key, new_value) in new_node {
+                    // If the key exists in map1, append the vector from map2
+                    if let Some(old_node) = node_trajectories.floats.get_mut(&new_node_idx) {
+                        if let Some(old_value) = old_node.get_mut(new_key) {
+                            old_value.push(*new_value);
+                        }
+                    }
+                }
+            }
+        }
+
+        self.node_trajectories = node_trajectories;
+    }
+
+    #[getter]
+    pub fn get_node_trajectories<'py>(&self, py: Python<'py>) -> PyResult<&'py PyList> {
+        let py_list = PyList::empty(py);
+        
+        
+        // Iterate over the Rust HashMap and insert key-value pairs into the PyDict
+        for (node_idx, node) in &self.node_trajectories.floats {
+            let py_dict = PyDict::new(py);
+            for (key, value) in node {
+                // Create a new Python dictionary
+                py_dict.set_item(key, value).expect("Failed to set item in PyDict");
+            }
+            py_list.append(py_dict)?;
+        }
+        // Create a PyList from Vec<usize>
+        Ok(py_list)
     }
 
     #[getter]
@@ -175,13 +226,13 @@ impl Network {
         let py_list = PyList::empty(py);
 
         // Convert each struct in the Vec to a Python object and add to PyList
-        for s in &self.edges {
+        for i in 0..self.edges.len() {
             // Create a new Python dictionary for each MyStruct
             let py_dict = PyDict::new(py);
-            py_dict.set_item("value_parents", &s.value_parents)?;
-            py_dict.set_item("value_children", &s.value_children)?;
-            py_dict.set_item("volatility_parents", &s.volatility_parents)?;
-            py_dict.set_item("volatility_children", &s.volatility_children)?;
+            py_dict.set_item("value_parents", &self.edges[&i].value_parents)?;
+            py_dict.set_item("value_children", &self.edges[&i].value_children)?;
+            py_dict.set_item("volatility_parents", &self.edges[&i].volatility_parents)?;
+            py_dict.set_item("volatility_children", &self.edges[&i].volatility_children)?;
 
             // Add the dictionary to the list
             py_list.append(py_dict)?;
@@ -246,29 +297,16 @@ mod tests {
             None,
             None
         );
-        network.add_nodes(
-            "exponential-state",
-            None,
-            None,
-            None,
-            None
-        );
     
         // println!("Graph before belief propagation: {:?}", network);
     
         // belief propagation
-        let input_data = vec![
-            vec![1.1, 2.2],
-            vec![1.2, 2.1],
-            vec![1.0, 2.0],
-            vec![1.3, 2.2],
-            vec![1.1, 2.5],
-            vec![1.0, 2.6],
-        ];
-        
+        let input_data = vec![1.0, 1.3, 1.5, 1.7];
+        network.set_update_sequence();
         network.input_data(input_data);
         
-        // println!("Graph after belief propagation: {:?}", network);
+        println!("Update sequence: {:?}", network.update_sequence);
+        println!("Node trajectories: {:?}", network.node_trajectories);
     
     }
 }

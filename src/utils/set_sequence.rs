@@ -1,4 +1,4 @@
-use crate::{model::{Network, Node, UpdateSequence}, updates::{posterior::continuous::posterior_update_continuous_state_node, prediction::continuous::prediction_continuous_state_node, prediction_error::{continuous::prediction_error_continuous_state_node, exponential::prediction_error_exponential_state_node}}};
+use crate::{model::{AdjacencyLists, Network, UpdateSequence}, updates::{posterior::continuous::posterior_update_continuous_state_node, prediction::continuous::prediction_continuous_state_node, prediction_error::{continuous::prediction_error_continuous_state_node, exponential::prediction_error_exponential_state_node}}};
 use crate::utils::function_pointer::FnType;
 
 pub fn set_update_sequence(network: &Network) -> UpdateSequence {
@@ -18,7 +18,7 @@ pub fn get_predictions_sequence(network: &Network) -> Vec<(usize, FnType)> {
     // 1. get prediction sequence ------------------------------------------------------
 
     // list all nodes availables in the network
-    let mut nodes_idxs: Vec<usize> = network.nodes.keys().cloned().collect();
+    let mut nodes_idxs: Vec<usize> = network.edges.keys().cloned().collect();
 
     // iterate over all nodes and add the prediction step if all criteria are met
     let mut n_remaining = nodes_idxs.len();
@@ -34,9 +34,9 @@ pub fn get_predictions_sequence(network: &Network) -> Vec<(usize, FnType)> {
             let idx = nodes_idxs[i];
 
             // list the node's parents
-            let value_parents_idxs = &network.edges[idx].value_parents;
-            let volatility_parents_idxs = &network.edges[idx].volatility_parents;
-            
+            let value_parents_idxs = &network.edges[&idx].value_parents;
+            let volatility_parents_idxs = &network.edges[&idx].volatility_parents;
+                
             let parents_idxs = match (value_parents_idxs, volatility_parents_idxs) {
                 // If both are Some, merge the vectors
                 (Some(ref vec1), Some(ref vec2)) => {
@@ -50,6 +50,7 @@ pub fn get_predictions_sequence(network: &Network) -> Vec<(usize, FnType)> {
                 (None, None) => None,
             };
 
+
             // check if there is any parent node that is still found in the to-be-updated list 
             let contains_common = match parents_idxs {
                 Some(vec) => vec.iter().any(|item| nodes_idxs.contains(item)),
@@ -60,12 +61,11 @@ pub fn get_predictions_sequence(network: &Network) -> Vec<(usize, FnType)> {
             if !(contains_common) {
     
                 // add the node in the update list
-                match network.nodes.get(&idx) {
-                    Some(Node::Continuous(_)) => {
+                match network.edges.get(&idx) {
+                    Some(AdjacencyLists {node_type, ..}) if node_type == "continuous-state" => {
                         predictions.push((idx, prediction_continuous_state_node));
                     }
-                    Some(Node::Exponential(_)) => (),
-                    None => ()
+                    _ => ()
 
                 }
     
@@ -93,8 +93,8 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
     // 1. get update sequence ----------------------------------------------------------
 
     // list all nodes availables in the network
-    let mut pe_nodes_idxs: Vec<usize> = network.nodes.keys().cloned().collect();
-    let mut po_nodes_idxs: Vec<usize> = network.nodes.keys().cloned().collect();
+    let mut pe_nodes_idxs: Vec<usize> = network.edges.keys().cloned().collect();
+    let mut po_nodes_idxs: Vec<usize> = network.edges.keys().cloned().collect();
 
     // remove the input nodes from the to-be-visited nodes for posterior updates
     po_nodes_idxs.retain(|x| !network.inputs.contains(x));
@@ -117,8 +117,8 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
             if !(po_nodes_idxs.contains(&idx)) {
 
                 // only send a prediction error if this node has any parent
-                let value_parents_idxs = &network.edges[idx].value_parents;
-                let volatility_parents_idxs = &network.edges[idx].volatility_parents;
+                let value_parents_idxs = &network.edges[&idx].value_parents;
+                let volatility_parents_idxs = &network.edges[&idx].volatility_parents;
                 
                 let has_parents = match (value_parents_idxs, volatility_parents_idxs) {
                     // If both are None, return false
@@ -127,8 +127,8 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
                 };
 
                 // add the node in the update list
-                match (network.nodes.get(&idx), has_parents) {
-                    (Some(Node::Continuous(_)), true) => {
+                match (network.edges.get(&idx), has_parents) {
+                    (Some(AdjacencyLists {node_type, ..}), true) if node_type == "continuous-state" => {
                         updates.push((idx, prediction_error_continuous_state_node));
                         // remove the node from the to-be-updated list
                         pe_nodes_idxs.retain(|&x| x != idx);
@@ -136,7 +136,7 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
                         has_update = true;
                         break;
                     }
-                    (Some(Node::Exponential(_)), _) => {
+                    (Some(AdjacencyLists {node_type, ..}), _) if node_type == "exponential-state" => {
                         updates.push((idx, prediction_error_exponential_state_node));
                         // remove the node from the to-be-updated list
                         pe_nodes_idxs.retain(|&x| x != idx);
@@ -158,8 +158,8 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
 
             // to start a posterior update, all children should have sent prediction errors
             // 1. get a list of all children
-            let value_children_idxs = &network.edges[idx].value_children;
-            let volatility_children_idxs = &network.edges[idx].volatility_children;
+            let value_children_idxs = &network.edges[&idx].value_children;
+            let volatility_children_idxs = &network.edges[&idx].volatility_children;
             
             let children_idxs = match (value_children_idxs, volatility_children_idxs) {
                 // If both are Some, merge the vectors
@@ -185,8 +185,8 @@ pub fn get_updates_sequence(network: &Network) -> Vec<(usize, FnType)> {
             if !missing_pe {
     
                 // add the node in the update list
-                match network.nodes.get(&idx) {
-                    Some(Node::Continuous(_)) => {
+                match network.edges.get(&idx) {
+                    Some(AdjacencyLists {node_type, ..}) if node_type == "continuous-state" => {
                         updates.push((idx, posterior_update_continuous_state_node));
                     }
                     _ => ()

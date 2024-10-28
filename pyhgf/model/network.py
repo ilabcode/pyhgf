@@ -329,29 +329,14 @@ class Network:
             be a regular state node that can have value and/or volatility
             parents/children. If `"binary-state"`, the node should be the
             value parent of a binary input. State nodes filtering distribution from the
-            exponential family can be created using the `"ef-"` prefix (e.g.
-            `"ef-normal"` for a univariate normal distribution). Note that only a few
-            distributions are implemented at the moment.
-
-            In addition to state nodes, four types of input nodes are supported:
-            - `generic-input`: receive a value or an array and pass it to the parent
-            nodes.
-            - `continuous-input`: receive a continuous observation as input.
-            - `binary-input` receives a single boolean as observation. The parameters
-            provided to the binary input node contain: 1. `binary_precision`, the binary
-            input precision, which defaults to `jnp.inf`. 2. `eta0`, the lower bound of
-            the binary process, which defaults to `0.0`. 3. `eta1`, the higher bound of
-            the binary process, which defaults to `1.0`.
-            - `categorical-input` receives a boolean array as observation. The
-            parameters provided to the categorical input node contain: 1.
-            `n_categories`, the number of categories implied by the categorical state.
+            exponential family can be created using `"exponential-state"`.
 
         .. note::
             When using a categorical state node, the `binary_parameters` can be used to
             parametrize the implied collection of binary HGFs.
 
         .. note:
-            When using `categorical-input`, the implied `n` binary HGFs are
+            When using `categorical-state`, the implied `n` binary HGFs are
             automatically created with a shared volatility parent at the third level,
             resulting in a network with `3n + 2` nodes in total.
 
@@ -396,7 +381,7 @@ class Network:
         """
         if kind not in [
             "DP-state",
-            "ef-normal",
+            "exponential-state",
             "categorical-state",
             "continuous-state",
             "binary-state",
@@ -483,7 +468,7 @@ class Network:
                 "mean": 0.0,
                 "observed": 1,
             }
-        elif "ef-normal" in kind:
+        elif "exponential-state" in kind:
             default_parameters = {
                 "nus": 3.0,
                 "xis": jnp.array([0.0, 1.0]),

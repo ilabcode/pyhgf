@@ -13,13 +13,12 @@ def test_1d_gaussain():
     # Rust -----------------------------------------------------------------------------
     rs_network = RsNetwork()
     rs_network.add_nodes(kind="exponential-state")
-    rs_network.add_nodes(kind="exponential-state")
     rs_network.inputs
     rs_network.edges
+    rs_network.set_update_sequence()
 
-    rs_network.input_data([[0, 0], [1, 1]])
-    rs_network.input_data([timeseries, timeseries])
+    rs_network.input_data(timeseries)
 
     # Python ---------------------------------------------------------------------------
-    py_network = PyNetwork().add_nodes(kind="continuous-state")
+    py_network = PyNetwork().add_nodes(kind="exponential-state")
     py_network.attributes
