@@ -4,7 +4,7 @@ use crate::utils::set_sequence::set_update_sequence;
 use crate::utils::function_pointer::get_func_map;
 use pyo3::types::PyTuple;
 use pyo3::{prelude::*, types::{PyList, PyDict}};
-use ndarray::{Array2, Axis, stack};
+use numpy::{PyArray1, PyArray};
 
 #[derive(Debug)]
 #[pyclass]
@@ -165,6 +165,8 @@ impl Network {
 
         // initialize the belief trajectories result struture
         let mut node_trajectories = NodeTrajectories {floats: HashMap::new(), vectors: HashMap::new()};
+        
+        // add empty vectors in the floats hashmap
         for (node_idx, node) in &self.attributes.floats {
             let new_map: HashMap<String, Vec<f64>> = HashMap::new();
             node_trajectories.floats.insert(*node_idx, new_map);
@@ -174,19 +176,42 @@ impl Network {
                 }
             }
         }
+        // add empty vectors in the vectors hashmap
+        for (node_idx, node) in &self.attributes.vectors {
+            let new_map: HashMap<String, Vec<Vec<f64>>> = HashMap::new();
+            node_trajectories.vectors.insert(*node_idx, new_map);
+            if let Some(attr) = node_trajectories.vectors.get_mut(node_idx) {
+                for key in node.keys() {
+                    attr.insert(key.clone(), Vec::new());
+                }
+            }
+        }
+
         // iterate over the observations
         for observation in input_data {
 
             // 1. belief propagation for one time slice
             self.belief_propagation(vec![observation]);
 
-            // 2. append the new states in the result vector
+            // 2. append the new beliefs in the trajectories structure
+            // iterate over the float hashmap
             for (new_node_idx, new_node) in &self.attributes.floats {
                 for (new_key, new_value) in new_node {
                     // If the key exists in map1, append the vector from map2
                     if let Some(old_node) = node_trajectories.floats.get_mut(&new_node_idx) {
                         if let Some(old_value) = old_node.get_mut(new_key) {
                             old_value.push(*new_value);
+                        }
+                    }
+                }
+            }
+            // iterate over the vector hashmap
+            for (new_node_idx, new_node) in &self.attributes.vectors {
+                for (new_key, new_value) in new_node {
+                    // If the key exists in map1, append the vector from map2
+                    if let Some(old_node) = node_trajectories.vectors.get_mut(&new_node_idx) {
+                        if let Some(old_value) = old_node.get_mut(new_key) {
+                            old_value.push(new_value.clone());
                         }
                     }
                 }
@@ -201,15 +226,24 @@ impl Network {
         let py_list = PyList::empty(py);
         
         
-        // Iterate over the Rust HashMap and insert key-value pairs into the PyDict
+        // Iterate over the float hashmap and insert key-value pairs into the list as PyDict
         for (node_idx, node) in &self.node_trajectories.floats {
             let py_dict = PyDict::new(py);
             for (key, value) in node {
                 // Create a new Python dictionary
-                py_dict.set_item(key, value).expect("Failed to set item in PyDict");
+                py_dict.set_item(key, PyArray1::from_vec(py, value.clone()).to_owned()).expect("Failed to set item in PyDict");
+            }
+
+            // Iterate over the vector hashmap if any and insert key-value pairs into the list as PyDict
+            if let Some(vector_node) = self.node_trajectories.vectors.get(node_idx) {
+                for (vector_key, vector_value) in vector_node {
+                    // Create a new Python dictionary
+                    py_dict.set_item(vector_key, PyArray::from_vec2_bound(py, &vector_value).unwrap()).expect("Failed to set item in PyDict");
+                }
             }
             py_list.append(py_dict)?;
         }
+
         // Create a PyList from Vec<usize>
         Ok(py_list)
     }

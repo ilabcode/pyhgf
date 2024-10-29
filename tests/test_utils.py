@@ -74,7 +74,7 @@ def test_set_update_sequence():
     network3 = (
         Network()
         .add_nodes(kind="generic-state")
-        .add_nodes(kind="ef-normal", value_children=0)
+        .add_nodes(kind="exponential-state", value_children=0)
         .create_belief_propagation_fn()
     )
     predictions, updates = network3.update_sequence

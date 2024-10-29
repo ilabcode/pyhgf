@@ -18,7 +18,6 @@ from pyhgf.updates.posterior.continuous import (
     continuous_node_posterior_update,
     continuous_node_posterior_update_ehgf,
 )
-from pyhgf.updates.posterior.exponential import posterior_update_exponential_family
 from pyhgf.updates.prediction.binary import binary_state_node_prediction
 from pyhgf.updates.prediction.continuous import continuous_node_prediction
 from pyhgf.updates.prediction.dirichlet import dirichlet_node_prediction
@@ -28,6 +27,9 @@ from pyhgf.updates.prediction_error.categorical import (
 )
 from pyhgf.updates.prediction_error.continuous import continuous_node_prediction_error
 from pyhgf.updates.prediction_error.dirichlet import dirichlet_node_prediction_error
+from pyhgf.updates.prediction_error.exponential import (
+    prediction_error_update_exponential_family,
+)
 from pyhgf.updates.prediction_error.generic import generic_state_prediction_error
 
 if TYPE_CHECKING:
@@ -374,16 +376,6 @@ def get_update_sequence(
                     elif update_type == "standard":
                         update_fn = continuous_node_posterior_update
 
-                elif network.edges[idx].node_type == 3:
-
-                    # create the sufficient statistic function
-                    # for the exponential family node
-                    ef_update = Partial(
-                        posterior_update_exponential_family,
-                        sufficient_stats_fn=Normal().sufficient_statistics,
-                    )
-                    update_fn = ef_update
-
                 elif network.edges[idx].node_type == 4:
 
                     update_fn = None
@@ -407,8 +399,21 @@ def get_update_sequence(
             ]
 
             # if this node has no parent, no need to compute prediction errors
+            # unless this is an exponential family state node
             if len(all_parents) == 0:
-                nodes_without_prediction_error.remove(idx)
+                if network.edges[idx].node_type == 3:
+                    # create the sufficient statistic function
+                    # for the exponential family node
+                    ef_update = Partial(
+                        prediction_error_update_exponential_family,
+                        sufficient_stats_fn=Normal().sufficient_statistics,
+                    )
+                    update_fn = ef_update
+                    no_update = False
+                    update_sequence.append((idx, update_fn))
+                    nodes_without_prediction_error.remove(idx)
+                else:
+                    nodes_without_prediction_error.remove(idx)
             else:
                 # if this node has been updated
                 if idx not in nodes_without_posterior_update:
@@ -419,8 +424,6 @@ def get_update_sequence(
                         update_fn = binary_state_node_prediction_error
                     elif network.edges[idx].node_type == 2:
                         update_fn = continuous_node_prediction_error
-                    elif network.edges[idx].node_type == 3:
-                        update_fn = None
                     elif network.edges[idx].node_type == 4:
                         update_fn = dirichlet_node_prediction_error
                     elif network.edges[idx].node_type == 5:

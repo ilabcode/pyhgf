@@ -39,7 +39,7 @@ def dirichlet_node_prediction(
         Static parameters of the Dirichlet process node.
 
     """
-    # get the parameter (mean and variance) from the EF-normal parent nodes
+    # get the parameter (mean and variance) from the exponential state parent nodes
     value_parent_idxs = edges[node_idx].value_parents
     if value_parent_idxs is not None:
         parameters = jnp.array(

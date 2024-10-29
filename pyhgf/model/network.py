@@ -390,8 +390,8 @@ class Network:
             raise ValueError(
                 (
                     "Invalid node type. Should be one of the following: "
-                    "'DP-state', 'continuous-state', 'binary-state', 'ef-normal'."
-                    "'generic-state' or 'categorical-state'"
+                    "'DP-state', 'continuous-state', 'binary-state', "
+                    "'exponential-state', 'generic-state' or 'categorical-state'"
                 )
             )
 
@@ -473,7 +473,7 @@ class Network:
                 "nus": 3.0,
                 "xis": jnp.array([0.0, 1.0]),
                 "mean": 0.0,
-                "observed": 1.0,
+                "observed": 1,
             }
         elif kind == "categorical-state":
             if "n_categories" in node_parameters:
@@ -562,7 +562,7 @@ class Network:
             node_type = 1
         elif kind == "continuous-state":
             node_type = 2
-        elif kind == "ef-normal":
+        elif kind == "exponential-state":
             node_type = 3
         elif kind == "DP-state":
             node_type = 4
