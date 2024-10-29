@@ -18,6 +18,12 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 -
         echo "$HOME/.local/bin" >> $GITHUB_PATH
         poetry self add "poetry-dynamic-versioning[plugin]"
+    - name: Install the package
+      run: |
+        poetry install --with dev
+    - name: Build wheels
+      run: |
+        poetry run maturin build --release
     - name: Build a binary wheel and a source tarball
       run: >-
         poetry build
