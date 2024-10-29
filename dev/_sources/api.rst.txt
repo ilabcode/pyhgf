@@ -46,16 +46,6 @@ Continuous nodes
     continuous_node_posterior_update
     continuous_node_posterior_update_ehgf
 
-Exponential family
-------------------
-
-.. currentmodule:: pyhgf.updates.posterior.exponential
-
-.. autosummary::
-   :toctree: generated/pyhgf.updates.posterior.exponential
-
-    posterior_update_exponential_family
-
 Prediction steps
 ================
 
@@ -145,6 +135,16 @@ Dirichlet state nodes
     get_candidate
     likely_cluster_proposal
     clusters_likelihood
+
+Exponential family
+^^^^^^^^^^^^^^^^^^
+
+.. currentmodule:: pyhgf.updates.prediction_error.exponential
+
+.. autosummary::
+   :toctree: generated/pyhgf.updates.prediction_error.exponential
+
+    prediction_error_update_exponential_family
 
 Distribution
 ************

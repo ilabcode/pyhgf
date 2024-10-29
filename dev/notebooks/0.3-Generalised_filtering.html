@@ -667,13 +667,13 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 <p>Real-world applications of Bayesian filtering imply non-stationary distributions, in which cases the agent cannot rely anymore on distant observation and has to weigh down their evidence proportional to their distance from the current time point. In the current framework, this suggests that <span class="math notranslate nohighlight">\(\nu\)</span>, the pseudo-count vector, cannot linearly increase with the number of new observations but has to be limited. The most straightforward way is then to fix it to some values.</p>
 <section id="using-a-fixed-nu">
 <h3>Using a fixed <span class="math notranslate nohighlight">\(\nu\)</span><a class="headerlink" href="#using-a-fixed-nu" title="Link to this heading">#</a></h3>
-<p>This operation can be achieved using a continuous state node that implements the exponential family updates on the values that are passed by the value child nodes. Such nodes are referred to as <code class="docutils literal notranslate"><span class="pre">ef-</span></code> nodes, with the type of distribution (here a simple one-dimensional Gaussian distribution, therefore the kind is set to <code class="docutils literal notranslate"><span class="pre">&quot;ef-normal&quot;</span></code>). The input node is set to generic, which means that this input simply passes the observed value to the value parents without any additional computation. We can define such a model as follows:</p>
+<p>This operation can be achieved using a continuous state node that implements the exponential family updates on the values that are passed by the value child nodes. Such nodes are referred to as <code class="docutils literal notranslate"><span class="pre">exponential-state</span></code> nodes, with the type of distribution (here a simple one-dimensional Gaussian distribution). The input node is set to generic, which means that this input simply passes the observed value to the value parents without any additional computation. We can define such a model as follows:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">generalised_filter</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Network</span><span class="p">()</span>
     <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;generic-state&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;ef-normal&quot;</span><span class="p">,</span> <span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">8</span><span class="p">]))</span>
+    <span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;exponential-state&quot;</span><span class="p">,</span> <span class="n">value_children</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">8</span><span class="p">]))</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -990,23 +990,23 @@ z(\xi, \nu) := (\int \exp(\nu(\eta(\vartheta) · \xi−b(\vartheta)))d\vartheta)
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Thu Oct 24 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Tue Oct 29 2024
 
 Python implementation: CPython
 Python version       : 3.12.7
 IPython version      : 8.28.0
 
-pyhgf : 0.0.0.post1.dev0+3af9b1a
+pyhgf : 0.0.0.post1.dev0+8363baa
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-jax       : 0.4.31
 IPython   : 8.28.0
-pyhgf     : 0.0.0.post1.dev0+3af9b1a
-numpy     : 1.26.0
-sys       : 3.12.7 (main, Oct  1 2024, 15:17:55) [GCC 11.4.0]
 seaborn   : 0.13.2
+jax       : 0.4.31
+sys       : 3.12.7 (main, Oct  1 2024, 15:17:55) [GCC 11.4.0]
+pyhgf     : 0.0.0.post1.dev0+8363baa
 matplotlib: 3.9.2
+numpy     : 1.26.0
 
 Watermark: 2.5.0
 </pre></div>
