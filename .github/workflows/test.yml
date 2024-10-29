@@ -37,18 +37,29 @@ jobs:
       # Step 4: Install System Dependencies
       - name: Install Graphviz
         run: sudo apt-get install -y graphviz
+      
+      # Step 5: Install Rust
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
 
-      # Step 5: Install Python Dependencies using Poetry
+      # Step 6: Install Python Dependencies using Poetry
       - name: Install dependencies
         run: |
           poetry install --with dev
+      
+      # Step 7: Install the Rust package
+      - name: Build and Install the Package
+        run: maturin develop
 
-      # Step 6: Run Tests and Generate Coverage Report
+      # Step 8: Run Tests and Generate Coverage Report
       - name: Run tests and coverage
         run: |
           poetry run pytest ./tests/ --cov=./src/pyhgf/ --cov-report=xml
 
-      # Step 7: Upload Coverage Report to Codecov
+      # Step 9: Upload Coverage Report to Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
