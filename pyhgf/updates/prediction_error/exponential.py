@@ -10,7 +10,7 @@ from pyhgf.typing import Attributes, Edges
 
 
 @partial(jit, static_argnames=("edges", "node_idx", "sufficient_stats_fn"))
-def posterior_update_exponential_family(
+def prediction_error_update_exponential_family(
     attributes: Dict, edges: Edges, node_idx: int, sufficient_stats_fn: Callable, **args
 ) -> Attributes:
     r"""Update the parameters of an exponential family distribution.
