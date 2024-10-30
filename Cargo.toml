@@ -12,3 +12,4 @@ path = "src/lib.rs"    # The source file of the target.
 [dependencies]
 pyo3 = { version = "0.21.2", features = ["extension-module"] }
 numpy = "0.21"
+tokio = "1.41.0"
