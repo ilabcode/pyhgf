@@ -53,6 +53,9 @@ class Network:
     scan_fn :
         The function that is passed to :py:func:`jax.lax.scan`. This is a pre-
         parametrized version of :py:func:`pyhgf.networks.beliefs_propagation`.
+    causal_coupling_weights: is a dictionary that stores the strengths of causal connections between nodes in the network. 
+        Each entry in the dictionary represents the causal coupling strength between two nodes, 
+        allowing for dynamic updates. A tuple of (parent_idx, child_idx) and the value representing the coupling strength. 
 
     """
 
@@ -63,6 +66,7 @@ class Network:
         self.attributes: Attributes = {-1: {"time_step": 0.0}}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
+        self.causal_coupling_weights: Dict[Tuple[int, int], float] = {} 
 
     @property
     def input_idxs(self):
@@ -220,7 +224,7 @@ class Network:
 
         Parameters
         ----------
-        update_branches :
+        update_branches :a
             A tuple of UpdateSequence listing the possible update sequences.
         branches_idx :
             The branches indexes (integers). Should have the same length as the input
@@ -299,27 +303,31 @@ class Network:
 
         return self
 
-    def get_network(self) -> NetworkParameters:
-        """Return the attributes, edges and update sequence defining the network."""
-        if self.scan_fn is None:
-            self = self.create_belief_propagation_fn()
+        def get_network(self) -> NetworkParameters:
+            """Return the attributes, edges and update sequence defining the network."""
+            if self.scan_fn is None:
+                self = self.create_belief_propagation_fn()
 
-        assert self.update_sequence is not None
+            assert self.update_sequence is not None
 
-        return self.attributes, self.edges, self.update_sequence
+            return self.attributes, self.edges, self.update_sequence
 
     def add_nodes(
         self,
         kind: str = "continuous-state",
         n_nodes: int = 1,
-        node_parameters: Dict = {},
+        node_parameters: Dict = {},			
         value_children: Optional[Union[List, Tuple, int]] = None,
         value_parents: Optional[Union[List, Tuple, int]] = None,
         volatility_children: Optional[Union[List, Tuple, int]] = None,
         volatility_parents: Optional[Union[List, Tuple, int]] = None,
+        causal_parents: Optional[Union[List, Tuple, int]] = None,
+        causal_children: Optional[Union[List, Tuple, int]] = None,
+        causal_parents_strength: Optional[Union[List, Tuple, int]] = None,
+        causal_children_strength: Optional[Union[List, Tuple, int]] = None,			
         coupling_fn: Tuple[Optional[Callable], ...] = (None,),
         **additional_parameters,
-    ):
+        ):
         """Add new input/state node(s) to the neural network.
 
         Parameters
@@ -366,6 +374,19 @@ class Network:
             integer or a list of integers, in case of multiple children. The coupling
             strength can be controlled by passing a tuple, where the first item is the
             list of indexes, and the second item is the list of coupling strengths.
+        causal_children: 
+            Indexes of the nodes that are causal children of the current node. These are the nodes that receive causal influence from the current node's predictions or values.
+            This can be specified as an integer for a single child, or as a list or tuple for multiple children.
+            The relationships established here indicate that the current node’s output will influence the values of its causal children.    
+        causal_parents: 
+            Indexes of the nodes that act as causal parents for the current node. 
+            These are the nodes that provide causal influence on the current node's value or state.
+            The index can be passed as a single integer for one parent, or as a list or tuple of integers for multiple parents.
+            This establishes causal relationships where the values of the parent nodes are expected to influence the value of the current node.
+        causal_children_strength: 
+            A list or tuple of floats representing the initial strengths of the causal connections from the specified causal_parents to the current node.
+        causal_parents_strength: 
+    
         coupling_fn :
             Coupling function(s) between the current node and its value children.
             It has to be provided as a tuple. If multiple value children are specified,
@@ -412,6 +433,8 @@ class Network:
             volatility_parents,
             value_children,
             volatility_children,
+            causal_parents,
+            causal_children,  
         ]:
             if indexes is not None:
                 if isinstance(indexes, int):
@@ -426,9 +449,17 @@ class Network:
             else:
                 coupling_idxs, coupling_strengths = None, None
             couplings.append((coupling_idxs, coupling_strengths))
-        value_parents, volatility_parents, value_children, volatility_children = (
+        value_parents, volatility_parents, value_children, volatility_children, causal_parents, causal_children = (
             couplings
         )
+
+
+        # Assign causal coupling weight to the dirctionary
+        if causal_parents[0] is not None and causal_children[0] is not None:
+            for parent_idx, strength in zip(causal_parents[0], causal_parents[1]):
+                for child_idx in causal_children[0]:
+                  self.causal_coupling_weights[(parent_idx, child_idx)] = strength
+
 
         # create the default parameters set according to the node type
         if kind == "continuous-state":
@@ -628,6 +659,7 @@ class Network:
                     children_idxs=node_idx,
                     coupling_strengths=volatility_parents[1],  # type: ignore
                 )
+
 
         if kind == "categorical-state":
             # if we are creating a categorical state or state-transition node
