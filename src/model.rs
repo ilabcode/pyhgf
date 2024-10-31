@@ -163,29 +163,31 @@ impl Network {
     /// associated with one node.
     pub fn input_data(&mut self, input_data: Vec<f64>) {
 
+        let n_time = input_data.len();
+
         // initialize the belief trajectories result struture
         let mut node_trajectories = NodeTrajectories {floats: HashMap::new(), vectors: HashMap::new()};
         
-        // add empty vectors in the floats hashmap
+        // preallocate empty vectors in the floats hashmap
         for (node_idx, node) in &self.attributes.floats {
             let new_map: HashMap<String, Vec<f64>> = HashMap::new();
             node_trajectories.floats.insert(*node_idx, new_map);
-            if let Some(attr) = node_trajectories.floats.get_mut(node_idx) {
-                for key in node.keys() {
-                    attr.insert(key.clone(), Vec::new());
-                }
+            let attr = node_trajectories.floats.get_mut(node_idx).expect("New map not found.");
+            for key in node.keys() {
+                attr.insert(key.clone(), Vec::with_capacity(n_time));
             }
-        }
-        // add empty vectors in the vectors hashmap
+            }
+
+        // preallocate empty vectors in the vectors hashmap
         for (node_idx, node) in &self.attributes.vectors {
             let new_map: HashMap<String, Vec<Vec<f64>>> = HashMap::new();
             node_trajectories.vectors.insert(*node_idx, new_map);
-            if let Some(attr) = node_trajectories.vectors.get_mut(node_idx) {
-                for key in node.keys() {
-                    attr.insert(key.clone(), Vec::new());
-                }
+            let attr = node_trajectories.vectors.get_mut(node_idx).expect("New vector map not found.");
+            for key in node.keys() {
+                attr.insert(key.clone(), Vec::with_capacity(n_time));
             }
-        }
+            }
+
 
         // iterate over the observations
         for observation in input_data {
@@ -198,26 +200,22 @@ impl Network {
             for (new_node_idx, new_node) in &self.attributes.floats {
                 for (new_key, new_value) in new_node {
                     // If the key exists in map1, append the vector from map2
-                    if let Some(old_node) = node_trajectories.floats.get_mut(&new_node_idx) {
-                        if let Some(old_value) = old_node.get_mut(new_key) {
-                            old_value.push(*new_value);
-                        }
+                    let old_node = node_trajectories.floats.get_mut(&new_node_idx).expect("Old node not found.");
+                    let old_value = old_node.get_mut(new_key).expect("Old value not found");
+                    old_value.push(*new_value);
                     }
                 }
-            }
+
             // iterate over the vector hashmap
             for (new_node_idx, new_node) in &self.attributes.vectors {
                 for (new_key, new_value) in new_node {
                     // If the key exists in map1, append the vector from map2
-                    if let Some(old_node) = node_trajectories.vectors.get_mut(&new_node_idx) {
-                        if let Some(old_value) = old_node.get_mut(new_key) {
-                            old_value.push(new_value.clone());
-                        }
+                    let old_node = node_trajectories.vectors.get_mut(&new_node_idx).expect("Old vector node not found.");
+                    let old_value = old_node.get_mut(new_key).expect("Old vector value not found.");
+                    old_value.push(new_value.clone());
                     }
                 }
             }
-        }
-
         self.node_trajectories = node_trajectories;
     }
 
