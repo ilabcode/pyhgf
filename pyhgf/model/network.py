@@ -53,10 +53,6 @@ class Network:
     scan_fn :
         The function that is passed to :py:func:`jax.lax.scan`. This is a pre-
         parametrized version of :py:func:`pyhgf.networks.beliefs_propagation`.
-    causal_coupling_weights: is a dictionary that stores the strengths of causal connections between nodes in the network. 
-        Each entry in the dictionary represents the causal coupling strength between two nodes, 
-        allowing for dynamic updates. A tuple of (parent_idx, child_idx) and the value representing the coupling strength. 
-
     """
 
     def __init__(self) -> None:
@@ -66,7 +62,6 @@ class Network:
         self.attributes: Attributes = {-1: {"time_step": 0.0}}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
-        self.causal_coupling_weights: Dict[Tuple[int, int], float] = {} 
 
     @property
     def input_idxs(self):
@@ -386,7 +381,6 @@ class Network:
         causal_children_strength: 
             A list or tuple of floats representing the initial strengths of the causal connections from the specified causal_parents to the current node.
         causal_parents_strength: 
-    
         coupling_fn :
             Coupling function(s) between the current node and its value children.
             It has to be provided as a tuple. If multiple value children are specified,
@@ -782,6 +776,15 @@ class Network:
             coupling_strengths=coupling_strengths,
             coupling_fn=coupling_fn,
         )
+
+        # for causal edges, we define dictionaries that  
+        if kind == "causal":
+            for parent_idx, strength in zip(parent_idxs, coupling_strengths):
+                for child_idx in children_idxs:
+                    self.causal_coupling_weights[(parent_idx, child_idx)] = strength
+                    self.causal_coupling_functions[(parent_idx, child_idx)] = coupling_fn 
+
+
 
         self.attributes = attributes
         self.edges = edges
