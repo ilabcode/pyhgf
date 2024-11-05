@@ -315,6 +315,8 @@ class Network:
         node_parameters: Dict = {},
         value_children: Optional[Union[List, Tuple, int]] = None,
         value_parents: Optional[Union[List, Tuple, int]] = None,
+        causal_children: Optional[Union[List, Tuple, int]] = None,
+        causal_parents: Optional[Union[List, Tuple, int]] = None,
         volatility_children: Optional[Union[List, Tuple, int]] = None,
         volatility_parents: Optional[Union[List, Tuple, int]] = None,
         coupling_fn: Tuple[Optional[Callable], ...] = (None,),
@@ -366,6 +368,16 @@ class Network:
             integer or a list of integers, in case of multiple children. The coupling
             strength can be controlled by passing a tuple, where the first item is the
             list of indexes, and the second item is the list of coupling strengths.
+        causal_children :
+            Indexes to the node's causal children. The index can be passed as an integer
+            or a list of integers, in case of multiple children. The coupling strength
+            can be controlled by passing a tuple, where the first item is the list of
+            indexes, and the second item is the list of coupling strengths.
+        causal_parents :
+            Indexes to the node's causal parents. The index can be passed as an integer
+            or a list of integers, in case of multiple children. The coupling strength
+            can be controlled by passing a tuple, where the first item is the list of
+            indexes, and the second item is the list of coupling strengths.
         coupling_fn :
             Coupling function(s) between the current node and its value children.
             It has to be provided as a tuple. If multiple value children are specified,
@@ -408,25 +420,31 @@ class Network:
         # transform coupling parameter into tuple of indexes and strenghts
         couplings = []
         for indexes in [
-            value_parents,
-            volatility_parents,
-            value_children,
-            volatility_children,
-        ]:
+            value_parents, 
+            volatility_parents, 
+            value_children, 
+            volatility_children, 
+            causal_parents, 
+            causal_children
+            ]:
+
             if indexes is not None:
                 if isinstance(indexes, int):
-                    coupling_idxs = tuple([indexes])
-                    coupling_strengths = tuple([1.0])
-                elif isinstance(indexes, list):
-                    coupling_idxs = tuple(indexes)
-                    coupling_strengths = tuple([1.0] * len(coupling_idxs))
-                elif isinstance(indexes, tuple):
+                    coupling_idxs = (indexes,)
+                    coupling_strengths = (1.0,)
+                elif isinstance(indexes, tuple) and len(indexes) == 2:
                     coupling_idxs = tuple(indexes[0])
                     coupling_strengths = tuple(indexes[1])
+                elif isinstance(indexes, list):
+                    coupling_idxs = tuple(indexes)
+                    coupling_strengths = (1.0,) * len(coupling_idxs)
+                else:
+                    raise ValueError("Invalid format for coupling parameters")
             else:
-                coupling_idxs, coupling_strengths = None, None
+                coupling_idxs, coupling_strengths = (), ()  # if no coupling, empty coupling
             couplings.append((coupling_idxs, coupling_strengths))
-        value_parents, volatility_parents, value_children, volatility_children = (
+
+        value_parents, volatility_parents, value_children, volatility_children, causal_parents, causal_children, = (
             couplings
         )
 
@@ -441,6 +459,8 @@ class Network:
                 "volatility_coupling_parents": volatility_parents[1],
                 "value_coupling_children": value_children[1],
                 "value_coupling_parents": value_parents[1],
+                "causal_coupling_children": value_children[1],
+                "causal_coupling_parents": value_parents[1],
                 "tonic_volatility": -4.0,
                 "tonic_drift": 0.0,
                 "autoconnection_strength": 1.0,
@@ -458,7 +478,8 @@ class Network:
                 "expected_mean": 0.5,
                 "precision": 1.0,
                 "expected_precision": 1.0,
-                "value_coupling_parents": value_parents[1],
+         #       "value_coupling_parents": value_parents[1],
+                "causal_coupling_parents": causal_parents[1],
                 "temp": {
                     "value_prediction_error": 0.0,
                 },
@@ -572,7 +593,6 @@ class Network:
         for _ in range(n_nodes):
             # convert the structure to a list to modify it
             edges_as_list: List = list(self.edges)
-
             node_idx = len(self.edges)  # the index of the new node
 
             # for mutiple value children, set a default tuple with corresponding length
@@ -587,7 +607,7 @@ class Network:
             # add a new edge
             edges_as_list.append(
                 AdjacencyLists(
-                    node_type, None, None, None, None, coupling_fn=coupling_fn
+                    node_type, None, None, None, None, None, None, coupling_fn=coupling_fn
                 )
             )
 
@@ -627,6 +647,21 @@ class Network:
                     parent_idxs=volatility_parents[0],
                     children_idxs=node_idx,
                     coupling_strengths=volatility_parents[1],  # type: ignore
+                )
+
+            if causal_children[0] is not None:
+                self.add_edges(
+                    kind="causal",
+                    parent_idxs=node_idx,
+                    children_idxs=causal_children[0],
+                    coupling_strengths=causal_children[1],  # type: ignore
+                )
+            if causal_parents[0] is not None:
+                self.add_edges(
+                    kind="causal",
+                    parent_idxs=causal_parents[0],
+                    children_idxs=node_idx,
+                    coupling_strengths=causal_parents[1],  # type: ignore
                 )
 
         if kind == "categorical-state":
@@ -719,21 +754,21 @@ class Network:
         coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
         coupling_fn: Tuple[Optional[Callable], ...] = (None,),
     ) -> "Network":
-        """Add a value or volatility coupling link between a set of nodes.
+        """Add a value, volatility or causal coupling link between a set of nodes.
 
         Parameters
         ----------
         kind :
-            The kind of coupling, can be `"value"` or `"volatility"`.
+            The kind of coupling, can be `"value"`, `"volatility"` or  `"causal"`.
         parent_idxs :
             The index(es) of the parent node(s).
         children_idxs :
             The index(es) of the children node(s).
         coupling_strengths :
-            The coupling strength betwen the parents and children.
+            The coupling strength between the parents and children.
         coupling_fn :
-            Coupling function(s) between the current node and its value children.
-            It has to be provided as a tuple. If multiple value children are specified,
+            Coupling function(s) between the current node and its value or causal children.
+            It has to be provided as a tuple. If multiple value or causal children are specified,
             the coupling functions must be stated in the same order of the children.
             Note: if a node has multiple parents nodes with different coupling
             functions, a coupling function should be indicated for all the parent nodes.

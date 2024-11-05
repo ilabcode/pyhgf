@@ -20,11 +20,13 @@ class AdjacencyLists(NamedTuple):
     """
 
     node_type: int
-    value_parents: Optional[Tuple]
-    volatility_parents: Optional[Tuple]
-    value_children: Optional[Tuple]
-    volatility_children: Optional[Tuple]
-    coupling_fn: Tuple[Optional[Callable], ...]
+    value_parents: Optional[Tuple] = None
+    volatility_parents: Optional[Tuple] = None
+    causal_parents: Optional[Tuple] = None  
+    value_children: Optional[Tuple] = None
+    volatility_children: Optional[Tuple] = None
+    causal_children: Optional[Tuple] = None 
+    coupling_fn: Tuple[Optional[Callable], ...] = (None,)
 
 
 # the nodes' attributes

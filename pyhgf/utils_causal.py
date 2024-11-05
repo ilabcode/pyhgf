@@ -161,6 +161,7 @@ def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List
                 for i in [
                     edges[idx].value_parents,
                     edges[idx].volatility_parents,
+                    edges[idx].causal_parents,
                 ]
                 if i is not None
             ]
@@ -173,6 +174,7 @@ def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List
                     for i in [
                         edges[parent_idx].value_children,
                         edges[parent_idx].volatility_children,
+                        edges[parent_idx].causal_children,
                     ]
                     if i is not None
                 ]
@@ -224,11 +226,26 @@ def fill_categorical_state_node(
     # add the value coupling between the categorical and binary states
     edges_as_list: List[AdjacencyLists] = list(network.edges)
     edges_as_list[node_idx] = AdjacencyLists(
-        5, tuple(binary_states_idxs), None, None, None, (None,)
+        5, 
+        value_parents=tuple(binary_states_idxs), 
+        volatility_parents=None, 
+        causal_parents=None,
+        value_children=None,
+        volatility_children=(None,),
+        causal_children=None,
+        coupling_fn=(None,)
     )
+
     for binary_idx in binary_states_idxs:
         edges_as_list[binary_idx] = AdjacencyLists(
-            1, None, None, (node_idx,), None, (None,)
+            1, 
+            value_parents=None, 
+            volatility_parents=None, 
+            causal_parents=None,
+            value_children=(node_idx,), 
+            volatility_children=None, 
+            causal_children=None,
+            coupling_fn=(None,)
         )
     network.edges = tuple(edges_as_list)
 
@@ -568,7 +585,7 @@ def add_edges(
     coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
     coupling_fn: Tuple[Optional[Callable], ...] = (None,),
 ) -> Tuple:
-    """Add a value or volatility coupling link between a set of nodes.
+    """Add a value, volatility, or causal coupling link between a set of nodes.
 
     Parameters
     ----------
@@ -594,7 +611,7 @@ def add_edges(
         linear.
 
     """
-    if kind not in ["value", "volatility"]:
+    if kind not in ["value", "volatility", "causal"]:
         raise ValueError(
             f"The kind of coupling should be value or volatility, got {kind}"
         )
@@ -624,6 +641,8 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
+            causal_parents,
+            causal_children, 
             this_coupling_fn,
         ) = edges_as_list[parent_idx]
 
@@ -635,7 +654,7 @@ def add_edges(
                 )
             else:
                 value_children = value_children + tuple(children_idxs)
-                attributes[parent_idx]["value_coupling_children"] += tuple(
+                attributes[parent_idx]["value_coupling_children"] = tuple(
                     coupling_strengths
                 )
                 this_coupling_fn = this_coupling_fn + coupling_fn
@@ -647,9 +666,16 @@ def add_edges(
                 )
             else:
                 volatility_children = volatility_children + tuple(children_idxs)
-                attributes[parent_idx]["volatility_coupling_children"] += tuple(
+                attributes[parent_idx]["volatility_coupling_children"] = tuple(
                     coupling_strengths
                 )
+        elif kind == "causal":
+            if causal_children is None:
+                causal_children = tuple(children_idxs)
+                attributes[parent_idx]["causal_coupling_children"] = tuple(coupling_strengths)
+            else:
+                causal_children = causal_children + tuple(children_idxs)
+                attributes[parent_idx]["causal_coupling_children"] = tuple(coupling_strengths)
 
         # save the updated edges back
         edges_as_list[parent_idx] = AdjacencyLists(
@@ -658,6 +684,8 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
+            causal_parents, 
+            causal_children, 
             this_coupling_fn,
         )
 
@@ -671,6 +699,8 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
+            causal_children, 
+            causal_parents, 
             coupling_fn,
         ) = edges_as_list[children_idx]
 
@@ -696,6 +726,18 @@ def add_edges(
                 attributes[children_idx]["volatility_coupling_parents"] += tuple(
                     coupling_strengths
                 )
+        elif kind == "causal":
+            if causal_parents is None:
+                causal_parents = tuple(parent_idxs)
+                attributes[children_idx]["causal_coupling_parents"] = tuple(
+                    coupling_strengths
+                    )
+            else:
+                causal_parents = causal_parents + tuple(parent_idxs)
+                attributes[children_idx]["causal_coupling_parents"] += tuple(
+                    coupling_strengths
+                    )
+
 
         # save the updated edges back
         edges_as_list[children_idx] = AdjacencyLists(
@@ -704,6 +746,8 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
+            causal_parents, 
+            causal_children,
             coupling_fn,
         )
 
@@ -733,6 +777,7 @@ def get_input_idxs(edges: Edges) -> Tuple[int, ...]:
             if (
                 (edges[i].value_children is None)
                 & (edges[i].volatility_children is None)
+                & (edges[i].causal_children is None)
             )
         ]
     )
