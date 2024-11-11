@@ -1,6 +1,7 @@
 use std::collections::HashMap;
-use crate::{updates::observations::observation_update, utils::function_pointer::FnType};
+use crate::utils::function_pointer::FnType;
 use crate::utils::set_sequence::set_update_sequence;
+use crate::utils::beliefs_propagation::belief_propagation;
 use crate::utils::function_pointer::get_func_map;
 use pyo3::types::PyTuple;
 use pyo3::{prelude::*, types::{PyList, PyDict}};
@@ -129,33 +130,6 @@ impl Network {
         self.update_sequence = set_update_sequence(self);
     }
 
-    /// Single time slice belief propagation.
-    /// 
-    /// # Arguments
-    /// * `observations` - A vector of values, each value is one new observation associated
-    /// with one node.
-    pub fn belief_propagation(&mut self, observations_set: Vec<f64>) {
-
-        let predictions = self.update_sequence.predictions.clone();
-        let updates = self.update_sequence.updates.clone();
-
-        // 1. prediction steps
-        for (idx, step) in predictions.iter() {
-            step(self, *idx);
-        }
-        
-        // 2. observation steps
-        for (i, observations) in observations_set.iter().enumerate() {
-            let idx = self.inputs[i];
-            observation_update(self, idx, *observations);
-        } 
-
-        // 3. update steps
-        for (idx, step) in updates.iter() {
-            step(self, *idx);
-        }
-    }
-
     /// Add a sequence of observations.
     /// 
     /// # Arguments
@@ -163,61 +137,61 @@ impl Network {
     /// associated with one node.
     pub fn input_data(&mut self, input_data: Vec<f64>) {
 
+        let n_time = input_data.len();
+        let predictions = self.update_sequence.predictions.clone();
+        let updates = self.update_sequence.updates.clone();
+
         // initialize the belief trajectories result struture
         let mut node_trajectories = NodeTrajectories {floats: HashMap::new(), vectors: HashMap::new()};
         
-        // add empty vectors in the floats hashmap
+        // preallocate empty vectors in the floats hashmap
         for (node_idx, node) in &self.attributes.floats {
             let new_map: HashMap<String, Vec<f64>> = HashMap::new();
             node_trajectories.floats.insert(*node_idx, new_map);
-            if let Some(attr) = node_trajectories.floats.get_mut(node_idx) {
-                for key in node.keys() {
-                    attr.insert(key.clone(), Vec::new());
-                }
+            let attr = node_trajectories.floats.get_mut(node_idx).expect("New map not found.");
+            for key in node.keys() {
+                attr.insert(key.clone(), Vec::with_capacity(n_time));
             }
-        }
-        // add empty vectors in the vectors hashmap
+            }
+
+        // preallocate empty vectors in the vectors hashmap
         for (node_idx, node) in &self.attributes.vectors {
             let new_map: HashMap<String, Vec<Vec<f64>>> = HashMap::new();
             node_trajectories.vectors.insert(*node_idx, new_map);
-            if let Some(attr) = node_trajectories.vectors.get_mut(node_idx) {
-                for key in node.keys() {
-                    attr.insert(key.clone(), Vec::new());
-                }
+            let attr = node_trajectories.vectors.get_mut(node_idx).expect("New vector map not found.");
+            for key in node.keys() {
+                attr.insert(key.clone(), Vec::with_capacity(n_time));
             }
-        }
+            }
+
 
         // iterate over the observations
         for observation in input_data {
 
             // 1. belief propagation for one time slice
-            self.belief_propagation(vec![observation]);
+            belief_propagation(self, vec![observation], &predictions, &updates);
 
             // 2. append the new beliefs in the trajectories structure
             // iterate over the float hashmap
             for (new_node_idx, new_node) in &self.attributes.floats {
                 for (new_key, new_value) in new_node {
                     // If the key exists in map1, append the vector from map2
-                    if let Some(old_node) = node_trajectories.floats.get_mut(&new_node_idx) {
-                        if let Some(old_value) = old_node.get_mut(new_key) {
-                            old_value.push(*new_value);
-                        }
+                    let old_node = node_trajectories.floats.get_mut(&new_node_idx).expect("Old node not found.");
+                    let old_value = old_node.get_mut(new_key).expect("Old value not found");
+                    old_value.push(*new_value);
                     }
                 }
-            }
+
             // iterate over the vector hashmap
             for (new_node_idx, new_node) in &self.attributes.vectors {
                 for (new_key, new_value) in new_node {
                     // If the key exists in map1, append the vector from map2
-                    if let Some(old_node) = node_trajectories.vectors.get_mut(&new_node_idx) {
-                        if let Some(old_value) = old_node.get_mut(new_key) {
-                            old_value.push(new_value.clone());
-                        }
+                    let old_node = node_trajectories.vectors.get_mut(&new_node_idx).expect("Old vector node not found.");
+                    let old_value = old_node.get_mut(new_key).expect("Old vector value not found.");
+                    old_value.push(new_value.clone());
                     }
                 }
             }
-        }
-
         self.node_trajectories = node_trajectories;
     }
 
