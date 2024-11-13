@@ -1,53 +1,60 @@
 import numpy as np
 from scipy.stats import multivariate_normal
+# Import the function from math instead and adapt MI function
 
-# Helper Functions
-def get_coupling_strength(network, child_idx, parent_idx):
+def get_coupling_strength(node_idx, parent_idx, attributes, edges):
     """
     Retrieve the coupling strength between a specified parent and child node.
 
     Parameters:
-    - network: The Network.
-    - child_idx: Index of the child node.
+    - node_idx: Index of the child node.
     - parent_idx: Index of the parent node.
+    - attributes: Node attributes dictionary for the network.
+    - edges: Edge structure providing access to parent nodes.
 
     Returns:
-    - Coupling strength for the specified parent-child relationship, or None if not found.
+    - Coupling strength for the specified parent-child relationship as a float, or None if not found.
     """
     try:
-        parent_position = network.edges[child_idx].value_parents.index(parent_idx)
-        return network.attributes[child_idx]['value_coupling_parents'][parent_position]
+        parent_position = edges[node_idx].value_parents.index(parent_idx)
+        # Return the single float coupling strength value for the specified parent
+        return attributes[node_idx]['value_coupling_parents'][parent_position]
     except ValueError:
-        return None 
+        return None
 
-
-def set_coupling_strength(network, child_idx, parent_idx, new_strength):
+def set_coupling_strength(node_idx, parent_idx, new_strength, attributes, edges):
     """
     Set a new coupling strength between a specified parent and child node.
 
     Parameters:
-    - network: The Network.
-    - child_idx: Index of the child node.
+    - node_idx: Index of the child node.
     - parent_idx: Index of the parent node.
     - new_strength: New coupling strength value to set.
+    - attributes: Node attributes dictionary for the network.
+    - edges: Edge structure providing access to parent nodes.
     """
     try:
-        parent_position = network.edges[child_idx].value_parents.index(parent_idx)
-        coupling_list = list(network.attributes[child_idx]['value_coupling_parents'])
+        parent_position = edges[node_idx].value_parents.index(parent_idx)
+        # Convert to list to modify
+        coupling_list = list(attributes[node_idx]['value_coupling_parents'])
         coupling_list[parent_position] = new_strength
-        network.attributes[child_idx]['value_coupling_parents'] = tuple(coupling_list)
+        # Set back as tuple
+        attributes[node_idx]['value_coupling_parents'] = tuple(coupling_list)
     except ValueError:
         raise ValueError("Specified parent node not found for the given child node.")
 
 
-def calculate_mutual_information(network, node_idx, parent_idx=None, num_samples=1000, eps=1e-8):
+
+# Information Theory Functions
+def calculate_mutual_information(node_idx, attributes, edges, num_samples=1000, eps=1e-8):
     """
-    Calculate mutual information for each parent-child or for a specific parent-child pair in the Network.
+    Calculate mutual information for each parent-child, parent-parent, and self relationship
+    in a probabilistic network by using entropy-based mutual information calculations with sampled covariance.
 
     Parameters:
-    - network: A Network.
     - node_idx: Index of the child node.
-    - parent_idx: Index of the specific parent node (optional).
+    - attributes: Node attributes, including expected_mean and expected_precision for each node.
+    - edges: Edge structure providing access to parent nodes.
     - num_samples: Number of samples for covariance estimation.
     - eps: Small constant to avoid log(0) issues.
 
@@ -55,40 +62,44 @@ def calculate_mutual_information(network, node_idx, parent_idx=None, num_samples
     - Dictionary of mutual information values: `parent_child`, `parent_parent`, `self`.
     """
     mutual_info_dict = {"parent_child": {}, "parent_parent": {}, "self": None}
-    node_mean = network.attributes[node_idx]["expected_mean"]
-    node_precision = network.attributes[node_idx]["expected_precision"]
+
+    # Sample from the child node distribution
+    node_mean = attributes[node_idx]["expected_mean"]
+    node_precision = attributes[node_idx]["expected_precision"]
     child_samples = np.random.normal(node_mean, np.sqrt(1 / node_precision), num_samples)
 
-    # Get data from specific parent or all parents
-    if parent_idx is not None:
-        value_parents_idxs = [parent_idx]
-    else:
-        value_parents_idxs = network.edges[node_idx].value_parents
+    # Retrieve parent nodes
+    parent_nodes = edges[node_idx].value_parents
 
+    # Gather data for each parent node
     data = [
-        np.random.normal(network.attributes[parent]["expected_mean"],
-                         np.sqrt(1 / network.attributes[parent]["expected_precision"]),
-                         num_samples) for parent in value_parents_idxs]
-    data.append(child_samples)
+        np.random.normal(attributes[parent_idx]["expected_mean"],
+                         np.sqrt(1 / attributes[parent_idx]["expected_precision"]),
+                         num_samples)
+        for parent_idx in parent_nodes
+    ]
+    data.append(child_samples)  # Add child samples as well
 
+    # Calculate covariance matrix from samples
     data = np.vstack(data).T
     cov = np.cov(data, rowvar=False) + eps * np.eye(data.shape[1])
 
+    # Calculate entropy values and mutual information
     child_entropy = 0.5 * np.log(2 * np.pi * np.e * cov[-1, -1])
     mutual_info_dict["self"] = {node_idx: child_entropy}
 
-    for i, parent in enumerate(value_parents_idxs):
+    for i, parent_idx in enumerate(parent_nodes):
         parent_entropy = 0.5 * np.log(2 * np.pi * np.e * cov[i, i])
         joint_entropy = 0.5 * np.log((2 * np.pi * np.e) ** 2 * np.linalg.det(cov[[i, -1]][:, [i, -1]]))
-        mutual_info_dict["parent_child"][(parent, node_idx)] = max(
+        mutual_info_dict["parent_child"][(parent_idx, node_idx)] = max(
             parent_entropy + child_entropy - joint_entropy, 0
         )
 
-    # Only calculate parent-parent pairs if analyzing all parents
-    if parent_idx is None and len(value_parents_idxs) > 1:
-        for i in range(len(value_parents_idxs)):
-            for j in range(i + 1, len(value_parents_idxs)):
-                parent_i, parent_j = value_parents_idxs[i], value_parents_idxs[j]
+    # Calculate mutual information between parent nodes if there is more than one parent
+    if len(parent_nodes) > 1:
+        for i in range(len(parent_nodes)):
+            for j in range(i + 1, len(parent_nodes)):
+                parent_i, parent_j = parent_nodes[i], parent_nodes[j]
                 entropy_i = 0.5 * np.log(2 * np.pi * np.e * cov[i, i])
                 entropy_j = 0.5 * np.log(2 * np.pi * np.e * cov[j, j])
                 joint_entropy_ij = 0.5 * np.log((2 * np.pi * np.e) ** 2 * np.linalg.det(cov[[i, j]][:, [i, j]]))
@@ -99,17 +110,21 @@ def calculate_mutual_information(network, node_idx, parent_idx=None, num_samples
     return mutual_info_dict
 
 
-
 def calculate_surd(mutual_info_dict, child_idx):
     """
     Calculate the SURD decomposition for each causal parent in relation to a given child node.
+    Based on mutual information calculated in the `calculate_mutual_information` function.
 
     Parameters:
     - mutual_info_dict: Output from `calculate_mutual_information`, containing `parent_child`, `parent_parent`, and `self` values.
     - child_idx: Index of the child node.
 
-    Returns:
-    - Dictionary of SURD values for each parent.
+    Returns: # Add more description here
+    - Dictionary of SURD values for each parent:
+      - `Redundant`: Information shared with other parents.
+      - `Unique`: Information unique to the specified parent.
+      - `Synergistic`: Information arising from joint effects.
+      - `Leak`: Unobserved influences on the child.
     """
     surd_dict = {}
     child_self_info = mutual_info_dict["self"].get(child_idx, 0)
@@ -118,9 +133,8 @@ def calculate_surd(mutual_info_dict, child_idx):
 
     for parent_idx in all_parents:
         parent_child_mi = mutual_info_dict["parent_child"].get((parent_idx, child_idx), 0)
-        redundant_info = sum(
-            min(parent_child_mi, mutual_info_dict["parent_parent"].get((other_parent, parent_idx), 0))
-            for other_parent in all_parents if other_parent != parent_idx)
+        redundant_info = sum(min(parent_child_mi, mutual_info_dict["parent_parent"].get((other_parent, parent_idx), 0))
+                             for other_parent in all_parents if other_parent != parent_idx)
         unique_info = max(parent_child_mi - redundant_info, 0)
         synergistic_info = max(child_self_info - (total_parent_influence + unique_info + redundant_info), 0)
         leak_info = max(child_self_info - total_parent_influence, 0)
@@ -134,119 +148,101 @@ def calculate_surd(mutual_info_dict, child_idx):
 
     return surd_dict
 
-
-# Update Functions
-def update_coupling_strength_surd(network, parent_idx, child_idx, learning_rate=0.01):
+def update_coupling_strength_surd(node_idx, attributes, edges, learning_rate=0.01):
     """
-    Update the coupling strength for a specific parent-child relationship based on SURD decomposition.
+    Update the causal coupling strength for each parent-child relationship based on SURD decomposition.
 
     Parameters:
-    - network: A Network.
-    - parent_idx: Index of the parent node.
-    - child_idx: Index of the child node.
+    - node_idx: Index of the child node.
+    - attributes: Node attributes.
+    - edges: Edge structure providing access to parent nodes.
     - learning_rate: Learning rate for updating the coupling strength.
 
     Returns:
-    - Updated coupling strength for the specified parent-child pair.
+    - Updated attributes with updated coupling strengths for each parent.
     """
-    mutual_info_dict = calculate_mutual_information(network, child_idx, parent_idx)
-    surd_values = calculate_surd(mutual_info_dict, child_idx)
+    mutual_info_dict = calculate_mutual_information(node_idx, attributes, edges)  # Updated call
+    surd_values = calculate_surd(mutual_info_dict, node_idx)
 
+    # Weights for the components
     weights = {"Unique": 2.0, "Redundant": -1.0, "Synergistic": 1.5, "Leak": 0}
-    current_strength = get_coupling_strength(network, child_idx, parent_idx)
 
-    # Update specific values for the selected parent-child relationship
-    unique = surd_values[parent_idx]["Unique"]
-    redundant = surd_values[parent_idx]["Redundant"]
-    synergistic = surd_values[parent_idx]["Synergistic"]
-    leak = surd_values[parent_idx]["Leak"]
+    for parent_idx in edges[node_idx].value_parents:
+        # Retrieve the current coupling strength
+        current_strength = get_coupling_strength(node_idx, parent_idx, attributes, edges)
 
-    score = (unique * weights["Unique"] + redundant * weights["Redundant"] +
-             synergistic * weights["Synergistic"] + leak * weights["Leak"])
-    
-    adjustment = learning_rate * (1 / (1 + np.exp(-(score - 0.5))))
-    updated_strength = np.clip(current_strength + adjustment, 0, 1)
-    set_coupling_strength(network, child_idx, parent_idx, updated_strength)
+        # Extract the SURD values for the specified parent
+        unique = surd_values[parent_idx]["Unique"]
+        redundant = surd_values[parent_idx]["Redundant"]
+        synergistic = surd_values[parent_idx]["Synergistic"]
+        leak = surd_values[parent_idx]["Leak"]
 
-    return updated_strength
+        # Calculate score and adjustment
+        score = (unique * weights["Unique"] + redundant * weights["Redundant"] +
+                 synergistic * weights["Synergistic"] + leak * weights["Leak"])
+        adjustment = learning_rate * (1 / (1 + np.exp(-(score - 0.5))))
+        updated_strength = np.clip(current_strength + adjustment, 0, 1)
+
+        # Update coupling strength
+        set_coupling_strength(node_idx, parent_idx, updated_strength, attributes, edges)
+
+    return attributes
 
 
-
-def calculate_prediction_difference(network, parent_idx, child_idx):
+def calculate_prediction_difference(node_idx, attributes, edges):
     """
-    Calculate the difference in prediction error for a specified child and parent, scaled by the coupling strength.
+    Calculate the difference in prediction error for each parent-child relationship, scaled by coupling weight.
 
     Parameters:
-    - network: A Network.
-    - parent_idx: Index of the parent node.
-    - child_idx: Index of the child node.
+    - node_idx: Index of the child node.
+    - attributes: Node attributes.
+    - edges: Edge structure providing access to parent nodes.
 
     Returns:
-    - Prediction difference for the specified parent-child pair.
+    - Dictionary of prediction differences for each parent.
     """
-    # Retrieve prediction errors and coupling strength
-    child_prediction_error = network.attributes[child_idx]["temp"]["value_prediction_error"]
-    coupling_strength = get_coupling_strength(network, child_idx, parent_idx)
-    parent_prediction_error = network.attributes[parent_idx]["temp"].get("value_prediction_error", 0.0)
+    prediction_differences = {}
+    child_prediction_error = attributes[node_idx]["temp"]["value_prediction_error"]
 
-    # Check if the parent node's prediction error is observed
-    if not network.attributes[parent_idx].get("observed", True):
-        parent_prediction_error = 0.0
+    for parent_idx in edges[node_idx].value_parents:
+        # Retrieve the current coupling strength using the helper function
+        current_strength = get_coupling_strength(node_idx, parent_idx, attributes, edges)
+        parent_prediction_error = attributes[parent_idx]["temp"].get("value_prediction_error", 0.0)
 
-    # Calculate the prediction difference for the specified parent-child pair
-    prediction_difference = child_prediction_error - (coupling_strength * parent_prediction_error)
+        if not attributes[parent_idx].get("observed", True):
+            parent_prediction_error = 0.0
 
-    return prediction_difference
+        prediction_difference = child_prediction_error - (current_strength * parent_prediction_error)
+        prediction_differences[parent_idx] = prediction_difference
+
+    return prediction_differences
 
 
-
-def update_coupling_strength_prediction_error(network, parent_idx, child_idx, learning_rate=0.1):
+def update_coupling_strength_prediction_error(node_idx, attributes, edges, learning_rate=0.1):
     """
-    Update the causal coupling strength for a specified parent-child relationship based on prediction error difference.
+    Update the causal coupling strength for each parent-child relationship based on prediction error.
 
     Parameters:
-    - network: A Network.
-    - parent_idx: Index of the parent node.
-    - child_idx: Index of the child node.
-    - learning_rate: Learning rate parameter controlling the update step size.
+    - node_idx: Index of the child node.
+    - attributes: Node attributes.
+    - edges: Edge structure providing access to parent nodes.
+    - learning_rate: Learning rate for updating the coupling strength.
 
     Returns:
-    - Updated coupling strength for the specified parent-child pair.
+    - Updated attributes with updated coupling strengths for each parent.
     """
-    child_prediction_error = network.attributes[child_idx]["temp"]["value_prediction_error"]
-    current_strength = get_coupling_strength(network, child_idx, parent_idx)
-    
-    # Calculate the prediction difference for the specified parent
-    prediction_difference = calculate_prediction_difference(network, child_idx)[parent_idx]
-    reliability_adjustment = prediction_difference / (child_prediction_error + 1e-8)
-    influence_adjustment = learning_rate * (1 / (1 + np.exp(-(reliability_adjustment - 1))))
-    
-    # Update and clip coupling strength
-    updated_strength = np.clip(current_strength + influence_adjustment, 0, 1)
-    set_coupling_strength(network, child_idx, parent_idx, updated_strength)
+    child_prediction_error = attributes[node_idx]["temp"]["value_prediction_error"]
 
-    return updated_strength
+    for parent_idx in edges[node_idx].value_parents:
+        # Retrieve the current coupling strength
+        current_strength = get_coupling_strength(node_idx, parent_idx, attributes, edges)
+        prediction_difference = calculate_prediction_difference(node_idx, attributes, edges)[parent_idx]
+        reliability_adjustment = prediction_difference / (child_prediction_error + 1e-8)
+        influence_adjustment = learning_rate * (1 / (1 + np.exp(-(reliability_adjustment - 1))))
+        updated_strength = np.clip(current_strength + influence_adjustment, 0, 1)
 
+        # Update the coupling strength
+        set_coupling_strength(node_idx, parent_idx, updated_strength, attributes, edges)
 
-def edge_update(network, parent_idx, child_idx, method='surd', learning_rate=0.1):
-    """
-    Update coupling strength for a specified parent-child relationship using the SURD or prediction error method.
-
-    Parameters:
-    - network: The Network.
-    - parent_idx: Index of the parent node.
-    - child_idx: Index of the child node.
-    - method: Either 'surd' or 'prediction_error' to select the update method.
-    - learning_rate: Learning rate for coupling strength updates.
-
-    Returns:
-    - Updated coupling strength for the specified parent-child pair.
-    """
-    # Determine the update method
-    if method == 'surd':
-        updated_strength = update_coupling_strength_surd(network, parent_idx, child_idx, learning_rate)
-    elif method == 'prediction_error':
-        updated_strength = update_coupling_strength_prediction_error(network, parent_idx, child_idx, learning_rate)
-    
-    return updated_strength
+    return attributes
 

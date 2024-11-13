@@ -112,14 +112,14 @@ def calculate_mutual_information(node_idx, attributes, edges, num_samples=1000, 
 
 def calculate_surd(mutual_info_dict, child_idx):
     """
-    Calculate the SURD decomposition for each causal parent in relation to a given child node. 
+    Calculate the SURD decomposition for each causal parent in relation to a given child node.
     Based on mutual information calculated in the `calculate_mutual_information` function.
 
     Parameters:
     - mutual_info_dict: Output from `calculate_mutual_information`, containing `parent_child`, `parent_parent`, and `self` values.
     - child_idx: Index of the child node.
 
-    Returns: # Add more description here 
+    Returns: # Add more description here
     - Dictionary of SURD values for each parent:
       - `Redundant`: Information shared with other parents.
       - `Unique`: Information unique to the specified parent.
@@ -241,7 +241,7 @@ def update_coupling_strength_prediction_error(node_idx, attributes, edges, learn
         influence_adjustment = learning_rate * (1 / (1 + np.exp(-(reliability_adjustment - 1))))
         updated_strength = np.clip(current_strength + influence_adjustment, 0, 1)
 
-        # Update the coupling strength 
+        # Update the coupling strength
         set_coupling_strength(node_idx, parent_idx, updated_strength, attributes, edges)
 
     return attributes

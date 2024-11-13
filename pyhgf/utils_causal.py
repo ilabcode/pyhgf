@@ -49,9 +49,11 @@ def beliefs_propagation(
     This function performs the beliefs propagation step. Belief propagation consists in:
     1. A prediction sequence, from the leaves of the graph to the roots.
     2. The assignation of new observations to target nodes (usually the roots of the
-       network).
-    3. An inference step alternating between prediction errors, posterior updates,
-       and edge updates starting from the roots of the network to the leaves.
+    network)
+    3. An inference step alternating between prediction errors and posterior updates,
+    starting from the roots of the network to the leaves.
+    This function returns a tuple of two new `parameter_structure` (i.e. the carryover
+    and the accumulated in the context of :py:func:`jax.lax.scan`).
 
     Parameters
     ----------
@@ -60,30 +62,36 @@ def beliefs_propagation(
         after the beliefs propagation step.
     inputs :
         A tuple of n by time steps arrays containing the new observation(s), the time
-        steps as well as a boolean mask for observed values.
+        steps as well as a boolean mask for observed values. The new observations are a
+        tuple of array, with length equal to the number of input nodes. Each input node
+        can receive observations  The time steps are the last
+        column of the array, the default is unit incrementation.
     update_sequence :
-        The sequence of updates that will be applied to the node structure, including
-        `prediction_steps`, `update_steps`, and `edge_steps`.
+        The sequence of updates that will be applied to the node structure.
     edges :
         Information on the network's edges.
     input_idxs :
-        List of input indexes.
+        List input indexes.
 
     Returns
     -------
     attributes, attributes :
         A tuple of parameters structure (carryover and accumulated).
-    """
-    prediction_steps, update_steps, edge_steps = update_sequence
 
-    # Unpack input data - input_values is a tuple of n x time steps arrays
+    """
+    prediction_steps, update_steps = update_sequence
+
+    # unpack input data - input_values is a tuple of n x time steps arrays
     (*input_data, time_step) = inputs
+
     attributes[-1]["time_step"] = time_step
 
     # Prediction sequence
     # -------------------
     for step in prediction_steps:
+
         node_idx, update_fn = step
+
         attributes = update_fn(
             attributes=attributes,
             node_idx=node_idx,
@@ -92,7 +100,10 @@ def beliefs_propagation(
 
     # Observations
     # ------------
-    for values, observed, node_idx in zip(input_data[::2], input_data[1::2], input_idxs):
+    for values, observed, node_idx in zip(
+        input_data[::2], input_data[1::2], input_idxs
+    ):
+
         attributes = set_observation(
             attributes=attributes,
             node_idx=node_idx,
@@ -103,25 +114,19 @@ def beliefs_propagation(
     # Update sequence
     # ---------------
     for step in update_steps:
+
         node_idx, update_fn = step
+
         attributes = update_fn(
             attributes=attributes,
             node_idx=node_idx,
             edges=edges,
         )
 
-    # Edge step sequence
-    # -------------------
-    for step in edge_steps:
-        node_idx, edge_update_fn = step
-        attributes = edge_update_fn(
-            attributes=attributes,
-            node_idx=node_idx,
-            edges=edges,
-        )
-
-    return attributes, attributes  # ("carryover", "accumulated")
-
+    return (
+        attributes,
+        attributes,
+    )  # ("carryover", "accumulated")
 
 
 def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List:
@@ -156,7 +161,6 @@ def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List
                 for i in [
                     edges[idx].value_parents,
                     edges[idx].volatility_parents,
-                    edges[idx].causal_parents,
                 ]
                 if i is not None
             ]
@@ -169,7 +173,6 @@ def list_branches(node_idxs: List, edges: Tuple, branch_list: List = []) -> List
                     for i in [
                         edges[parent_idx].value_children,
                         edges[parent_idx].volatility_children,
-                        edges[parent_idx].causal_children,
                     ]
                     if i is not None
                 ]
@@ -221,26 +224,11 @@ def fill_categorical_state_node(
     # add the value coupling between the categorical and binary states
     edges_as_list: List[AdjacencyLists] = list(network.edges)
     edges_as_list[node_idx] = AdjacencyLists(
-        5, 
-        value_parents=tuple(binary_states_idxs), 
-        volatility_parents=None, 
-        causal_parents=None,
-        value_children=None,
-        volatility_children=(None,),
-        causal_children=None,
-        coupling_fn=(None,)
+        5, tuple(binary_states_idxs), None, None, None, (None,)
     )
-
     for binary_idx in binary_states_idxs:
         edges_as_list[binary_idx] = AdjacencyLists(
-            1, 
-            value_parents=None, 
-            volatility_parents=None, 
-            causal_parents=None,
-            value_children=(node_idx,), 
-            volatility_children=None, 
-            causal_children=None,
-            coupling_fn=(None,)
+            1, None, None, (node_idx,), None, (None,)
         )
     network.edges = tuple(edges_as_list)
 
@@ -580,7 +568,7 @@ def add_edges(
     coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
     coupling_fn: Tuple[Optional[Callable], ...] = (None,),
 ) -> Tuple:
-    """Add a value, volatility, or causal coupling link between a set of nodes.
+    """Add a value or volatility coupling link between a set of nodes.
 
     Parameters
     ----------
@@ -606,7 +594,7 @@ def add_edges(
         linear.
 
     """
-    if kind not in ["value", "volatility", "causal"]:
+    if kind not in ["value", "volatility"]:
         raise ValueError(
             f"The kind of coupling should be value or volatility, got {kind}"
         )
@@ -636,8 +624,6 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
-            causal_parents,
-            causal_children, 
             this_coupling_fn,
         ) = edges_as_list[parent_idx]
 
@@ -649,7 +635,7 @@ def add_edges(
                 )
             else:
                 value_children = value_children + tuple(children_idxs)
-                attributes[parent_idx]["value_coupling_children"] = tuple(
+                attributes[parent_idx]["value_coupling_children"] += tuple(
                     coupling_strengths
                 )
                 this_coupling_fn = this_coupling_fn + coupling_fn
@@ -661,16 +647,9 @@ def add_edges(
                 )
             else:
                 volatility_children = volatility_children + tuple(children_idxs)
-                attributes[parent_idx]["volatility_coupling_children"] = tuple(
+                attributes[parent_idx]["volatility_coupling_children"] += tuple(
                     coupling_strengths
                 )
-        elif kind == "causal":
-            if causal_children is None:
-                causal_children = tuple(children_idxs)
-                attributes[parent_idx]["causal_coupling_children"] = tuple(coupling_strengths)
-            else:
-                causal_children = causal_children + tuple(children_idxs)
-                attributes[parent_idx]["causal_coupling_children"] = tuple(coupling_strengths)
 
         # save the updated edges back
         edges_as_list[parent_idx] = AdjacencyLists(
@@ -679,8 +658,6 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
-            causal_parents, 
-            causal_children, 
             this_coupling_fn,
         )
 
@@ -694,8 +671,6 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
-            causal_children, 
-            causal_parents, 
             coupling_fn,
         ) = edges_as_list[children_idx]
 
@@ -721,18 +696,6 @@ def add_edges(
                 attributes[children_idx]["volatility_coupling_parents"] += tuple(
                     coupling_strengths
                 )
-        elif kind == "causal":
-            if causal_parents is None:
-                causal_parents = tuple(parent_idxs)
-                attributes[children_idx]["causal_coupling_parents"] = tuple(
-                    coupling_strengths
-                    )
-            else:
-                causal_parents = causal_parents + tuple(parent_idxs)
-                attributes[children_idx]["causal_coupling_parents"] += tuple(
-                    coupling_strengths
-                    )
-
 
         # save the updated edges back
         edges_as_list[children_idx] = AdjacencyLists(
@@ -741,8 +704,6 @@ def add_edges(
             volatility_parents,
             value_children,
             volatility_children,
-            causal_parents, 
-            causal_children,
             coupling_fn,
         )
 
@@ -772,7 +733,6 @@ def get_input_idxs(edges: Edges) -> Tuple[int, ...]:
             if (
                 (edges[i].value_children is None)
                 & (edges[i].volatility_children is None)
-                & (edges[i].causal_children is None)
             )
         ]
     )
