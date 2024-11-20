@@ -179,6 +179,14 @@ and creates a standard node structure for these models.
 
    HGF
    Network
+   add_continuous_state
+   add_binary_state
+   add_ef_state
+   add_categorical_state
+   add_dp_state
+   get_couplings
+   update_parameters
+   insert_nodes
 
 Plots
 *****
