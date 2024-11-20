@@ -447,7 +447,6 @@ document.write(`
   <h1>Source code for pyhgf.model.network</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Author: Nicolas Legrand &lt;nicolas.legrand@cas.au.dk&gt;</span>
 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
@@ -457,18 +456,19 @@ document.write(`
 <span class="kn">from</span> <span class="nn">jax.tree_util</span> <span class="kn">import</span> <span class="n">Partial</span>
 <span class="kn">from</span> <span class="nn">jax.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
 
-<span class="kn">from</span> <span class="nn">pyhgf.plots</span> <span class="kn">import</span> <span class="n">plot_correlations</span><span class="p">,</span> <span class="n">plot_network</span><span class="p">,</span> <span class="n">plot_nodes</span><span class="p">,</span> <span class="n">plot_trajectories</span>
-<span class="kn">from</span> <span class="nn">pyhgf.typing</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">AdjacencyLists</span><span class="p">,</span>
-    <span class="n">Attributes</span><span class="p">,</span>
-    <span class="n">Edges</span><span class="p">,</span>
-    <span class="n">NetworkParameters</span><span class="p">,</span>
-    <span class="n">UpdateSequence</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">pyhgf.model</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">add_binary_state</span><span class="p">,</span>
+    <span class="n">add_categorical_state</span><span class="p">,</span>
+    <span class="n">add_continuous_state</span><span class="p">,</span>
+    <span class="n">add_dp_state</span><span class="p">,</span>
+    <span class="n">add_ef_state</span><span class="p">,</span>
+    <span class="n">get_couplings</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pyhgf.plots</span> <span class="kn">import</span> <span class="n">plot_correlations</span><span class="p">,</span> <span class="n">plot_network</span><span class="p">,</span> <span class="n">plot_nodes</span><span class="p">,</span> <span class="n">plot_trajectories</span>
+<span class="kn">from</span> <span class="nn">pyhgf.typing</span> <span class="kn">import</span> <span class="n">Attributes</span><span class="p">,</span> <span class="n">Edges</span><span class="p">,</span> <span class="n">NetworkParameters</span><span class="p">,</span> <span class="n">UpdateSequence</span>
 <span class="kn">from</span> <span class="nn">pyhgf.utils</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">add_edges</span><span class="p">,</span>
     <span class="n">beliefs_propagation</span><span class="p">,</span>
-    <span class="n">fill_categorical_state_node</span><span class="p">,</span>
     <span class="n">get_input_idxs</span><span class="p">,</span>
     <span class="n">get_update_sequence</span><span class="p">,</span>
     <span class="n">to_pandas</span><span class="p">,</span>
@@ -510,10 +510,12 @@ document.write(`
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize an empty neural network.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">:</span> <span class="n">Edges</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_nodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># number of nodes in the network</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node_trajectories</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span> <span class="n">Attributes</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;time_step&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_sequence</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UpdateSequence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scan_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scan_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">additional_parameters</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{}</span></div>
 
 
     <span class="nd">@property</span>
@@ -781,7 +783,7 @@ document.write(`
 <span class="sd">            be a regular state node that can have value and/or volatility</span>
 <span class="sd">            parents/children. If `&quot;binary-state&quot;`, the node should be the</span>
 <span class="sd">            value parent of a binary input. State nodes filtering distribution from the</span>
-<span class="sd">            exponential family can be created using `&quot;exponential-state&quot;`.</span>
+<span class="sd">            exponential family can be created using `&quot;ef-state&quot;`.</span>
 
 <span class="sd">        .. note::</span>
 <span class="sd">            When using a categorical state node, the `binary_parameters` can be used to</span>
@@ -832,263 +834,73 @@ document.write(`
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
-            <span class="s2">&quot;DP-state&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;exponential-state&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dp-state&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ef-state&quot;</span><span class="p">,</span>
             <span class="s2">&quot;categorical-state&quot;</span><span class="p">,</span>
             <span class="s2">&quot;continuous-state&quot;</span><span class="p">,</span>
             <span class="s2">&quot;binary-state&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;generic-state&quot;</span><span class="p">,</span>
         <span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="p">(</span>
                     <span class="s2">&quot;Invalid node type. Should be one of the following: &quot;</span>
-                    <span class="s2">&quot;&#39;DP-state&#39;, &#39;continuous-state&#39;, &#39;binary-state&#39;, &quot;</span>
-                    <span class="s2">&quot;&#39;exponential-state&#39;, &#39;generic-state&#39; or &#39;categorical-state&#39;&quot;</span>
+                    <span class="s2">&quot;&#39;dp-state&#39;, &#39;continuous-state&#39;, &#39;binary-state&#39;, &quot;</span>
+                    <span class="s2">&quot;&#39;ef-state&#39;, or &#39;categorical-state&#39;&quot;</span>
                 <span class="p">)</span>
             <span class="p">)</span>
 
-        <span class="c1"># assess children number</span>
-        <span class="c1"># this is required to ensure the coupling functions match</span>
-        <span class="n">children_number</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="n">value_children</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">children_number</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value_children</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="n">children_number</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value_children</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">children_number</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">value_children</span><span class="p">)</span>
-
-        <span class="c1"># transform coupling parameter into tuple of indexes and strenghts</span>
-        <span class="n">couplings</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">indexes</span> <span class="ow">in</span> <span class="p">[</span>
-            <span class="n">value_parents</span><span class="p">,</span>
-            <span class="n">volatility_parents</span><span class="p">,</span>
-            <span class="n">value_children</span><span class="p">,</span>
-            <span class="n">volatility_children</span><span class="p">,</span>
-        <span class="p">]:</span>
-            <span class="k">if</span> <span class="n">indexes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">indexes</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                    <span class="n">coupling_idxs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">indexes</span><span class="p">])</span>
-                    <span class="n">coupling_strengths</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="mf">1.0</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">indexes</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                    <span class="n">coupling_idxs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span>
-                    <span class="n">coupling_strengths</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">coupling_idxs</span><span class="p">))</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">indexes</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-                    <span class="n">coupling_idxs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="n">coupling_strengths</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">indexes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">coupling_idxs</span><span class="p">,</span> <span class="n">coupling_strengths</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-            <span class="n">couplings</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">coupling_idxs</span><span class="p">,</span> <span class="n">coupling_strengths</span><span class="p">))</span>
+        <span class="c1"># turn coupling indexes of various kinds</span>
+        <span class="c1"># into tuples of indexes and coupling strength</span>
         <span class="n">value_parents</span><span class="p">,</span> <span class="n">volatility_parents</span><span class="p">,</span> <span class="n">value_children</span><span class="p">,</span> <span class="n">volatility_children</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">couplings</span>
+            <span class="n">get_couplings</span><span class="p">(</span>
+                <span class="n">value_parents</span><span class="p">,</span> <span class="n">volatility_parents</span><span class="p">,</span> <span class="n">value_children</span><span class="p">,</span> <span class="n">volatility_children</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
         <span class="c1"># create the default parameters set according to the node type</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;continuous-state&quot;</span><span class="p">:</span>
-            <span class="n">default_parameters</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;expected_mean&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;expected_precision&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;volatility_coupling_children&quot;</span><span class="p">:</span> <span class="n">volatility_children</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="s2">&quot;volatility_coupling_parents&quot;</span><span class="p">:</span> <span class="n">volatility_parents</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="s2">&quot;value_coupling_children&quot;</span><span class="p">:</span> <span class="n">value_children</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="s2">&quot;value_coupling_parents&quot;</span><span class="p">:</span> <span class="n">value_parents</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="s2">&quot;tonic_volatility&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">4.0</span><span class="p">,</span>
-                <span class="s2">&quot;tonic_drift&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;autoconnection_strength&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;observed&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                <span class="s2">&quot;temp&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;effective_precision&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                    <span class="s2">&quot;value_prediction_error&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                    <span class="s2">&quot;volatility_prediction_error&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="p">},</span>
-            <span class="p">}</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;binary-state&quot;</span><span class="p">:</span>
-            <span class="n">default_parameters</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;observed&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                <span class="s2">&quot;expected_mean&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-                <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;expected_precision&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;value_coupling_parents&quot;</span><span class="p">:</span> <span class="n">value_parents</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-                <span class="s2">&quot;temp&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;value_prediction_error&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="p">},</span>
-            <span class="p">}</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;generic-state&quot;</span><span class="p">:</span>
-            <span class="n">default_parameters</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;observed&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="k">elif</span> <span class="s2">&quot;exponential-state&quot;</span> <span class="ow">in</span> <span class="n">kind</span><span class="p">:</span>
-            <span class="n">default_parameters</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;nus&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>
-                <span class="s2">&quot;xis&quot;</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
-                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;observed&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;categorical-state&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;n_categories&quot;</span> <span class="ow">in</span> <span class="n">node_parameters</span><span class="p">:</span>
-                <span class="n">n_categories</span> <span class="o">=</span> <span class="n">node_parameters</span><span class="p">[</span><span class="s2">&quot;n_categories&quot;</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="s2">&quot;n_categories&quot;</span> <span class="ow">in</span> <span class="n">additional_parameters</span><span class="p">:</span>
-                <span class="n">n_categories</span> <span class="o">=</span> <span class="n">additional_parameters</span><span class="p">[</span><span class="s2">&quot;n_categories&quot;</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">n_categories</span> <span class="o">=</span> <span class="mi">4</span>
-            <span class="n">binary_parameters</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;n_categories&quot;</span><span class="p">:</span> <span class="n">n_categories</span><span class="p">,</span>
-                <span class="s2">&quot;precision_1&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;precision_2&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;precision_3&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;mean_1&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">n_categories</span><span class="p">,</span>
-                <span class="s2">&quot;mean_2&quot;</span><span class="p">:</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">n_categories</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
-                <span class="s2">&quot;mean_3&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;tonic_volatility_2&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">4.0</span><span class="p">,</span>
-                <span class="s2">&quot;tonic_volatility_3&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">4.0</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="n">binary_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="mi">1</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_categories</span><span class="p">)</span>
-            <span class="p">]</span>
-            <span class="n">default_parameters</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;binary_idxs&quot;</span><span class="p">:</span> <span class="n">binary_idxs</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
-                <span class="s2">&quot;n_categories&quot;</span><span class="p">:</span> <span class="n">n_categories</span><span class="p">,</span>
-                <span class="s2">&quot;surprise&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;kl_divergence&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_categories</span><span class="p">),</span>
-                <span class="s2">&quot;observed&quot;</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_categories</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
-                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">n_categories</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_categories</span><span class="p">),</span>
-                <span class="s2">&quot;binary_parameters&quot;</span><span class="p">:</span> <span class="n">binary_parameters</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;DP-state&quot;</span><span class="p">:</span>
-
-            <span class="k">if</span> <span class="s2">&quot;batch_size&quot;</span> <span class="ow">in</span> <span class="n">additional_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">batch_size</span> <span class="o">=</span> <span class="n">additional_parameters</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="s2">&quot;batch_size&quot;</span> <span class="ow">in</span> <span class="n">node_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">batch_size</span> <span class="o">=</span> <span class="n">node_parameters</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">10</span>
-
-            <span class="n">default_parameters</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">,</span>  <span class="c1"># number of branches available in the network</span>
-                <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">),</span>  <span class="c1"># number of observation in each cluster</span>
-                <span class="s2">&quot;n_total&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># the total number of observations in the node</span>
-                <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># concentration parameter for the implied Dirichlet dist.</span>
-                <span class="s2">&quot;expected_means&quot;</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">),</span>
-                <span class="s2">&quot;expected_sigmas&quot;</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">batch_size</span><span class="p">),</span>
-                <span class="s2">&quot;sensory_precision&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                <span class="s2">&quot;activated&quot;</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">),</span>
-                <span class="s2">&quot;value_coupling_children&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,),</span>
-                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">&quot;n_active_cluster&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="p">}</span>
-
-        <span class="c1"># Update the default node parameters using keywords args and dictonary</span>
-        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">additional_parameters</span><span class="p">):</span>
-            <span class="c1"># ensure that all passed values are valid keys</span>
-            <span class="n">invalid_keys</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">key</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">additional_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-            <span class="p">]</span>
-
-            <span class="k">if</span> <span class="n">invalid_keys</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="p">(</span>
-                        <span class="s2">&quot;Some parameter(s) passed as keyword arguments were not found &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;in the default key list for this node (i.e. </span><span class="si">{</span><span class="n">invalid_keys</span><span class="si">}</span><span class="s2">).&quot;</span>
-                        <span class="s2">&quot; If you want to create a new key in the node attributes, &quot;</span>
-                        <span class="s2">&quot;please use the node_parameters argument instead.&quot;</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-
-            <span class="c1"># if keyword parameters were provided, update the default_parameters dict</span>
-            <span class="n">default_parameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">additional_parameters</span><span class="p">)</span>
-
-        <span class="c1"># update the defaults using the dict parameters</span>
-        <span class="n">default_parameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">node_parameters</span><span class="p">)</span>
-        <span class="n">node_parameters</span> <span class="o">=</span> <span class="n">default_parameters</span>
-
-        <span class="c1"># define the type of node that is created</span>
-        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;generic-state&quot;</span><span class="p">:</span>
-            <span class="n">node_type</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;binary-state&quot;</span><span class="p">:</span>
-            <span class="n">node_type</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;continuous-state&quot;</span><span class="p">:</span>
-            <span class="n">node_type</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;exponential-state&quot;</span><span class="p">:</span>
-            <span class="n">node_type</span> <span class="o">=</span> <span class="mi">3</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;DP-state&quot;</span><span class="p">:</span>
-            <span class="n">node_type</span> <span class="o">=</span> <span class="mi">4</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;categorical-state&quot;</span><span class="p">:</span>
-            <span class="n">node_type</span> <span class="o">=</span> <span class="mi">5</span>
-
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_nodes</span><span class="p">):</span>
-            <span class="c1"># convert the structure to a list to modify it</span>
-            <span class="n">edges_as_list</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span>
-
-            <span class="n">node_idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span>  <span class="c1"># the index of the new node</span>
-
-            <span class="c1"># for mutiple value children, set a default tuple with corresponding length</span>
-            <span class="k">if</span> <span class="n">children_number</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coupling_fn</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">coupling_fn</span> <span class="o">==</span> <span class="p">(</span><span class="kc">None</span><span class="p">,):</span>
-                    <span class="n">coupling_fn</span> <span class="o">=</span> <span class="n">children_number</span> <span class="o">*</span> <span class="n">coupling_fn</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;The number of coupling fn and value children do not match&quot;</span>
-                    <span class="p">)</span>
-
-            <span class="c1"># add a new edge</span>
-            <span class="n">edges_as_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">AdjacencyLists</span><span class="p">(</span>
-                    <span class="n">node_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">coupling_fn</span><span class="o">=</span><span class="n">coupling_fn</span>
-                <span class="p">)</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">add_continuous_state</span><span class="p">(</span>
+                <span class="n">network</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">n_nodes</span><span class="o">=</span><span class="n">n_nodes</span><span class="p">,</span>
+                <span class="n">value_parents</span><span class="o">=</span><span class="n">value_parents</span><span class="p">,</span>
+                <span class="n">volatility_parents</span><span class="o">=</span><span class="n">volatility_parents</span><span class="p">,</span>
+                <span class="n">value_children</span><span class="o">=</span><span class="n">value_children</span><span class="p">,</span>
+                <span class="n">volatility_children</span><span class="o">=</span><span class="n">volatility_children</span><span class="p">,</span>
+                <span class="n">node_parameters</span><span class="o">=</span><span class="n">node_parameters</span><span class="p">,</span>
+                <span class="n">additional_parameters</span><span class="o">=</span><span class="n">additional_parameters</span><span class="p">,</span>
+                <span class="n">coupling_fn</span><span class="o">=</span><span class="n">coupling_fn</span><span class="p">,</span>
             <span class="p">)</span>
-
-            <span class="c1"># convert the list back to a tuple</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">edges_as_list</span><span class="p">)</span>
-
-            <span class="c1"># update the node structure</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">node_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">node_parameters</span><span class="p">)</span>
-
-            <span class="c1"># Update the edges of the parents and children accordingly</span>
-            <span class="c1"># --------------------------------------------------------</span>
-            <span class="k">if</span> <span class="n">value_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span>
-                    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
-                    <span class="n">parent_idxs</span><span class="o">=</span><span class="n">value_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="n">children_idxs</span><span class="o">=</span><span class="n">node_idx</span><span class="p">,</span>
-                    <span class="n">coupling_strengths</span><span class="o">=</span><span class="n">value_parents</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># type: ignore</span>
-                <span class="p">)</span>
-            <span class="k">if</span> <span class="n">value_children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span>
-                    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
-                    <span class="n">parent_idxs</span><span class="o">=</span><span class="n">node_idx</span><span class="p">,</span>
-                    <span class="n">children_idxs</span><span class="o">=</span><span class="n">value_children</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="n">coupling_strengths</span><span class="o">=</span><span class="n">value_children</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># type: ignore</span>
-                    <span class="n">coupling_fn</span><span class="o">=</span><span class="n">coupling_fn</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="k">if</span> <span class="n">volatility_children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span>
-                    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;volatility&quot;</span><span class="p">,</span>
-                    <span class="n">parent_idxs</span><span class="o">=</span><span class="n">node_idx</span><span class="p">,</span>
-                    <span class="n">children_idxs</span><span class="o">=</span><span class="n">volatility_children</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="n">coupling_strengths</span><span class="o">=</span><span class="n">volatility_children</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># type: ignore</span>
-                <span class="p">)</span>
-            <span class="k">if</span> <span class="n">volatility_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span>
-                    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;volatility&quot;</span><span class="p">,</span>
-                    <span class="n">parent_idxs</span><span class="o">=</span><span class="n">volatility_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="n">children_idxs</span><span class="o">=</span><span class="n">node_idx</span><span class="p">,</span>
-                    <span class="n">coupling_strengths</span><span class="o">=</span><span class="n">volatility_parents</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># type: ignore</span>
-                <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;categorical-state&quot;</span><span class="p">:</span>
-            <span class="c1"># if we are creating a categorical state or state-transition node</span>
-            <span class="c1"># we have to generate the implied binary network(s) here</span>
-            <span class="bp">self</span> <span class="o">=</span> <span class="n">fill_categorical_state_node</span><span class="p">(</span>
-                <span class="bp">self</span><span class="p">,</span>
-                <span class="n">node_idx</span><span class="o">=</span><span class="n">node_idx</span><span class="p">,</span>
-                <span class="n">binary_states_idxs</span><span class="o">=</span><span class="n">node_parameters</span><span class="p">[</span><span class="s2">&quot;binary_idxs&quot;</span><span class="p">],</span>  <span class="c1"># type: ignore</span>
-                <span class="n">binary_parameters</span><span class="o">=</span><span class="n">binary_parameters</span><span class="p">,</span>
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;binary-state&quot;</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">add_binary_state</span><span class="p">(</span>
+                <span class="n">network</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">n_nodes</span><span class="o">=</span><span class="n">n_nodes</span><span class="p">,</span>
+                <span class="n">value_parents</span><span class="o">=</span><span class="n">value_parents</span><span class="p">,</span>
+                <span class="n">volatility_parents</span><span class="o">=</span><span class="n">volatility_parents</span><span class="p">,</span>
+                <span class="n">value_children</span><span class="o">=</span><span class="n">value_children</span><span class="p">,</span>
+                <span class="n">volatility_children</span><span class="o">=</span><span class="n">volatility_children</span><span class="p">,</span>
+                <span class="n">node_parameters</span><span class="o">=</span><span class="n">node_parameters</span><span class="p">,</span>
+                <span class="n">additional_parameters</span><span class="o">=</span><span class="n">additional_parameters</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;ef-state&quot;</span> <span class="ow">in</span> <span class="n">kind</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">add_ef_state</span><span class="p">(</span>
+                <span class="n">network</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">n_nodes</span><span class="o">=</span><span class="n">n_nodes</span><span class="p">,</span>
+                <span class="n">node_parameters</span><span class="o">=</span><span class="n">node_parameters</span><span class="p">,</span>
+                <span class="n">additional_parameters</span><span class="o">=</span><span class="n">additional_parameters</span><span class="p">,</span>
+                <span class="n">value_children</span><span class="o">=</span><span class="n">value_children</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;categorical-state&quot;</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">add_categorical_state</span><span class="p">(</span>
+                <span class="n">network</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">n_nodes</span><span class="o">=</span><span class="n">n_nodes</span><span class="p">,</span>
+                <span class="n">node_parameters</span><span class="o">=</span><span class="n">node_parameters</span><span class="p">,</span>
+                <span class="n">additional_parameters</span><span class="o">=</span><span class="n">additional_parameters</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;dp-state&quot;</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">add_dp_state</span><span class="p">(</span>
+                <span class="n">network</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">n_nodes</span><span class="o">=</span><span class="n">n_nodes</span><span class="p">,</span>
+                <span class="n">node_parameters</span><span class="o">=</span><span class="n">node_parameters</span><span class="p">,</span>
+                <span class="n">additional_parameters</span><span class="o">=</span><span class="n">additional_parameters</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span>
