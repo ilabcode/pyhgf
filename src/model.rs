@@ -76,7 +76,7 @@ impl Network {
     #[pyo3(signature = (kind="continuous-state", value_parents=None, value_children=None, volatility_parents=None, volatility_children=None,))]
     pub fn add_nodes(&mut self, kind: &str, value_parents: Option<Vec<usize>>, 
         value_children: Option<Vec<usize>>,
-        volatility_parents: Option<Vec<usize>>, volatility_children: Option<Vec<usize>>, ) {
+        volatility_parents: Option<Vec<usize>>, volatility_children: Option<Vec<usize>>, )  {
 
         // the node ID is equal to the number of nodes already in the network
         let node_id: usize = self.edges.len();
@@ -109,7 +109,7 @@ impl Network {
             self.attributes.floats.insert(node_id, attributes);
             self.edges.insert(node_id, edges);
 
-        } else if kind == "exponential-state" {
+        } else if kind == "ef-state" {
 
             let floats_attributes =  [
                 (String::from("mean"), 0.0), 
@@ -121,8 +121,6 @@ impl Network {
             self.attributes.vectors.insert(node_id, vector_attributes);
             self.edges.insert(node_id, edges);
 
-        } else {
-            println!("Invalid type of node provided ({}).", kind);
         }
     }
 
@@ -299,7 +297,7 @@ mod tests {
     
         // create a network with two exponential family state nodes
         network.add_nodes(
-            "exponential-state",
+            "ef-state",
             None,
             None,
             None,
