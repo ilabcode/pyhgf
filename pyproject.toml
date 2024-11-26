@@ -4,8 +4,8 @@ description = "Dynamic neural networks for predictive coding"
 authors = ["Nicolas Legrand <nicolas.legrand@cas.au.dk>"]
 license = "GPL-3.0"
 readme = "README.md"
-homepage = "https://ilabcode.github.io/pyhgf/"
-repository = "https://github.com/ilabcode/pyhgf"
+homepage = "https://computationalpsychiatry.github.io/pyhgf/"
+repository = "https://github.com/ComputationalPsychiatry/pyhgf"
 keywords = ["reinforcement learning", "predictive coding", "neural networks", "graphs", "variational inference", "active inference", "causal inference"]
 include = [
     "src/pyhgf/data/usdchf.txt",
