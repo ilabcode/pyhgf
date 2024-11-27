@@ -1,5 +1,6 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
+from copy import deepcopy
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import jax.numpy as jnp
@@ -9,19 +10,18 @@ from jax.lax import scan, switch
 from jax.tree_util import Partial
 from jax.typing import ArrayLike
 
-from pyhgf.model import (
-    add_binary_state,
-    add_categorical_state,
-    add_continuous_state,
-    add_dp_state,
-    add_ef_state,
-    get_couplings,
-)
 from pyhgf.plots import plot_correlations, plot_network, plot_nodes, plot_trajectories
-from pyhgf.typing import Attributes, Edges, NetworkParameters, UpdateSequence
+from pyhgf.typing import (
+    AdjacencyLists,
+    Attributes,
+    Edges,
+    NetworkParameters,
+    UpdateSequence,
+)
 from pyhgf.utils import (
     add_edges,
     beliefs_propagation,
+    fill_categorical_state_node,
     get_input_idxs,
     get_update_sequence,
     to_pandas,
@@ -59,12 +59,10 @@ class Network:
     def __init__(self) -> None:
         """Initialize an empty neural network."""
         self.edges: Edges = ()
-        self.n_nodes: int = 0  # number of nodes in the network
         self.node_trajectories: Dict = {}
         self.attributes: Attributes = {-1: {"time_step": 0.0}}
         self.update_sequence: Optional[UpdateSequence] = None
         self.scan_fn: Optional[Callable] = None
-        self.additional_parameters: Dict = {}
 
     @property
     def input_idxs(self):
@@ -317,6 +315,8 @@ class Network:
         node_parameters: Dict = {},
         value_children: Optional[Union[List, Tuple, int]] = None,
         value_parents: Optional[Union[List, Tuple, int]] = None,
+        causal_children: Optional[Union[List, Tuple, int]] = None,
+        causal_parents: Optional[Union[List, Tuple, int]] = None,
         volatility_children: Optional[Union[List, Tuple, int]] = None,
         volatility_parents: Optional[Union[List, Tuple, int]] = None,
         coupling_fn: Tuple[Optional[Callable], ...] = (None,),
@@ -331,7 +331,7 @@ class Network:
             be a regular state node that can have value and/or volatility
             parents/children. If `"binary-state"`, the node should be the
             value parent of a binary input. State nodes filtering distribution from the
-            exponential family can be created using `"ef-state"`.
+            exponential family can be created using `"exponential-state"`.
 
         .. note::
             When using a categorical state node, the `binary_parameters` can be used to
@@ -368,6 +368,16 @@ class Network:
             integer or a list of integers, in case of multiple children. The coupling
             strength can be controlled by passing a tuple, where the first item is the
             list of indexes, and the second item is the list of coupling strengths.
+        causal_children :
+            Indexes to the node's causal children. The index can be passed as an integer
+            or a list of integers, in case of multiple children. The coupling strength
+            can be controlled by passing a tuple, where the first item is the list of
+            indexes, and the second item is the list of coupling strengths.
+        causal_parents :
+            Indexes to the node's causal parents. The index can be passed as an integer
+            or a list of integers, in case of multiple children. The coupling strength
+            can be controlled by passing a tuple, where the first item is the list of
+            indexes, and the second item is the list of coupling strengths.
         coupling_fn :
             Coupling function(s) between the current node and its value children.
             It has to be provided as a tuple. If multiple value children are specified,
@@ -382,73 +392,286 @@ class Network:
 
         """
         if kind not in [
-            "dp-state",
-            "ef-state",
+            "DP-state",
+            "exponential-state",
             "categorical-state",
             "continuous-state",
             "binary-state",
+            "generic-state",
         ]:
             raise ValueError(
                 (
                     "Invalid node type. Should be one of the following: "
-                    "'dp-state', 'continuous-state', 'binary-state', "
-                    "'ef-state', or 'categorical-state'"
+                    "'DP-state', 'continuous-state', 'binary-state', "
+                    "'exponential-state', 'generic-state' or 'categorical-state'"
                 )
             )
 
-        # turn coupling indexes of various kinds
-        # into tuples of indexes and coupling strength
-        value_parents, volatility_parents, value_children, volatility_children = (
-            get_couplings(
-                value_parents, volatility_parents, value_children, volatility_children
-            )
+        # assess children number
+        # this is required to ensure the coupling functions match
+        children_number = 1
+        if value_children is None:
+            children_number = 0
+        elif isinstance(value_children, int):
+            children_number = 1
+        elif isinstance(value_children, list):
+            children_number = len(value_children)
+
+        # transform coupling parameter into tuple of indexes and strenghts
+        couplings = []
+        for indexes in [
+            value_parents, 
+            volatility_parents, 
+            value_children, 
+            volatility_children, 
+            causal_parents, 
+            causal_children
+            ]:
+
+            if indexes is not None:
+                if isinstance(indexes, int):
+                    coupling_idxs = (indexes,)
+                    coupling_strengths = (1.0,)
+                elif isinstance(indexes, tuple) and len(indexes) == 2:
+                    coupling_idxs = tuple(indexes[0])
+                    coupling_strengths = tuple(indexes[1])
+                elif isinstance(indexes, list):
+                    coupling_idxs = tuple(indexes)
+                    coupling_strengths = (1.0,) * len(coupling_idxs)
+                else:
+                    raise ValueError("Invalid format for coupling parameters")
+            else:
+                coupling_idxs, coupling_strengths = (), ()  # if no coupling, empty coupling
+            couplings.append((coupling_idxs, coupling_strengths))
+
+        value_parents, volatility_parents, value_children, volatility_children, causal_parents, causal_children, = (
+            couplings
         )
 
         # create the default parameters set according to the node type
         if kind == "continuous-state":
-            self = add_continuous_state(
-                network=self,
-                n_nodes=n_nodes,
-                value_parents=value_parents,
-                volatility_parents=volatility_parents,
-                value_children=value_children,
-                volatility_children=volatility_children,
-                node_parameters=node_parameters,
-                additional_parameters=additional_parameters,
-                coupling_fn=coupling_fn,
-            )
+            default_parameters = {
+                "mean": 0.0,
+                "expected_mean": 0.0,
+                "precision": 1.0,
+                "expected_precision": 1.0,
+                "volatility_coupling_children": volatility_children[1],
+                "volatility_coupling_parents": volatility_parents[1],
+                "value_coupling_children": value_children[1],
+                "value_coupling_parents": value_parents[1],
+                "causal_coupling_children": value_children[1],
+                "causal_coupling_parents": value_parents[1],
+                "tonic_volatility": -4.0,
+                "tonic_drift": 0.0,
+                "autoconnection_strength": 1.0,
+                "observed": 1,
+                "temp": {
+                    "effective_precision": 0.0,
+                    "value_prediction_error": 0.0,
+                    "volatility_prediction_error": 0.0,
+                },
+            }
         elif kind == "binary-state":
-            self = add_binary_state(
-                network=self,
-                n_nodes=n_nodes,
-                value_parents=value_parents,
-                volatility_parents=volatility_parents,
-                value_children=value_children,
-                volatility_children=volatility_children,
-                node_parameters=node_parameters,
-                additional_parameters=additional_parameters,
-            )
-        elif "ef-state" in kind:
-            self = add_ef_state(
-                network=self,
-                n_nodes=n_nodes,
-                node_parameters=node_parameters,
-                additional_parameters=additional_parameters,
-                value_children=value_children,
-            )
+            default_parameters = {
+                "observed": 1,
+                "mean": 0,
+                "expected_mean": 0.5,
+                "precision": 1.0,
+                "expected_precision": 1.0,
+         #       "value_coupling_parents": value_parents[1],
+                "causal_coupling_parents": causal_parents[1],
+                "temp": {
+                    "value_prediction_error": 0.0,
+                },
+            }
+        elif kind == "generic-state":
+            default_parameters = {
+                "mean": 0.0,
+                "observed": 1,
+            }
+        elif "exponential-state" in kind:
+            default_parameters = {
+                "nus": 3.0,
+                "xis": jnp.array([0.0, 1.0]),
+                "mean": 0.0,
+                "observed": 1,
+            }
         elif kind == "categorical-state":
-            self = add_categorical_state(
-                network=self,
-                n_nodes=n_nodes,
-                node_parameters=node_parameters,
-                additional_parameters=additional_parameters,
+            if "n_categories" in node_parameters:
+                n_categories = node_parameters["n_categories"]
+            elif "n_categories" in additional_parameters:
+                n_categories = additional_parameters["n_categories"]
+            else:
+                n_categories = 4
+            binary_parameters = {
+                "n_categories": n_categories,
+                "precision_1": 1.0,
+                "precision_2": 1.0,
+                "precision_3": 1.0,
+                "mean_1": 1 / n_categories,
+                "mean_2": -jnp.log(n_categories - 1),
+                "mean_3": 0.0,
+                "tonic_volatility_2": -4.0,
+                "tonic_volatility_3": -4.0,
+            }
+            binary_idxs: List[int] = [
+                1 + i + len(self.edges) for i in range(n_categories)
+            ]
+            default_parameters = {
+                "binary_idxs": binary_idxs,  # type: ignore
+                "n_categories": n_categories,
+                "surprise": 0.0,
+                "kl_divergence": 0.0,
+                "alpha": jnp.ones(n_categories),
+                "observed": jnp.ones(n_categories, dtype=int),
+                "mean": jnp.array([1.0 / n_categories] * n_categories),
+                "binary_parameters": binary_parameters,
+            }
+        elif kind == "DP-state":
+
+            if "batch_size" in additional_parameters.keys():
+                batch_size = additional_parameters["batch_size"]
+            elif "batch_size" in node_parameters.keys():
+                batch_size = node_parameters["batch_size"]
+            else:
+                batch_size = 10
+
+            default_parameters = {
+                "batch_size": batch_size,  # number of branches available in the network
+                "n": jnp.zeros(batch_size),  # number of observation in each cluster
+                "n_total": 0,  # the total number of observations in the node
+                "alpha": 1.0,  # concentration parameter for the implied Dirichlet dist.
+                "expected_means": jnp.zeros(batch_size),
+                "expected_sigmas": jnp.ones(batch_size),
+                "sensory_precision": 1.0,
+                "activated": jnp.zeros(batch_size),
+                "value_coupling_children": (1.0,),
+                "mean": 0.0,
+                "n_active_cluster": 0,
+            }
+
+        # Update the default node parameters using keywords args and dictonary
+        if bool(additional_parameters):
+            # ensure that all passed values are valid keys
+            invalid_keys = [
+                key
+                for key in additional_parameters.keys()
+                if key not in default_parameters.keys()
+            ]
+
+            if invalid_keys:
+                raise ValueError(
+                    (
+                        "Some parameter(s) passed as keyword arguments were not found "
+                        f"in the default key list for this node (i.e. {invalid_keys})."
+                        " If you want to create a new key in the node attributes, "
+                        "please use the node_parameters argument instead."
+                    )
+                )
+
+            # if keyword parameters were provided, update the default_parameters dict
+            default_parameters.update(additional_parameters)
+
+        # update the defaults using the dict parameters
+        default_parameters.update(node_parameters)
+        node_parameters = default_parameters
+
+        # define the type of node that is created
+        if kind == "generic-state":
+            node_type = 0
+        elif kind == "binary-state":
+            node_type = 1
+        elif kind == "continuous-state":
+            node_type = 2
+        elif kind == "exponential-state":
+            node_type = 3
+        elif kind == "DP-state":
+            node_type = 4
+        elif kind == "categorical-state":
+            node_type = 5
+
+        for _ in range(n_nodes):
+            # convert the structure to a list to modify it
+            edges_as_list: List = list(self.edges)
+            node_idx = len(self.edges)  # the index of the new node
+
+            # for mutiple value children, set a default tuple with corresponding length
+            if children_number != len(coupling_fn):
+                if coupling_fn == (None,):
+                    coupling_fn = children_number * coupling_fn
+                else:
+                    raise ValueError(
+                        "The number of coupling fn and value children do not match"
+                    )
+
+            # add a new edge
+            edges_as_list.append(
+                AdjacencyLists(
+                    node_type, None, None, None, None, None, None, coupling_fn=coupling_fn
+                )
             )
-        elif kind == "dp-state":
-            self = add_dp_state(
-                network=self,
-                n_nodes=n_nodes,
-                node_parameters=node_parameters,
-                additional_parameters=additional_parameters,
+
+            # convert the list back to a tuple
+            self.edges = tuple(edges_as_list)
+
+            # update the node structure
+            self.attributes[node_idx] = deepcopy(node_parameters)
+
+            # Update the edges of the parents and children accordingly
+            # --------------------------------------------------------
+            if value_parents[0] is not None:
+                self.add_edges(
+                    kind="value",
+                    parent_idxs=value_parents[0],
+                    children_idxs=node_idx,
+                    coupling_strengths=value_parents[1],  # type: ignore
+                )
+            if value_children[0] is not None:
+                self.add_edges(
+                    kind="value",
+                    parent_idxs=node_idx,
+                    children_idxs=value_children[0],
+                    coupling_strengths=value_children[1],  # type: ignore
+                    coupling_fn=coupling_fn,
+                )
+            if volatility_children[0] is not None:
+                self.add_edges(
+                    kind="volatility",
+                    parent_idxs=node_idx,
+                    children_idxs=volatility_children[0],
+                    coupling_strengths=volatility_children[1],  # type: ignore
+                )
+            if volatility_parents[0] is not None:
+                self.add_edges(
+                    kind="volatility",
+                    parent_idxs=volatility_parents[0],
+                    children_idxs=node_idx,
+                    coupling_strengths=volatility_parents[1],  # type: ignore
+                )
+
+            if causal_children[0] is not None:
+                self.add_edges(
+                    kind="causal",
+                    parent_idxs=node_idx,
+                    children_idxs=causal_children[0],
+                    coupling_strengths=causal_children[1],  # type: ignore
+                )
+            if causal_parents[0] is not None:
+                self.add_edges(
+                    kind="causal",
+                    parent_idxs=causal_parents[0],
+                    children_idxs=node_idx,
+                    coupling_strengths=causal_parents[1],  # type: ignore
+                )
+
+        if kind == "categorical-state":
+            # if we are creating a categorical state or state-transition node
+            # we have to generate the implied binary network(s) here
+            self = fill_categorical_state_node(
+                self,
+                node_idx=node_idx,
+                binary_states_idxs=node_parameters["binary_idxs"],  # type: ignore
+                binary_parameters=binary_parameters,
             )
 
         return self
@@ -531,21 +754,21 @@ class Network:
         coupling_strengths: Union[float, List[float], Tuple[float]] = 1.0,
         coupling_fn: Tuple[Optional[Callable], ...] = (None,),
     ) -> "Network":
-        """Add a value or volatility coupling link between a set of nodes.
+        """Add a value, volatility or causal coupling link between a set of nodes.
 
         Parameters
         ----------
         kind :
-            The kind of coupling, can be `"value"` or `"volatility"`.
+            The kind of coupling, can be `"value"`, `"volatility"` or  `"causal"`.
         parent_idxs :
             The index(es) of the parent node(s).
         children_idxs :
             The index(es) of the children node(s).
         coupling_strengths :
-            The coupling strength betwen the parents and children.
+            The coupling strength between the parents and children.
         coupling_fn :
-            Coupling function(s) between the current node and its value children.
-            It has to be provided as a tuple. If multiple value children are specified,
+            Coupling function(s) between the current node and its value or causal children.
+            It has to be provided as a tuple. If multiple value or causal children are specified,
             the coupling functions must be stated in the same order of the children.
             Note: if a node has multiple parents nodes with different coupling
             functions, a coupling function should be indicated for all the parent nodes.
