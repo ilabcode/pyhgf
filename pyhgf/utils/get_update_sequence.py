@@ -1,18 +1,10 @@
 # Author: Nicolas Legrand <nicolas.legrand@cas.au.dk>
 
-from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Tuple
 
-import jax.numpy as jnp
-import numpy as np
-import pandas as pd
-from jax import jit
 from jax.tree_util import Partial
-from jax.typing import ArrayLike
 
-from pyhgf.math import binary_surprise, gaussian_surprise
-from pyhgf.typing import AdjacencyLists, Attributes, Edges, Sequence, UpdateSequence
-from pyhgf.updates.observation import set_observation
+from pyhgf.typing import Sequence
 from pyhgf.updates.posterior.categorical import categorical_state_update
 from pyhgf.updates.posterior.continuous import (
     continuous_node_posterior_update,
