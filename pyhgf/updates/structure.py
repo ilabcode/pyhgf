@@ -7,10 +7,10 @@ from pyhgf.utils import add_edges
 
 
 def add_parent(
-    attributes: Dict, edges: Edges, index: int, coupling_type: str
+    attributes: Dict, edges: Edges, index: int, coupling_type: str, mean: float
 ) -> Tuple[Dict, Edges]:
-    r"""Add new continuous-state parent node to the attributes and edges of an existing
-    network.
+    r"""Add a new continuous-state parent node to the attributes and edges of an
+    existing network.
 
     Parameters
     ----------
@@ -21,8 +21,10 @@ def add_parent(
     index :
         The index of the node you want to connect a new parent node to.
     coupling_type :
-        The type of coupling you want between the existing node and it's new parent. Can
-        be either "value" or "volatility".
+        The type of coupling you want between the existing node and it's new parent.
+        Can be either "value" or "volatility".
+    mean :
+        The mean value of the new parent node.
 
     Returns
     -------
@@ -37,8 +39,8 @@ def add_parent(
 
     # Add new node to attributes
     attributes[new_node_idx] = {
-        "mean": 0.0,
-        "expected_mean": 0.0,
+        "mean": mean,
+        "expected_mean": mean,
         "precision": 1.0,
         "expected_precision": 1.0,
         "volatility_coupling_children": None,
