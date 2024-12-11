@@ -194,7 +194,7 @@ impl Network {
     }
 
     #[getter]
-    pub fn get_node_trajectories<'py>(&self, py: Python<'py>) -> PyResult<&'py PyList> {
+    pub fn get_node_trajectories<'py>(&self, py: Python<'py>) -> PyResult<Py<PyList>> {
         let py_list = PyList::empty(py);
         
         
@@ -210,27 +210,27 @@ impl Network {
             if let Some(vector_node) = self.node_trajectories.vectors.get(node_idx) {
                 for (vector_key, vector_value) in vector_node {
                     // Create a new Python dictionary
-                    py_dict.set_item(vector_key, PyArray::from_vec2_bound(py, &vector_value).unwrap()).expect("Failed to set item in PyDict");
+                    py_dict.set_item(vector_key, PyArray::from_vec2(py, &vector_value).unwrap()).expect("Failed to set item in PyDict");
                 }
             }
             py_list.append(py_dict)?;
         }
 
         // Create a PyList from Vec<usize>
-        Ok(py_list)
+        Ok(py_list.into())
     }
 
     #[getter]
-    pub fn get_inputs<'py>(&self, py: Python<'py>) -> PyResult<&'py PyList> {
-        let py_list = PyList::new(py, &self.inputs);  // Create a PyList from Vec<usize>
-        Ok(py_list)
+    pub fn get_inputs<'py>(&self, py: Python<'py>) -> PyResult<Py<PyList>> {
+        let py_list = PyList::new(py, &self.inputs)?;  // Create a PyList from Vec<usize>
+        Ok(py_list.into())
     }
 
     #[getter]
-    pub fn get_edges<'py>(&self, py: Python<'py>) -> PyResult<&'py PyList> {
+    pub fn get_edges<'py>(&self, py: Python<'py>) -> PyResult<Py<PyList>> {
         // Create a new Python list
         let py_list = PyList::empty(py);
-
+    
         // Convert each struct in the Vec to a Python object and add to PyList
         for i in 0..self.edges.len() {
             // Create a new Python dictionary for each MyStruct
@@ -239,40 +239,48 @@ impl Network {
             py_dict.set_item("value_children", &self.edges[&i].value_children)?;
             py_dict.set_item("volatility_parents", &self.edges[&i].volatility_parents)?;
             py_dict.set_item("volatility_children", &self.edges[&i].volatility_children)?;
-
+    
             // Add the dictionary to the list
             py_list.append(py_dict)?;
         }
-        Ok(py_list)
+    
+        // Return the PyList object directly
+        Ok(py_list.into())
     }
 
+
     #[getter]
-    pub fn get_update_sequence<'py>(&self, py: Python<'py>) -> PyResult<&'py PyList> {
+    pub fn get_update_sequence<'py>(&self, py: Python<'py>) -> PyResult<Py<PyList>> {
     
-    let func_map = get_func_map();
-    let py_list = PyList::empty(py);
-    // Iterate over the Rust vector and convert each tuple
-    for &(num, func) in self.update_sequence.predictions.iter() {
-        // Retrieve the function name from the map
-        let func_name = func_map.get(&func).unwrap_or(&"unknown");
+        let func_map = get_func_map();
+        let py_list = PyList::empty(py);
 
-        // Convert the Rust tuple to a Python tuple with the function name as a string
-        let py_tuple = PyTuple::new(py, &[num.into_py(py), (*func_name).into_py(py)]);
+        // Iterate over the Rust vector and convert each tuple
+        for &(num, func) in self.update_sequence.predictions.iter() {
+            
+            // Resolve the Python objects from the Rust values
+            let py_func_name = func_map.get(&func).unwrap_or(&"unknown").into_pyobject(py)?.into_any().unbind();
+            let py_num = num.into_pyobject(py)?.into_any().unbind();         // Converts num to PyObject
 
-        // Append the Python tuple to the Python list
-        py_list.append(py_tuple)?;
-    }        
-    for &(num, func) in self.update_sequence.updates.iter() {
-        // Retrieve the function name from the map
-        let func_name = func_map.get(&func).unwrap_or(&"unknown");
+            // Create a Python tuple
+            let py_tuple = PyTuple::new(py, &[py_num, py_func_name])?;
+            
+            // Append the Python tuple to the Python list
+            py_list.append(py_tuple)?;
+        }        
+        for &(num, func) in self.update_sequence.updates.iter() {
 
-        // Convert the Rust tuple to a Python tuple with the function name as a string
-        let py_tuple = PyTuple::new(py, &[num.into_py(py), (*func_name).into_py(py)]);
+            // Resolve the Python objects from the Rust values
+            let py_func_name = func_map.get(&func).unwrap_or(&"unknown").into_pyobject(py)?.into_any().unbind();
+            let py_num = num.into_pyobject(py)?.into_any().unbind();         // Converts num to PyObject
 
-        // Append the Python tuple to the Python list
-        py_list.append(py_tuple)?;
-    }        
-    Ok(py_list)
+            // Create a Python tuple
+            let py_tuple = PyTuple::new(py, &[py_num, py_func_name])?;
+            
+            // Append the Python tuple to the Python list
+            py_list.append(py_tuple)?;
+        }        
+        Ok(py_list.into())
     }
 }
 
