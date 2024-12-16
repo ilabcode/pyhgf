@@ -567,6 +567,3 @@ class Network:
         self.edges = edges
 
         return self
-
-
-# Functions to be added
