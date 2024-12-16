@@ -19,30 +19,8 @@
 <path fill="none" stroke="black" d="M117.22,-8C117.22,-8 600.22,-8 600.22,-8 606.22,-8 612.22,-14 612.22,-20 612.22,-20 612.22,-109.95 612.22,-109.95 612.22,-115.95 606.22,-121.95 600.22,-121.95 600.22,-121.95 117.22,-121.95 117.22,-121.95 111.22,-121.95 105.22,-115.95 105.22,-109.95 105.22,-109.95 105.22,-20 105.22,-20 105.22,-14 111.22,-8 117.22,-8"/>
 <text text-anchor="middle" x="572.72" y="-15.8" font-family="Times,serif" font-size="14.00">10 x 320</text>
 </g>
-<!-- mu_temperature -->
-<g id="node1" class="node">
-<title>mu_temperature</title>
-<ellipse fill="none" stroke="black" cx="468.22" cy="-309.38" rx="96.33" ry="37.45"/>
-<text text-anchor="middle" x="468.22" y="-320.68" font-family="Times,serif" font-size="14.00">mu_temperature</text>
-<text text-anchor="middle" x="468.22" y="-305.68" font-family="Times,serif" font-size="14.00">~</text>
-<text text-anchor="middle" x="468.22" y="-290.68" font-family="Times,serif" font-size="14.00">Normal</text>
-</g>
-<!-- inverse_temperature -->
-<g id="node5" class="node">
-<title>inverse_temperature</title>
-<ellipse fill="none" stroke="black" cx="468.22" cy="-198.43" rx="117.26" ry="37.45"/>
-<text text-anchor="middle" x="468.22" y="-209.73" font-family="Times,serif" font-size="14.00">inverse_temperature</text>
-<text text-anchor="middle" x="468.22" y="-194.73" font-family="Times,serif" font-size="14.00">~</text>
-<text text-anchor="middle" x="468.22" y="-179.73" font-family="Times,serif" font-size="14.00">LogNormal</text>
-</g>
-<!-- mu_temperature&#45;&gt;inverse_temperature -->
-<g id="edge3" class="edge">
-<title>mu_temperature&#45;&gt;inverse_temperature</title>
-<path fill="none" stroke="black" d="M468.22,-271.8C468.22,-263.63 468.22,-254.85 468.22,-246.32"/>
-<polygon fill="black" stroke="black" points="471.72,-246.1 468.22,-236.1 464.72,-246.1 471.72,-246.1"/>
-</g>
 <!-- sigma_volatility -->
-<g id="node2" class="node">
+<g id="node1" class="node">
 <title>sigma_volatility</title>
 <ellipse fill="none" stroke="black" cx="91.22" cy="-309.38" rx="91.43" ry="37.45"/>
 <text text-anchor="middle" x="91.22" y="-320.68" font-family="Times,serif" font-size="14.00">sigma_volatility</text>
@@ -64,7 +42,7 @@
 <polygon fill="black" stroke="black" points="227.84,-231.98 234.68,-223.89 224.29,-225.95 227.84,-231.98"/>
 </g>
 <!-- mu_volatility -->
-<g id="node3" class="node">
+<g id="node2" class="node">
 <title>mu_volatility</title>
 <ellipse fill="none" stroke="black" cx="277.22" cy="-309.38" rx="77.15" ry="37.45"/>
 <text text-anchor="middle" x="277.22" y="-320.68" font-family="Times,serif" font-size="14.00">mu_volatility</text>
@@ -76,6 +54,28 @@
 <title>mu_volatility&#45;&gt;volatility</title>
 <path fill="none" stroke="black" d="M276.88,-271.8C276.81,-263.63 276.73,-254.85 276.65,-246.32"/>
 <polygon fill="black" stroke="black" points="280.15,-246.07 276.55,-236.1 273.15,-246.13 280.15,-246.07"/>
+</g>
+<!-- mu_temperature -->
+<g id="node3" class="node">
+<title>mu_temperature</title>
+<ellipse fill="none" stroke="black" cx="468.22" cy="-309.38" rx="96.33" ry="37.45"/>
+<text text-anchor="middle" x="468.22" y="-320.68" font-family="Times,serif" font-size="14.00">mu_temperature</text>
+<text text-anchor="middle" x="468.22" y="-305.68" font-family="Times,serif" font-size="14.00">~</text>
+<text text-anchor="middle" x="468.22" y="-290.68" font-family="Times,serif" font-size="14.00">Normal</text>
+</g>
+<!-- inverse_temperature -->
+<g id="node5" class="node">
+<title>inverse_temperature</title>
+<ellipse fill="none" stroke="black" cx="468.22" cy="-198.43" rx="117.26" ry="37.45"/>
+<text text-anchor="middle" x="468.22" y="-209.73" font-family="Times,serif" font-size="14.00">inverse_temperature</text>
+<text text-anchor="middle" x="468.22" y="-194.73" font-family="Times,serif" font-size="14.00">~</text>
+<text text-anchor="middle" x="468.22" y="-179.73" font-family="Times,serif" font-size="14.00">LogNormal</text>
+</g>
+<!-- mu_temperature&#45;&gt;inverse_temperature -->
+<g id="edge3" class="edge">
+<title>mu_temperature&#45;&gt;inverse_temperature</title>
+<path fill="none" stroke="black" d="M468.22,-271.8C468.22,-263.63 468.22,-254.85 468.22,-246.32"/>
+<polygon fill="black" stroke="black" points="471.72,-246.1 468.22,-236.1 464.72,-246.1 471.72,-246.1"/>
 </g>
 <!-- sigma_temperature -->
 <g id="node4" class="node">
