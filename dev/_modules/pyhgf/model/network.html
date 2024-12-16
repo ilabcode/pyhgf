@@ -535,7 +535,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">input_idxs</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="k">def</span> <span class="nf">create_belief_propagation_fn</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">update_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unbounded&quot;</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">update_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;eHGF&quot;</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Network&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create the belief propagation function.</span>
 
@@ -549,16 +549,11 @@ document.write(`
 <span class="sd">            preexisting values. Otherwise, do not create a new function if the attribute</span>
 <span class="sd">            `scan_fn` is already defined.</span>
 <span class="sd">        update_type :</span>
-<span class="sd">            The type of update to perform for volatility coupling. Can be `&quot;unbounded&quot;`</span>
-<span class="sd">            (defaults), `&quot;ehgf&quot;` or `&quot;standard&quot;`. The unbounded approximation was</span>
-<span class="sd">            recently introduced to avoid negative precisions updates, which greatly</span>
-<span class="sd">            improve sampling performance. The eHGF update step was proposed as an</span>
+<span class="sd">            The type of update to perform for volatility coupling. Can be `&quot;eHGF&quot;`</span>
+<span class="sd">            (defaults) or `&quot;standard&quot;`. The eHGF update step was proposed as an</span>
 <span class="sd">            alternative to the original definition in that it starts by updating the</span>
 <span class="sd">            mean and then the precision of the parent node, which generally reduces the</span>
-<span class="sd">            occurence of negative precision updates, while not removing them entirely.</span>
-<span class="sd">            .. note:</span>
-<span class="sd">              The different update steps only apply to nodes having at least one</span>
-<span class="sd">              volatility parents. In other cases, the regular HGF updates are applied.</span>
+<span class="sd">            errors associated with impossible parameter space and improves sampling.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># create the update sequence if it does not already exist</span>
@@ -1025,6 +1020,9 @@ document.write(`
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
+
+
+<span class="c1"># Functions to be added</span>
 </pre></div>
 
                 </article>

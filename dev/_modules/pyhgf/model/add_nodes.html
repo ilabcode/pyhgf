@@ -450,7 +450,7 @@ document.write(`
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span> <span class="nn">jax.numpy</span> <span class="k">as</span> <span class="nn">jnp</span>
 
@@ -476,6 +476,7 @@ document.write(`
     <span class="n">coupling_fn</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span> <span class="o">...</span><span class="p">],</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add continuous state node(s) to a network.&quot;&quot;&quot;</span>
+
     <span class="n">node_type</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="n">default_parameters</span> <span class="o">=</span> <span class="p">{</span>
@@ -531,6 +532,7 @@ document.write(`
     <span class="n">additional_parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add binary state node(s) to a network.&quot;&quot;&quot;</span>
+
     <span class="c1"># define the type of node that is created</span>
     <span class="n">node_type</span> <span class="o">=</span> <span class="mi">1</span>
 
@@ -572,9 +574,10 @@ document.write(`
     <span class="n">n_nodes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">node_parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
     <span class="n">additional_parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-    <span class="n">value_children</span><span class="p">:</span> <span class="n">Tuple</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="n">value_children</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]]],</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add exponential family state node(s) to a network.&quot;&quot;&quot;</span>
+
     <span class="n">node_type</span> <span class="o">=</span> <span class="mi">3</span>
 
     <span class="n">default_parameters</span> <span class="o">=</span> <span class="p">{</span>
@@ -629,6 +632,7 @@ document.write(`
     <span class="n">network</span><span class="p">:</span> <span class="n">Network</span><span class="p">,</span> <span class="n">n_nodes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">additional_parameters</span><span class="p">:</span> <span class="n">Dict</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Network</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add categorical state node(s) to a network.&quot;&quot;&quot;</span>
+
     <span class="n">node_type</span> <span class="o">=</span> <span class="mi">5</span>
 
     <span class="k">if</span> <span class="s2">&quot;n_categories&quot;</span> <span class="ow">in</span> <span class="n">node_parameters</span><span class="p">:</span>
@@ -690,6 +694,7 @@ document.write(`
     <span class="n">network</span><span class="p">:</span> <span class="n">Network</span><span class="p">,</span> <span class="n">n_nodes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">additional_parameters</span><span class="p">:</span> <span class="n">Dict</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a Dirichlet Process node to a network.&quot;&quot;&quot;</span>
+
     <span class="n">node_type</span> <span class="o">=</span> <span class="mi">4</span>
 
     <span class="k">if</span> <span class="s2">&quot;batch_size&quot;</span> <span class="ow">in</span> <span class="n">additional_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -732,12 +737,13 @@ document.write(`
 <div class="viewcode-block" id="get_couplings">
 <a class="viewcode-back" href="../../../generated/pyhgf.model/pyhgf.model.get_couplings.html#pyhgf.model.get_couplings">[docs]</a>
 <span class="k">def</span> <span class="nf">get_couplings</span><span class="p">(</span>
-    <span class="n">value_parents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
-    <span class="n">volatility_parents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
-    <span class="n">value_children</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
-    <span class="n">volatility_children</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+    <span class="n">value_parents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">],</span>
+    <span class="n">volatility_parents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">],</span>
+    <span class="n">value_children</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">],</span>
+    <span class="n">volatility_children</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform coupling parameter into tuple of indexes and strenghts.&quot;&quot;&quot;</span>
+
     <span class="n">couplings</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">indexes</span> <span class="ow">in</span> <span class="p">[</span>
         <span class="n">value_parents</span><span class="p">,</span>
@@ -759,7 +765,7 @@ document.write(`
             <span class="n">coupling_idxs</span><span class="p">,</span> <span class="n">coupling_strengths</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
         <span class="n">couplings</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">coupling_idxs</span><span class="p">,</span> <span class="n">coupling_strengths</span><span class="p">))</span>
 
-    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">couplings</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">couplings</span></div>
 
 
 
@@ -768,7 +774,8 @@ document.write(`
 <span class="k">def</span> <span class="nf">update_parameters</span><span class="p">(</span>
     <span class="n">node_parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">default_parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">additional_parameters</span><span class="p">:</span> <span class="n">Dict</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the default node parameters using keywords args and dictonary.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the default node parameters using keywords args and dictonary&quot;&quot;&quot;</span>
+
     <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">additional_parameters</span><span class="p">):</span>
         <span class="c1"># ensure that all passed values are valid keys</span>
         <span class="n">invalid_keys</span> <span class="o">=</span> <span class="p">[</span>
@@ -808,9 +815,10 @@ document.write(`
     <span class="n">volatility_parents</span><span class="p">:</span> <span class="n">Tuple</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
     <span class="n">value_children</span><span class="p">:</span> <span class="n">Tuple</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
     <span class="n">volatility_children</span><span class="p">:</span> <span class="n">Tuple</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-    <span class="n">coupling_fn</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,),</span>
+    <span class="n">coupling_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Network</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert a set of parametrised node in a network.&quot;&quot;&quot;</span>
+
     <span class="c1"># ensure that the set of coupling functions match with the number of child nodes</span>
     <span class="k">if</span> <span class="n">value_children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">value_children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

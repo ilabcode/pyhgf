@@ -50,6 +50,8 @@
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pyhgf.updates.posterior.continuous/pyhgf.updates.posterior.continuous.posterior_update_precision_continuous_node';</script>
     <link rel="icon" href="../../_static/logo_small.svg"/>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -553,17 +555,95 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-pyhgf.updates.posterior.continuous.posterior_update_precision_continuous_node">
-<span id="pyhgf-updates-posterior-continuous-posterior-update-precision-continuous-node"></span><h1>pyhgf.updates.posterior.continuous.posterior_update_precision_continuous_node<a class="headerlink" href="#module-pyhgf.updates.posterior.continuous.posterior_update_precision_continuous_node" title="Link to this heading">#</a></h1>
-<p class="rubric">Functions</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">posterior_update_precision_continuous_node</span></code>(...)</p></td>
-<td><p>Update the precision of a state node using the volatility prediction errors.</p></td>
-</tr>
-</tbody>
-</table>
+  <section id="pyhgf-updates-posterior-continuous-posterior-update-precision-continuous-node">
+<h1>pyhgf.updates.posterior.continuous.posterior_update_precision_continuous_node<a class="headerlink" href="#pyhgf-updates-posterior-continuous-posterior-update-precision-continuous-node" title="Link to this heading">#</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyhgf.updates.posterior.continuous.posterior_update_precision_continuous_node">
+<span class="sig-prename descclassname"><span class="pre">pyhgf.updates.posterior.continuous.</span></span><span class="sig-name descname"><span class="pre">posterior_update_precision_continuous_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">AdjacencyLists</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../_modules/pyhgf/updates/posterior/continuous.html#posterior_update_precision_continuous_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyhgf.updates.posterior.continuous.posterior_update_precision_continuous_node" title="Link to this definition">#</a></dt>
+<dd><p>Update the precision of a state node using the volatility prediction errors.</p>
+<ol class="arabic simple">
+<li><p>Precision update from value coupling.</p></li>
+</ol>
+<p>The new precision of a state node <span class="math notranslate nohighlight">\(b\)</span> value coupled with other input and/or
+state nodes <span class="math notranslate nohighlight">\(j\)</span> at time <span class="math notranslate nohighlight">\(k\)</span> is given by:</p>
+<p>For linear coupling (default)</p>
+<div class="math notranslate nohighlight">
+\[\pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
+\kappa_j^2 \hat{\pi}_j^{(k)}\]</div>
+<p>Where <span class="math notranslate nohighlight">\(\kappa_j\)</span> is the volatility coupling strength between the child node
+and the state node and <span class="math notranslate nohighlight">\(\delta_j^{(k)}\)</span> is the value prediction error that
+was computed before hand by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pyhgf.updates.prediction_errors.continuous.continuous_node_value_prediction_error()</span></code>.</p>
+<p>For non-linear value coupling:</p>
+<div class="math notranslate nohighlight">
+\[\pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
+\hat{\pi}_j^{(k)} * (\kappa_j^2 * g'_{j,b}(\mu_b^(k-1))^2 -
+g''_{j,b}(\mu_b^(k-1))*\delta_j)\]</div>
+<ol class="arabic simple">
+<li><p>Precision update from volatility coupling.</p></li>
+</ol>
+<p>The new precision of a state node <span class="math notranslate nohighlight">\(b\)</span> volatility coupled with other input
+and/or state nodes <span class="math notranslate nohighlight">\(j\)</span> at time <span class="math notranslate nohighlight">\(k\)</span> is given by:</p>
+<div class="math notranslate nohighlight">
+\[\pi_b^{(k)} = \hat{\pi}_b^{(k)} + \sum_{j=1}^{N_{children}}
+\frac{1}{2} \left( \kappa_j \gamma_j^{(k)} \right) ^2 +
+\left( \kappa_j \gamma_j^{(k)} \right) ^2 \Delta_j^{(k)} -
+\frac{1}{2} \kappa_j^2 \gamma_j^{(k)} \Delta_j^{(k)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\kappa_j\)</span> is the volatility coupling strength between the volatility
+parent and the volatility children <span class="math notranslate nohighlight">\(j\)</span> and <span class="math notranslate nohighlight">\(\Delta_j^{(k)}\)</span> is the
+volatility prediction error given by:</p>
+<div class="math notranslate nohighlight">
+\[\Delta_j^{(k)} = \frac{\hat{\pi}_j^{(k)}}{\pi_j^{(k)}} +
+\hat{\pi}_j^{(k)} \left( \delta_j^{(k)} \right)^2 - 1\]</div>
+<p>with <span class="math notranslate nohighlight">\(\delta_j^{(k)}\)</span> the value prediction error
+<span class="math notranslate nohighlight">\(\delta_j^{(k)} = \mu_j^{k} - \hat{\mu}_j^{k}\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(\gamma_j^{(k)}\)</span> is the effective precision of the prediction, given by:</p>
+<div class="math notranslate nohighlight">
+\[\gamma_j^{(k)} = \Omega_j^{(k)} \hat{\pi}_j^{(k)}\]</div>
+<p>that was computed in the prediction step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>attributes</strong></dt><dd><p>The attributes of the probabilistic nodes.</p>
+</dd>
+<dt><strong>edges</strong></dt><dd><p>The edges of the probabilistic nodes as a tuple of
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pyhgf.typing.Indexes</span></code>. The tuple has the same length as node number.
+For each node, the index list value and volatility parents and children.</p>
+</dd>
+<dt><strong>node_idx</strong></dt><dd><p>Pointer to the value parent node that will be updated.</p>
+</dd>
+<dt><strong>time_step</strong></dt><dd><p>The time elapsed between this observation and the previous one.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>posterior_precision</dt><dd><p>The new posterior precision.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="pyhgf.updates.posterior.continuous.posterior_update_mean_continuous_node.html#pyhgf.updates.posterior.continuous.posterior_update_mean_continuous_node" title="pyhgf.updates.posterior.continuous.posterior_update_mean_continuous_node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">posterior_update_mean_continuous_node</span></code></a></dt><dd></dd>
+</dl>
 </div>
+<p class="rubric">Notes</p>
+<p>This update step is similar to the one used for the state node, except that it uses
+the observed value instead of the mean of the child node, and the expected mean of
+the parent node instead of the expected mean of the child node.</p>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r6445af224d75-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<p>Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., &amp;
+Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1).
+arXiv. <a class="reference external" href="https://doi.org/10.48550/ARXIV.2305.10937">https://doi.org/10.48550/ARXIV.2305.10937</a></p>
+</div>
+</div>
+</dd></dl>
+
 </section>
 
 
@@ -603,6 +683,18 @@ document.write(`
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pyhgf.updates.posterior.continuous.posterior_update_precision_continuous_node"><code class="docutils literal notranslate"><span class="pre">posterior_update_precision_continuous_node()</span></code></a></li>
+</ul>
+  </nav></div>
 
   <div class="sidebar-secondary-item">
 
