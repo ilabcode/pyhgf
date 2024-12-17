@@ -72,7 +72,7 @@ def posterior_update_mean_continuous_node_unbounded(
 
     # posterior total uncertainty about the child
     beta = (
-        1 / attributes[volatility_child_idx]["expected_precision"]
+        1 / attributes[volatility_child_idx]["precision"]
         + (
             attributes[volatility_child_idx]["mean"]
             - attributes[volatility_child_idx]["expected_mean"]
@@ -80,7 +80,9 @@ def posterior_update_mean_continuous_node_unbounded(
         ** 2
     )
 
-    return mu_l(alpha, beta, gamma)
+    new_mu = new_mu_l1(alpha, beta, gamma, attributes, node_idx)
+
+    return new_mu
 
 
 @partial(jit, static_argnames=("edges", "node_idx"))
@@ -99,7 +101,7 @@ def posterior_update_precision_continuous_node_unbounded(
 
     # posterior total uncertainty about the child
     beta = (
-        1 / attributes[volatility_child_idx]["expected_precision"]
+        1 / attributes[volatility_child_idx]["precision"]
         + (
             attributes[volatility_child_idx]["mean"]
             - attributes[volatility_child_idx]["expected_mean"]
@@ -107,7 +109,18 @@ def posterior_update_precision_continuous_node_unbounded(
         ** 2
     )
 
-    return pi_l(alpha, beta, gamma)
+    new_pi = new_pi_l1(alpha, gamma, attributes, node_idx)
+
+    return new_pi
+
+def new_pi_l1(alpha, gamma, attributes, node_idx):
+    return attributes[node_idx]["expected_precision"] + attributes[node_idx]["volatility_coupling_children"][0]**2  * 0.5 * omega(alpha, gamma) * (1 - omega(alpha, gamma))
+
+
+def new_mu_l1(alpha, beta, gamma, attributes, node_idx):
+    return gamma + 0.5 / pi_l1(alpha, gamma) * omega(alpha, gamma) * delta(
+        alpha, beta, gamma
+    ) * attributes[node_idx]["volatility_coupling_children"][0]
 
 
 def s(x, theta, psi):
