@@ -9,4 +9,6 @@
    .. autosummary::
    
       posterior_update_precision_continuous_node
+      precision_update
+      precision_update_missing_values
    
