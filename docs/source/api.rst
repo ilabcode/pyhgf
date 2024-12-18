@@ -89,7 +89,7 @@ Prediction error steps
 Compute the value and volatility prediction errors of a given node. The prediction error can only be computed after the posterior update (or observation) of a given node.
 
 Binary state nodes
-^^^^^^^^^^^^^^^^^^
+------------------
 
 .. currentmodule:: pyhgf.updates.prediction_error.binary
 
@@ -100,7 +100,7 @@ Binary state nodes
     binary_finite_state_node_prediction_error
 
 Categorical state nodes
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 .. currentmodule:: pyhgf.updates.prediction_error.categorical
 
@@ -110,7 +110,7 @@ Categorical state nodes
     categorical_state_prediction_error
 
 Continuous state nodes
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 .. currentmodule:: pyhgf.updates.prediction_error.continuous
 
@@ -122,7 +122,7 @@ Continuous state nodes
     continuous_node_prediction_error
 
 Dirichlet state nodes
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 .. currentmodule:: pyhgf.updates.prediction_error.dirichlet
 
@@ -137,7 +137,7 @@ Dirichlet state nodes
     clusters_likelihood
 
 Exponential family
-^^^^^^^^^^^^^^^^^^
+------------------
 
 .. currentmodule:: pyhgf.updates.prediction_error.exponential
 
