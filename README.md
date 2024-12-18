@@ -9,7 +9,7 @@
 PyHGF is a Python library for creating and manipulating dynamic probabilistic networks for predictive coding. These networks approximate Bayesian inference by optimizing beliefs through the diffusion of predictions and precision-weighted prediction errors. The network structure remains flexible during message-passing steps, allowing for dynamic adjustments. They can be used as a biologically plausible cognitive model in computational neuroscience or as a generalization of Bayesian filtering for designing efficient, modular decision-making agents. The default implementation supports the generalized Hierarchical Gaussian Filters (gHGF, Weber et al., 2024), but the framework is designed to be adaptable to other algorithms. Built on top of JAX, the core functions are differentiable and JIT-compiled where applicable. The library is optimized for modularity and ease of use, allowing seamless integration with other libraries in the ecosystem for Bayesian inference and optimization. Additionally, a binding with an implementation in Rust is under active development, which will further enhance flexibility during inference. You can find the method paper describing the toolbox [here](https://arxiv.org/abs/2410.09206) and the method paper describing the gHGF, which is the main framework currently supported by the toolbox [here](https://arxiv.org/abs/2305.10937).
 
 * 📖 [API Documentation](https://computationalpsychiatry.github.io/pyhgf/api.html)  
-* ✏️ [Tutorials and examples](https://computationalpsychiatryionalpsychiatry.github.io/pyhgf/learn.html)  
+* ✏️ [Tutorials and examples](https://computationalpsychiatry.github.io/pyhgf/learn.html)  
 
 ## Getting started
 
