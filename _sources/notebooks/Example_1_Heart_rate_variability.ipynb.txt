@@ -26,7 +26,7 @@
     "tags": []
    },
    "source": [
-    "[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)"
+    "[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ComputationalPsychiatry/pyhgf/blob/master/docs/source/notebooks/Example_1_Heart_rate_variability.ipynb)"
    ]
   },
   {
@@ -106,7 +106,7 @@
    "id": "48020213-7f26-4201-b4b9-f072231bc225",
    "metadata": {},
    "source": [
-    "The nodalized version of the Hierarchical Gaussian Filter that is implemented in [pyhgf](https://github.com/ilabcode/pyhgf) opens the possibility to create filters with multiple inputs. Here, we illustrate how we can use this feature to create an agent that is filtering their physiological signals in real-time. We use a two-level Hierarchical Gaussian Filter to predict the dynamics of the instantaneous heart rate (the RR interval measured at each heartbeat). We then extract the trajectory of surprise at each predictive node to relate it with the cognitive task performed by the participant while the signal is being recorded."
+    "The nodalized version of the Hierarchical Gaussian Filter that is implemented in [pyhgf](https://github.com/ComputationalPsychiatry/pyhgf) opens the possibility to create filters with multiple inputs. Here, we illustrate how we can use this feature to create an agent that is filtering their physiological signals in real-time. We use a two-level Hierarchical Gaussian Filter to predict the dynamics of the instantaneous heart rate (the RR interval measured at each heartbeat). We then extract the trajectory of surprise at each predictive node to relate it with the cognitive task performed by the participant while the signal is being recorded."
    ]
   },
   {

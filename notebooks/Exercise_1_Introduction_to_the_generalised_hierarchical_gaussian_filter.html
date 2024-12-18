@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Zurich CPC I: Introduction to the Generalised Hierarchical Gaussian Filter &#8212; pyhgf 0.2.0 documentation</title>
+    <title>Zurich CPC I: Introduction to the Generalised Hierarchical Gaussian Filter &#8212; pyhgf 0.2.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/documentation_options.js?v=37f418d5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -228,7 +228,7 @@ document.write(`
           
           
           
-          <a href="https://github.com/ilabcode/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+          <a href="https://github.com/ComputationalPsychiatry/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
             <span class="sr-only">GitHub</span></a>
         </li>
         <li class="nav-item">
@@ -366,7 +366,7 @@ document.write(`
           
           
           
-          <a href="https://github.com/ilabcode/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+          <a href="https://github.com/ComputationalPsychiatry/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
             <span class="sr-only">GitHub</span></a>
         </li>
         <li class="nav-item">
@@ -508,7 +508,7 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="zurich-cpc-i-introduction-to-the-generalised-hierarchical-gaussian-filter">
 <span id="hgf-exercises-1"></span><h1>Zurich CPC I: Introduction to the Generalised Hierarchical Gaussian Filter<a class="headerlink" href="#zurich-cpc-i-introduction-to-the-generalised-hierarchical-gaussian-filter" title="Link to this heading">#</a></h1>
-<p><a class="reference external" href="https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/ComputationalPsychiatry/pyhgf/blob/master/docs/source/notebooks/Exercise_1_Introduction_to_the_generalised_hierarchical_gaussian_filter.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <div class="cell tag_hide-cell docutils container">
 <details class="hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -561,7 +561,7 @@ document.write(`
 \[
 x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \sigma^2)
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\sigma^2\)</span> is the fixed variance of the distribution. You can find more details on this as well as some code to get started with the simulations in the first tutorial on the <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.1-Theory.html#">PyHGF documentation</a>.</p>
+<p>where <span class="math notranslate nohighlight">\(\sigma^2\)</span> is the fixed variance of the distribution. You can find more details on this as well as some code to get started with the simulations in the first tutorial on the <a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/notebooks/0.1-Theory.html#">PyHGF documentation</a>.</p>
 <div class="exercise admonition" id="exercise1.1">
 
 <p class="admonition-title"><span class="caption-number">Exercise 1 </span></p>
@@ -583,7 +583,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)} + x_2^{(k)}, \, \sigma_1^2) \\
 \end{split}\]</div>
 <div class="admonition hint">
 <p class="admonition-title">Hint</p>
-<p>This generative process reads top-down: the node higher in the hierarchy (<span class="math notranslate nohighlight">\(x_2\)</span>) generates new values and passes them to the child nodes. We can also control how much the node <span class="math notranslate nohighlight">\(x_1\)</span> is influenced by its previous (see examples <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.1-Theory.html#value-coupling">here</a>). To keep things simple in this exercise, we will assume that <span class="math notranslate nohighlight">\(x_1\)</span> is fully influenced by its previous value, as noted in the equation, therefore <span class="math notranslate nohighlight">\(x_2\)</span> can be seen as a <em>drift parent</em>.</p>
+<p>This generative process reads top-down: the node higher in the hierarchy (<span class="math notranslate nohighlight">\(x_2\)</span>) generates new values and passes them to the child nodes. We can also control how much the node <span class="math notranslate nohighlight">\(x_1\)</span> is influenced by its previous (see examples <a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/notebooks/0.1-Theory.html#value-coupling">here</a>). To keep things simple in this exercise, we will assume that <span class="math notranslate nohighlight">\(x_1\)</span> is fully influenced by its previous value, as noted in the equation, therefore <span class="math notranslate nohighlight">\(x_2\)</span> can be seen as a <em>drift parent</em>.</p>
 </div>
 <p>Let’s define a time series <code class="docutils literal notranslate"><span class="pre">x_2</span></code> that represent the evolution of the states of the parent node:</p>
 <div class="cell docutils container">
@@ -665,10 +665,10 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 <section id="model-inversion-the-generalized-hierarchical-gaussian-filter">
 <h2>Model inversion: the generalized Hierarchical Gaussian Filter<a class="headerlink" href="#model-inversion-the-generalized-hierarchical-gaussian-filter" title="Link to this heading">#</a></h2>
 <p>Building on these principles, we can create networks of arbitrary size and shape made of probabilistic nodes (nodes that represent the evolution of a Gaussian Random Walk) that can be connected with each other through <strong>value</strong> or <strong>volatility</strong> coupling. We have covered these points in the previous exercise using a simplified network made of two nodes.</p>
-<p><a class="reference external" href="https://ilabcode.github.io/pyhgf/index.html">PyHGF</a> adds most of its values in that it allows the creation and manipulation of large and complex networks easily, and it automates the transmission of values between nodes. You can refer to <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.2-Creating_networks.html">the second part of the tutorial documentation</a> which covers the manipulation of networks for more details.</p>
+<p><a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/index.html">PyHGF</a> adds most of its values in that it allows the creation and manipulation of large and complex networks easily, and it automates the transmission of values between nodes. You can refer to <a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/notebooks/0.2-Creating_networks.html">the second part of the tutorial documentation</a> which covers the manipulation of networks for more details.</p>
 <p>But this is not the only thing it does. So far we have simulated observations from the generative model, going for the leaves to the root of the network. This describes how we expect the environment to behave, but not how an agent would learn from it. To do so we need to invert this model: we want to provide the observations, and let the network update the nodes accordingly, so the beliefs always reflect the current state of the environment. This process requires propagating precision prediction errors from the root to the leaves of the network, and this is where most of PyHGF’s dark magic is most useful.</p>
 <figure class="align-default" id="networks">
-<img alt="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg" src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg" />
+<img alt="https://raw.githubusercontent.com/ComputationalPsychiatry/pyhgf/master/docs/source/images/graph_network.svg" src="https://raw.githubusercontent.com/ComputationalPsychiatry/pyhgf/master/docs/source/images/graph_network.svg" />
 <figcaption>
 <p><span class="caption-number">Fig. 7 </span><span class="caption-text">PyHGF is designed to automate the propagation of prediction (top-down) and prediction errors (bottom-up) in dynamic probabilistic networks. Predictions are triggered from the leaves to the roots of the networks prior to observation. Prediction errors and posterior updates a triggered after observation, from the roots to the leaves.</span><a class="headerlink" href="#networks" title="Link to this image">#</a></p>
 </figcaption>
@@ -1020,7 +1020,7 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 
 <p class="admonition-title">Solution to<a class="reference internal" href="#exercise1.5"> Exercise 5</a></p>
 <section id="solution-content">
-<p>This method return the Gaussian surprise at each time point, which are then summed. The sum of the Gaussian surprise reflect the performances of the model at predicting the next value, larger values pointing to a model more surprise by its inputs, therefore poor performances. The surprise is define as <span class="math notranslate nohighlight">\(s = -log(p)\)</span>, this is thus the negative of the log probability function. Log probability functions are commonly used by sampling algorithm, it is thus straigthforwars to sample a model parameters when this function is available. There are an infinity of response possible functions - just like there is an infinity of possible networks - for more details on how to use tem, you can refer to the <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/2-Using_custom_response_functions.html">tutorial on custom response models</a>.</p>
+<p>This method return the Gaussian surprise at each time point, which are then summed. The sum of the Gaussian surprise reflect the performances of the model at predicting the next value, larger values pointing to a model more surprise by its inputs, therefore poor performances. The surprise is define as <span class="math notranslate nohighlight">\(s = -log(p)\)</span>, this is thus the negative of the log probability function. Log probability functions are commonly used by sampling algorithm, it is thus straigthforwars to sample a model parameters when this function is available. There are an infinity of response possible functions - just like there is an infinity of possible networks - for more details on how to use tem, you can refer to the <a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/notebooks/2-Using_custom_response_functions.html">tutorial on custom response models</a>.</p>
 </section>
 </div>
 </section>
@@ -1034,22 +1034,22 @@ x_1^{(k)} \sim \mathcal{N}(x_1^{(k-1)}, \, f(x_2^{(k)}))
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sun Oct 13 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Wed Dec 18 2024
 
 Python implementation: CPython
-Python version       : 3.12.7
-IPython version      : 8.28.0
+Python version       : 3.12.8
+IPython version      : 8.29.0
 
-pyhgf : 0.2.0
+pyhgf : 0.2.1
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-IPython   : 8.28.0
-pyhgf     : 0.2.0
-seaborn   : 0.13.2
-sys       : 3.12.7 (main, Oct  1 2024, 15:17:55) [GCC 11.4.0]
-numpy     : 1.26.0
+sys       : 3.12.8 (main, Dec  4 2024, 06:19:59) [GCC 11.4.0]
 pandas    : 2.2.3
+IPython   : 8.29.0
+numpy     : 1.26.0
+seaborn   : 0.13.2
+pyhgf     : 0.2.1
 matplotlib: 3.9.2
 
 Watermark: 2.5.0
@@ -1168,7 +1168,7 @@ Watermark: 2.5.0
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
     <br/>
   </p>
 </div>

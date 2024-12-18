@@ -26,7 +26,7 @@
     "tags": []
    },
    "source": [
-    "[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/2-Using_custom_response_functions.ipynb)"
+    "[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ComputationalPsychiatry/pyhgf/blob/master/docs/source/notebooks/2-Using_custom_response_functions.ipynb)"
    ]
   },
   {
@@ -542,12 +542,12 @@
     "\n",
     "Let's now consider that the two vectors of observations $u$ and responses $y$ were obtained from a real participant undergoing a real experiment. In this situation, we assume that this participant internally used a {term}`Perceptual model` and a {term}`Decision rule` that might resemble what we defined previously, and we want to infer what are the most likely values for critical parameters in the model (e.g. the evolution rate $\\omega_2$). To do so, we are going to use our dataset (both $u$ and $y$), and try many models. We are going to fix the values of all HGF parameters to reasonable estimates (here, using the exact same values as in the simulation), except for $\\omega_2$. For this last parameter, we will assume a prior set at $\\mathcal{N}(-2.0, 2.0)$. The idea is that we want to sample many $\\omega_2$ values from this distribution and see if the model is performing better with some values.\n",
     "\n",
-    "But here, we need a clear definition of what this means *to perform better* for a given model. And this is exactly what a {term}`Response model` does, it is a way for us to evaluate how likely the behaviours $y$ for a given {term}`Perceptual model`, and assuming that the participants use this specific {term}`Decision rule`. In [pyhgf](https://github.com/ilabcode/pyhgf), this step is performed by creating the corresponding {term}`Response function`, which is the Python function that will return the surprise $S$ of getting these behaviours from the participant under this decision rule.\n",
+    "But here, we need a clear definition of what this means *to perform better* for a given model. And this is exactly what a {term}`Response model` does, it is a way for us to evaluate how likely the behaviours $y$ for a given {term}`Perceptual model`, and assuming that the participants use this specific {term}`Decision rule`. In [pyhgf](https://github.com/ComputationalPsychiatry/pyhgf), this step is performed by creating the corresponding {term}`Response function`, which is the Python function that will return the surprise $S$ of getting these behaviours from the participant under this decision rule.\n",
     "\n",
     "````{hint} What is a *response function*?\n",
     "Most of the work around HGFs consists in creating and adapting {term}`Response model` to work with a given experimental design. There is no limit in terms of what can be used as a {term}`Response model`, provided that the {term}`Perceptual model` and the {term}`Decision rule` are clearly defined.\n",
     "\n",
-    "In [pyhgf](https://github.com/ilabcode/pyhgf), the {term}`Perceptual model` is the probabilistic network created with the main {py:class}`pyhgf.model.HGF` and {py:class}`pyhgf.distribution.HGFDistribution` classes. The {term}`Response model` is something that is implicitly defined when we create the {term}`Response function`, a Python function that computes the negative of the log-likelihood of the actions given the perceptual model. This {term}`Response function` can be passed as an argument to the main classes using the keywords arguments `response_function`, `response_function_inputs` and `response_function_parameters`. The `response_function` can be any callable that returns the surprise $S$ of observing action $y$ given this model, and the {term}`Decision rule`. The `response_function_inputs` are the additional data to the response function (optional) while `response_function_parameters` are the additional parameters (optional). The `response_function_inputs` is where the actions $y$ should be provided.\n",
+    "In [pyhgf](https://github.com/ComputationalPsychiatry/pyhgf), the {term}`Perceptual model` is the probabilistic network created with the main {py:class}`pyhgf.model.HGF` and {py:class}`pyhgf.distribution.HGFDistribution` classes. The {term}`Response model` is something that is implicitly defined when we create the {term}`Response function`, a Python function that computes the negative of the log-likelihood of the actions given the perceptual model. This {term}`Response function` can be passed as an argument to the main classes using the keywords arguments `response_function`, `response_function_inputs` and `response_function_parameters`. The `response_function` can be any callable that returns the surprise $S$ of observing action $y$ given this model, and the {term}`Decision rule`. The `response_function_inputs` are the additional data to the response function (optional) while `response_function_parameters` are the additional parameters (optional). The `response_function_inputs` is where the actions $y$ should be provided.\n",
     "\n",
     "```{important}\n",
     "A *response function* should not return the actions given perceptual inputs $y | u$ (this is what the {term}`Decision rule` does), but the [surprise](https://en.wikipedia.org/wiki/Information_content) $S$ associated with the observation of actions given the perceptual inputs $S(y | u)$, which is defined by:\n",
@@ -559,7 +559,7 @@
     "$$\n",
     "```\n",
     "\n",
-    "If you are already familiar with using HGFs in the Julia equivalent of [pyhgf](https://github.com/ilabcode/pyhgf), you probably noted that the toolbox is split into a **perceptual** package [HierarchicalGaussianFiltering.jl](https://github.com/ilabcode/HierarchicalGaussianFiltering.jl) and a **response** package [ActionModels.jl](https://github.com/ilabcode/ActionModels.jl). This was made to make the difference between the two parts of the HGF clear and be explicit that you can use a perceptual model without any action model. In [pyhgf](https://github.com/ilabcode/pyhgf) however, everything happens in the same package, the response function is merely an optional, additional argument that can be passed to describe how surprise is computed.\n",
+    "If you are already familiar with using HGFs in the Julia equivalent of [pyhgf](https://github.com/ComputationalPsychiatry/pyhgf), you probably noted that the toolbox is split into a **perceptual** package [HierarchicalGaussianFiltering.jl](https://github.com/ComputationalPsychiatry/HierarchicalGaussianFiltering.jl) and a **response** package [ActionModels.jl](https://github.com/ComputationalPsychiatry/ActionModels.jl). This was made to make the difference between the two parts of the HGF clear and be explicit that you can use a perceptual model without any action model. In [pyhgf](https://github.com/ComputationalPsychiatry/pyhgf) however, everything happens in the same package, the response function is merely an optional, additional argument that can be passed to describe how surprise is computed.\n",
     "````"
    ]
   },
@@ -637,7 +637,7 @@
    },
    "source": [
     "```{note}\n",
-    "Note here that our {term}`Response function` has a structure that is the standard way to write response functions in [pyhgf](https://github.com/ilabcode/pyhgf), that is with two input arguments:\n",
+    "Note here that our {term}`Response function` has a structure that is the standard way to write response functions in [pyhgf](https://github.com/ComputationalPsychiatry/pyhgf), that is with two input arguments:\n",
     "- the HGF model on which the response function applies (i.e. the {term}`Perceptual model`)\n",
     "- the additional parameters provided to the response function. This can include additional parameters that can be part of the equation of the model, or the input data used by this model. We then provide the `response` vector ($y$) here.\n",
     "\n",
@@ -1014,7 +1014,7 @@
     "```{glossary}\n",
     "\n",
     "Perceptual model\n",
-    "    The perceptual model of a Hierarchical Gaussian Filter traditionally refers to the branch receiving observations $u$ about states of the world and that performs the updating of beliefs about these states. By generalisation, the perceptual model is any probabilistic network that can be created in [pyhgf](https://github.com/ilabcode/pyhgf), receiving an arbitrary number of inputs. An HGF that only consists of a perceptual model will act as a Bayesian filter.\n",
+    "    The perceptual model of a Hierarchical Gaussian Filter traditionally refers to the branch receiving observations $u$ about states of the world and that performs the updating of beliefs about these states. By generalisation, the perceptual model is any probabilistic network that can be created in [pyhgf](https://github.com/ComputationalPsychiatry/pyhgf), receiving an arbitrary number of inputs. An HGF that only consists of a perceptual model will act as a Bayesian filter.\n",
     "\n",
     "Response model\n",
     "    The response model of a Hierarchical Gaussian filter refers to the branch that uses the beliefs about the state of the world to generate actions using the {term}`Decision rule`. This branch is also sometimes referred to as the **decision model** or the **observation model**, depending on the fields. Critically, this part of the model can return the surprise ($-\\log[Pr(x)]$) associated with the observations (here, the observations include the inputs $u$ of the probabilistic network, but will also include the responses of the participant $y$ if there are some).\n",
@@ -1023,7 +1023,7 @@
     "    The decision rule is a function stating how the agent selects among all possible actions, given the state of the beliefs in the perceptual model, and optionally additional parameters. Programmatically, this is a Python function taking a perceptual model as input (i.e. an instance of the HGF class), and returning a sequence of actions. This can be used for simulation. The decision rule should be clearly defined in order to write the {term}`Response function`.\n",
     "\n",
     "Response function\n",
-    "    The response function is a term that we use specifically for this package ([pyhgf](https://github.com/ilabcode/pyhgf)). It refers to the Python function that, using a given HGF model and optional parameter, returns the surprise associated with the observed actions.\n",
+    "    The response function is a term that we use specifically for this package ([pyhgf](https://github.com/ComputationalPsychiatry/pyhgf)). It refers to the Python function that, using a given HGF model and optional parameter, returns the surprise associated with the observed actions.\n",
     "\n",
     "```"
    ]

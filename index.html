@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>PyHGF: A Neural Network Library for Predictive Coding &#8212; pyhgf 0.2.0 documentation</title>
+    <title>PyHGF: A Neural Network Library for Predictive Coding &#8212; pyhgf 0.2.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/documentation_options.js?v=37f418d5"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -227,7 +227,7 @@ document.write(`
           
           
           
-          <a href="https://github.com/ilabcode/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+          <a href="https://github.com/ComputationalPsychiatry/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
             <span class="sr-only">GitHub</span></a>
         </li>
         <li class="nav-item">
@@ -367,7 +367,7 @@ document.write(`
           
           
           
-          <a href="https://github.com/ilabcode/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+          <a href="https://github.com/ComputationalPsychiatry/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
             <span class="sr-only">GitHub</span></a>
         </li>
         <li class="nav-item">
@@ -423,14 +423,14 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <p><a class="reference external" href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white" /></a> <a class="reference external" href="https://github.com/ilabcode/pyhgf/blob/master/LICENSE"><img alt="license" src="https://img.shields.io/badge/License-GPL%20v3-blue.svg" /></a> <a class="reference external" href="https://codecov.io/gh/ilabcode/pyhgf"><img alt="codecov" src="https://codecov.io/gh/ilabcode/pyhgf/branch/master/graph/badge.svg" /></a> <a class="reference external" href="https://github.com/psf/black"><img alt="black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a> <a class="reference external" href="http://mypy-lang.org/"><img alt="mypy" src="http://www.mypy-lang.org/static/mypy_badge.svg" /></a> <a class="reference external" href="https://pycqa.github.io/isort/"><img alt="Imports: isort" src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&amp;labelColor=ef8336" /></a> <a class="reference external" href="https://badge.fury.io/py/pyhgf"><img alt="pip" src="https://badge.fury.io/py/pyhgf.svg" /></a></p>
+  <p><a class="reference external" href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white" /></a> <a class="reference external" href="https://github.com/ComputationalPsychiatry/pyhgf/blob/master/LICENSE"><img alt="license" src="https://img.shields.io/badge/License-GPL%20v3-blue.svg" /></a> <a class="reference external" href="https://codecov.io/gh/ComputationalPsychiatry/pyhgf"><img alt="codecov" src="https://codecov.io/gh/ComputationalPsychiatry/pyhgf/branch/master/graph/badge.svg" /></a> <a class="reference external" href="https://github.com/psf/black"><img alt="black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a> <a class="reference external" href="http://mypy-lang.org/"><img alt="mypy" src="http://www.mypy-lang.org/static/mypy_badge.svg" /></a> <a class="reference external" href="https://pycqa.github.io/isort/"><img alt="Imports: isort" src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&amp;labelColor=ef8336" /></a> <a class="reference external" href="https://badge.fury.io/py/pyhgf"><img alt="pip" src="https://badge.fury.io/py/pyhgf.svg" /></a></p>
 <section class="tex2jax_ignore mathjax_ignore" id="pyhgf-a-neural-network-library-for-predictive-coding">
 <h1>PyHGF: A Neural Network Library for Predictive Coding<a class="headerlink" href="#pyhgf-a-neural-network-library-for-predictive-coding" title="Link to this heading">#</a></h1>
-<img src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/logo.png" align="left" alt="hgf" width="160" HSPACE=10>
-<p>PyHGF is a Python library for creating and manipulating dynamic probabilistic networks for predictive coding. These networks approximate Bayesian inference by optimizing beliefs through the diffusion of predictions and precision-weighted prediction errors. The network structure remains flexible during message-passing steps, allowing for dynamic adjustments. They can be used as a biologically plausible cognitive model in computational neuroscience or as a generalization of Bayesian filtering for designing efficient, modular decision-making agents. The default implementation supports the generalized Hierarchical Gaussian Filters (gHGF, Weber et al., 2024), but the framework is designed to be adaptable to other algorithms. Built on top of JAX, the core functions are differentiable and JIT-compiled where applicable. The library is optimized for modularity and ease of use, allowing seamless integration with other libraries in the ecosystem for Bayesian inference and optimization. Additionally, a binding with an implementation in Rust is under active development, which will further enhance flexibility during inference.</p>
+<img src="https://raw.githubusercontent.com/ComputationalPsychiatry/pyhgf/master/docs/source/images/logo.png" align="left" alt="hgf" width="160" HSPACE=10>
+<p>PyHGF is a Python library for creating and manipulating dynamic probabilistic networks for predictive coding. These networks approximate Bayesian inference by optimizing beliefs through the diffusion of predictions and precision-weighted prediction errors. The network structure remains flexible during message-passing steps, allowing for dynamic adjustments. They can be used as a biologically plausible cognitive model in computational neuroscience or as a generalization of Bayesian filtering for designing efficient, modular decision-making agents. The default implementation supports the generalized Hierarchical Gaussian Filters (gHGF, Weber et al., 2024), but the framework is designed to be adaptable to other algorithms. Built on top of JAX, the core functions are differentiable and JIT-compiled where applicable. The library is optimized for modularity and ease of use, allowing seamless integration with other libraries in the ecosystem for Bayesian inference and optimization. Additionally, a binding with an implementation in Rust is under active development, which will further enhance flexibility during inference. You can find the method paper describing the toolbox <a class="reference external" href="https://arxiv.org/abs/2410.09206">here</a> and the method paper describing the gHGF, which is the main framework currently supported by the toolbox <a class="reference external" href="https://arxiv.org/abs/2305.10937">here</a>.</p>
 <ul class="simple">
-<li><p>📖 <a class="reference external" href="https://ilabcode.github.io/pyhgf/api.html">API Documentation</a></p></li>
-<li><p>✏️ <a class="reference external" href="https://ilabcode.github.io/pyhgf/learn.html">Tutorials and examples</a></p></li>
+<li><p>📖 <a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/api.html">API Documentation</a></p></li>
+<li><p>✏️ <a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/learn.html">Tutorials and examples</a></p></li>
 </ul>
 <section id="getting-started">
 <h2>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h2>
@@ -441,7 +441,7 @@ document.write(`
 </pre></div>
 </div>
 <p>The current version under development can be installed from the master branch of the GitHub folder:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>“git+https://github.com/ilabcode/pyhgf.git”
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>“git+https://github.com/ComputationalPsychiatry/pyhgf.git”
 </pre></div>
 </div>
 </section>
@@ -454,10 +454,10 @@ document.write(`
 <li><p>A set of update functions. An update function receive a network tuple and returns an updated network tuple.</p></li>
 <li><p>An update sequence (tuple) that defines the order and target of the update functions.</p></li>
 </ul>
-<img src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/graph_network.svg" align="center" alt="networks" style="width:100%; height:auto;">
+<img src="https://raw.githubusercontent.com/ComputationalPsychiatry/pyhgf/master/docs/source/images/graph_network.svg" align="center" alt="networks" style="width:100%; height:auto;">
 <p>You can find a deeper introduction to how to create and manipulate networks under the following link:</p>
 <ul class="simple">
-<li><p>🎓 <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.2-Creating_networks.html">Creating and manipulating networks of probabilistic nodes</a></p></li>
+<li><p>🎓 <a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/notebooks/0.2-Creating_networks.html">Creating and manipulating networks of probabilistic nodes</a></p></li>
 </ul>
 </section>
 <section id="the-generalized-hierarchical-gaussian-filter">
@@ -465,7 +465,7 @@ document.write(`
 <p>Generalized Hierarchical Gaussian Filters (gHGF) are specific instances of dynamic networks where node encodes a Gaussian distribution that can inherit its value (mean) and volatility (variance) from other nodes. The presentation of a new observation at the lowest level of the hierarchy (i.e., the input node) triggers a recursive update of the nodes’ belief (i.e., posterior distribution) through top-down predictions and bottom-up precision-weighted prediction errors. The resulting probabilistic network operates as a Bayesian filter, and a response function can parametrize actions/decisions given the current beliefs. By comparing those behaviours with actual outcomes, a surprise function can be optimized over a set of free parameters. The Hierarchical Gaussian Filter for binary and continuous inputs was first described in Mathys et al. (2011, 2014), and later implemented in the Matlab HGF Toolbox (part of <a class="reference external" href="https://translationalneuromodeling.github.io/tapas">TAPAS</a> (Frässle et al. 2021).</p>
 <p>You can find a deeper introduction on how does the gHGF works under the following link:</p>
 <ul class="simple">
-<li><p>🎓 <a class="reference external" href="https://ilabcode.github.io/pyhgf/notebooks/0.2-Theory.html#theory">Introduction to the Hierarchical Gaussian Filter</a></p></li>
+<li><p>🎓 <a class="reference external" href="https://computationalpsychiatry.github.io/pyhgf/notebooks/0.1-Theory.html#theory">Introduction to the Hierarchical Gaussian Filter</a></p></li>
 </ul>
 </section>
 <section id="model-fitting">
@@ -491,7 +491,7 @@ document.write(`
 <span class="n">hgf</span><span class="o">.</span><span class="n">plot_trajectories</span><span class="p">();</span>
 </pre></div>
 </div>
-<p><img alt="png" src="https://raw.githubusercontent.com/ilabcode/pyhgf/master/docs/source/images/trajectories.png" /></p>
+<p><img alt="png" src="https://raw.githubusercontent.com/ComputationalPsychiatry/pyhgf/master/docs/source/images/trajectories.png" /></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyhgf.response</span> <span class="kn">import</span> <span class="n">binary_softmax_inverse_temperature</span>
 
 <span class="c1"># compute the model&#39;s surprise (-log(p)) </span>
@@ -509,15 +509,17 @@ document.write(`
 </section>
 <section id="acknowledgments">
 <h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Link to this heading">#</a></h2>
-<p>This implementation of the Hierarchical Gaussian Filter was inspired by the original <a class="reference external" href="https://translationalneuromodeling.github.io/tapas">Matlab HGF Toolbox</a>. A Julia implementation is also available <a class="reference external" href="https://github.com/ilabcode/HGF.jl">here</a>.</p>
+<p>This implementation of the Hierarchical Gaussian Filter was inspired by the original <a class="reference external" href="https://translationalneuromodeling.github.io/tapas">Matlab HGF Toolbox</a>. A Julia implementation is also available <a class="reference external" href="https://github.com/ComputationalPsychiatry/HGF.jl">here</a>.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
+<li><p>Legrand, N., Weber, L., Waade, P. T., Daugaard, A. H. M., Khodadadi, M., Mikuš, N., &amp; Mathys, C. (2024). pyhgf: A neural network library for predictive coding (Version 1). arXiv. https://doi.org/10.48550/ARXIV.2410.09206</p></li>
 <li><p>Mathys, C. (2011). A Bayesian foundation for individual learning under uncertainty. In Frontiers in Human Neuroscience (Vol. 5). Frontiers Media SA. https://doi.org/10.3389/fnhum.2011.00039</p></li>
 <li><p>Mathys, C. D., Lomakina, E. I., Daunizeau, J., Iglesias, S., Brodersen, K. H., Friston, K. J., &amp; Stephan, K. E. (2014). Uncertainty in perception and the hierarchical Gaussian filter. Frontiers in Human Neuroscience, 8. https://doi.org/10.3389/fnhum.2014.00825</p></li>
-<li><p>Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., &amp; Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 1). arXiv. https://doi.org/10.48550/ARXIV.2305.10937</p></li>
+<li><p>Weber, L. A., Waade, P. T., Legrand, N., Møller, A. H., Stephan, K. E., &amp; Mathys, C. (2023). The generalized Hierarchical Gaussian Filter (Version 2). arXiv. https://doi.org/10.48550/ARXIV.2305.10937</p></li>
 <li><p>Frässle, S., Aponte, E. A., Bollmann, S., Brodersen, K. H., Do, C. T., Harrison, O. K., Harrison, S. J., Heinzle, J., Iglesias, S., Kasper, L., Lomakina, E. I., Mathys, C., Müller-Schrader, M., Pereira, I., Petzschner, F. H., Raman, S., Schöbi, D., Toussaint, B., Weber, L. A., … Stephan, K. E. (2021). TAPAS: An Open-Source Software Package for Translational Neuromodeling and Computational Psychiatry. In Frontiers in Psychiatry (Vol. 12). Frontiers Media SA. https://doi.org/10.3389/fpsyt.2021.680811</p></li>
+<li><p>Iglesias, S., Kasper, L., Harrison, S. J., Manka, R., Mathys, C., &amp; Stephan, K. E. (2021). Cholinergic and dopaminergic effects on prediction error and uncertainty responses during sensory associative learning. In NeuroImage (Vol. 226, p. 117590). Elsevier BV. https://doi.org/10.1016/j.neuroimage.2020.117590</p></li>
 </ol>
 <div class="toctree-wrapper compound">
 </div>
@@ -616,7 +618,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
     <br/>
   </p>
 </div>

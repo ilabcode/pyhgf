@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Introduction to the Generalised Hierarchical Gaussian Filter &#8212; pyhgf 0.2.0 documentation</title>
+    <title>Introduction to the Generalised Hierarchical Gaussian Filter &#8212; pyhgf 0.2.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/documentation_options.js?v=37f418d5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>let toggleHintShow = 'Click to show';</script>
@@ -228,7 +228,7 @@ document.write(`
           
           
           
-          <a href="https://github.com/ilabcode/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+          <a href="https://github.com/ComputationalPsychiatry/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
             <span class="sr-only">GitHub</span></a>
         </li>
         <li class="nav-item">
@@ -366,7 +366,7 @@ document.write(`
           
           
           
-          <a href="https://github.com/ilabcode/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+          <a href="https://github.com/ComputationalPsychiatry/pyhgf" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
             <span class="sr-only">GitHub</span></a>
         </li>
         <li class="nav-item">
@@ -508,7 +508,7 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="introduction-to-the-generalised-hierarchical-gaussian-filter">
 <span id="theory"></span><h1>Introduction to the Generalised Hierarchical Gaussian Filter<a class="headerlink" href="#introduction-to-the-generalised-hierarchical-gaussian-filter" title="Link to this heading">#</a></h1>
-<p><a class="reference external" href="https://colab.research.google.com/github/ilabcode/pyhgf/blob/master/docs/source/notebooks/0.1-Theory.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/ComputationalPsychiatry/pyhgf/blob/master/docs/source/notebooks/0.1-Theory.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <p>The Hierarchical Gaussian Filter is a Bayesian model of belief updating under uncertainty in which the volatility of the environment is encoded by a hierarchy of probability distributions. A generalised version of this model <span id="id1">[<a class="reference internal" href="../references.html#id13" title="Lilian Aline Weber, Peter Thestrup Waade, Nicolas Legrand, Anna Hedvig Møller, Klaas Enno Stephan, and Christoph Mathys. The generalized hierarchical gaussian filter. 2023. arXiv:2305.10937.">Weber <em>et al.</em>, 2023</a>]</span> has further framed this into a neural network framework of probabilistic state nodes interacting with each other. At the heart of both frameworks lies a generative model that consist in a hierarchy of <a class="reference internal" href="#term-Gaussian-Random-Walk"><span class="xref std std-term">Gaussian Random Walk</span></a>. The inversion of this model (i.e. estimating parameters from observed values) leads to the derivation of prediction errors and posterior updates that can turn these networks into learning systems. To fully understand this model, it is therefore central to start with the simplest case, the implied generative model, which can be seen as the probabilistic structure that generates observations.</p>
 <p>In this notebook, we introduce the main concepts on which the Hierarchical Gaussian Filter (HGF) is based. We review equations of the generative model and illustrate them through examples only using <a class="reference external" href="https://numpy.org/">Numpy</a>. Later in the theory section, we will discuss how this generative model can be turned into a network of probabilistic nodes, and how this framework can generalize to the whole exponential distribution family.</p>
 <div class="cell docutils container">
@@ -852,7 +852,7 @@ x_2^{(k)} \sim \mathcal{N}(x_2^{(k-1)}, \, \exp(\omega_2))
 </section>
 <section id="the-propagation-of-prediction-and-prediction-errors">
 <h3>The propagation of prediction and prediction errors<a class="headerlink" href="#the-propagation-of-prediction-and-prediction-errors" title="Link to this heading">#</a></h3>
-<p>Having described the model as a specific configuration of predictive nodes offer many advantages, especially in term of modularity for the user. However, the model itself is not limited to the description of the generative process that we covered in the previous examples. The most interesting, and also the more complex, part of the modelling consists of the capability for the network to update the hierarchical structure in a Bayesian optimal way as new observations are presented. These steps are defined by a set of simple, one-step update equations that represent changes in beliefs about the hidden states (i.e. the sufficient statistics of the nodes) specified in the generative model. These equations were first described in <span id="id6">Mathys [<a class="reference internal" href="../references.html#id2" title="Christoph D. Mathys. A Bayesian foundation for individual learning under uncertainty. Frontiers in Human Neuroscience, 5(May):1–20, 2011. URL: http://journal.frontiersin.org/article/10.3389/fnhum.2011.00039/abstract, doi:10.3389/fnhum.2011.00039.">2011</a>]</span>, and the update equations for volatility and value coupling in the generalized Hierarchical Gaussian filter (on which most of the update functions in <a class="reference external" href="https://github.com/ilabcode/pyhgf">pyhgf</a> are based) have been described in <span id="id7">[<a class="reference internal" href="../references.html#id13" title="Lilian Aline Weber, Peter Thestrup Waade, Nicolas Legrand, Anna Hedvig Møller, Klaas Enno Stephan, and Christoph Mathys. The generalized hierarchical gaussian filter. 2023. arXiv:2305.10937.">Weber <em>et al.</em>, 2023</a>]</span>. The exact computations in each step especially depend on the nature of the coupling (via <a class="reference internal" href="#term-VAPE"><span class="xref std std-term">VAPE</span></a>s vs. <a class="reference internal" href="#term-VOPE"><span class="xref std std-term">VOPE</span></a>s) between the parent and children nodes. It is beyond the scope of this tutorial to dive into the derivation of these steps and we refer the interested reader to the mentioned papers. Here, we provide a general overview of the dynamic of the update sequence that supports belief updating. The computations triggered by any observation at each time point can be ordered in time as shown in the belief update algorithm.</p>
+<p>Having described the model as a specific configuration of predictive nodes offer many advantages, especially in term of modularity for the user. However, the model itself is not limited to the description of the generative process that we covered in the previous examples. The most interesting, and also the more complex, part of the modelling consists of the capability for the network to update the hierarchical structure in a Bayesian optimal way as new observations are presented. These steps are defined by a set of simple, one-step update equations that represent changes in beliefs about the hidden states (i.e. the sufficient statistics of the nodes) specified in the generative model. These equations were first described in <span id="id6">Mathys [<a class="reference internal" href="../references.html#id2" title="Christoph D. Mathys. A Bayesian foundation for individual learning under uncertainty. Frontiers in Human Neuroscience, 5(May):1–20, 2011. URL: http://journal.frontiersin.org/article/10.3389/fnhum.2011.00039/abstract, doi:10.3389/fnhum.2011.00039.">2011</a>]</span>, and the update equations for volatility and value coupling in the generalized Hierarchical Gaussian filter (on which most of the update functions in <a class="reference external" href="https://github.com/ComputationalPsychiatry/pyhgf">pyhgf</a> are based) have been described in <span id="id7">[<a class="reference internal" href="../references.html#id13" title="Lilian Aline Weber, Peter Thestrup Waade, Nicolas Legrand, Anna Hedvig Møller, Klaas Enno Stephan, and Christoph Mathys. The generalized hierarchical gaussian filter. 2023. arXiv:2305.10937.">Weber <em>et al.</em>, 2023</a>]</span>. The exact computations in each step especially depend on the nature of the coupling (via <a class="reference internal" href="#term-VAPE"><span class="xref std std-term">VAPE</span></a>s vs. <a class="reference internal" href="#term-VOPE"><span class="xref std std-term">VOPE</span></a>s) between the parent and children nodes. It is beyond the scope of this tutorial to dive into the derivation of these steps and we refer the interested reader to the mentioned papers. Here, we provide a general overview of the dynamic of the update sequence that supports belief updating. The computations triggered by any observation at each time point can be ordered in time as shown in the belief update algorithm.</p>
 <div class="admonition note" id="belief-update">
 <p class="admonition-title">Note</p>
 <p>Belief update</p>
@@ -921,21 +921,21 @@ Given the expectation from the prediction step</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Sun Oct 13 2024
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Last updated: Wed Dec 18 2024
 
 Python implementation: CPython
-Python version       : 3.12.7
-IPython version      : 8.28.0
+Python version       : 3.12.8
+IPython version      : 8.29.0
 
-pyhgf : 0.2.0
+pyhgf : 0.2.1
 jax   : 0.4.31
 jaxlib: 0.4.31
 
-numpy     : 1.26.0
-IPython   : 8.28.0
-sys       : 3.12.7 (main, Oct  1 2024, 15:17:55) [GCC 11.4.0]
-seaborn   : 0.13.2
 matplotlib: 3.9.2
+numpy     : 1.26.0
+IPython   : 8.29.0
+seaborn   : 0.13.2
+sys       : 3.12.8 (main, Dec  4 2024, 06:19:59) [GCC 11.4.0]
 
 Watermark: 2.5.0
 </pre></div>
@@ -1057,7 +1057,7 @@ Watermark: 2.5.0
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
     <br/>
   </p>
 </div>
