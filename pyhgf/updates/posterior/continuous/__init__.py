@@ -3,6 +3,5 @@ from .continuous_node_posterior_update_ehgf import continuous_node_posterior_upd
 
 __all__ = [
     "continuous_node_posterior_update_ehgf",
-    "continuous_node_posterior_update_unbounded",
     "continuous_node_posterior_update",
 ]
